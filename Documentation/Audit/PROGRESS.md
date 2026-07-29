@@ -114,7 +114,7 @@ Format: `NN | status | title | scope | output | notes`
 
 - 16 | done | AI controllers | `gameserver/ai/**` | `16-ai.md` | Phase 1 summary documented.
 - 17 | done | managers part 1 | `gameserver/managers/{Castle,Siege,Zone,ZoneBuild,Town,Instance,GrandBoss,RaidBossSpawn,RaidBossPoints,DayNightSpawn}*.java` | `17-managers-1.md` | Phase 1 summary documented.
-- 18 | done | managers part 2 + data loaders | remaining managers + `managers/games/**`, `gameserver/data/**` | `18-managers-2.md` | Phase 1 summary documented.
+- 18 | in_progress | managers part 2 + data loaders | remaining managers + `managers/games/**`, `gameserver/data/**` | `18-data-loaders.md` | Read: ClanTable.java, ItemData.java, ArmorSet.java, StatType.java; next: continue reading other data loader files.
 - 19 | done | handlers & taskmanagers | `gameserver/handler/**` + `gameserver/taskmanagers/**` | `19-handlers-taskmanagers.md` | Phase 1 summary documented.
 - 20 | done | scripting, util, geo, cache, bbs, ui | `gameserver/{scripting,util,geoengine,cache,communitybbs,ui}/**` | `20-scripting-util-geo-misc.md` | Phase 1 summary documented.
 
