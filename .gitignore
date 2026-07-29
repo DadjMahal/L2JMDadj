@@ -1,0 +1,18 @@
+# Upstream Mobius clone (massive, reference only)
+/L2JMobiusUpstream/
+
+# Archived servers (not part of active project)
+/L2JMobiusServers/
+
+# Build artifacts
+/build/
+
+# Runtime logs
+/ServerBuild/**/log/
+*.log
+
+# Eclipse
+bin/
+.settings/
+.classpath
+.project
