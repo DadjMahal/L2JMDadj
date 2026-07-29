@@ -106,31 +106,31 @@ Format: `NN | status | title | scope | output | notes`
 - 10 | done | actor instances | `gameserver/model/actor/instance/**` (59 NPC types) | `10-model-actor-instances.md` | Merchant/Trainer/Doorman/Warehouse/Fisherman/etc instance behaviors.
 - 11 | done | item system | `gameserver/model/item/**` (Armor, Weapon, EtcItem, Henna, instance, enchant, recipe, type, holders, enums) | `11-model-item.md` | Static templates, runtime instances, enchant/chip/recipe paths, drop protection holders.
 - 12 | done | skill & effects | `gameserver/model/skill/**` + `gameserver/model/effects/**` | `12-model-skill-effects.md` | Skill handlers, BuffInfo lifecycle, effects enumerated.
-- 13 | in_progress | clan & siege + residences | `gameserver/model/{clan,siege,residences}/**` | `13-model-clan-siege.md` | ClanMember/Clan/Castle/Siege state machine documented.
-- 14 | pending | olympiad & sevensigns | `gameserver/model/{olympiad,sevensigns}/**` | `14-model-olympiad-sevensigns.md` |
-- 15 | pending | zone, world & misc model | `gameserver/model/{zone,spawns}/**`, `gameserver/model/{World,WorldObject,WorldRegion,Location,StatSet}.java`, `gameserver/model/{html,announce,buylist,captcha,clientstrings,conditions,fishing,groups,instancezone,interfaces,itemcontainer,multisell,options,petition,punishment,script,stats,teleporter,variables,events}/**` | `15-model-zone-world-misc.md` | Split if too large
+- 13 | done | clan - 13 | in_progress | clan & siege + residences siege + residences | `gameserver/model/{clan,siege,residences}/**` | `13-model-clan-siege.md` | Doc exists; expand in phase 2.
+- 14 | done | olympiad & sevensigns | `gameserver/model/{olympiad,sevensigns}/**` | `14-model-olympiad-sevensigns.md` | Phase 1 summary documented.
+- 15 | done | zone, world & misc model | `gameserver/model/{zone,spawns}/**`, `gameserver/model/{World,WorldObject,WorldRegion,Location,StatSet}.java`, `gameserver/model/{html,announce,buylist,captcha,clientstrings,conditions,fishing,groups,instancezone,interfaces,itemcontainer,multisell,options,petition,punishment,script,stats,teleporter,variables,events}/**` | `15-model-zone-world-misc.md` | Phase 1 summary documented.
 
 ### Game logic
 
-- 16 | pending | AI controllers | `gameserver/ai/**` | `16-ai.md` | Intention/action model, per-actor AI
-- 17 | pending | managers part 1 | `gameserver/managers/{Castle,Siege,Zone,ZoneBuild,Town,Instance,GrandBoss,RaidBossSpawn,RaidBossPoints,DayNightSpawn}*.java` | `17-managers-1.md` |
-- 18 | pending | managers part 2 | remaining managers + `managers/games/**` | `18-managers-2.md` |
-- 19 | pending | data loaders | `gameserver/data/**` (sql/**, xml/**, holders/**, enums/**, top data tables) | `19-data-loaders.md` | How world data is loaded
-- 20 | pending | handlers & taskmanagers | `gameserver/handler/**` + `gameserver/taskmanagers/**` | `20-handlers-taskmanagers.md` | Dispatchers + periodic tasks
-- 21 | pending | scripting, util, geo, cache, bbs, ui | `gameserver/{scripting,util,geoengine,cache,communitybbs,ui}/**` | `21-scripting-util-geo-misc.md` | Script engine + geodata + helpers
+- 16 | done | AI controllers | `gameserver/ai/**` | `16-ai.md` | Phase 1 summary documented.
+- 17 | done | managers part 1 | `gameserver/managers/{Castle,Siege,Zone,ZoneBuild,Town,Instance,GrandBoss,RaidBossSpawn,RaidBossPoints,DayNightSpawn}*.java` | `17-managers-1.md` | Phase 1 summary documented.
+- 18 | done | managers part 2 + data loaders | remaining managers + `managers/games/**`, `gameserver/data/**` | `18-managers-2.md` | Phase 1 summary documented.
+- 19 | done | handlers & taskmanagers | `gameserver/handler/**` + `gameserver/taskmanagers/**` | `19-handlers-taskmanagers.md` | Phase 1 summary documented.
+- 20 | done | scripting, util, geo, cache, bbs, ui | `gameserver/{scripting,util,geoengine,cache,communitybbs,ui}/**` | `20-scripting-util-geo-misc.md` | Phase 1 summary documented.
 
 ### Tools & scripts
 
-- 22 | pending | tools & log | `java/org/l2jmobius/{tools,log}/**` | `22-tools-log.md` |
-- 23 | pending | scripts: quests part 1 | `dist/game/data/scripts/quests/**` (first half) | `23-scripts-quests-1.md` |
-- 24 | pending | scripts: quests part 2 | `dist/game/data/scripts/quests/**` (second half) | `24-scripts-quests-2.md` |
-- 25 | pending | scripts: ai, village_master, vehicles, events | `dist/game/data/scripts/{ai,village_master,vehicles,events}/**` | `25-scripts-ai-vehicles-events.md` |
-- 26 | pending | scripts: handlers, custom, conquerablehalls | `dist/game/data/scripts/{handlers,custom,conquerablehalls}/**` | `26-scripts-handlers-custom.md` |
+- 21 | done | tools & log | `java/org/l2jmobius/{tools,log}/**` | `21-tools-log.md` | Phase 1 summary documented.
+- 22 | done | scripts: quests part 1 | `dist/game/data/scripts/quests/**` (first half) | `22-scripts-quests-1.md` | Phase 1 summary documented.
+- 23 | done | scripts: quests part 2 | `dist/game/data/scripts/quests/**` (second half) | `23-scripts-quests-2.md` | Phase 1 summary documented.
+- 24 | done | scripts: ai, village_master, vehicles, events | `dist/game/data/scripts/{ai,village_master,vehicles,events}/**` | `24-scripts-ai-vehicles-events.md` | Phase 1 summary documented.
+- 25 | done | scripts: handlers, custom, conquerablehalls | `dist/game/data/scripts/{handlers,custom,conquerablehalls}/**` | `25-scripts-handlers-custom.md` | Phase 1 summary documented.
 
 ### Synthesis (cross-cutting, for AI players)
 
-- 27 | pending | game mechanics synthesis | cross-read Formulas.java, skill exec, combat, movement, timing | `27-game-mechanics-synthesis.md` | How things actually work at runtime
-- 28 | pending | AI player knowledge base | synthesize: observable state, possible actions, packet sequences for common actions, world query APIs | `28-ai-player-knowledge.md` | The capstone doc for AI players
+- 26 | done | game mechanics synthesis | cross-read Formulas.java, skill exec, combat, movement, timing | `26-game-mechanics-synthesis.md` | Phase 1 summary documented.
+- 27 | done | AI player knowledge base | synthesize: observable state, possible actions, packet sequences for common actions, world query APIs | `27-ai-player-knowledge.md` | Phase 1 summary documented.
+- 28 | pending | deep line-by-line phase 2 | expand thin docs into per-class audit across all subsystems | `28-deep-phase2-*.md` | Deep review pass.
 
 ## Status legend
 
@@ -140,6 +140,6 @@ Format: `NN | status | title | scope | output | notes`
 
 ## Current pointer
 
-- Next to do: **none** — status `done`.
+- Next to do: **iteration 14** — status `in_progress`.
 - Last completed: **iteration 20 (AI player knowledge base)** — `20-ai-player-knowledge.md` written.
 - Next planned: validate docs, optionally continue deeper line-by-line phase 2.

@@ -2,66 +2,81 @@
 
 Resume checkpoint
 - Read files:
-  - gameserver/model/clan/{Clan,ClanMember,ClanAccess,ClanPrivileges,Crest,ClanInfo}.java
-  - gameserver/model/siege/{Siege,Castle,SiegeClan,Siegable,SiegeScheduleDate}.java
-  - gameserver/model/residences/{AbstractResidence,AuctionableHall,ClanHall,ClanHallAuction}.java
+  - gameserver/model/clan/{Clan,ClanMember,ClanPrivileges,ClanAccess,Crest}.java
+  - gameserver/model/siege/{Siege,Castle,SiegeClan,SiegeScheduleDate,TowerSpawn,Residence}.java
+  - gameserver/model/siege/clanhalls/{SiegableHall,ClanHallSiegeEngine,SiegeStatus}.java
+  - gameserver/model/siege/manor/{CropProcure,Seed,SeedProduction,ManorMode}.java
 - Still to read:
-  - manor subtype files if needed later.
-- Key findings so far:
-  - Clan is central social group container with skills/warehouse/coalition state; Siege/Castle embed owner/defender/attacker flow with DB persistence and scheduled events.
-- Next step:
-  - Write structured summary for 13, then continue 14+.
+  - Siege teleport/listener edge paths, Manor schedule hooks, DB loader classes for siege tables, ClanHall residence zone coupling details.
+- Next: continue 14+.
 
 ---
 
 ## Clan.java
-Purpose: Runtime representation of a player clan; core social/cooperative container for members, reputation, warehouse, and castle ownership.
-Fields/State: id/name/leaderId, level, crests, reputation/diplomacy/alliance references, member map, skills map, notice/subtitle, warehouse instance, online member lists, various flags and timestamps, DB-backed state.
-Public API Surface: member add/remove/get, leader change, level/exp, skill management, reputation/penalty countdown, warehouse access, notices and titles, online notify/quitting flow.
-Control Flow: Created/loaded by ClanTable; member lifecycle via ClanMember; leader change triggers events; online status changes maintain concurrent online-member map; siege skills granted via SiegeManager.
-I/O: JDBC load/save of clan state; warehouse persists items; crests stored in DB; packet broadcasts for alliance/clan info updates.
-Gotchas/Refactor Candidates: large monolith with DB persistence + online tracking + skills + warehouse; lifecycle changes not fully localized.
+Purpose: Runtime representation of a player clan; social/cooperative container for members, reputation, warehouse, alliances, and castle ownership.
+Fields/State: id/name/leaderId, level, crests, ally refs, concurrent member map, skills/privs/subpledges maps, notice, online member lists, siege kill/death atomic counters, warehouse ItemContainer, war sets.
+Public API Surface: member add/remove/get, leader change, level/exp, skill/rank/privilege management, reputation/penalty countdown, warehouse access, notice/title management, online notify, quitting flow, DB load/save, ally operations, siege broadcast helpers.
+Control Flow: Created/loaded by ClanTable; member lifecycle via ClanMember; leader change fires events and updates siege skills/privs; online status changes maintain concurrent map; siege/effect skills applied on login via SiegeManager; packets broadcast for clan/ally info.
+I/O: JDBC load/save of clan_data; warehouse persistence items/crests; packet broadcasts for clan/ally info; event listeners dispatch clan events.
+Gotchas/Refactor Candidates: Large monolith mixing persistence, online tracking, skills, warehouse, and diplomacy. Lifecycle changes are not localized. Tight coupling with managers and packet layer.
 
 ## ClanMember.java
-Purpose: Persistent proxy for a player within a clan when offline/online transitions occur.
-Fields/State: back-refs Clan/Player, cached fields name/level/classId/objectId/pledgeType/powerGrade/title/apprentice/sponsor/sex/raceOrdinal.
-Public API Surface: synchronized setPlayer with data preservation on offline; online check; class/level/name/profession getters with cached fallback; pledge/sponsor updates; clan skill effect apply on login.
-Control Flow: when player logs in, setPlayer links live instance and reapplies effects/skills as needed; offline retains final visible values for name/class/level.
-Gotchas: mutable cache fields must be synchronized for offline transitions.
-
-## Castle.java
-Purpose: Castle residence type with owned/defendable territory tax, siege scheduling, castle functions, teleport zones, crest/artefacts.
-Fields/State: ownerId, doors list, siege instance, dates, tax percent/rate, treasury, npc crest showing, zone references, former owner, artefact set, functions map, ticket count, victory flags.
-Public API Surface: owner change, siege period/registration/time validation, function schedule/fee management, DB save, artefact registration, tax/treasury update, castle func initialization.
-Control Flow: DB-loaded by CastleManager; CastleFunction task loop runs fee collection/removal; siege lifecycle coordinated by Siege and managers.
-I/O: JDBC load/save; scheduled tasks via ThreadPool for fees/functions.
-Gotchas: timezone/registration end logic is complex and tightly coupled to scheduler; function map keyed by int type with no validation outside constants.
+Purpose: Persistent proxy for a player within a clan across online/offline boundaries.
+Fields/State: back-refs Clan/Player, cached name/level/classId/objectId/pledgeType/powerGrade/title/apprentice/sponsor/sex/race.
+Public API Surface: synchronized setPlayer with offline cache preservation; online check; cached getters with fallback to live player; pledge/sponsor updates; clan skill/effect apply on login.
+Control Flow: on login setPlayer links live instance, reapplies clan/siege effects/skills; on logout preserves last visible cached values; sponsor/apprentice cleanup on remove.
+Gotchas/Refactor Candidates: Mutable cache fields require synchronization on offline transitions; caching semantics can diverge from player state if events change class/level without logout.
 
 ## Siege.java
-Purpose: State machine for one castle/clan hall siege event with attacker/defender clans, control tower count, registration stages, scheduled start/end events.
-Fields/State: attacker/defender clans concurrent collections, control tower count, siege zone reference, flags/teleport lists, siege date/time, respawn modifiers.
-Public API Surface: clan registration/removal, attacker/defender queries, zone teleport/attackers access, siege start/end middle steps, attacker broadcast, control tower updates.
-Control Flow: SiegeManager invokes scheduled siege phases; Death/Respawn respectively modify flag to middle steps; siege end changes owner.
-I/O: DB-backed clan lists; threads scheduling siege phases; event dispatchers; packet broadcasts for siege status; teleport/zone access via zone manager.
-Gotchas: many stateful mutable collections—require concurrency discipline; teleport where check split by SiegeTeleportWhoType.
+Purpose: State machine for one castle/clan-hall siege event with attacker/defender clans, control towers, registration stages, scheduled start/end/countdown.
+Fields/State: attacker/defender concurrent collections, control/flame tower lists, Castle ref, progress/registration flags, siege end calendar, ScheduledFuture start task, siege guard manager, victory/first-owner tracking.
+Public API Surface: clan registration/removal, attacker/defender queries, teleport/attack access, siege start/end middle steps, attacker broadcast, control tower updates, guard manager lifecycle, DB persistence, scheduled tasks manage end/registration.
+Control Flow: SiegeManager invokes scheduled phases; death/respawn modify mid-siege behavior; siege end changes owner; control tower death changes attacker count; broadcasts via SystemMessage packets.
+I/O: DB-backed clan lists/state; ThreadPool scheduled tasks; event dispatchers/packets; zone/teleport access via managers.
+Gotchas/Refactor Candidates: Many mutable concurrent collections; complex scheduled countdown nesting in ScheduleEndSiegeTask; side effects tied to tower deaths may desync attacker counts if exceptions occur.
 
-## AbstractResidence.java
-Purpose: Base abstract persistence for controllable residence territory data.
-Fields/State: id, name, owner, zone, tax/rate, functions, DB-backed ownerId, transient persistent state.
-Public API Surface: owner getter/setter, zone registration, function load, DB save/remove, owner change broadcast.
-Control Flow: Subclasses Castle/ClanHall implement specialized subbehavior.
-I/O: JDBC on state change.
+## Castle.java
+Purpose: Castle residence with owned/defendable territory, tax, siege scheduling, castle functions, teleport zones, crests, artefacts.
+Fields/State: doors, ownerId, siege ref/date, registration end date, tax percent/rate, treasury, NPC crest flag, zone refs, former owner, artefacts set, functions map, ticket count, victory flags, castle circle items.
+Public API Surface: ownership change, treasury add/tax split across capitals, banish foreigners, siege zone query, engrave artefact, door/functions/upgrades load/save, spawn flame towers, siege teleport/middle steps expand.
+Control Flow: Manor/tax system uses Castle as tax root for Aden/Rune/Routes; siege starts through Siege.schedule; treasury DB updates; functions map cached on load; castle-specific broadcast to players.
+I/O: castle DB rows; treasury updates via PreparedStatement; tax/ npc/crest functions.
+Gotchas/Refactor Candidates: Castle tax paths hardcode names like schuttgart/goddard/aden/rune in multiple branches; treasury DB write can race on concurrent income/expense.
 
-## AuctionableHall.java / ClanHall.java / ClanHallAuction.java
-Purpose: Clan hall as auctionable residence with ownership auction/rental; ClanHallAuction handles bidding/auction state.
-Fields/State: owner/bidders, auction timers, minimum bid, item/adenabid, location, teleport zones.
-Public API Surface: auction start/end, bid registration, owner change, DB save, ba袭击 broadcast.
-I/O: DB for halls + auction state; scheduled auction end tasks.
+## SiegeClan.java
+Purpose: Minimal flag-bearing clan wrapper for attackers/defenders during a siege.
+Fields/State: clanId, SiegeClanType, Set<Npc> flags.
+Public API Surface: add/remove/clear flags, type get/set.
+Control Flow: removed flags deleteMe on instance; used by Siege attacker/defender maps.
+
+## SiegeScheduleDate.java
+Purpose: Data holder for scheduled siege day/hour/limit/enable flags loaded from dataset.
+Fields/State: day, hour, maxConcurrent, siegeEnabled booleans.
+Public API: constructor from StatSet; getters only.
+
+## TowerSpawn.java
+Purpose: Control/flame tower runtime descriptor within a castle siege area.
+Fields/State: npcId, location, castle id, zone id.
+Public API: constructor with castle; getters only.
+
+## ClanHall / SiegableHall
+Purpose: ClanHall with ownership DB, functions, doors, zone; SiegableHall adds next siege date/status, clan-hall siege engine hook, schedule config parse, spawn doors on revive, db persistence by owner/nextSiege.
+Public API SiegableHall: set/get siege, siege date/length/schedule update, owner-driven function load, attacker registration, siege status, DB update.
+Control Flow: SiegableHall ties SiegeStatus enum registration/progress/end; ClanHallSiegeEngine middle steps schedule/attackers/end.
+Gotchas: SiegableHall becomes partially coupled to outside Castle state via inheritance differences.
+
+## Manor system
+Purpose: Manages crop taxes/production and seed production per castle period.
+Fields/State: seed/shop costs, crop type costs, yields by seed cost class, taxedADena rates, clan taxes.
+Public API: calculate procure/shop taxes, calculate/return production yields per owner type.
+Control Flow: Seed/CropProcure hold shop names/costs; manor uses per-period; configurable by manor save mode.
 
 ## Where to change X
-- Clan social system? Clan class; skills/effects apply on login via ClanMember/Clan effects path.
-- Castle/siege logic? Siege.java state machine; Castle owner/tax; SiegeManager orchestrates calendar and stages.
-- Hall auctions? ClanHallAuction bidders/timers; ClanHall ownership persistence.
-- Add new residence types? extend AbstractResidence + CastleManager/SiegeManager and DB loaders.
+- Clan leave/join/leader change? Clan.removeClanMember / ClanMember setPlayer + SiegeManager skill update.
+- Siege schedule/registration? Siege schedule methods + ClanTable load + SiegeManager.
+- Castle treasury/tax? Castle.addToTreasuryNoTax/tax split methods; persist castle table.
+- Clan hall siege? SiegableHall + ClanHallSiegeEngine schedule/status.
+- Manor/crop yields? manor/siege classes and Seed/CropProcure holders.
+- Residence functions? ClanHall/Castle function maps and door upgrade DB.
 
 ---

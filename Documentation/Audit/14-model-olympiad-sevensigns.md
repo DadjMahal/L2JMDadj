@@ -2,57 +2,34 @@
 
 Resume checkpoint
 - Read files:
-  - model/olympiad/Olympiad.java top
-  - model/olympiad/Hero.java
-  - model/sevensigns/SevenSigns.java top
-  - model/sevensigns/SevenSignsFestival.java top
-  - package file lists
+  - gameserver/model/olympiad/Olympiad.java 1-520
+  - gameserver/model/sevensigns/SevenSigns.java 1-520
 - Still to read:
-  - OlympiadGame/OlympiadStadium/OlympiadManager, SevenSigns subevents.
-- Key findings so far:
-  - Olympiad uses DB-backed nobles/ranks, scheduled tasks, registries by class/non-class, winner hero promotion, periodic data persistence.
-  - SevenSigns has cyclic periods, festival spawn tables, sealed cabal state, DB-backed data.
-- Next: write structural summary and continue.
+  - Olympiad match handler classes, SevenSigns festival/siege class, DB loader details if needed.
+- Next: continue 15+.
 
 ---
 
 ## Olympiad.java
-Purpose: Top-level manager for Olympiad cycle, noble rankings, registrations, matches, hero elections, and DB persistence.
-Fields/State: nobles map, rank map, hero list, class/non-class registrant maps, periodic timers, competition windows, validation/cycle/end dates.
-Public API: scheduled cycle tasks; noble load/save/update; registration entry/removal by class/non-class; game start/stop/finish; reward points/hero calc.
-I/O: olympiad_data, olympiad_nobles, characters tables; broadcast packets for matches; event listeners; zone/manager mapping.
-Gotchas: large static state spanning multiple maps; periodic DB write on cycle validation end; thread pools/scheduled futures for match management; effects on siege/hero system which are very coupled with game subspecies; potential stale registrations.
-
-## Hero.java
-Purpose: H track accumulable hero-related state and system message updates for recognized hero counts/winners.
-Fields/State: hero count and counts by hero type, pending counts; sentence counts by hero counts.
-Public API Surface: getters/setters for counts; broadcast system messages on counts changed; count accessors for percent-based counts and hero range helpers.
-I/O: DB-backed data retrieval; broadcast packets.
+Purpose: Singleton manager for Olympiad competition cycle, nobles tracking, rankings, and rewards.
+Fields/State: DB queries nobles/matches/heritage, concurrent nobles/rank/monitor maps, period state, scheduled validation/end/weekly tasks, hero/noble instance holders.
+Public API Surface: nobles get/register/save, competition registration/validation, match start/end/broadcast, calculations for points/r Rankings, hero title management, olympiad shield/shop checks, send packet helpers.
+Control Flow: constructor restores from DB and schedules period/validation switch; weekly calculations; match queue dispatched via OlympiadGameTaskManager; participants removed on validation end.
+I/O: heavy JDBC load nobles/matches; scheduled tasks at fixed rate; broadcast packets for olympiad status/monitor.
+Gotchas/Refactor Candidates: large singleton property violating SRP; nobless rank recalculation doubles tmpPlace; many date math in constructor.
 
 ## SevenSigns.java
-Purpose: Main Seven Signs world-state engine: cabal selection, seal status, period progression, DB persistence, player contribution counting, schedule-driven period changes, festival manager/teleport buffering.
-Fields/State: cabal/owner maps, seal owners, contribution counts, period schedule, buffs/times, DB flags, player demand lists, revival room mappings.
-Public API: init/load/save from DB; period/state updates; player contribution registration; seal owner change/switch handling; schedule-driven period calc; festival access; period startup/close/record settings; cabal reward buffs; event dispatch.
-I/O: DB back for period/status/player counts; event dispatcher for seal changes; scheduled tasks; packet/system message broadcasts; DimensionalRift usage.
-Gotchas: enormous state container with periodic DB writes; tight caldendar state machine; date math for validation/period start/end; very cross-coupled with siege and castle reward systems.
-
-## SevenSignsFestival.java
-Purpose: Festival instance/manager for Seven Signs mini-game periods: level-based spawns, monster spawn control, player teleports, score accumulation, chest opening, witch interactions.
-Fields/State: festival-level spawn tables by dawn/dusk/number; monster containers, player instances, music/chest headers, festival scores/level indicators.
-Public API: start/stop festivals, spawn monster sets, calculate level/start location, increment player score, open chest notification, end festival; event dispatch; DB save.
-I/O: spawns/npc data; packet/system messages; DB-backed scores; event broadcasting; timed task sequences.
-Gotchas: hard-coded spawn table triples by level; state transition logic depends on Witch survival; composition by date driven by config constants.
-
-## DimensionalRift.java / DimensionalRiftRoom.java
-Purpose: Rift zone state container for seven-signs mini-instances: room state, party teleport completion, room refill timers, party creation failures, room updates.
-Fields/State: instance room map, teleport room sets, timed completion tasks; room info holders by instance level/partysize/type; complete/change/fail dispatchers; rooms list DB/world-room mapping.
-Public API: start/complete/fail/change stage/lock-room/forgiveness/teleport/set-color; save/load rift state; timed task refills; room selector.
-I/O: DB load/save; event dispatch; scheduled tasks; packets; instance/zone manager links.
+Purpose: Global Seven Signs state machine with cabal/season/seal validation, festival scheduling, and mercenary spawns.
+Fields/State: cabal scores, seals state, period/cycle dates, scheduled period change, DB persistence strings, NPC spawn sets, festival schedule cache, player contribution/type/ADB flags.
+Public API Surface: period getter, cabal high score/mineral contribution, seal/owner getters, festival schedule/type, monster reward multipliers, period change listeners, DB save, spawn/destroy NPCs.
+Control Flow: constructor loads DB and schedules next period exchange; seal validation/manor uses cabal scores; monster reward multipliers applied in gameplay; spawnSevenSignsNPC coordinated with AutoSpawnHandler; period change uses ThreadPool schedule.
+I/O: DB-backed cabal/npc/state persistence; monster reward DB updates; spawn management.
+Gotchas/Refactor Candidates: period change happens every calendar cycle and should tolerate old-time gaps; coupled to AutoSpawnHandler IDs hardcoded; many static calc methods.
 
 ## Where to change X
-- Balance olympiad rewards/hero elections? Olympiad points calc/rank maps; saved DB tables + broadcast.
-- Adjust seven signs periods? SevenSigns schedule/cabal state; festival managers/siege rewards integration.
-- Modify festival difficulty? SevenSignsFestival spawn tables/type categories; scores by level thresholds.
-- Add new event tied to player global state? SevenSigns or Olympiad event listeners + packet broadcast.
+- Olympiad balance? Olympiad rating/points constants and match schedule logic.
+- Seven Signs schedule/festival? SevenSigns.setCalendarForNextPeriodChange + spawn/config data.
+- Olympiad reward items? Olympiad.getHero/vote/rank reward mappings + heritage table.
+- Seven Signs cabal winner? SevenSigns.getCabalHighestScore and validation length.
 
 ---
