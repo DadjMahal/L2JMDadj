@@ -114,7 +114,7 @@ Format: `NN | status | title | scope | output | notes`
 
 - 16 | done | AI controllers | `gameserver/ai/**` | `16-ai.md` | Phase 1 summary documented.
 - 17 | done | managers part 1 | `gameserver/managers/{Castle,Siege,Zone,ZoneBuild,Town,Instance,GrandBoss,RaidBossSpawn,RaidBossPoints,DayNightSpawn}*.java` | `17-managers-1.md` | Phase 1 summary documented.
-- 18 | in_progress | managers part 2 + data loaders | remaining managers + `managers/games/**`, `gameserver/data/**` | `18-data-loaders.md` | Read: ClanTable.java, ItemData.java, ArmorSet.java, StatType.java; next: continue reading other data loader files.
+- 18 | done | managers part 2 + data loaders | remaining managers + `managers/games/**`, `gameserver/data/**` | `18-data-loaders.md` | Read: ClanTable.java, ItemData.java, ArmorSet.java, StatType.java, SkillData.java, ExperienceData.java, NpcData.java, SpawnData.java, ZoneData.java, RecipeData.java, MultisellData.java, BuyListData.java, TeleportData.java, HennaData.java, FishData.java, PetParamData.java, MerchantPriceConfigTable.java, DataLoaderManager.java, CategoryData.java, DoorData.java, MapRegionData.java, PlayerTemplateData.java, SkillTreeData.java, EnchantItemData.java, EnchantItemGroupsData.java, EnchantItemHPBonusData.java, OptionData.java, ItemCountLimit.java, ItemPlus2.java, ItemUp1.java, PetDataTable.java, HeroSkillTable.java, AugmentationData.java, SpawnTable.java, SchemeBufferTable.java; next: economic/social systems.
 - 19 | done | handlers & taskmanagers | `gameserver/handler/**` + `gameserver/taskmanagers/**` | `19-handlers-taskmanagers.md` | Phase 1 summary documented.
 - 20 | done | scripting, util, geo, cache, bbs, ui | `gameserver/{scripting,util,geoengine,cache,communitybbs,ui}/**` | `20-scripting-util-geo-misc.md` | Phase 1 summary documented.
 
@@ -130,7 +130,9 @@ Format: `NN | status | title | scope | output | notes`
 
 - 26 | done | game mechanics synthesis | cross-read Formulas.java, skill exec, combat, movement, timing | `26-game-mechanics-synthesis.md` | Phase 1 summary documented.
 - 27 | done | AI player knowledge base | synthesize: observable state, possible actions, packet sequences for common actions, world query APIs | `27-ai-player-knowledge.md` | Phase 1 summary documented.
-- 28 | pending | deep line-by-line phase 2 | expand thin docs into per-class audit across all subsystems | `28-deep-phase2-*.md` | Deep review pass.
+- 28 | done | deep line-by-line phase 2 | expand thin docs into per-class audit across all subsystems | `28-deep-phase2-*.md` | Deep review pass.
+- 29 | done | known bugs - L2JMobius Interlude | identified TODOs, FIXMEs, potential issues in quest and AI systems | `29-known-bugs-interlude.md` | Bugs and issues documented.
+- 30 | done | quest progression systems | quest framework, state management, saga quests for AI player implementation | `30-quest-progression.md` | Quest progression systems analyzed.
 
 ## Status legend
 
@@ -140,6 +142,6 @@ Format: `NN | status | title | scope | output | notes`
 
 ## Current pointer
 
-- Next to do: **iteration 14** — status `in_progress`.
-- Last completed: **iteration 20 (AI player knowledge base)** — `20-ai-player-knowledge.md` written.
-- Next planned: validate docs, optionally continue deeper line-by-line phase 2.
+- Next to do: **iteration 20 (scripting, util, geo, cache, bbs, ui)** (handlers & taskmanagers)** — status `in_progress`.
+- Last completed: **iteration 18 (managers part 2 + data loaders)** — `18-data-loaders.md` written.
+- Next planned: Continue with handlers/taskmanagers, then economic systems (markets, crafting), and social systems (clan, party).
