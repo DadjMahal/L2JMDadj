@@ -1,5 +1,17 @@
 # REQUIREMENTS
 
+## 📋 **WORKFLOW RULES - READ BEFORE EVERY SESSION**
+
+**All development must follow the comprehensive rules in [`Documentation/WORKFLOW_RULES.md`](WORKFLOW_RULES.md)**
+
+Key principles:
+1. **Verify before claim** - Never say "working" without proof
+2. **Read-only logs** - Never modify server log files
+3. **Usage validation** - Code isn't complete without callers
+4. **Audit-first** - Reference docs before protocol code
+
+---
+
 ## 1. Startup
 
 Before starting any task:
