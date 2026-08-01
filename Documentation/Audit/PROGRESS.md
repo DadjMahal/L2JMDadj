@@ -120,7 +120,7 @@ Format: `NN | status | title | scope | output | notes`
 
 ### Tools & scripts
 
-- 21 | done | tools & log | `java/org/l2jmobius/{tools,log}/**` | `21-tools-log.md` | Phase 1 summary documented.
+- 21 | done | tools & log | `java/org/l2jmobius/{tools,log}/**` | `21-tools-log.md` | All handlers, filters, and formatters documented. |
 - 22 | done | scripts: quests part 1 | `dist/game/data/scripts/quests/**` (first half) | `22-scripts-quests-1.md` | Phase 1 summary documented.
 - 23 | done | scripts: quests part 2 | `dist/game/data/scripts/quests/**` (second half) | `23-scripts-quests-2.md` | Phase 1 summary documented.
 - 24 | done | scripts: ai, village_master, vehicles, events | `dist/game/data/scripts/{ai,village_master,vehicles,events}/**` | `24-scripts-ai-vehicles-events.md` | Phase 1 summary documented.
@@ -142,6 +142,7 @@ Format: `NN | status | title | scope | output | notes`
 
 ## Current pointer
 
-- Next to do: **iteration 20 (scripting, util, geo, cache, bbs, ui)** (handlers & taskmanagers)** — status `in_progress`.
-- Last completed: **iteration 18 (managers part 2 + data loaders)** — `18-data-loaders.md` written.
-- Next planned: Continue with handlers/taskmanagers, then economic systems (markets, crafting), and social systems (clan, party).
+- Audit Status: **ALL ITERATIONS 1-30 COMPLETE** ✅
+- Last completed: **iteration 30 (quest progression)** — `30-quest-progression.md` written.
+- Next planned: Review completed audit for AI player implementation, or begin implementation work on AI player systems.
+
