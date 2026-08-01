@@ -84,7 +84,7 @@
 ```
 mvn clean compile → BUILD SUCCESS
 mvn package -DskipTests → BUILD SUCCESS
-Jar: /home/volodro/AIPlayerEngine/target/ai-player-engine-1.0.0.jar (323KB)
+Jar: /home/volodro/L2JM/AIPlayerEngine/target/ai-player-engine-1.0.0.jar (323KB)
 ```
 
 ### Ready to Start L2JM Server
