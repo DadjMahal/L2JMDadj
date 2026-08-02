@@ -67,15 +67,21 @@ public class MerchantAI {
     }
     
     private int getInventoryUsagePercentage() {
-        // Placeholder - would connect to actual inventory system
-        // For now, simulate with random values based on AI state
-        double usage = 0.5 + (Math.random() * 0.3);
-        return (int)(usage * 100);
+        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
+        // Currently returns mock data because AIPlayer.getProtocol() has no packet parsing
+        // Need: ItemList packet (opcode 0x06 from ClientPackets.java) with inventory items
+        // Once protocol parses ItemList, can get:
+        //   aiPlayer.getProtocol().getInventorySlotCount() / inventory.getMaxPackableSlots()
+        return 50 + (int)(Math.random() * 30); // Mock inventory usage - NOT YET TESTED
     }
     
     private int getInventoryAdena() {
-        // Placeholder - would query actual inventory
-        return 10000 + (int)(Math.random() * 50000);
+        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
+        // Currently returns mock data because AIPlayer.getProtocol() has no packet parsing
+        // Need: ItemList packet (opcode 0x06 from ClientPackets.java) including adena (item ID 57)
+        // Once protocol parses ItemList, can get actual adena:
+        //   aiPlayer.getProtocol().getInventoryItemQuantity(57)
+        return 10000 + (int)(Math.random() * 50000); // Mock adena - NOT YET TESTED
     }
     
     private MerchantDecision findItemToSell() {

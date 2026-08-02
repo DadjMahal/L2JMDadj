@@ -78,7 +78,13 @@ public class CombatAI {
     }
     
     private boolean isTargetDead() {
-        return false; // Placeholder
+        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
+        // Currently always returns false because no packet is parsed
+        // Need: StatusUpdate packet from server for target health
+        //   OR: Death packet (opcode 0x0F from clientpackets)
+        // Once protocol implemented:
+        //   return aiPlayer.getProtocol().getTargetHealth(currentTarget) <= 0;
+        return false; // NOT YET TESTED - Placeholder
     }
     
     private boolean isTargetOutOfRange() {
@@ -87,7 +93,13 @@ public class CombatAI {
     }
     
     private double calculateDistanceTo(String targetId) {
-        return 100 + (Math.random() * 50); // Mock distance
+        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
+        // Currently returns mock data because AIPlayer.getProtocol() has no packet parsing
+        // Need: CharInfo packet to track own position
+        // Need: NpcInfo/MonsterInfo packet to track target position
+        // Once protocol parses these packets, can get real coordinates:
+        //   aiPlayer.getProtocol().getPlayerPos() and targetPos
+        return 100 + (Math.random() * 50); // Mock distance - NOT YET TESTED
     }
     
     private CombatDecision handleCombatEnd() {
@@ -100,7 +112,12 @@ public class CombatAI {
     }
     
     private int getCurrentHPPercentage() {
-        return 85 + (int)(Math.random() * 15); // Mock HP
+        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
+        // Currently returns mock data because AIPlayer.getProtocol() has no packet parsing
+        // Need: StatusUpdate packet (opcode 0x31 from ClientPackets.java)
+        // Once protocol parses StatusUpdate, can get:
+        //   aiPlayer.getProtocol().getHPPercentage()
+        return 85 + (int)(Math.random() * 15); // Mock HP - NOT YET TESTED
     }
     
     private boolean shouldUseSkill() {
@@ -112,12 +129,24 @@ public class CombatAI {
     }
     
     private int getCurrentMPPercentage() {
-        return 60 + (int)(Math.random() * 40); // Mock MP
+        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
+        // Currently returns mock data because AIPlayer.getProtocol() has no packet parsing
+        // Need: StatusUpdate packet (opcode 0x31 from ClientPackets.java) for MP
+        // Once protocol parses StatusUpdate, can get:
+        //   aiPlayer.getProtocol().getMPPercentage()
+        return 60 + (int)(Math.random() * 40); // Mock MP - NOT YET TESTED
     }
     
     private String detectNearbyEnemy() {
+        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
+        // Currently returns mock data because AIPlayer.getProtocol() has no packet parsing
+        // Need: WorldInfo packet (opcode 0x4F from ClientPackets.java) or active monster tracking
+        // Need: CharInfo packet for self-position (opcode 0x0E)
+        // Once protocol parses monster spawns/despawns, can use:
+        //   aiPlayer.getProtocol().getNearbyEntities()
+        //   aiPlayer.getProtocol().isHostile(targetId)
         if (Math.random() > 0.3) { // 70% chance to find enemy
-            return "MockEnemy_" + System.currentTimeMillis();
+            return "MockEnemy_" + System.currentTimeMillis(); // NOT YET TESTED
         }
         return null;
     }
