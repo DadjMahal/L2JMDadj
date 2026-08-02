@@ -33,6 +33,9 @@ public class AIPlayer {
     private int race;
     private final L2JProtocol protocol; // REAL PROTOCOL FOR CONNECTING
     
+    // Position tracking (Task 47, 31)
+    private int x = 0, y = 0, z = 0;
+    
     // State Management
     private AIPlayerState state;
     private long lastActionTime;
@@ -318,4 +321,21 @@ public class AIPlayer {
     public void setLoginTime(long time) { this.loginTime = time; }
     public long getLoginTime() { return loginTime; }
     public void updateLastActionTime() { this.lastActionTime = System.currentTimeMillis(); }
+    
+    // Position getters/setters (Task 31 - real enemy detection)
+    public int getX() { return x; }
+    public int getY() { return y; }
+    public int getZ() { return z; }
+    public void setPosition(int x, int y, int z) { this.x = x; this.y = y; this.z = z; }
+    
+    // PvP helpers (Task 63)
+    public boolean isInPvPZone() {
+        // Check if current position is in a PvP-enabled zone
+        // For now, default to false - would need zone data from server
+        return false;
+    }
+    
+    public boolean isPvPEnabled() {
+        return config.getBooleanProperty("combat.pvp_enabled", false);
+    }
 }

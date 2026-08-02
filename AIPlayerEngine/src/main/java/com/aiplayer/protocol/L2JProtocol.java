@@ -35,6 +35,10 @@ public class L2JProtocol {
     private final int loginPort;
     private final int gamePort;
     
+    // Blowfish encryption key
+    private byte[] blowfishKey;
+    private int sessionId;
+    
     private volatile boolean connected = false;
     private volatile boolean loggedIn = false;
     private volatile boolean inGame = false;
@@ -101,9 +105,6 @@ public class L2JProtocol {
             return false;
         }
     }
-    
-    private byte[] blowfishKey;
-    private int sessionId;
     
     private boolean connectLoginServer() throws IOException {
         channel = SocketChannel.open();

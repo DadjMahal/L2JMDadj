@@ -42,10 +42,15 @@ public class CombatConfig {
         // Combat AI defaults
         setProperty("combat.enabled", "true");
         setProperty("combat.target_distance", "1500");
+        setProperty("combat.attack_range", "1500");
+        setProperty("combat.detect_range", "3000");
         setProperty("combat.skill_cooldown", "5000");
         setProperty("combat.pvp_enabled", "false");
+        setProperty("combat.pvp_karma_threshold", "500");
         setProperty("combat.health_threshold", "30");
         setProperty("combat.mana_threshold", "20");
+        setProperty("combat.defensive_threshold", "40");
+        setProperty("combat.retreat_threshold", "15");
         setProperty("combat.max_targets", "3");
         setProperty("combat.auto_play_enabled", "true");
         setProperty("combat.skill_priority", "ATTACK:1,HEAL:2,POWER_STRIKE:3");
@@ -58,6 +63,22 @@ public class CombatConfig {
     
     public int getTargetDistance() {
         return getIntProperty("combat.target_distance", 1500);
+    }
+    
+    /**
+     * Get the target distance (attack range).
+     * @return attack range in game units
+     */
+    public int getAttackRange() {
+        return getIntProperty("combat.attack_range", 1500);
+    }
+    
+    /**
+     * Get the detect range for enemy detection.
+     * @return detection range in game units
+     */
+    public int getDetectRange() {
+        return getIntProperty("combat.detect_range", 3000);
     }
     
     public long getCooldown() {
@@ -82,6 +103,29 @@ public class CombatConfig {
     
     public boolean isAutoPlayEnabled() {
         return getBooleanProperty("combat.auto_play_enabled", true);
+    }
+    
+    // PvP configuration
+    public boolean isPvPEnabled() {
+        return getBooleanProperty("combat.pvp_enabled", false);
+    }
+    
+    public int getPvPKarmaThreshold() {
+        return getIntProperty("combat.pvp_karma_threshold", 500);
+    }
+    
+    // Defensive thresholds
+    public int getDefensiveThreshold() {
+        return getIntProperty("combat.defensive_threshold", 40);
+    }
+    
+    public int getRetreatThreshold() {
+        return getIntProperty("combat.retreat_threshold", 15);
+    }
+    
+    // Skill priority
+    public String getSkillPriority() {
+        return getProperty("combat.skill_priority", "ATTACK:1,HEAL:2,POWER_STRIKE:3");
     }
     
     public String getPreferredSkill() {

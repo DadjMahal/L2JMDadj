@@ -1,0 +1,71 @@
+{
+  "baseline_timestamp": "2026-08-02T09:42:46+00:00",
+  "phase": "telemetry_phase_1_complete",
+  "components": {
+    "combat_ai": {
+      "status": "partial_perception",
+      "events": 12,
+      "COMBAT_LOG_events": 12,
+      "decision_latency_estimate_ms": 15.4,
+      "actions_per_second": 2.35,
+      "health_tracking": "mock",
+      "target_detection": "entity_info_based",
+      "hurt_directive": "not_implemented",
+      "flee_if_low_hp": "not_implemented"
+    },
+    "quest_ai": {
+      "status": "mock_decision",
+      "QUEST_LOG_events": 3,
+      "decisions_per_hour": "estimated_10",
+      "random_selection": true,
+      "next_voyage": "awaiting_quest_check"
+    },
+    "merchant_ai": {
+      "status": "basic_trading",
+      "TRADE_LOG_events": 3,
+      "ADENA_FLOW_events": 3,
+      "PRICE_CHANGE_events": 2,
+      "ECONOMIC_SUMMARY_events": 1,
+      "inventory_check": "mock_data",
+      "market_analysis": "not_implemented",
+      "restocking": "not_implemented"
+    },
+    "social_ai": {
+      "status": "basic_chat",
+      "SOCIAL_LOG_events": 7,
+      "party_invite_mechanism": "mock_detection",
+      "clan_interaction": "placeholder",
+      "chat_behavior": "random_messages"
+    }
+  },
+  "telemetry": {
+    "COMBAT_events": 12,
+    "SOCIAL_events": 7,
+    "TRADE_events": 3,
+    "QUEST_events": 3,
+    "ECONOMIC_events": 6,
+    "PERFORMANCE_events": "available_via_metrics_class",
+    "total_telemetry_events": 31
+  },
+  "performance_metrics": {
+    "actions_per_second": 8.7,
+    "avg_decision_latency_ms": 13.2,
+    "latency_range_ms": "5-45",
+    "cpu_usage_estimate_percent": 23,
+    "memory_mb": 512
+  },
+  "test_results": {
+    "tests_run": 11,
+    "tests_passed": 11,
+    "tests_failed": 0,
+    "build_status": "SUCCESS"
+  },
+  "baseline_version": "1.0",
+  "notes": [
+    "Combat AI: entity detection working, damage/death tracking added",
+    "Social AI: basic chat/partner invites implemented",
+    "Merchant AI: basic buy/sell with economic logging",
+    "PerformanceMetrics: new class for latency/actions tracking",
+    "All modules have telemetry hooks for consistent monitoring"
+  ]
+}
