@@ -23,6 +23,18 @@ public class AIPlayerManager {
     private final int loginPort = 2106;
     private final int gamePort = 7777;
     
+    // Character ID lookup tables (based on database setup)
+    private static final int[] COMBAT_CHAR_IDS = {2, 3, 9, 10, 11, 12};
+    private static final int[] QUEST_CHAR_IDS = {6, 7, 13, 14, 15, 16};
+    private static final int[] MERCHANT_CHAR_IDS = {5, 17, 18, 19, 20, 21};
+    private static final int[] SOCIAL_CHAR_IDS = {8, 22, 23, 24, 25, 26};
+    
+    // Type-specific counters for database account mapping
+    private int combatCount = 0;
+    private int questCount = 0;
+    private int merchantCount = 0;
+    private int socialCount = 0;
+    
     private AIPlayerManager() {
         // Private constructor for singleton
     }
@@ -42,8 +54,8 @@ public class AIPlayerManager {
         // ACTUAL CONNECTION TO L2JM SERVER
         new Thread(() -> {
             try {
-                // Connect to database account
-                String account = "ai_" + playerName.toLowerCase();
+                // Connect to database account - account name should match the account parameter
+                String account = playerName.toLowerCase(); // e.g., "ai_combat_01"
                 String password = "ai123pass";
                 
                 // Login to L2JM server
@@ -123,16 +135,18 @@ public class AIPlayerManager {
      * Spawn a Combat AI Player
      */
     public AIPlayer spawnCombatPlayer() {
-        int accountId = 200 + aiPlayers.size();
-        String name = "CombatBot_" + accountId;
-        int classId = accountId % 3 == 0 ? 1 : accountId % 3 == 1 ? 2 : 3; // Fighter, Warrior, etc.
-        int race = accountId % 4;
+        combatCount++;
+        String name = "CombatBot_" + combatCount;
+        String account = "ai_combat_" + String.format("%02d", combatCount);
+        int classId = combatCount % 3 == 0 ? 1 : combatCount % 3 == 1 ? 2 : 3;
+        int race = combatCount % 4;
+        int charId = COMBAT_CHAR_IDS[Math.min(combatCount - 1, COMBAT_CHAR_IDS.length - 1)];
         
-        AIPlayer player = new AIPlayer(name, accountId, classId, race);
-        aiPlayers.put(accountId, player);
+        AIPlayer player = new AIPlayer(name, 100 + combatCount, classId, race);
+        aiPlayers.put(100 + combatCount, player);
         
-        connectPlayer(player, name, accountId);
-        LOGGER.info("[COMBAT AI] Spawned Combat AI Player: " + name);
+        connectPlayer(player, account, charId);
+        LOGGER.info("[COMBAT AI] Spawned Combat AI Player: " + name + " (account=" + account + ", charId=" + charId + ")");
         return player;
     }
     
@@ -140,16 +154,18 @@ public class AIPlayerManager {
      * Spawn a Quest AI Player
      */
     public AIPlayer spawnQuestPlayer() {
-        int accountId = 300 + aiPlayers.size();
-        String name = "QuestBot_" + accountId;
+        questCount++;
+        String name = "QuestBot_" + questCount;
+        String account = "ai_quest_" + String.format("%02d", questCount);
         int classId = 1; // Hero class for quest completion
         int race = 0;
+        int charId = QUEST_CHAR_IDS[Math.min(questCount - 1, QUEST_CHAR_IDS.length - 1)];
         
-        AIPlayer player = new AIPlayer(name, accountId, classId, race);
-        aiPlayers.put(accountId, player);
+        AIPlayer player = new AIPlayer(name, 300 + questCount, classId, race);
+        aiPlayers.put(300 + questCount, player);
         
-        connectPlayer(player, name, accountId);
-        LOGGER.info("[QUEST AI] Spawned Quest AI Player: " + name);
+        connectPlayer(player, account, charId);
+        LOGGER.info("[QUEST AI] Spawned Quest AI Player: " + name + " (account=" + account + ", charId=" + charId + ")");
         return player;
     }
     
@@ -157,16 +173,18 @@ public class AIPlayerManager {
      * Spawn a Merchant AI Player
      */
     public AIPlayer spawnMerchantPlayer() {
-        int accountId = 400 + aiPlayers.size();
-        String name = "MerchantBot_" + accountId;
+        merchantCount++;
+        String name = "MerchantBot_" + merchantCount;
+        String account = "ai_merchant_" + String.format("%02d", merchantCount);
         int classId = 1;
         int race = 0;
+        int charId = MERCHANT_CHAR_IDS[Math.min(merchantCount - 1, MERCHANT_CHAR_IDS.length - 1)];
         
-        AIPlayer player = new AIPlayer(name, accountId, classId, race);
-        aiPlayers.put(accountId, player);
+        AIPlayer player = new AIPlayer(name, 400 + merchantCount, classId, race);
+        aiPlayers.put(400 + merchantCount, player);
         
-        connectPlayer(player, name, accountId);
-        LOGGER.info("[MERCHANT AI] Spawned Merchant AI Player: " + name);
+        connectPlayer(player, account, charId);
+        LOGGER.info("[MERCHANT AI] Spawned Merchant AI Player: " + name + " (account=" + account + ", charId=" + charId + ")");
         return player;
     }
     
@@ -174,16 +192,18 @@ public class AIPlayerManager {
      * Spawn a Social AI Player
      */
     public AIPlayer spawnSocialPlayer() {
-        int accountId = 500 + aiPlayers.size();
-        String name = "SocialBot_" + accountId;
+        socialCount++;
+        String name = "SocialBot_" + socialCount;
+        String account = "ai_social_" + String.format("%02d", socialCount);
         int classId = 1;
         int race = 0;
+        int charId = SOCIAL_CHAR_IDS[Math.min(socialCount - 1, SOCIAL_CHAR_IDS.length - 1)];
         
-        AIPlayer player = new AIPlayer(name, accountId, classId, race);
-        aiPlayers.put(accountId, player);
+        AIPlayer player = new AIPlayer(name, 500 + socialCount, classId, race);
+        aiPlayers.put(500 + socialCount, player);
         
-        connectPlayer(player, name, accountId);
-        LOGGER.info("[SOCIAL AI] Spawned Social AI Player: " + name);
+        connectPlayer(player, account, charId);
+        LOGGER.info("[SOCIAL AI] Spawned Social AI Player: " + name + " (account=" + account + ", charId=" + charId + ")");
         return player;
     }
     
