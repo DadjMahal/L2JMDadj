@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import com.aiplayer.neural.DeepLearningCore;
-import com.aiplayer.neural.NeuralNetwork;
 import com.aiplayer.advanced.PersonalityProfile;
 import com.aiplayer.advanced.EmotionalState;
 import com.aiplayer.advanced.AdaptiveLearner;
@@ -46,11 +45,8 @@ public class AIPlayer {
     private final AIActionQueue actionQueue;
     private final AIConfiguration config;
     
-    // Deep Learning Intelligence (Task 68)
+    // Deep Learning Intelligence (Task 68) - uses PatternMemory, not NeuralNetwork
     private final DeepLearningCore deepLearning;
-    
-    // Neural Network Core (Task 67) - real MLP brain
-    private final NeuralNetwork neuralNetwork;
     
     // Advanced AI Systems (Tasks 73-76)
     private final PersonalityProfile personality;
@@ -83,7 +79,6 @@ public class AIPlayer {
         this.actionQueue = new AIActionQueue();
         this.config = AIConfiguration.getInstance();
         this.deepLearning = new DeepLearningCore();
-        this.neuralNetwork = new NeuralNetwork(6, 8, 4);
         this.personality = new PersonalityProfile(PersonalityProfile.Personality.values()
                 [accountId % PersonalityProfile.Personality.values().length]);
         this.emotions = new EmotionalState();
