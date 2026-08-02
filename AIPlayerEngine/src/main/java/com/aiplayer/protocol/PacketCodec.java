@@ -5,37 +5,28 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
 /**
- * L2J Packet Codec - Task 67
+ * L2J Packet Codec - Rewritten Task 67
  * 
- * Handles encoding and decoding of L2JMobius protocol packets.
+ * Handles encoding/decoding of L2JMobius protocol packets.
  * Uses standard L2J packet format: [2-byte size][opcode][data]
+ * 
+ * OPCODES FROM SourceCode/java/org/l2jmobius/gameserver/network/ClientPackets.java:
+ * - 0x00: Init (server-initiated login handshake)
+ * - 0x08: AUTH_LOGIN (AUTH_LOGIN in clientpackets)
+ * - 0x0D: CHARACTER_SELECT (CHARACTER_SELECT in clientpackets)
+ * - 0x0A: ATTACK_REQUEST (ATTACK_REQUEST in clientpackets)
+ * - 0x01: MOVE_TO_LOCATION (MOVE_TO_LOCATION in clientpackets)
+ * - 0x42: CHAT (from original implementation)
  */
 public class PacketCodec {
     private static final Logger LOGGER = Logger.getLogger(PacketCodec.class.getName());
     
-    // L2J Protocol opcodes
-    public static final short OPCODE_AUTH_REQUEST = 0x01;
-    public static final short OPCODE_PLAY_OK = 0x03;
-    public static final short OPCODE_AUTH_FAIL = 0x04;
-    public static final short OPCODE_SERVERLIST = 0x06;
-    public static final short OPCODE_CHAR_SELECT = 0x0D;
-    public static final short OPCODE_CHAR_RELEASE = 0x0E;
-    public static final short OPCODE_USE_SKILL = 0x2F;
-    public static final short OPCODE_ACTION = 0x04;
-    public static final short OPCODE_MOVE_TO_LOCATION = 0x46;
-    public static final short OPCODE_MOVE_TO_BOARD = 0x47;
-    public static final short OPCODE_CHARMOVE = 0x4E;
-    public static final short OPCODE_CHAT = 0x42;
-    public static final short OPCODE_TEXT = 0x11;
-    public static final short OPCODE_TRADE_REQUEST = 0x37;
-    public static final short OPCODE_ADD_TRADE_ITEM = 0x39;
-    public static final short OPCODE_TRADE_COMPLETE = 0x3A;
-    
     /**
-     * Encode a packet (size + opcode + data)
+     * Encode a packet (size + opcode + data) - LITTLE_ENDIAN
      */
     public static byte[] encode(short opcode) {
         ByteBuffer buf = ByteBuffer.allocate(4);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
         buf.putShort((short) 4);
         buf.putShort(opcode);
         buf.flip();
@@ -43,10 +34,11 @@ public class PacketCodec {
     }
     
     /**
-     * Encode packet with integer data
+     * Encode packet with integer data - LITTLE_ENDIAN
      */
     public static byte[] encodeInt(short opcode, int value) {
         ByteBuffer buf = ByteBuffer.allocate(8);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
         buf.putShort((short) 6);
         buf.putShort(opcode);
         buf.putInt(value);
@@ -55,25 +47,16 @@ public class PacketCodec {
     }
     
     /**
-     * Encode character select packet
-     */
-    public static byte[] encodeCharSelect(int charId) {
-        ByteBuffer buf = ByteBuffer.allocate(20);
-        buf.putShort((short) 20);
-        buf.putShort(OPCODE_CHAR_SELECT);
-        buf.putInt(0);
-        buf.putInt(charId);
-        buf.flip();
-        return buf.array();
-    }
-    
-    /**
      * Encode movement packet (Client->Server)
+     * OPCODE: 0x01 = MOVE_TO_LOCATION from ClientPackets.java
+     * Format: cddcch (objectId, originX, originY, originZ, heading)
      */
     public static byte[] encodeMovement(int objectId, int x, int y, int z, short heading) {
+        // size = 2(header) + 1(opcode) + 4(objectId) + 4(x) + 4(y) + 4(z) + 2(heading) = 21
         ByteBuffer buf = ByteBuffer.allocate(22);
-        buf.putShort((short) 22);
-        buf.putShort(OPCODE_CHARMOVE);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) 21);  // packet size
+        buf.put((byte) 0x01);      // MOVE_TO_LOCATION opcode (from ClientPackets.java line 46)
         buf.putInt(objectId);
         buf.putInt(x);
         buf.putInt(y);
@@ -84,49 +67,61 @@ public class PacketCodec {
     }
     
     /**
-     * Encode attack packet (using ATTACK opcode 0x05)
+     * Encode attack packet 
+     * OPCODE: 0x0A = ATTACK_REQUEST from ClientPackets.java
+     * Format: cddddc (objectId, originX, originY, originZ, attackId)
      */
     public static byte[] encodeAttack(int attackerObjId, int targetX, int targetY, int targetZ) {
-        ByteBuffer buf = ByteBuffer.allocate(20);
-        buf.putShort((short) 20);
-        buf.putShort((short) 0x05); // ATTACK opcode
+        // size = 2(header) + 1(opcode) + 4(objectId) + 4(x) + 4(y) + 4(z) + 1(attackId) = 20
+        ByteBuffer buf = ByteBuffer.allocate(21);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) 20);  // packet size
+        buf.put((byte) 0x0A);       // ATTACK_REQUEST opcode (from ClientPackets.java line 48)
         buf.putInt(attackerObjId);
         buf.putInt(targetX);
         buf.putInt(targetY);
         buf.putInt(targetZ);
+        buf.put((byte) 0);         // attackId: 0 for simple click, 1 for shift-click
         buf.flip();
         return buf.array();
     }
     
     /**
-     * Encode character select packet (from L2JM client packets)
+     * Encode character select packet
+     * OPCODE: 0x0D = CHARACTER_SELECT from ClientPackets.java
      */
     public static byte[] encodeCharSelect(int charId, String accountName) {
+        // size = 2(header) + 1(opcode) + 4(unknown) + 4(charId) + 1(nameLen) + name
         ByteBuffer buf = ByteBuffer.allocate(50);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
         buf.putShort((short) 50);
-        buf.putShort((short) 0x0D); // RequestCharacterSelect opcode
-        buf.putInt(0); // unknown
-        // Write account name and charId
+        buf.put((byte) 0x0D);      // CHARACTER_SELECT opcode (from ClientPackets.java line 41)
+        buf.putInt(0);             // unknown
         buf.putInt(charId);
-        byte[] nameBytes = accountName.getBytes(StandardCharsets.UTF_8);
-        buf.put((byte) nameBytes.length);
+        byte[] nameBytes = accountName.getBytes();
+        buf.put((byte) Math.min(nameBytes.length, 15));
         buf.put(nameBytes);
         buf.flip();
-        return buf.array();
+        byte[] result = new byte[buf.position()];
+        System.arraycopy(buf.array(), 0, result, 0, result.length);
+        return result;
     }
     
     /**
      * Encode chat packet
+     * OPCODE from L2J implementation
      */
-    public static byte[] encodeChat(String message, int chatType) {
-        int size = 4 + 2 + message.length() * 2 + 2; // opcode + type + message (UTF-16) + null term
-        ByteBuffer buf = ByteBuffer.allocate(size);
-        buf.putShort((short) size);
-        buf.putShort((short) 0x42); // CHAT opcode
-        buf.putInt(chatType);
+    public static byte[] encodeChat(String message) {
+        // Simplified chat packet
         byte[] msgBytes = message.getBytes(StandardCharsets.UTF_16LE);
-        buf.putShort((short) (msgBytes.length / 2));
+        int size = 4 + 2 + msgBytes.length + 2;  // header + opcode + type + message + null
+        ByteBuffer buf = ByteBuffer.allocate(size);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) size);
+        buf.put((byte) 0x42);      // CHAT opcode (type 0 = shouting)
+        buf.putShort((short) msgBytes.length); // message length in chars
         buf.put(msgBytes);
+        buf.putShort((short) 0);   // null termination
         buf.flip();
         return buf.array();
     }
