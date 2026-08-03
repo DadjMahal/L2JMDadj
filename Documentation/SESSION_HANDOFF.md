@@ -40,6 +40,14 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
   36/36 tests pass, BUILD SUCCESS. (RuntimeLog/2026-08-03-streamC-npc-info-fix.md)
 
 - **Stream C slice 2 (done, 2026-08-03):** real client combat encoders `PacketCodec.encodeAction(0x04)` /
+- **Stream C slice 3 (done, 2026-08-03):** decision→send wiring. `CombatFramePlanner` maps a combat
+  decision to ordered wire frames (ENGAGE/ATTACK → Action 0x04, 1000 ms flood gap, AttackRequest 0x0A;
+  FLEE/RETREAT/BLOCK → MoveToLocation 0x01); `GameServerFrameWriter` emits framed packets; added
+  `PacketCodec.encodeMoveToLocation` (B8-proven layout); `AIPlayerConnection.executeCombatDecision()`
+  + `setGameServerWriter()`. 49/49 tests pass, BUILD SUCCESS.
+  (RuntimeLog/2026-08-03-streamC-decision-to-send.md) Remaining: attach a persistent in-engine GS socket
+  and a live decision→send proof.
+
   `encodeAttackRequest(0x0A)` in the B4-proven self-inclusive-size framing; `CombatAI.calculateDistanceTo`
   now real 3D distance from PacketLogger coords and `shouldDefend()` deterministic from real HP+hostile
   count (removed the `Math.random()` mocks); added `getPacketLogger()` + `getSelectedTargetObjId()`.

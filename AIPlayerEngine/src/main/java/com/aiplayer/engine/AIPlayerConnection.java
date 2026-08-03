@@ -1,8 +1,10 @@
 package com.aiplayer.engine;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 
+import com.aiplayer.protocol.GameServerFrameWriter;
 import com.aiplayer.protocol.L2JProtocol;
 
 /**
@@ -16,6 +18,9 @@ public class AIPlayerConnection {
     
     private final AIPlayer aiPlayer;
     private final L2JProtocol protocol;
+
+    /** Real GameServer frame writer (crypt disabled = plaintext); attached once a GS socket is held. */
+    private volatile GameServerFrameWriter gameServerWriter; 
     
     public AIPlayerConnection(AIPlayer aiPlayer, String serverHost, int loginPort, int gamePort) {
         this.aiPlayer = aiPlayer;
@@ -105,6 +110,54 @@ public class AIPlayerConnection {
         return aiPlayer.isLoggedIn();
     }
     
+    /**
+     * Attach a real GameServer frame writer (from a held GS socket) so {@link CombatFramePlanner}
+     * frames are actually written to the wire. May be null (no GS socket held yet).
+     */
+    public void setGameServerWriter(GameServerFrameWriter writer) {
+        this.gameServerWriter = writer;
+    }
+
+    /**
+     * Stream C: plan and send the wire frames for a combat decision.
+     * Plans with {@link CombatFramePlanner} (real Action/AttackRequest/MoveToLocation frames), writes
+     * them via the attached GameServer frame writer (when present), and respects the flood-protector
+     * gap between frames. Logs the frames even when no GS writer is attached yet.
+     *
+     * @param decision    the combat decision to execute
+     * @param targetObjId the selected target's objectId (required for attack actions)
+     */
+    public void executeCombatDecision(CombatDecision decision, int targetObjId) {
+        if (!aiPlayer.isLoggedIn()) {
+            LOGGER.warning("[" + aiPlayer.getName() + "] Cannot execute combat - not logged in");
+            return;
+        }
+        CombatFramePlanner planner = new CombatFramePlanner();
+        List<CombatFramePlanner.FrameStep> steps =
+            planner.plan(decision, aiPlayer.getX(), aiPlayer.getY(), aiPlayer.getZ(), targetObjId);
+
+        for (CombatFramePlanner.FrameStep step : steps) {
+            try {
+                if (gameServerWriter != null) {
+                    gameServerWriter.writeFrame(step.frame);
+                }
+                LOGGER.info("[" + aiPlayer.getName() + "] COMBAT_SEND opcode=0x"
+                    + String.format("%02X", step.getOpcode())
+                    + " bytes=" + step.frame.length
+                    + " (sent=" + (gameServerWriter != null) + ")");
+                if (step.delayAfterMs > 0 && gameServerWriter != null) {
+                    try {
+                        Thread.sleep(step.delayAfterMs);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            } catch (IOException e) {
+                LOGGER.severe("[" + aiPlayer.getName() + "] Combat send error: " + e.getMessage());
+            }
+        }
+    }
+
     public AIPlayer getPlayer() {
         return aiPlayer;
     }

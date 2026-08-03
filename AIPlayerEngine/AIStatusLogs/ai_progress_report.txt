@@ -16,11 +16,11 @@ Last updated: 2026-08-03 (B4 milestone) — see real_status.sh + START_HERE.md
   Test: scripts/b6_quest_prove.sh.
 - CombatAI, QuestAI, MerchantAI, SocialAI: still implemented with **mock data** internally (decision
   classes need wiring to the real packets the probes demonstrate).
-- Stream C (wiring) STARTED 2026-08-03 — slice 1 done: PacketLogger.parseNpcInfo off-by-one fixed to the
-  real AbstractNpcInfo layout; fake tests 54/63 -> real; PerceptionAccuracyTest(42) reconciled; 36/36 tests
-  pass, BUILD SUCCESS. Slice 2 done: real Action(0x04)/AttackRequest(0x0A) encoders (PacketCodec); CombatAI
-  calculateDistanceTo real 3D distance + shouldDefend deterministic (no Math.random); 41/41 tests pass.
-  Next: route a decision -> send over the real GS socket.
+- Stream C (wiring) STARTED 2026-08-03: slice 1 parseNpcInfo off-by-one fix + fake tests 54/63 -> real (36/36);
+  slice 2 real Action(0x04)/AttackRequest(0x0A) encoders + no-Math.random CombatAI decisions (41/41); slice 3
+  decision->send: CombatFramePlanner (Action->gap->AttackRequest; FLEE->MoveToLocation), GameServerFrameWriter,
+  PacketCodec.encodeMoveToLocation, AIPlayerConnection.executeCombatDecision (49/49). Next: attach a persistent
+  in-engine GS socket + live decision->send proof.
 
 ============================================================
 📊 REAL STATUS FROM ACTUAL QUERIES:

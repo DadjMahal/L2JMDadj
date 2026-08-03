@@ -125,6 +125,29 @@ public class PacketCodec {
         buf.flip();
         return buf.array();
     }
+
+    /**
+     * Stream C: real MoveToLocation (0x01) frame, matching the B8-proven MoveProbe wire format.
+     * Payload = [0x01][targetX][targetY][targetZ][originX][originY][originZ][moveType:int]
+     * (moveType 0 = cursor-key walk, 1 = mouse); frame = 2-byte self-inclusive size + payload.
+     */
+    public static byte[] encodeMoveToLocation(int targetX, int targetY, int targetZ,
+                                              int originX, int originY, int originZ, int moveType) {
+        int payloadLen = 1 + 7 * 4; // opcode + 7 ints
+        int frameLen = payloadLen + 2;
+        ByteBuffer buf = ByteBuffer.allocate(frameLen).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) frameLen);
+        buf.put((byte) 0x01);   // MOVE_TO_LOCATION
+        buf.putInt(targetX);
+        buf.putInt(targetY);
+        buf.putInt(targetZ);
+        buf.putInt(originX);
+        buf.putInt(originY);
+        buf.putInt(originZ);
+        buf.putInt(moveType);
+        buf.flip();
+        return buf.array();
+    }
     
     /**
      * Encode character select packet

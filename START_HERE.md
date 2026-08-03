@@ -95,8 +95,13 @@ that connects as real client sockets — **no server code modifications**.
 4g. **🔄 STREAM C — slice 2 done:** real combat encoders `PacketCodec.encodeAction(0x04)`/
    `encodeAttackRequest(0x0A)` in the B4-proven framing; `CombatAI.calculateDistanceTo` real 3D distance &
    `shouldDefend()` deterministic (no more `Math.random()`); `getPacketLogger()`/`getSelectedTargetObjId()`.
-   **41/41 tests PASS.** (RuntimeLog/2026-08-03-streamC-combat-decisions.md) Next: route a decision → send
-   over the real GS socket.
+   **41/41 tests PASS.** (RuntimeLog/2026-08-03-streamC-combat-decisions.md)
+4h. **🔄 STREAM C — slice 3 done (decision→send):** `CombatFramePlanner` maps a combat decision to ordered
+   wire frames (Action 0x04 → flood-gap → AttackRequest 0x0A; FLEE → MoveToLocation 0x01);
+   `GameServerFrameWriter` emits framed packets; `PacketCodec.encodeMoveToLocation` (B8 layout);
+   `AIPlayerConnection.executeCombatDecision()` + `setGameServerWriter()`. **49/49 tests PASS.**
+   (RuntimeLog/2026-08-03-streamC-decision-to-send.md) Remaining: attach a persistent in-engine GS socket
+   and run a live decision→send proof.
 5. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 6. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
 7. ✅ Tasks 54 & 63 RESOLVED (Stream C, 2026-08-03) — their fake `assertTrue(true)` tests replaced with real assertions on `makeDecision()`/`makePvPDuidedDecision()`; now `done` in TASKS.md.

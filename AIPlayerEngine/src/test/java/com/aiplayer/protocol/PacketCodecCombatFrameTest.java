@@ -46,6 +46,23 @@ public class PacketCodecCombatFrameTest
       assertEquals(0, frame[19] & 0xff, "attackId should be 0");
    }
 
+   @Test
+   public void testEncodeMoveToLocationLayout()
+   {
+      byte[] frame = PacketCodec.encodeMoveToLocation(-82515, 241221, -3728, -83789, 240799, -3717, 0);
+
+      assertEquals(31, frame.length, "MoveToLocation frame should be 31 bytes");
+      assertEquals(31, (frame[0] & 0xff) | ((frame[1] & 0xff) << 8), "self-inclusive size");
+      assertEquals(0x01, frame[2] & 0xff, "opcode should be MOVE_TO_LOCATION 0x01");
+      assertEquals(-82515, leInt(frame, 3), "targetX");
+      assertEquals(241221, leInt(frame, 7), "targetY");
+      assertEquals(-3728, leInt(frame, 11), "targetZ");
+      assertEquals(-83789, leInt(frame, 15), "originX");
+      assertEquals(240799, leInt(frame, 19), "originY");
+      assertEquals(-3717, leInt(frame, 23), "originZ");
+      assertEquals(0, leInt(frame, 27), "moveType should be 0 (cursor-key walk)");
+   }
+
    private static int leInt(byte[] d, int i)
    {
       return (d[i] & 0xff) | ((d[i + 1] & 0xff) << 8) | ((d[i + 2] & 0xff) << 16) | ((d[i + 3] & 0xff) << 24);
