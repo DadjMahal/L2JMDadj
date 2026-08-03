@@ -5,7 +5,7 @@
 
 ## Phase: 2 — Combat AI (scaffolding done; **live verification is the real gap**)
 ## Last completed: A3 — count_ai_players.sh now uses sudo mysql (real: 25 registered, 0 online); Stream A DONE
-## Next task: first `pending` row in `TASKS.md` → #43 (audit CombatAI). Critical-path milestone = Stream B (live-verify 1 AI player).
+## Next task: **B1** — verify AI account auth (Stream B critical path: prove 1 AI player plays live). Stream A tooling DONE.
 ## Blockers: tasks 54 & 63 have `assertTrue(true)` fake tests (→ in_progress); ~145 stub classes unwired; AI not live-verified (0 online). [real_status.sh fixed; count_ai_players.sh fixed — both return real DB data]
 
 ## Honest state (source: ai_progress_report.txt + real_status.sh)

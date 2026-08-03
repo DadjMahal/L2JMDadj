@@ -21,8 +21,8 @@ that connects as real client sockets — **no server code modifications**.
 
 ## Current phase / next task
 - **Phase:** 2 — Combat AI (scaffolding done; **live verification is the real gap**).
-- **Last completed:** Task 63 (PvP skill rotation + PK decision — unit-tested, **not live-verified**).
-- **Next task:** first `pending` row in `TASKS.md` (Part 4 goals, or close the live-combat verification gap).
+- **Stream A DONE (2026-08-03):** A1 cold-start test (17/17 PASS; bootup ~73k→~1.3k tokens); A2 `real_status.sh` fix; A3 `count_ai_players.sh` fix (real DB: 25 registered, 0 online).
+- **Next task:** **B1** — verify AI account passwords/auth so a player can connect live. Stream B = the critical path: prove 1 AI player actually plays on the running server (25 chars exist at level 1, 0 online).
 
 ## Blockers / open issues
 1. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/`:
