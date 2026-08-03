@@ -15,16 +15,27 @@ import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.crypt.GameCrypt;
 
 /**
- * B7 trade probe: prove an AI player buys an item from a merchant NPC over the external socket.
+ * B7 trade probe: prove an AI player buys an item from a merchant NPC over the external socket (genuine path).
  *
- * <p>Enters CombatBot_01 (positioned at Trader 30003 / Silvia), scans `NPC_INFO`(0x16) for a Trader NPC
- * (npcType = id+1000000 → 1003003), sends `Action`(0x04) to target it, reads the `BuyList`(0x11) reply,
- * parses the listId + a cheap affordable item, then sends `RequestBuyItem`(0x1F)` and the server deducts
- * adena / adds the item (verified in DB by the caller).
+ * <p>Enters CombatBot_01 (positioned at Trader Silvia 30003, Talking Island, within interaction distance),
+ * scans `NPC_INFO`(0x16) for Silvia (npcType = 30003+1000000 = 1003003), sends `Action`(0x04) to open her
+ * shop HTML (`NpcHtmlMessage` 0x0F, data/html/merchant/30003.htm). The bot parses the HTML and extracts the
+ * validated Buy bypass the server registered (the `bypass -h npc_<objId>_Buy <listId>` action → cached as
+ * `npc_<objId>_Buy <listId>` after stripping `-h ` per `HtmlUtil.buildHtmlBypassCache`), then sends it via
+ * `RequestBypassToServer`(0x21). The server validates the bypass (exact match), routes `npc_<objId>_` →
+ * `Npc.onBypassFeedback("Buy <listId>")` → `BypassHandler`/`Buy.java` → `Merchant.showBuyWindow` →
+ * `BuyList`(0x11). The bot parses the BuyList, picks the first affordable item, and sends
+ * `RequestBuyItem`(0x1F); the server deducts adena / adds the item (verified in DB by the caller).
  *
- * <p>Server facts (SourceCode): BuyList(0x11) = `[money][listId][size:short]` + per-item
- * `[type1:short][objId:int][itemId:int][count:int][type2:short][eq:short][body:int][enchant:short][s][s][price:int]`;
- * RequestBuyItem(0x1F) = `[listId:int][n:int][{itemId:int,count:int}]`. Adena item_id=57. No L2JM server source changed.
+ * <p>Server facts (SourceCode, no server source changed):
+ * <ul>
+ *   <li>RequestBypassToServer(0x21) = `[0x21][command:readString]`; `validateHtmlAction` exact-matches the
+ *       cached bypass (`HtmlUtil.buildHtmlBypassCache` strips `-h ` → caches `npc_<objId>_Buy <listId>`),
+ *       then range-checks INTERACTION_DISTANCE.</li>
+ *   <li>BuyList(0x11) writeImpl = `[0x11][money:int][listId:int][size:short]` + per item
+ *       `[type1:short][objId:int][itemId:int][count:int][type2:short][eq:short][body:int][enchant:short][0][0][price:int]`.</li>
+ *   <li>RequestBuyItem(0x1F) = `[0x1F][listId:int][n:int][{itemId:int,count:int}]`. Adena item_id=57.</li>
+ * </ul>
  */
 public class TradeProbe
 {
@@ -36,161 +47,193 @@ public class TradeProbe
 	private static final int OP_CHAR_SELECT_INFO = 0x13;
 	private static final int OP_CHAR_SELECTED = 0x15;
 	private static final int OP_NPC_INFO = 0x16;
-	private static final int OP_BUY_LIST = 0x11;
 	private static final int OP_NPC_HTML = 0x0F;
+	private static final int OP_BUY_LIST = 0x11;
+	private static final int OP_ITEM_LIST = 0x1B;
 	private static final int OP_SYSTEM_MESSAGE = 0x64;
 
 	// Client->server opcodes
 	private static final int OP_C_CHARACTER_SELECT = 0x0D;
 	private static final int OP_C_ENTER_WORLD = 0x03;
 	private static final int OP_C_ACTION = 0x04;
-	private static final int OP_C_REQUEST_BUY_ITEM = 0x1F;
 	private static final int OP_C_REQUEST_BYPASS_TO_SERVER = 0x21;
+	private static final int OP_C_REQUEST_BUY_ITEM = 0x1F;
 
-	private static final int TRADER_NPC_ID = 30003; // Silvia (Talking Island); we look for npcType = id+1000000
+	private static final int TRADER_NPC_ID = 30003; // Silvia; npcType in NPC_INFO = id+1000000
+	private static final int SILVIA_X = -83789;
+	private static final int SILVIA_Y = 240799;
+	private static final int SILVIA_Z = -3717;
 
-	private static int buyListId = -1;
-	private static int buyItemId = -1;
-	private static long buyItemPrice = -1;
-	private static int buyCount = -1;
+	// Shared state set by the reader thread, consumed by main.
 	private static volatile int traderObjId = -1;
-	private static volatile String buyBypass = null;
-
-	private static synchronized void recordTrader(int objId, int npcId, byte[] pl)
-	{
-		if (traderObjId < 0 && npcId == TRADER_NPC_ID)
-		{
-			traderObjId = objId;
-			System.out.println("[TradeProbe] found Trader " + npcId + " objectId=" + objId);
-		}
-	}
-
-	/** Extract the first `action="..."` bypass from an NpcHtmlMessage that looks like a Buy link. */
-	private static synchronized void findBuyBypass(String html)
-	{
-		if (buyBypass != null || html == null)
-		{
-			return;
-		}
-		int idx = html.toLowerCase().indexOf("action=\"");
-		if (idx < 0)
-		{
-			idx = html.toLowerCase().indexOf("action = \"");
-		}
-		if (idx < 0)
-		{
-			return;
-		}
-		int start = html.indexOf('"', idx) + 1;
-		int end = html.indexOf('"', start);
-		if (start > 0 && end > start)
-		{
-			String action = html.substring(start, end);
-			System.out.println("[TradeProbe] merchant menu action=\"" + action + "\"");
-			String lower = action.toLowerCase();
-			// Prefer a Buy/shop action; fall back to any bypass.
-			if (lower.contains("shop") || lower.contains("buy") || lower.contains("merchant"))
-			{
-				buyBypass = action;
-			}
-		}
-	}
-
-	private static int getTraderObjId()
-	{
-		return traderObjId;
-	}
-
-	/** A live GameServer connection. */
-	private static class GsConn
-	{
-		final Socket socket;
-		final OutputStream out;
-		final InputStream in;
-		final boolean useEnc;
-		final L2JProtocol login;
-
-		GsConn(Socket socket, OutputStream out, InputStream in, boolean useEnc, L2JProtocol login)
-		{
-			this.socket = socket;
-			this.out = out;
-			this.in = in;
-			this.useEnc = useEnc;
-			this.login = login;
-		}
-
-		void close()
-		{
-			try
-			{
-				socket.close();
-			}
-			catch (IOException ignored)
-			{
-			}
-			login.disconnect();
-		}
-	}
+	private static volatile String buyBypass = null; // e.g. "npc_12345_Buy 3000301"
+	private static volatile int buyListId = -1;
+	private static volatile int buyItemId = -1;
+	private static volatile int buyItemPrice = -1;
+	private static volatile long playerMoney = -1;
+	private static volatile boolean buyListParsed = false;
+	private static volatile boolean sentBuy = false;
 
 	public static void main(String[] args) throws Exception
 	{
 		String account = args.length > 0 ? args[0] : "ai_combat_01";
-		String pass = args.length > 1 ? args[1] : "ai123pass";
+		String password = args.length > 1 ? args[1] : "ai123pass";
 		String host = args.length > 2 ? args[2] : "127.0.0.1";
 		int port = args.length > 3 ? Integer.parseInt(args[3]) : 7777;
 
-		System.out.println("[TradeProbe] entering world: " + account);
-		GsConn cn = enterWorld(account, pass, host, port);
-		System.out.println("[TradeProbe] IN WORLD (" + account + ")");
-
-		// Reader thread: capture the Trader's objectId (from NPC_INFO) and the BuyList item/price.
-		Thread reader = new Thread(() -> readLoop(cn.in), "tradeReader");
-		reader.start();
-
-		Thread.sleep(3000); // let the world populate (NPC_INFO with the trader)
-
-		// Find the Trader's objectId (captured by the reader as npcType 1003003). If not seen,
-		// fall back to any merchant (1003xxx) objectId the reader recorded.
-		int traderObjId = getTraderObjId();
-		System.out.println("[TradeProbe] trader objectId = " + traderObjId);
-		if (traderObjId > 0)
+		AIPlayer player = new AIPlayer(account, 100, 1, 0);
+		L2JProtocol login = new L2JProtocol(player, host, 2106, port);
+		if (!login.connectAndLogin(account, password, 0))
 		{
-			sendAction(cn.out, cn.useEnc, traderObjId, -83789, 240799, -3717);
-			System.out.println("[TradeProbe] sent Action(0x04) on trader " + traderObjId);
-			Thread.sleep(1500);
-			// No HTML menu for this generic Trader; use the known Buy bypass for Silvia (list 3000301).
-			String bypass = (buyBypass != null) ? buyBypass : "Buy 3000301";
-			System.out.println("[TradeProbe] sending buy bypass: " + bypass);
-			sendBypass(cn.out, cn.useEnc, bypass);
-			Thread.sleep(2000); // merchant opens BuyList(0x11)
+			login.disconnect();
+			throw new RuntimeException("[TradeProbe] login failed for " + account);
 		}
+		System.out.println("[TradeProbe] login OK");
 
-		// Send the buy once we parsed a BuyList (listId + item + price).
-		if (buyListId > 0 && buyItemId > 0)
+		try (Socket gs = new Socket(host, port))
 		{
-			System.out.println("[TradeProbe] sending RequestBuyItem(0x1F) listId=" + buyListId + " item=" + buyItemId + " x1");
-			sendBuyRequest(cn.out, cn.useEnc, buyListId, buyItemId, 1);
-			Thread.sleep(3000);
-		}
-		else
-		{
-			System.out.println("[TradeProbe][WARN] no BuyList captured — did not send a buy.");
-		}
+			gs.setSoTimeout(2000);
+			final OutputStream out = gs.getOutputStream();
+			final InputStream in = gs.getInputStream();
 
-		cn.close();
-		reader.join(3000);
+			// Handshake + auth (proven flow).
+			sendFrame(out, buildProtocolVersion());
+			byte[] keyFrame = readFrame(in);
+			int encFlag = leInt(keyFrame, 12);
+			boolean useEnc = encFlag != 0;
+			byte[] key = new byte[16];
+			System.arraycopy(keyFrame, 4, key, 0, 8);
+			System.arraycopy(KEY_TAIL, 0, key, 8, 8);
+			GameCrypt crypt = new GameCrypt();
+			crypt.setKey(key);
+			System.out.println("[TradeProbe] KeyPacket packetEncryption=" + encFlag);
 
-		System.out.println("[TradeProbe] === RESULT ===");
-		System.out.println("  BuyList: listId=" + buyListId + " item=" + buyItemId + " price=" + buyItemPrice
-			+ " (count=" + buyCount + ")");
-		boolean tradeSent = (buyListId > 0) && (buyItemId > 0);
-		System.out.println("[TradeProbe] TRADE PROBED (BuyList captured + buy sent) = " + tradeSent
-			+ " — DB verify (adena/item) via scripts/b7_trade_prove.sh");
-		System.out.println("[TradeProbe] done");
+			sendAuthLogin(out, crypt, useEnc, account, login);
+			boolean spawned = false;
+			long deadline = System.currentTimeMillis() + 12000;
+			while (System.currentTimeMillis() < deadline)
+			{
+				byte[] pl;
+				try
+				{
+					pl = readPayload(in);
+				}
+				catch (Exception e)
+				{
+					continue;
+				}
+				if (pl == null)
+				{
+					break;
+				}
+				byte[] plain = Arrays.copyOf(pl, pl.length);
+				if (useEnc)
+				{
+					crypt.decrypt(plain, 0, plain.length);
+				}
+				int op = plain[0] & 0xff;
+				if (op == OP_CHAR_SELECT_INFO)
+				{
+					sendCharacterSelect(out, crypt, useEnc, 0);
+				}
+				if (op == OP_CHAR_SELECTED)
+				{
+					sendEnterWorld(out, crypt, useEnc);
+					spawned = true;
+					break;
+				}
+			}
+			if (!spawned)
+			{
+				throw new RuntimeException("[TradeProbe] no CharSelected");
+			}
+			System.out.println("[TradeProbe] in world");
+
+			// Reader thread: handles NPC_INFO, NpcHtmlMessage, BuyList.
+			Thread reader = new Thread(() -> readLoop(in, useEnc, crypt), "tradeReader");
+			reader.start();
+
+			// 1) Scan for Silvia (NPC_INFO 1003003) ~6s.
+			long scanEnd = System.currentTimeMillis() + 6000;
+			while (System.currentTimeMillis() < scanEnd && traderObjId < 0)
+			{
+				Thread.sleep(100);
+			}
+			if (traderObjId < 0)
+			{
+				System.out.println("[TradeProbe][WARN] Silvia NPC_INFO not seen — walking toward her spot");
+			}
+			else
+			{
+				System.out.println("[TradeProbe] found Silvia objId=" + traderObjId);
+			}
+
+			// 2) Click Silvia TWICE: 1st Action TARGETS her, 2nd Action opens the merchant HTML (NpcClick.onAction
+			//    only shows the dialog on the 2nd click when the NPC is already the target). Respect action flood protector.
+			sendAction(out, crypt, useEnc, Math.max(traderObjId, 0), SILVIA_X, SILVIA_Y, SILVIA_Z);
+			System.out.println("[TradeProbe] sent Action(0x04) #1 (target Silvia)");
+			try { Thread.sleep(700); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+			sendAction(out, crypt, useEnc, Math.max(traderObjId, 0), SILVIA_X, SILVIA_Y, SILVIA_Z);
+			System.out.println("[TradeProbe] sent Action(0x04) #2 (open merchant HTML)");
+
+			// 3) Wait for the HTML + extract the validated Buy bypass.
+			long htmlEnd = System.currentTimeMillis() + 6000;
+			while (System.currentTimeMillis() < htmlEnd && buyBypass == null)
+			{
+				Thread.sleep(100);
+			}
+			if (buyBypass == null)
+			{
+				System.out.println("[TradeProbe][FAIL] no NpcHtmlMessage / no Buy bypass");
+				gs.close();
+				login.disconnect();
+				return;
+			}
+			System.out.println("[TradeProbe] extracted Buy bypass from HTML: \"" + buyBypass + "\"");
+
+			// 4) Send the validated bypass → server opens BuyList(0x11).
+			sendBypass(out, crypt, useEnc, buyBypass);
+			System.out.println("[TradeProbe] sent RequestBypassToServer(0x21) with the Buy bypass");
+
+			// 5) Wait for BuyList parse.
+			long buyEnd = System.currentTimeMillis() + 6000;
+			while (System.currentTimeMillis() < buyEnd && !buyListParsed)
+			{
+				Thread.sleep(100);
+			}
+			if (!buyListParsed || buyItemId < 0)
+			{
+				System.out.println("[TradeProbe][FAIL] no BuyList / no affordable item (money=" + playerMoney + ")");
+				gs.close();
+				login.disconnect();
+				return;
+			}
+			System.out.println("[TradeProbe] BuyList listId=" + buyListId + " money=" + playerMoney + " -> buy itemId=" + buyItemId + " price=" + buyItemPrice);
+
+			// 6) Buy one of the item.
+			sendBuyItem(out, crypt, useEnc, buyListId, buyItemId, 1);
+			sentBuy = true;
+			System.out.println("[TradeProbe] sent RequestBuyItem(0x1F) listId=" + buyListId + " itemId=" + buyItemId + " count=1");
+
+			Thread.sleep(4000); // let the server process the purchase
+			gs.close();
+			reader.join(3000);
+			login.disconnect();
+			System.out.println("[TradeProbe] done — verify DB: adena(57) decreased / new item row added");
+		}
 	}
 
-	/** Reader loop: record Trader objectId from NPC_INFO and parse BuyList(0x11). */
-	private static void readLoop(InputStream in)
+	private static synchronized void recordTrader(int objId, int npcType, byte[] pl)
+	{
+		if (traderObjId < 0 && npcType == (TRADER_NPC_ID + 1000000) && pl.length >= 25)
+		{
+			traderObjId = objId;
+			System.out.println("[TradeProbe] NPC_INFO Silvia objId=" + objId + " pos=(" + leInt(pl, 13) + "," + leInt(pl, 17) + "," + leInt(pl, 21) + ")");
+		}
+	}
+
+	/** Read loop: parse NPC_INFO (Silvia), NpcHtmlMessage (extract Buy bypass), BuyList (pick affordable item). */
+	private static void readLoop(InputStream in, boolean useEnc, GameCrypt crypt)
 	{
 		while (true)
 		{
@@ -203,137 +246,9 @@ public class TradeProbe
 			{
 				continue;
 			}
-			catch (IOException e)
-			{
-				break;
-			}
 			catch (Exception e)
 			{
 				break;
-			}
-			if (pl == null)
-			{
-				break;
-			}
-			int op = pl[0] & 0xff;
-			if (op != OP_NPC_INFO) // NPC_INFO is noisy; skip logging it
-			{
-				System.out.println("[TradeProbe] rx opcode=0x" + Integer.toHexString(op) + " len=" + pl.length);
-			}
-			if ((op == OP_NPC_INFO) && (pl.length >= 25))
-			{
-				int npcType = leInt(pl, 5); // displayId+1000000 (AbstractNpcInfo [objId][type][attackable][x][y][z])
-				int objId = leInt(pl, 1);
-				int isAttackable = leInt(pl, 9);
-				if ((npcType >= 1000001) && (isAttackable == 0) && isValidTrader(npcType - 1000000))
-				{
-					recordTrader(objId, npcType - 1000000, pl);
-				}
-			}
-			else if (op == OP_BUY_LIST)
-			{
-				parseBuyList(pl);
-			}
-			else if (op == OP_NPC_HTML)
-			{
-				// [0x0F][npcObjId:int][html:string][itemId:int]...
-				String html = readString(pl, 5);
-				if (html != null && !html.isEmpty())
-				{
-					System.out.println("[TradeProbe] merchant NpcHtmlMessage(len=" + html.length() + "): " + firstNonEmptyBypassLine(html));
-					findBuyBypass(html);
-				}
-			}
-			else if (op == OP_SYSTEM_MESSAGE)
-			{
-				// (debug) a message likely confirms/denies the buy
-			}
-		}
-	}
-
-	private static boolean isValidTrader(int npcId)
-	{
-		return (npcId >= 30001) && (npcId <= 30099); // Talking Island / general Traders
-	}
-
-	/** BuyList(0x11): [money:int][listId:int][size:short] then per-item [..][itemId:int][..][price:int]. */
-	private static synchronized void parseBuyList(byte[] pl)
-	{
-		if (pl.length < 8)
-		{
-			return;
-		}
-		int money = leInt(pl, 1);
-		int listId = leInt(pl, 5);
-		int size = (pl[9] & 0xff) | ((pl[10] & 0xff) << 8);
-		buyListId = listId;
-		System.out.println("[TradeProbe] BuyList(0x11): listId=" + listId + " size=" + size + " money=" + money);
-		// Parse first affordable item: entries are variable (type1/quest vs normal). We scan block-by-block.
-		// block header: type1(short) objId(int) itemId(int) count(int) type2(short) eq(short) body(int) e(short) s(short) s(short) price(int) = 2+4+4+4+2+2+4+2+2+2+4 = 32 bytes (normal item)
-		int off = 11;
-		for (int i = 0; i < size && (off + 32) <= pl.length; i++)
-		{
-			int itemId = leInt(pl, off + 6);
-			int price = leInt(pl, off + 28);
-			if (buyItemId < 0)
-			{
-				buyItemId = itemId;
-				buyItemPrice = price;
-			}
-			off += 32;
-		}
-		if (buyItemId > 0)
-		{
-			System.out.println("[TradeProbe]   first buyable item id=" + buyItemId + " price=" + buyItemPrice);
-		}
-	}
-
-
-	/** Login + GameServer enter-world; returns a live GsConn after EnterWorld(0x03). */
-	private static GsConn enterWorld(String account, String pass, String host, int port) throws Exception
-	{
-		AIPlayer player = new AIPlayer(account, 100, 1, 0);
-		L2JProtocol login = new L2JProtocol(player, host, 2106, port);
-		if (!login.connectAndLogin(account, pass, 0))
-		{
-			login.disconnect();
-			throw new RuntimeException("[TradeProbe] login failed for " + account);
-		}
-		System.out.println("[TradeProbe] " + account + " login OK");
-
-		Socket s = new Socket(host, port);
-		s.setSoTimeout(2000);
-		OutputStream out = s.getOutputStream();
-		InputStream in = s.getInputStream();
-
-		sendFrame(out, buildProtocolVersion());
-		byte[] keyFrame = readFrame(in);
-		if (keyFrame == null)
-		{
-			s.close();
-			throw new RuntimeException("[TradeProbe] no KeyPacket for " + account);
-		}
-		int encFlag = leInt(keyFrame, 12);
-		boolean useEnc = encFlag != 0;
-		byte[] key = new byte[16];
-		System.arraycopy(keyFrame, 4, key, 0, 8);
-		System.arraycopy(KEY_TAIL, 0, key, 8, 8);
-		GameCrypt crypt = new GameCrypt();
-		crypt.setKey(key);
-
-		sendAuthLogin(out, crypt, useEnc, account, login);
-		boolean spawned = false;
-		long deadline = System.currentTimeMillis() + 12000;
-		while (System.currentTimeMillis() < deadline)
-		{
-			byte[] pl;
-			try
-			{
-				pl = readPayload(in);
-			}
-			catch (Exception e)
-			{
-				continue;
 			}
 			if (pl == null)
 			{
@@ -345,28 +260,134 @@ public class TradeProbe
 				crypt.decrypt(plain, 0, plain.length);
 			}
 			int op = plain[0] & 0xff;
-			if (op == OP_CHAR_SELECT_INFO)
+
+			if (op == OP_NPC_INFO && plain.length >= 25)
 			{
-				sendCharacterSelect(out, crypt, useEnc, 0);
+				recordTrader(leInt(plain, 1), leInt(plain, 5), plain);
 			}
-			if (op == OP_CHAR_SELECTED)
+			else if (op == OP_NPC_HTML)
 			{
-				sendEnterWorld(out, crypt, useEnc);
-				System.out.println("[TradeProbe] " + account + " sent EnterWorld(0x03)");
-				spawned = true;
-				break;
+				String html = decodeHtmlString(plain);
+String bypass = extractBuyBypass(html);
+				if (bypass != null)
+				{
+					synchronized (TradeProbe.class)
+					{
+						if (buyBypass == null)
+						{
+							buyBypass = bypass;
+							System.out.println("[TradeProbe] NpcHtmlMessage(0x0F) len=" + plain.length + " -> Buy link found");
+						}
+					}
+				}
+			}
+			else if (op == OP_BUY_LIST && !buyListParsed)
+			{
+				parseBuyList(plain);
 			}
 		}
-		if (!spawned)
-		{
-			s.close();
-			throw new RuntimeException("[TradeProbe] no CharSelected for " + account);
-		}
-		return new GsConn(s, out, in, useEnc, login);
 	}
 
+	/** NpcHtmlMessage(0x0F): [0x0F][npcObjId:int][html:UTF-16LE null-term][itemId:int]. */
+	private static String decodeHtmlString(byte[] plain)
+	{
+		if (plain.length < 6)
+		{
+			return null;
+		}
+		int p = 1; // opcode
+		p += 4; // npcObjId
+		StringBuilder sb = new StringBuilder();
+		while (p + 1 < plain.length)
+		{
+			int ch = (plain[p] & 0xff) | ((plain[p + 1] & 0xff) << 8);
+			p += 2;
+			if (ch == 0)
+			{
+				break;
+			}
+			sb.append((char) ch);
+		}
+		return sb.toString();
+	}
+
+	/** Extract the validated Buy bypass the server cached: `bypass -h npc_<objId>_Buy <listId>` -> `npc_<objId>_Buy <listId>`. */
+	private static String extractBuyBypass(String html)
+	{
+		if (html == null)
+		{
+			return null;
+		}
+		String lower = html.toLowerCase();
+		int idx = lower.indexOf("bypass");
+		while (idx >= 0)
+		{
+			// Opening quote is the one that PRECEDES "bypass" (action="bypass -h npc_X_Buy <list>").
+			int openQuote = html.lastIndexOf('"', idx);
+			if (openQuote < 0)
+			{
+				break;
+			}
+			int closeQuote = html.indexOf('"', openQuote + 1);
+			if (closeQuote < 0)
+			{
+				break;
+			}
+			String action = html.substring(openQuote + 1, closeQuote).trim();
+			// Mirror HtmlUtil.buildHtmlBypassCache: strip a leading "bypass " then a leading "-h ".
+			if (action.toLowerCase().startsWith("bypass "))
+			{
+				action = action.substring(7).trim();
+			}
+			if (action.toLowerCase().startsWith("-h "))
+			{
+				action = action.substring(3).trim();
+			}
+			if (action.toLowerCase().startsWith("npc_") && action.toLowerCase().contains("_buy "))
+			{
+				return action; // e.g. "npc_268439739_Buy 3000301" (exactly what the server cached)
+			}
+			idx = lower.indexOf("bypass", closeQuote);
+		}
+		return null;
+	}
+
+
+	/** BuyList(0x11): [0x11][money:int][listId:int][size:short] + per-item 32B; pick first affordable item. */
+	private static synchronized void parseBuyList(byte[] plain)
+	{
+		if (plain.length < 11)
+		{
+			return;
+		}
+		long money = leInt(plain, 1) & 0xFFFFFFFFL;
+		int listId = leInt(plain, 5);
+		int size = leInt(plain, 9) & 0xFFFF; // writeShort (2 bytes) but read as int-friendly
+		playerMoney = money;
+		buyListId = listId;
+		System.out.println("[TradeProbe] BuyList(0x11) money=" + money + " listId=" + listId + " size=" + size);
+		int off = 11;
+		for (int i = 0; i < size && off + 32 <= plain.length; i++)
+		{
+			int itemId = leInt(plain, off + 6);
+			int price = leInt(plain, off + 28);
+			if (price > 0 && price <= money && buyItemId < 0)
+			{
+				buyItemId = itemId;
+				buyItemPrice = price;
+				System.out.println("[TradeProbe]   item#" + i + " itemId=" + itemId + " price=" + price + " (affordable)");
+			}
+			off += 32;
+		}
+		buyListParsed = true;
+	}
+
+	// ------------------------------------------------------------------
+	// Client packet builders (plaintext; game crypt disabled on this server)
+	// ------------------------------------------------------------------
+
 	/** Action (0x04): [0x04][targetObjId][originX][originY][originZ][actionId]. */
-	private static void sendAction(OutputStream out, boolean useEnc, int targetObjId, int ox, int oy, int oz) throws Exception
+	private static void sendAction(OutputStream out, GameCrypt crypt, boolean useEnc, int targetObjId, int ox, int oy, int oz) throws Exception
 	{
 		ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 4 + 4 + 4 + 1).order(ByteOrder.LITTLE_ENDIAN);
 		bb.put((byte) OP_C_ACTION);
@@ -374,79 +395,43 @@ public class TradeProbe
 		bb.putInt(ox);
 		bb.putInt(oy);
 		bb.putInt(oz);
-		bb.put((byte) 0);
-		sendPayloadFrame(out, bb);
+		bb.put((byte) 0); // actionId = 0
+		sendPayloadFrame(out, crypt, useEnc, bb);
+	}
+
+	/** RequestBypassToServer (0x21): [0x21][command:UTF-16LE null-term]. */
+	private static void sendBypass(OutputStream out, GameCrypt crypt, boolean useEnc, String command) throws Exception
+	{
+		byte[] cmd = (command + "\0").getBytes(StandardCharsets.UTF_16LE);
+		ByteBuffer bb = ByteBuffer.allocate(1 + cmd.length).order(ByteOrder.LITTLE_ENDIAN);
+		bb.put((byte) OP_C_REQUEST_BYPASS_TO_SERVER);
+		bb.put(cmd);
+		sendPayloadFrame(out, crypt, useEnc, bb);
 	}
 
 	/** RequestBuyItem (0x1F): [0x1F][listId:int][n:int][{itemId:int,count:int}]. */
-	private static void sendBuyRequest(OutputStream out, boolean useEnc, int listId, int itemId, int count) throws Exception
+	private static void sendBuyItem(OutputStream out, GameCrypt crypt, boolean useEnc, int listId, int itemId, int count) throws Exception
 	{
 		ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 4 + 4 + 4).order(ByteOrder.LITTLE_ENDIAN);
 		bb.put((byte) OP_C_REQUEST_BUY_ITEM);
 		bb.putInt(listId);
-		bb.putInt(1); // one item entry
+		bb.putInt(1); // n = 1
 		bb.putInt(itemId);
 		bb.putInt(count);
-		sendPayloadFrame(out, bb);
+		sendPayloadFrame(out, crypt, useEnc, bb);
 	}
 
-	/** RequestBypassToServer (0x21): [0x21][bypass string UTF-16LE + null]. */
-	private static void sendBypass(OutputStream out, boolean useEnc, String bypass) throws Exception
-	{
-		ByteBuffer bb = ByteBuffer.allocate(1 + bypass.length() * 2 + 2).order(ByteOrder.LITTLE_ENDIAN);
-		bb.put((byte) OP_C_REQUEST_BYPASS_TO_SERVER);
-		for (char c : bypass.toCharArray())
-		{
-			bb.putChar(c);
-		}
-		bb.putChar('\000');
-		sendPayloadFrame(out, bb);
-	}
-
-	private static void sendPayloadFrame(OutputStream out, ByteBuffer bb) throws Exception
+	private static void sendPayloadFrame(OutputStream out, GameCrypt crypt, boolean useEnc, ByteBuffer bb) throws Exception
 	{
 		byte[] plain = new byte[bb.position()];
 		bb.flip();
 		bb.get(plain);
+		if (useEnc)
+		{
+			crypt.encrypt(plain, 0, plain.length);
+		}
 		sendFrame(out, plain);
 	}
-
-	/** Read a UTF-16LE null-terminated string starting at `off` (L2J writeString = bytes + writeChar(0)). */
-	private static String readString(byte[] d, int off)
-	{
-		StringBuilder sb = new StringBuilder();
-		int i = off;
-		while ((i + 1) < d.length)
-		{
-			int c = (d[i] & 0xff) | ((d[i + 1] & 0xff) << 8);
-			if (c == 0)
-			{
-				break;
-			}
-			sb.append((char) c);
-			i += 2;
-		}
-		return sb.toString();
-	}
-
-	/** Return a compact printable line from HTML: first 'action=' bypass, else first ~100 chars. */
-	private static String firstNonEmptyBypassLine(String html)
-	{
-		int a = html.toLowerCase().indexOf("action=\"");
-		if (a >= 0)
-		{
-			int s = html.indexOf('"', a) + 1;
-			int e = html.indexOf('"', s);
-			if (e > s)
-			{
-				return "action=\"" + html.substring(s, e) + "\"";
-			}
-		}
-		String flat = html.replaceAll("\\s+", " ");
-		return flat.length() > 100 ? flat.substring(0, 100) : flat;
-	}
-
-
 
 	// ---------------- enter-world + wire helpers (classic Socket) ----------------
 
@@ -502,23 +487,11 @@ public class TradeProbe
 	{
 		ByteBuffer bb = ByteBuffer.allocate(1 + 32 + 16 + 32 + 4 + 20).order(ByteOrder.LITTLE_ENDIAN);
 		bb.put((byte) OP_C_ENTER_WORLD);
-		for (int i = 0; i < 32; i++)
-		{
-			bb.put((byte) 0);
-		}
+		for (int i = 0; i < 32; i++) bb.put((byte) 0);
+		bb.putInt(0); bb.putInt(0); bb.putInt(0); bb.putInt(0);
+		for (int i = 0; i < 32; i++) bb.put((byte) 0);
 		bb.putInt(0);
-		bb.putInt(0);
-		bb.putInt(0);
-		bb.putInt(0);
-		for (int i = 0; i < 32; i++)
-		{
-			bb.put((byte) 0);
-		}
-		bb.putInt(0);
-		for (int i = 0; i < 20; i++)
-		{
-			bb.put((byte) 0);
-		}
+		for (int i = 0; i < 20; i++) bb.put((byte) 0);
 		byte[] plain = new byte[bb.position()];
 		bb.flip();
 		bb.get(plain);
@@ -544,10 +517,7 @@ public class TradeProbe
 	private static byte[] readFrame(InputStream in) throws Exception
 	{
 		byte[] payload = readPayload(in);
-		if (payload == null)
-		{
-			return null;
-		}
+		if (payload == null) return null;
 		byte[] frame = new byte[payload.length + 2];
 		frame[0] = (byte) ((payload.length + 2) & 0xff);
 		frame[1] = (byte) (((payload.length + 2) >> 8) & 0xff);
@@ -555,17 +525,13 @@ public class TradeProbe
 		return frame;
 	}
 
-	/** Read one GS packet payload after the 2-byte self-inclusive size header (honors SO_TIMEOUT). */
 	private static byte[] readPayload(InputStream in) throws Exception
 	{
 		DataInputStream dis = (in instanceof DataInputStream) ? (DataInputStream) in : new DataInputStream(in);
 		byte[] sizeBytes = new byte[2];
 		dis.readFully(sizeBytes);
 		int size = (sizeBytes[0] & 0xff) | ((sizeBytes[1] & 0xff) << 8);
-		if (size < 2 || size > 65535)
-		{
-			return null;
-		}
+		if (size < 2 || size > 65535) return null;
 		byte[] payload = new byte[size - 2];
 		dis.readFully(payload);
 		return payload;
@@ -576,4 +542,3 @@ public class TradeProbe
 		return (d[i] & 0xff) | ((d[i + 1] & 0xff) << 8) | ((d[i + 2] & 0xff) << 16) | ((d[i + 3] & 0xff) << 24);
 	}
 }
-

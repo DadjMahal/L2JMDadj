@@ -110,11 +110,12 @@ pushes party windows. Live proof (`Audit/41`, `scripts/b10_party_prove.sh`):
   exists. A also got `JOIN_PARTY`(0x3A). Invite requires `target.isVisibleFor(requestor)` (bots co-located).
 - No L2JM server source changed. (First build watched the wrong connections → false; fixed + verified.)
 
-### Most likely causes / next — B3/B4/B5/B6/B8/B9/B10 fully RESOLVED (above). Remaining live gap:
-**B7 (trade proof)** is the only live gameplay proof still IN PROGRESS — the buy-dialog open is blocked on
-bypass validation (generic Trader emits no HTML menu on plain-click; see `Audit/38`). After that, wire the
-proven PvE/PvP/quest/movement/chat/party packets into `CombatAI`/`QuestAI`/`PacketLogger` (Stream C);
-B6b (bot earns a quest via NPC talk + `RequestBypassToServer`(0x21)) is a follow-on.
+### Most likely causes / next — **ALL B-stream live proofs DONE**: B3 login, B4 PvE, B5 PvP, B6 quest,
+B7 trade, B8 movement, B9 chat, B10 party — every one PROVEN with live wire/DB evidence and no server source
+changes. Next: **Stream C** — wire the proven packets into `CombatAI`/`QuestAI`/`PacketLogger` (replace mock
+data) and reconcile fake-test tasks 54/63. B6b (bot earns a quest via NPC talk + `RequestBypassToServer`(0x21))
+is a follow-on. B7's earlier "buy-open blocked" note is corrected — the genuine merchant flow (2 clicks + full
+`npc_<objId>_Buy <listId>` bypass) works; see `Audit/38`.
 
 ### What I found (empirical + source)
 - Live probe (`LoginProbe`/`RawInitProbe`) connected to :2106, got the **Init** frame: **194 bytes**,

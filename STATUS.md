@@ -3,11 +3,11 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 2 — Combat AI (live PvE + PvP + quest + movement + chat + party PROVEN; B7 trade IN PROGRESS)
-## Last completed: B10 — live party proof (PartyProbe): A (CombatBot_01) invited B (CombatBot_02) via RequestJoinParty(0x29); B accepted (0x2A); server created a real Party → joiner B got PARTY_SMALL_WINDOW_ALL(0x4E) + leader A got PARTY_SMALL_WINDOW_ADD(0x4F) (Audit/41)
-## Current (in progress): **B7 trade** — TradeProbe live-targets Trader (Silvia 30003) + full merchant-buy protocol mapped (Buy 3000301 bypass → BuyList 0x11 → RequestBuyItem 0x1F); buy-dialog OPEN blocked: RequestBypassToServer drops un-validated bypasses (validateHtmlAction) and this merchant emits no HTML menu on plain-click (Audit/38). Not PROVEN.
-## Next (after B7): wire proven packets into CombatAI/QuestAI/PacketLogger (Stream C); B6b (bot earns quest via NPC talk).
-## Blockers: B7 buy-open needs a merchant that emits an HTML Buy menu (or a bypass exception); fake-test tasks 54/63 (Stream C); ~145 stub classes (Stream G); PacketLogger.parseNpcInfo off-by-one; 23 ai_% chars in the void spawn.
+## Phase: 2 — Combat AI (ALL live proofs PROVEN: PvE + PvP + quest + trade + movement + chat + party)
+## Last completed: B7 — live trade proof (TradeProbe): CombatBot_01 bought item 118 (price 75) from Trader Silvia via the genuine merchant flow (2x Action -> NpcHtmlMessage 0x0F -> npc_<objId>_Buy 3000300 bypass 0x21 -> BuyList 0x11 -> RequestBuyItem 0x1F); server deducted adena 500000->499925->499850 and added item-118 rows. Corrects the earlier "blocker" misdiagnosis (needed 2 clicks + full npc_<objId>_Buy bypass). (Audit/38)
+## Current (in progress): **Stream C** — wire the now-proven PvE/PvP/quest/movement/chat/party/trade packets from the probes into the engine's real decision classes (CombatAI/QuestAI/PacketLogger), replacing mock data. B6b (bot earns a quest via NPC talk + RequestBypassToServer 0x21) is a follow-on.
+## Next: Stream C wiring; then reconcile fake-test tasks (54/63) with real assertions.
+## Blockers: fake-test tasks 54/63 (Stream C); ~145 stub classes (Stream G); PacketLogger.parseNpcInfo off-by-one; 23 ai_% chars in the void spawn (others need relocate+heal before gameplay).
 
 ## Honest state (source: real_status.sh + live probe evidence)
 Server UP (LoginServer :2106, GameServer :7777). Live PvE combat (B4, exp 0→105), live PvP (B5, two bots

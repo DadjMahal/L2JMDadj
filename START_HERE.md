@@ -66,7 +66,7 @@ that connects as real client sockets — **no server code modifications**.
    mutual `Attack` hits (objId2:13 / objId3:12) + `CombatBot_02` took PvP damage (curHp 126→120).
 4. **✅ B6 RESOLVED (2026-08-03) — live quest PROVEN** (`QuestProbe`, `Audit/37`): enter-world triggered the
    real server quest engine (`Q00255_Tutorial` UC handler) → server added quest state (`Ex`/`ucMemo`) to
-   `character_quests` (DB 1→3 rows). **B7–B10 (live trade proof etc.) next** — engine decision classes still on mock data.
+   `character_quests` (DB 1→3 rows). **B7–B10 (live trade proof etc.) were next** — engine decision classes still on mock data.
 4b. **✅ B8 RESOLVED (2026-08-03) — live MOVEMENT PROVEN** (`MoveProbe`, `Audit/39`): AI sent
    `MoveToLocation`(0x01) from Silvia's spot to Trader 30040's spawn (-82515,241221,-3728); the server
    broadcast 17× `CHAR_MOVE_TO_LOCATION`(0x01) + `VALIDATE_LOCATION`(0x61) and **`characters.x/y/z` moved
@@ -79,6 +79,15 @@ that connects as real client sockets — **no server code modifications**.
 4d. **✅ B10 RESOLVED (2026-08-03) — live PARTY PROVEN** (`PartyProbe`, `Audit/41`): A invited B via
    `RequestJoinParty`(0x29); B accepted `RequestAnswerJoinParty`(0x2A); the server created a real party →
    joiner B received `PARTY_SMALL_WINDOW_ALL`(0x4E) and leader A received `PARTY_SMALL_WINDOW_ADD`(0x4F).
+4e. **✅ B7 RESOLVED (2026-08-03) — live TRADE PROVEN** (`TradeProbe`, `Audit/38`): CombatBot_01 bought item
+   118 (price 75) from Trader Silvia. Genuine merchant flow: 2× `Action`(0x04) → `NpcHtmlMessage`(0x0F) →
+   extract the validated `npc_<objId>_Buy 3000300` bypass → `RequestBypassToServer`(0x21) → `BuyList`(0x11) →
+   `RequestBuyItem`(0x1F). The server **deducted adena 500000→499925→499850 (×2 runs)** and **added item-118
+   rows** (DB-verified). This **corrects the earlier "blocker" misdiagnosis** (real fixes: send 2 clicks —
+   NpcClick targets on #1 and opens dialog on #2 — and send the full `npc_<objId>_Buy <listId>` bypass the
+   server caches, not `Buy <listId>`).
+   → **ALL B-stream live gameplay proofs are now DONE (B4 PvE, B5 PvP, B6 quest, B7 trade, B8 movement,
+   B9 chat, B10 party).** Next: Stream C wiring of the proven packets into the engine.
 5. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 6. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
 7. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions (Stream C).
