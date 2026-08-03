@@ -1,3 +1,5 @@
+# Session End Handoff
+
 # Session In Progress  (rate-limit-safe resume state)
 > A fresh session: read `START_HERE.md` + THIS file to resume mid-step. Never re-derive.
 > If this file is ABSENT, no work is in flight (clean state). If PRESENT, resume it.
