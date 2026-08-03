@@ -17,17 +17,19 @@ else
 fi
 echo ""
 
-# Actual server log grep counts
+# Actual server log grep counts (one number each — no double-print)
 echo "=== ACTIVITY FROM SERVER LOGS ==="
 LOG_FILE="/home/volodro/L2JM/ServerBuild/game/log/stdout.log"
 
+count() { local n; n=$(grep -c "$1" "$LOG_FILE" 2>/dev/null || true); echo "${n:-0}"; }
+
 if [ -f "$LOG_FILE" ]; then
     echo "Log file: $LOG_FILE"
-    echo "  Combat actions: $(grep -c '\[COMBAT\]' "$LOG_FILE" 2>/dev/null || echo 0)"
-    echo "  Quest actions: $(grep -c '\[QUEST\]' "$LOG_FILE" 2>/dev/null || echo 0)"
-    echo "  Trade actions: $(grep -c '\[TRADE\]' "$LOG_FILE" 2>/dev/null || echo 0)"
-    echo "  Level ups: $(grep -c 'LEVEL UP' "$LOG_FILE" 2>/dev/null || echo 0)"
-    echo "  Chat messages: $(grep -c '\[CHAT\]' "$LOG_FILE" 2>/dev/null || echo 0)"
+    echo "  Combat actions: $(count '\[COMBAT\]')"
+    echo "  Quest actions: $(count '\[QUEST\]')"
+    echo "  Trade actions: $(count '\[TRADE\]')"
+    echo "  Level ups: $(count 'LEVEL UP')"
+    echo "  Chat messages: $(count '\[CHAT\]')"
 else
     echo "Server log file not found: $LOG_FILE"
 fi
