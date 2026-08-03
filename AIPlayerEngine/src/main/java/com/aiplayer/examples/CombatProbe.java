@@ -279,8 +279,11 @@ public class CombatProbe
 			System.out.println("  VALIDATE_LOCATION(0x61)=" + validateCount);
 			System.out.println("  SYSTEM_MESSAGE(0x64)=" + sysMsgCount);
 			System.out.println("  NPC_INFO(0x16)=" + npcInfoCount);
-			boolean combatProven = (attackCount > 0) || (dieCount > 0) || (statusCount > 0);
-			System.out.println("[CombatProbe] COMBAT PROVEN (attack|die|status > 0) = " + combatProven);
+			// Combat is proven only by a server ATTACK(0x05) packet (real hit) or a DIE(0x06).
+			// StatusUpdate(0x0E) is NOT proof (idle online players receive it) — earlier that caused a
+			// false "PROVEN" when the player was dead and the server sent its death StatusUpdate/DIE.
+			boolean combatProven = (attackCount > 0) || (dieCount > 0);
+			System.out.println("[CombatProbe] COMBAT PROVEN (attack|die > 0) = " + combatProven);
 			System.out.println("[CombatProbe] done");
 		}
 		login.disconnect();
