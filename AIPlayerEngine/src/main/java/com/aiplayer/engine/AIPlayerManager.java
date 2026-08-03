@@ -213,7 +213,7 @@ public class AIPlayerManager {
     private void connectPlayer(AIPlayer player, String name, int accountId) {
         new Thread(() -> {
             try {
-                String account = "ai_" + name.toLowerCase();
+                String account = name.toLowerCase(); // name already full account (e.g. ai_combat_01); fix double-prefix bug (B1)
                 String password = "ai123pass";
                 int charId = accountId; // Character ID matches account
                 
