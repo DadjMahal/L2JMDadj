@@ -37,6 +37,7 @@ public class TradeProbe
 	private static final int OP_CHAR_SELECTED = 0x15;
 	private static final int OP_NPC_INFO = 0x16;
 	private static final int OP_BUY_LIST = 0x11;
+	private static final int OP_NPC_HTML = 0x0F;
 	private static final int OP_SYSTEM_MESSAGE = 0x64;
 
 	// Client->server opcodes
@@ -44,6 +45,7 @@ public class TradeProbe
 	private static final int OP_C_ENTER_WORLD = 0x03;
 	private static final int OP_C_ACTION = 0x04;
 	private static final int OP_C_REQUEST_BUY_ITEM = 0x1F;
+	private static final int OP_C_REQUEST_BYPASS_TO_SERVER = 0x21;
 
 	private static final int TRADER_NPC_ID = 30003; // Silvia (Talking Island); we look for npcType = id+1000000
 
@@ -52,6 +54,7 @@ public class TradeProbe
 	private static long buyItemPrice = -1;
 	private static int buyCount = -1;
 	private static volatile int traderObjId = -1;
+	private static volatile String buyBypass = null;
 
 	private static synchronized void recordTrader(int objId, int npcId, byte[] pl)
 	{
@@ -59,6 +62,37 @@ public class TradeProbe
 		{
 			traderObjId = objId;
 			System.out.println("[TradeProbe] found Trader " + npcId + " objectId=" + objId);
+		}
+	}
+
+	/** Extract the first `action="..."` bypass from an NpcHtmlMessage that looks like a Buy link. */
+	private static synchronized void findBuyBypass(String html)
+	{
+		if (buyBypass != null || html == null)
+		{
+			return;
+		}
+		int idx = html.toLowerCase().indexOf("action=\"");
+		if (idx < 0)
+		{
+			idx = html.toLowerCase().indexOf("action = \"");
+		}
+		if (idx < 0)
+		{
+			return;
+		}
+		int start = html.indexOf('"', idx) + 1;
+		int end = html.indexOf('"', start);
+		if (start > 0 && end > start)
+		{
+			String action = html.substring(start, end);
+			System.out.println("[TradeProbe] merchant menu action=\"" + action + "\"");
+			String lower = action.toLowerCase();
+			// Prefer a Buy/shop action; fall back to any bypass.
+			if (lower.contains("shop") || lower.contains("buy") || lower.contains("merchant"))
+			{
+				buyBypass = action;
+			}
 		}
 	}
 
@@ -123,7 +157,13 @@ public class TradeProbe
 		{
 			sendAction(cn.out, cn.useEnc, traderObjId, -83789, 240799, -3717);
 			System.out.println("[TradeProbe] sent Action(0x04) on trader " + traderObjId);
-			Thread.sleep(2000); // server should reply BuyList(0x11)
+			Thread.sleep(2000); // server should reply NpcHtmlMessage menu (and maybe BuyList)
+			if (buyBypass != null)
+			{
+				System.out.println("[TradeProbe] sending buy bypass: " + buyBypass);
+				sendBypass(cn.out, cn.useEnc, buyBypass);
+				Thread.sleep(2000); // merchant opens BuyList(0x11)
+			}
 		}
 
 		// Send the buy once we parsed a BuyList (listId + item + price).
@@ -190,6 +230,16 @@ public class TradeProbe
 			else if (op == OP_BUY_LIST)
 			{
 				parseBuyList(pl);
+			}
+			else if (op == OP_NPC_HTML)
+			{
+				// [0x0F][npcObjId:int][html:string][itemId:int]...
+				String html = readString(pl, 5);
+				if (html != null && !html.isEmpty())
+				{
+					System.out.println("[TradeProbe] merchant NpcHtmlMessage(len=" + html.length() + "): " + firstNonEmptyBypassLine(html));
+					findBuyBypass(html);
+				}
 			}
 			else if (op == OP_SYSTEM_MESSAGE)
 			{
@@ -337,6 +387,19 @@ public class TradeProbe
 		sendPayloadFrame(out, bb);
 	}
 
+	/** RequestBypassToServer (0x21): [0x21][bypass string UTF-16LE + null]. */
+	private static void sendBypass(OutputStream out, boolean useEnc, String bypass) throws Exception
+	{
+		ByteBuffer bb = ByteBuffer.allocate(1 + bypass.length() * 2 + 2).order(ByteOrder.LITTLE_ENDIAN);
+		bb.put((byte) OP_C_REQUEST_BYPASS_TO_SERVER);
+		for (char c : bypass.toCharArray())
+		{
+			bb.putChar(c);
+		}
+		bb.putChar('\000');
+		sendPayloadFrame(out, bb);
+	}
+
 	private static void sendPayloadFrame(OutputStream out, ByteBuffer bb) throws Exception
 	{
 		byte[] plain = new byte[bb.position()];
@@ -344,6 +407,42 @@ public class TradeProbe
 		bb.get(plain);
 		sendFrame(out, plain);
 	}
+
+	/** Read a UTF-16LE null-terminated string starting at `off` (L2J writeString = bytes + writeChar(0)). */
+	private static String readString(byte[] d, int off)
+	{
+		StringBuilder sb = new StringBuilder();
+		int i = off;
+		while ((i + 1) < d.length)
+		{
+			int c = (d[i] & 0xff) | ((d[i + 1] & 0xff) << 8);
+			if (c == 0)
+			{
+				break;
+			}
+			sb.append((char) c);
+			i += 2;
+		}
+		return sb.toString();
+	}
+
+	/** Return a compact printable line from HTML: first 'action=' bypass, else first ~100 chars. */
+	private static String firstNonEmptyBypassLine(String html)
+	{
+		int a = html.toLowerCase().indexOf("action=\"");
+		if (a >= 0)
+		{
+			int s = html.indexOf('"', a) + 1;
+			int e = html.indexOf('"', s);
+			if (e > s)
+			{
+				return "action=\"" + html.substring(s, e) + "\"";
+			}
+		}
+		String flat = html.replaceAll("\\s+", " ");
+		return flat.length() > 100 ? flat.substring(0, 100) : flat;
+	}
+
 
 
 	// ---------------- enter-world + wire helpers (classic Socket) ----------------
