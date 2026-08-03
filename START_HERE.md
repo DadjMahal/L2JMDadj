@@ -28,18 +28,21 @@ that connects as real client sockets — **no server code modifications**.
 - **Next task: B3 — LIVE-LOGIN PROOF.** Goal: connect 1 AI player live (online=1). B4–B10 all depend on it.
   - **Phase 0 DONE (2026-08-03):** Init frame now decodes — root cause was **little-endian Blowfish ≠ JDK Blowfish**.
     Ported server engine → `protocol/crypt/BlowfishEngine.java`; `LoginCrypt` uses it. Live probe prints
-    opcode 0x00 + protoRev 0x0000c621 + GG magics (see `Audit/32-init-decode.md`). B3 itself is NOT done yet.
-  - **Phase 1 next:** finish login: AuthGameGuard → RequestAuthLogin (RSA) → LoginOk/PlayOk.
-  - **Phase 2:** GameServer enter-world → prove `online=1`.
+    opcode 0x00 + protoRev 0x0000c621 + GG magics (see `Audit/32-init-decode.md`).
+  - **Phase 1 DONE (2026-08-03):** full LOGIN-SERVER auth proven live — Init → AuthGameGuard → RequestAuthLogin
+    → **LoginOk** → RequestServerList → ServerList(serverId=2) → RequestServerLogin → **PlayOk**; full SessionKey
+    captured (`connectAndLogin=true`). Key fixes: client packets use **session key + checksum** (not static+XOR);
+    **self-inclusive size** header. See `Audit/33-phase1-login-auth.md` + `scripts/b3_login_probe.sh`.
+  - **Phase 2 next:** GameServer (7777) enter-world with the SessionKey → prove `online=1`.
 
 ## Blockers / open issues
-1. **~~B3 = live-login crypto BLOCKED~~ → Init decode UNBLOCKED (2026-08-03).** Root cause found & fixed:
-   the server's **Blowfish is little-endian-byte-order, NOT compatible with JDK `Blowfish/ECB/NoPadding`**
-   (big-endian) — so decrypting the Init with JDK never worked (it was never a framing/XOR issue).
-   Fix (external, no server source changed): `AIPlayerEngine/protocol/crypt/BlowfishEngine.java` (ported
-   verbatim from server) + `LoginCrypt` uses it. Live `InitDecodeProbe` now decodes the Init
-   (opcode 0x00, protoRev 0x0000c621, GG magics). Remaining: **Phase 1** full login handshake + **Phase 2**
-   enter-world (online=1). Detail: `Documentation/Audit/32-init-decode.md`.
+1. **~~B3 = live-login crypto BLOCKED~~ → login-server auth UNBLOCKED (2026-08-03).** Two root causes found & fixed
+   (external, no server source changed):
+   - **Phase 0:** server Blowfish is **little-endian-byte-order**, NOT compatible with JDK
+     `Blowfish/ECB/NoPadding` (big-endian). Ported `protocol/crypt/BlowfishEngine.java`; `Audit/32-init-decode.md`.
+   - **Phase 1:** client packets must use **session key + checksum** (not static+XOR) and the **self-inclusive
+     size** header. Full auth proven (`LoginOk` + `PlayOk`, SessionKey captured); `Audit/33-phase1-login-auth.md`.
+   - **Remaining: Phase 2** GameServer enter-world (online=1).
 2. **B4–B10 (live NPC combat, PvP, quest, trade proof) are gated on B3** — nothing plays until a player logs in.
 3. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 4. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.

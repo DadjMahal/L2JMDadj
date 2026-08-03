@@ -27,8 +27,8 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
   - `protocol/L2JProtocol.java` (REWRITTEN): parse Init → unscramble RSA → AuthGameGuard(0x07) → RequestAuthLogin(0x00) → LoginOk(0x03)/ServerList(0x04).
   - Spec doc: `Documentation/Audit/31-login-protocol-handshake.md`.
 
-## 4. 🔥 B3 — LIVE LOGIN — BLOCKED (the real frontier)
-B4–B10 (live NPC combat, PvP, quest, trade proof) are **ALL gated on B3** (a connected in-game player). B3 is not solved.
+## 4. 🔥 B3 — LIVE LOGIN (Phase 0 + Phase 1 DONE 2026-08-03; Phase 2 = GS enter-world remains)
+B4–B10 (live NPC combat, PvP, quest, trade proof) are **ALL gated on B3** (a connected in-game player).
 
 ### What I found (empirical + source)
 - Live probe (`LoginProbe`/`RawInitProbe`) connected to :2106, got the **Init** frame: **194 bytes**,
