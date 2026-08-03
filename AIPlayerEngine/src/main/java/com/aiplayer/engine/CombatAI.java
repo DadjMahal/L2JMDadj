@@ -100,14 +100,62 @@ public class CombatAI {
         return distance > config.getTargetDistance();
     }
     
-    private double calculateDistanceTo(String targetId) {
-        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
-        // Currently returns mock data because AIPlayer.getProtocol() has no packet parsing
-        // Need: CharInfo packet to track own position
-        // Need: NpcInfo/MonsterInfo packet to track target position
-        // Once protocol parses these packets, can get real coordinates:
-        //   aiPlayer.getProtocol().getPlayerPos() and targetPos
-        return 100 + (Math.random() * 50); // Mock distance - NOT YET TESTED
+    /**
+     * Real 3D distance from the player to a target, computed from PacketLogger entity positions
+     * (Stream C: replaced the mock {@code 100 + Math.random()*50}). Returns MAX_VALUE when the
+     * target id is missing or the entity is no longer tracked (e.g. despawned), so it reads as
+     * "out of range".
+     */
+    public double calculateDistanceTo(String targetId) {
+        int objId = parseTargetObjId(targetId);
+        if (objId < 0)
+        {
+            return Double.MAX_VALUE;
+        }
+        PacketLogger.EntityInfo entity = packetLogger.getEntity(objId);
+        if (entity == null)
+        {
+            return Double.MAX_VALUE;
+        }
+        double dx = entity.x - aiPlayer.getX();
+        double dy = entity.y - aiPlayer.getY();
+        double dz = entity.z - aiPlayer.getZ();
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    /** Extract the objId from a target id like "objId=12345"; -1 if not parseable. */
+    private int parseTargetObjId(String targetId) {
+        if (targetId == null)
+        {
+            return -1;
+        }
+        String prefix = "objId=";
+        int idx = targetId.indexOf(prefix);
+        if (idx < 0)
+        {
+            return -1;
+        }
+        try
+        {
+            return Integer.parseInt(targetId.substring(idx + prefix.length()));
+        }
+        catch (NumberFormatException e)
+        {
+            return -1;
+        }
+    }
+
+    /**
+     * The objId of the currently selected combat target (from {@code currentTarget}),
+     * or -1 if none selected. Used by the executor to send the real Action/AttackRequest frames.
+     */
+    public int getSelectedTargetObjId() {
+        return parseTargetObjId(currentTarget);
+    }
+
+    /** Expose the packet logger (telemetry + tests can feed real parsed packets). */
+    public PacketLogger getPacketLogger() {
+        return packetLogger;
     }
     
     private CombatDecision handleCombatEnd() {
@@ -237,19 +285,24 @@ public class CombatAI {
         return preferred != null ? preferred : "ATTACK";
     }
     
-    private boolean shouldDefend() {
-        // Threat-based defensive behavior
-        // Check if we're being attacked or surrounded
-        int currentHp = getCurrentHPPercentage();
-        int hostilesNearby = combatState.getHostileEntitiesNearby();
-        
+    private boolean shouldDefendDecision() {
+        // Deterministic, real-data threat model (Stream C: removed Math.random()).
+        int currentHp = getCurrentHPPercentage();           // real HP from StatusUpdate
+        int hostilesNearby = packetLogger.getHostileEntityCount(); // real NPC_INFO hostile count
+
         // High threat when HP is low or multiple enemies
         double threatLevel = (100 - currentHp) / 100.0;
-        if (hostilesNearby > 1) {
+        if (hostilesNearby > 1)
+        {
             threatLevel += (hostilesNearby - 1) * 0.2;
         }
-        
-        return Math.random() < threatLevel && threatLevel > 0.3;
+
+        return threatLevel >= 0.3;
+    }
+
+    /** Public deterministic threat check (Stream C: real HP + hostile count, no randomness). */
+    public boolean shouldDefend() {
+        return shouldDefendDecision();
     }
     
     private boolean isHighThreatTarget() {

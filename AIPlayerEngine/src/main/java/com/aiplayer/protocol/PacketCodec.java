@@ -85,6 +85,46 @@ public class PacketCodec {
         buf.flip();
         return buf.array();
     }
+
+    /**
+     * Stream C: real Action (0x04) frame, matching the B4-proven CombatProbe wire format.
+     * Payload = [0x04][targetObjId][originX][originY][originZ][actionId=0]; frame = 2-byte
+     * self-inclusive size + payload. The server's Action.java readImpl is
+     * targetObjectId, originX, originY, originZ, actionId:byte (Audit/35).
+     */
+    public static byte[] encodeAction(int targetObjId, int originX, int originY, int originZ) {
+        int payloadLen = 1 + 4 + 4 + 4 + 4 + 1; // opcode + 4 ints + actionId
+        int frameLen = payloadLen + 2;          // self-inclusive size header
+        ByteBuffer buf = ByteBuffer.allocate(frameLen).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) frameLen);
+        buf.put((byte) 0x04);   // ACTION
+        buf.putInt(targetObjId);
+        buf.putInt(originX);
+        buf.putInt(originY);
+        buf.putInt(originZ);
+        buf.put((byte) 0);      // actionId = 0 (simple click -> select + auto-attack)
+        buf.flip();
+        return buf.array();
+    }
+
+    /**
+     * Stream C: real AttackRequest (0x0A) frame, matching the B4-proven CombatProbe wire format.
+     * Payload = [0x0A][targetObjId][0][0][0][attackId=0]; frame = 2-byte self-inclusive size + payload.
+     */
+    public static byte[] encodeAttackRequest(int targetObjId) {
+        int payloadLen = 1 + 4 + 4 + 4 + 4 + 1; // opcode + 4 ints + attackId
+        int frameLen = payloadLen + 2;
+        ByteBuffer buf = ByteBuffer.allocate(frameLen).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) frameLen);
+        buf.put((byte) 0x0A);   // ATTACK_REQUEST
+        buf.putInt(targetObjId);
+        buf.putInt(0);
+        buf.putInt(0);
+        buf.putInt(0);
+        buf.put((byte) 0);      // attackId = 0
+        buf.flip();
+        return buf.array();
+    }
     
     /**
      * Encode character select packet

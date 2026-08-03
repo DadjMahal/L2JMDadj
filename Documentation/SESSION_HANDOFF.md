@@ -39,6 +39,12 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
   `makeDecision()`/`makePvPDuidedDecision()`; `PerceptionAccuracyTest`(42) reconciled to the real layout.
   36/36 tests pass, BUILD SUCCESS. (RuntimeLog/2026-08-03-streamC-npc-info-fix.md)
 
+- **Stream C slice 2 (done, 2026-08-03):** real client combat encoders `PacketCodec.encodeAction(0x04)` /
+  `encodeAttackRequest(0x0A)` in the B4-proven self-inclusive-size framing; `CombatAI.calculateDistanceTo`
+  now real 3D distance from PacketLogger coords and `shouldDefend()` deterministic from real HP+hostile
+  count (removed the `Math.random()` mocks); added `getPacketLogger()` + `getSelectedTargetObjId()`.
+  41/41 tests pass, BUILD SUCCESS. (RuntimeLog/2026-08-03-streamC-combat-decisions.md)
+
 
 ## 4. ✅ B3 — LIVE LOGIN — DONE 2026-08-03 (1 AI player online=1)
 B4–B10 (live NPC combat, PvP, quest, trade proof) are now UNGATED. Full external socket flow (no server source changes):

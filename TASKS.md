@@ -99,9 +99,9 @@
 | 46 | Audit existing `CombatConfig.java` | done | System | PvP config, defensive thresholds, skill priority; BUILD SUCCESS |
 | 47 | Implement real enemy detection (no Math.random) | done | System | `PacketLogger.findNearestHostile()` (NPC_INFO); 11/11 tests; not live-verified |
 | 48 | Implement real HP/MP tracking | done | System | StatusUpdate (0x0E); 11/11 tests; not live-verified |
-| 49 | Implement targeting logic | done | System | EntityInfo + distance; 11/11 tests; not live-verified |
+| 49 | Implement targeting logic | done | System | EntityInfo + distance; real 3D distance via `CombatAI.calculateDistanceTo` (no Math.random) (Stream C) |
 | 50 | Implement skill selection logic | done | System | selectBestSkill(), MP threshold; 11/11 tests; not live-verified |
-| 51 | Implement defensive behavior | done | System | shouldDefend()/defensiveAction(); 11/11 tests; not live-verified |
+| 51 | Implement defensive behavior | done | System | shouldDefend()/defensiveAction(); deterministic threat model from real HP+hostile count (no Math.random) (Stream C) |
 | 52 | Implement retreat strategy | done | System | shouldRetreat()/retreat() escape direction; not live-verified |
 | 53 | Add combat telemetry | done | System | logCombatTelemetry() actions/HP/MP/entities/latency |
 | 54 | Test combat decisions in isolation | done | System | `CombatAITest.testCombatDecisionNotNull` now calls `makeDecision()` and asserts a real non-null decision+action (Stream C; was fake `assertTrue(true)`) |
@@ -112,7 +112,7 @@
 | 59 | Start first combat test against live server | done | System | Superseded by B4 — `CombatProbe` is the live combat proof (`Audit/35`) |
 | 60 | Verify AI players can engage NPCs | done | System | **LIVE-VERIFIED (B4)** — `CombatProbe` attacked a real Wolf/Elder Keltir: 18 `ATTACK`(0x05) hits, exp 0→105, level 1→2 (`Audit/35`, `scripts/b4_combat_prove.sh`) |
 | 61 | Verify PvP combat logic | done | System | **LIVE-VERIFIED (B5)** — `PvPProbe` two-bot fight: attacker objId2:13 / objId3:12 hits + CombatBot_02 PvP damage (curHp 126→120) (`Audit/36`) |
-| 62 | Implement advanced combat behaviors | done | System | calculateEscapeRoute()/getNearbyEntities(); not live-verified |
+| 62 | Implement advanced combat behaviors | done | System | calculateEscapeRoute()/getNearbyEntities(); + real Action(0x04)/AttackRequest(0x0A) encoders (PacketCodec, Stream C) |
 | 63 | Verify PvP combat enhancements | done | System | `CombatAITest.testCombatAI_PvPMethods` now calls `makePvPDuidedDecision()` + asserts non-null decision/action and non-null karma/skill helpers (Stream C; was fake `assertTrue(true)` on the PvP path) |
 
 ---

@@ -1,5 +1,9 @@
 package com.aiplayer.engine;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import com.aiplayer.protocol.PacketLogger;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -168,4 +172,81 @@ public class CombatAITest {
         assertNotNull(ai.getOptimalPvPSkill(40), "skill selection should handle medium MP");
         assertNotNull(ai.getDefensiveSkill(), "defensive skill should not be null");
     }
+
+    // ============================================
+    // Stream C: real-data decision tests (no Math.random)
+    // ============================================
+
+    @Test
+    public void testRealDistanceFromPacketPositions() {
+        AIPlayer player = new AIPlayer("TestPlayer", 1, 1, 0);
+        player.setPosition(0, 0, 0);
+        CombatAI ai = new CombatAI(player);
+        // Hostile NPC at (3000,4000,0) -> distance from origin is 5000
+        ai.getPacketLogger().logPacket(buildNpcInfoFrame(1001, 1000000 + 10001, 1, 3000, 4000, 0, 0));
+        assertEquals(5000.0, ai.calculateDistanceTo("objId=1001"), 0.1,
+            "distance from (0,0,0) to (3000,4000,0) should be 5000 (real coords, not mock)");
+    }
+
+    @Test
+    public void testDistanceUnknownTargetIsMax() {
+        CombatAI ai = new CombatAI(new AIPlayer("TestPlayer", 1, 1, 0));
+        assertEquals(Double.MAX_VALUE, ai.calculateDistanceTo("objId=999"), "untracked target -> out of range");
+        assertEquals(Double.MAX_VALUE, ai.calculateDistanceTo(null), "null target -> out of range");
+    }
+
+    @Test
+    public void testShouldDefendUsesRealData() {
+        // Low HP (10%) + multiple hostiles -> deterministic TRUE (was Math.random()).
+        AIPlayer weak = new AIPlayer("WeakBot", 1, 1, 0);
+        weak.setPosition(0, 0, 0);
+        CombatAI ai = new CombatAI(weak);
+        ai.getPacketLogger().logPacket(buildStatusUpdateFrame(100, 1000)); // 10% HP
+        ai.getPacketLogger().logPacket(buildNpcInfoFrame(1001, 1000000 + 10001, 1, 100, 0, 0, 0));
+        ai.getPacketLogger().logPacket(buildNpcInfoFrame(1002, 1000000 + 10002, 1, 200, 0, 0, 0));
+        assertTrue(ai.shouldDefend(), "low HP + multiple hostiles should defend");
+
+        // Healthy (default 100%) + single hostile -> deterministic FALSE.
+        AIPlayer healthy = new AIPlayer("HealthyBot", 1, 1, 0);
+        CombatAI ai2 = new CombatAI(healthy);
+        ai2.getPacketLogger().logPacket(buildNpcInfoFrame(1003, 1000000 + 10003, 1, 100, 0, 0, 0));
+        assertFalse(ai2.shouldDefend(), "healthy + single hostile should not defend");
+    }
+
+    // Real-layout builders matching the proven probe framing (same as PacketLoggerNpcInfoTest).
+    private byte[] buildNpcInfoFrame(int objectId, int displayId, int isAttackable,
+                                     int x, int y, int z, int heading) {
+        int payloadLen = 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4; // opcode + 7 ints
+        ByteBuffer payload = ByteBuffer.allocate(payloadLen).order(ByteOrder.LITTLE_ENDIAN);
+        payload.put((byte) 0x16);
+        payload.putInt(objectId);
+        payload.putInt(displayId);
+        payload.putInt(isAttackable);
+        payload.putInt(x);
+        payload.putInt(y);
+        payload.putInt(z);
+        payload.putInt(heading);
+        int frameLen = payloadLen + 2;
+        ByteBuffer frame = ByteBuffer.allocate(frameLen).order(ByteOrder.LITTLE_ENDIAN);
+        frame.putShort((short) frameLen);
+        frame.put(payload.array());
+        return frame.array();
+    }
+
+    // [0x0E][objectId][attrCount][CUR_HP=9][val][MAX_HP=10][val]
+    private byte[] buildStatusUpdateFrame(int curHp, int maxHp) {
+        int payloadLen = 1 + 4 + 4 + 8 + 8;
+        ByteBuffer payload = ByteBuffer.allocate(payloadLen).order(ByteOrder.LITTLE_ENDIAN);
+        payload.put((byte) 0x0E);
+        payload.putInt(12345);
+        payload.putInt(2);
+        payload.putInt(0x09); payload.putInt(curHp);
+        payload.putInt(0x0A); payload.putInt(maxHp);
+        int frameLen = payloadLen + 2;
+        ByteBuffer frame = ByteBuffer.allocate(frameLen).order(ByteOrder.LITTLE_ENDIAN);
+        frame.putShort((short) frameLen);
+        frame.put(payload.array());
+        return frame.array();
+    }
 }
+
