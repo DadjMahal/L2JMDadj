@@ -100,8 +100,13 @@ that connects as real client sockets — **no server code modifications**.
    wire frames (Action 0x04 → flood-gap → AttackRequest 0x0A; FLEE → MoveToLocation 0x01);
    `GameServerFrameWriter` emits framed packets; `PacketCodec.encodeMoveToLocation` (B8 layout);
    `AIPlayerConnection.executeCombatDecision()` + `setGameServerWriter()`. **49/49 tests PASS.**
-   (RuntimeLog/2026-08-03-streamC-decision-to-send.md) Remaining: attach a persistent in-engine GS socket
-   and run a live decision→send proof.
+   (RuntimeLog/2026-08-03-streamC-decision-to-send.md)
+4i. **🔄 STREAM C — slice 4 done (reusable GS client):** `GameServerClient` retains the proven B3/B4 handshake
+   (ProtocolVersion→KeyPacket→AuthLogin→CharSelect→CharSelected→EnterWorld) over a classic Socket, has a
+   background reader feeding `PacketLogger`, and `attachToConnection`/`sendGameFrame`. Handshake builders
+   (`encodeProtocolVersion`/`encodeAuthLogin`/`encodeCharacterSelect`/`encodeEnterWorld`) added to PacketCodec.
+   **54/54 tests PASS** incl. an in-process fake-GS handshake + real Action(0x04) send. (RuntimeLog/
+   2026-08-03-streamC-gs-client.md) Remaining: a live driver + proof script.
 5. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 6. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
 7. ✅ Tasks 54 & 63 RESOLVED (Stream C, 2026-08-03) — their fake `assertTrue(true)` tests replaced with real assertions on `makeDecision()`/`makePvPDuidedDecision()`; now `done` in TASKS.md.

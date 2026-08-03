@@ -41,6 +41,14 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
 
 - **Stream C slice 2 (done, 2026-08-03):** real client combat encoders `PacketCodec.encodeAction(0x04)` /
 - **Stream C slice 3 (done, 2026-08-03):** decision→send wiring. `CombatFramePlanner` maps a combat
+- **Stream C slice 4 (done, 2026-08-03):** reusable in-engine `GameServerClient` (classic Socket) retaining
+  the proven B3/B4 handshake (ProtocolVersion → KeyPacket → AuthLogin → CharSelectInfo → CharacterSelect →
+  CharSelected → EnterWorld), a background reader feeding `PacketLogger`, and `attachToConnection` +
+  `sendGameFrame`. Handshake payload builders added to `PacketCodec`
+  (`encodeProtocolVersion`/`encodeAuthLogin`/`encodeCharacterSelect`/`encodeEnterWorld`). 54/54 tests pass,
+  BUILD SUCCESS — incl. an in-process fake-GS integration test completing the handshake and sending a real
+  `Action`(0x04) frame. (RuntimeLog/2026-08-03-streamC-gs-client.md) Remaining: a live driver + proof script.
+
   decision to ordered wire frames (ENGAGE/ATTACK → Action 0x04, 1000 ms flood gap, AttackRequest 0x0A;
   FLEE/RETREAT/BLOCK → MoveToLocation 0x01); `GameServerFrameWriter` emits framed packets; added
   `PacketCodec.encodeMoveToLocation` (B8-proven layout); `AIPlayerConnection.executeCombatDecision()`

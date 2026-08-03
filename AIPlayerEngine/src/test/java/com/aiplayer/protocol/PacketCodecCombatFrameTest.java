@@ -63,6 +63,41 @@ public class PacketCodecCombatFrameTest
       assertEquals(0, leInt(frame, 27), "moveType should be 0 (cursor-key walk)");
    }
 
+   @Test
+   public void testEncodeProtocolVersionLayout()
+   {
+      byte[] p = PacketCodec.encodeProtocolVersion(746);
+      assertEquals(5, p.length, "ProtocolVersion payload is 5 bytes");
+      assertEquals(0x00, p[0] & 0xff, "opcode 0x00");
+      assertEquals(746, leInt(p, 1), "version 746");
+   }
+
+   @Test
+   public void testEncodeAuthLoginLayout()
+   {
+      byte[] p = PacketCodec.encodeAuthLogin("ai_combat_01", 0x11111111, 0x22222222, 0x33333333, 0x44444444);
+      assertEquals(0x08, p[0] & 0xff, "opcode 0x08");
+      // account "ai_combat_01" (12 chars) UTF-16LE = 24 bytes + 1 opcode + 2 null + 16 keys
+      assertEquals(1 + 24 + 2 + 16, p.length, "AuthLogin payload length");
+      assertEquals(0x11111111, leInt(p, p.length - 16), "playKey2");
+      assertEquals(0x22222222, leInt(p, p.length - 12), "playKey1");
+      assertEquals(0x33333333, leInt(p, p.length - 8), "loginKey1");
+      assertEquals(0x44444444, leInt(p, p.length - 4), "loginKey2");
+   }
+
+   @Test
+   public void testEncodeCharacterSelectAndEnterWorldLayout()
+   {
+      byte[] cs = PacketCodec.encodeCharacterSelect(0);
+      assertEquals(19, cs.length, "CharacterSelect payload is 19 bytes");
+      assertEquals(0x0D, cs[0] & 0xff, "opcode 0x0D");
+      assertEquals(0, leInt(cs, 1), "charSlot");
+
+      byte[] ew = PacketCodec.encodeEnterWorld();
+      assertEquals(105, ew.length, "EnterWorld payload is 105 bytes");
+      assertEquals(0x03, ew[0] & 0xff, "opcode 0x03");
+   }
+
    private static int leInt(byte[] d, int i)
    {
       return (d[i] & 0xff) | ((d[i + 1] & 0xff) << 8) | ((d[i + 2] & 0xff) << 16) | ((d[i + 3] & 0xff) << 24);

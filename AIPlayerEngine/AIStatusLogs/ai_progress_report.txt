@@ -18,9 +18,10 @@ Last updated: 2026-08-03 (B4 milestone) — see real_status.sh + START_HERE.md
   classes need wiring to the real packets the probes demonstrate).
 - Stream C (wiring) STARTED 2026-08-03: slice 1 parseNpcInfo off-by-one fix + fake tests 54/63 -> real (36/36);
   slice 2 real Action(0x04)/AttackRequest(0x0A) encoders + no-Math.random CombatAI decisions (41/41); slice 3
-  decision->send: CombatFramePlanner (Action->gap->AttackRequest; FLEE->MoveToLocation), GameServerFrameWriter,
-  PacketCodec.encodeMoveToLocation, AIPlayerConnection.executeCombatDecision (49/49). Next: attach a persistent
-  in-engine GS socket + live decision->send proof.
+  decision->send: CombatFramePlanner, GameServerFrameWriter, encodeMoveToLocation, AIPlayerConnection.executeCombatDecision
+  (49/49); slice 4 reusable GameServerClient (full B3/B4 handshake + reader + attachToConnection; PacketCodec handshake
+  builders) (54/54, incl. fake-GS integration test). Next: a live driver wiring login -> GameServerClient ->
+  CombatAI.makeDecision -> executeCombatDecision, then run the live proof.
 
 ============================================================
 📊 REAL STATUS FROM ACTUAL QUERIES:

@@ -148,6 +148,66 @@ public class PacketCodec {
         buf.flip();
         return buf.array();
     }
+
+    // ------------------------------------------------------------------
+    // GameServer handshake payload builders (plaintext = opcode + fields, NO size header).
+    // These mirror the proven B3 / B4 probe builders (EnterWorldProbe / CombatProbe); a
+    // GameServerClient frames + optionally game-crypt-encrypts them before writing.
+    // ------------------------------------------------------------------
+
+    /** ProtocolVersion (0x00): [0x00][version int] — always plaintext. */
+    public static byte[] encodeProtocolVersion(int version) {
+        ByteBuffer bb = ByteBuffer.allocate(1 + 4).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        bb.put((byte) 0x00);
+        bb.putInt(version);
+        return bb.array();
+    }
+
+    /**
+     * AuthLogin (0x08): [0x08][account UTF-16LE][\0 short][playKey2][playKey1][loginKey1][loginKey2].
+     * Keys come from {@code L2JProtocol} after the login-server handshake.
+     */
+    public static byte[] encodeAuthLogin(String account, int playOk2, int playOk1,
+                                         int loginOk1, int loginOk2) {
+        byte[] name = account.getBytes(StandardCharsets.UTF_16LE);
+        ByteBuffer bb = ByteBuffer.allocate(1 + name.length + 2 + 16).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        bb.put((byte) 0x08);
+        bb.put(name);
+        bb.putShort((short) 0); // null terminator
+        bb.putInt(playOk2);     // playKey2
+        bb.putInt(playOk1);     // playKey1
+        bb.putInt(loginOk1);    // loginKey1
+        bb.putInt(loginOk2);    // loginKey2
+        return bb.array();
+    }
+
+    /** CharacterSelect (0x0D): [0x0D][charSlot int][unk1 short][unk2][unk3][unk4 ints = 0]. */
+    public static byte[] encodeCharacterSelect(int charSlot) {
+        ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 2 + 4 + 4 + 4).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        bb.put((byte) 0x0D);
+        bb.putInt(charSlot);
+        bb.putShort((short) 0);
+        bb.putInt(0);
+        bb.putInt(0);
+        bb.putInt(0);
+        return bb.array();
+    }
+
+    /**
+     * EnterWorld (0x03): [0x03][readBytes(32)][4×int][readBytes(32)][int][5×4 tracert] = 105 bytes,
+     * all zeros (server builds 0.0.0.0 traceroute IPs). Required after CharSelected to actually spawn
+     * (B4 finding #1 — without it the GS stays in ENTERING and sends no NPC_INFO burst).
+     */
+    public static byte[] encodeEnterWorld() {
+        ByteBuffer bb = ByteBuffer.allocate(1 + 32 + 16 + 32 + 4 + 20).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        bb.put((byte) 0x03);
+        for (int i = 0; i < 32; i++) bb.put((byte) 0);
+        bb.putInt(0); bb.putInt(0); bb.putInt(0); bb.putInt(0);
+        for (int i = 0; i < 32; i++) bb.put((byte) 0);
+        bb.putInt(0);
+        for (int i = 0; i < 20; i++) bb.put((byte) 0); // 5x4 tracert bytes
+        return bb.array();
+    }
     
     /**
      * Encode character select packet
