@@ -21,29 +21,22 @@ that connects as real client sockets — **no server code modifications**.
 - 🔴 Fabricated status docs were quarantined (see Blockers).
 
 ## Current phase / next task
-- **Phase:** 2 — Combat AI (scaffolding done; **live verification is the real gap**).
+- **Current phase:** **B3 DONE — first AI player proven ONLINE (2026-08-03).** Combat AI live verification (B4+) is now possible.
 - **Stream A DONE (2026-08-03):** A1 cold-start test (17/17 PASS; bootup ~73k→~1.3k tokens); A2 `real_status.sh` fix; A3 `count_ai_players.sh` fix (real DB: 25 registered, 0 online).
 - **B1 DONE:** AI credentials valid (DB pw → Base64(SHA1); connectPlayer bug fixed).
 - **B2 DONE (compiles, NOT live-proven):** real L2J login handshake — `LoginCrypt` + `L2JProtocol` rewrite; spec in `Audit/31-login-protocol-handshake.md`.
-- **Next task: B3 — LIVE-LOGIN PROOF.** Goal: connect 1 AI player live (online=1). B4–B10 all depend on it.
-  - **Phase 0 DONE (2026-08-03):** Init frame now decodes — root cause was **little-endian Blowfish ≠ JDK Blowfish**.
-    Ported server engine → `protocol/crypt/BlowfishEngine.java`; `LoginCrypt` uses it. Live probe prints
-    opcode 0x00 + protoRev 0x0000c621 + GG magics (see `Audit/32-init-decode.md`).
-  - **Phase 1 DONE (2026-08-03):** full LOGIN-SERVER auth proven live — Init → AuthGameGuard → RequestAuthLogin
-    → **LoginOk** → RequestServerList → ServerList(serverId=2) → RequestServerLogin → **PlayOk**; full SessionKey
-    captured (`connectAndLogin=true`). Key fixes: client packets use **session key + checksum** (not static+XOR);
-    **self-inclusive size** header. See `Audit/33-phase1-login-auth.md` + `scripts/b3_login_probe.sh`.
-  - **Phase 2 next:** GameServer (7777) enter-world with the SessionKey → prove `online=1`.
+- **B3 — LIVE-PLAYER PROOF DONE (2026-08-03):** 1 AI player (`CombatBot_01`/`ai_combat_01`) proven **online=1** in the `gameserver` DB via the full external socket flow.
+  - **Phase 0 (done):** Init decodes — root cause was **little-endian Blowfish ≠ JDK Blowfish**; ported server engine → `protocol/crypt/BlowfishEngine.java`; `Audit/32-init-decode.md`.
+  - **Phase 1 (done):** login-server auth: Init → AuthGameGuard → RequestAuthLogin → **LoginOk** → ServerList → RequestServerLogin → **PlayOk**; SessionKey captured. Client packets use **session key + checksum** + **self-inclusive size**. `Audit/33-phase1-login-auth.md` + `scripts/b3_login_probe.sh`.
+  - **Phase 2 (done):** GameServer enter-world: ProtocolVersion(746) → KeyPacket → **AuthLogin** → CharSelectInfo → **CharacterSelect** → CharSelected → `setOnlineStatus(true,true)` → **online=1** live-verified. `Audit/34-phase2-enter-world.md` + `scripts/b3_enter_world_prove.sh`.
+- **Next tasks (B4+):** real NPC combat, PvP, quest, trade proofs — CombatAI/QuestAI/MerchantAI/SocialAI still run on mock data; now they can be wired to real gameplay.
 
 ## Blockers / open issues
-1. **~~B3 = live-login crypto BLOCKED~~ → login-server auth UNBLOCKED (2026-08-03).** Two root causes found & fixed
-   (external, no server source changed):
-   - **Phase 0:** server Blowfish is **little-endian-byte-order**, NOT compatible with JDK
-     `Blowfish/ECB/NoPadding` (big-endian). Ported `protocol/crypt/BlowfishEngine.java`; `Audit/32-init-decode.md`.
-   - **Phase 1:** client packets must use **session key + checksum** (not static+XOR) and the **self-inclusive
-     size** header. Full auth proven (`LoginOk` + `PlayOk`, SessionKey captured); `Audit/33-phase1-login-auth.md`.
-   - **Remaining: Phase 2** GameServer enter-world (online=1).
-2. **B4–B10 (live NPC combat, PvP, quest, trade proof) are gated on B3** — nothing plays until a player logs in.
+1. **✅ B3 RESOLVED (2026-08-03) — 1 AI player online.** Full external socket flow proven (no L2JM server source changed):
+   - Phase 0: server **Blowfish is little-endian**, not JDK-compatible → ported `protocol/crypt/BlowfishEngine.java` (`Audit/32`).
+   - Phase 1: client login packets use **session key + checksum** + **self-inclusive size** (`Audit/33`).
+   - Phase 2: GS ProtocolVersion(746) → KeyPacket → AuthLogin → CharacterSelect → **online=1** live-verified (`Audit/34`, `scripts/b3_enter_world_prove.sh`).
+2. **B4–B10 (live NPC combat, PvP, quest, trade proof) are now UNGATED** — an AI player can be online; the AI engines still run on mock data and need wiring to real packets.
 3. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 4. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
 5. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions (Stream C).
