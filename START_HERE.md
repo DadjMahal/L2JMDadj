@@ -21,7 +21,8 @@ that connects as real client sockets — **no server code modifications**.
 - 🔴 Fabricated status docs were quarantined (see Blockers).
 
 ## Current phase / next task
-- **Current phase:** **B3 DONE — first AI player proven ONLINE (2026-08-03).** Combat AI live verification (B4+) is now possible.
+- **Current phase:** **B4 DONE — live NPC combat PROVEN (2026-08-03).** An AI player attacked a real Wolf/Keltir
+  monster (18 server `ATTACK` packets) and **gained 105 exp / leveled 1→2**. PvP / quest / trade proofs (B5+) are next.
 - **Stream A DONE (2026-08-03):** A1 cold-start test (17/17 PASS; bootup ~73k→~1.3k tokens); A2 `real_status.sh` fix; A3 `count_ai_players.sh` fix (real DB: 25 registered, 0 online).
 - **B1 DONE:** AI credentials valid (DB pw → Base64(SHA1); connectPlayer bug fixed).
 - **B2 DONE (compiles, NOT live-proven):** real L2J login handshake — `LoginCrypt` + `L2JProtocol` rewrite; spec in `Audit/31-login-protocol-handshake.md`.
@@ -29,14 +30,24 @@ that connects as real client sockets — **no server code modifications**.
   - **Phase 0 (done):** Init decodes — root cause was **little-endian Blowfish ≠ JDK Blowfish**; ported server engine → `protocol/crypt/BlowfishEngine.java`; `Audit/32-init-decode.md`.
   - **Phase 1 (done):** login-server auth: Init → AuthGameGuard → RequestAuthLogin → **LoginOk** → ServerList → RequestServerLogin → **PlayOk**; SessionKey captured. Client packets use **session key + checksum** + **self-inclusive size**. `Audit/33-phase1-login-auth.md` + `scripts/b3_login_probe.sh`.
   - **Phase 2 (done):** GameServer enter-world: ProtocolVersion(746) → KeyPacket → **AuthLogin** → CharSelectInfo → **CharacterSelect** → CharSelected → `setOnlineStatus(true,true)` → **online=1** live-verified. `Audit/34-phase2-enter-world.md` + `scripts/b3_enter_world_prove.sh`.
-- **Next tasks (B4+):** real NPC combat, PvP, quest, trade proofs — CombatAI/QuestAI/MerchantAI/SocialAI still run on mock data; now they can be wired to real gameplay.
+- **B4 — LIVE NPC COMBAT PROVEN (2026-08-03):** `CombatProbe` (login → enter-world → **EnterWorld(0x03)** →
+  NPC_INFO scan → **Action**(0x04)+**AttackRequest**(0x0A)) attacked a real Talking Island Wolf/Keltir monster:
+  server broadcast **18 `ATTACK`(0x05)** hits; DB `exp` **0→105**, **level 1→2**, curHp 126→145. Spec + evidence:
+  `Audit/35-b4-live-npc-combat.md`; reproduce: `scripts/b4_combat_prove.sh`.
+  - Key discoveries: client MUST send **EnterWorld** to spawn; NIO SocketChannel ignores setSoTimeout (hang) —
+    CombatProbe uses classic Socket; **PacketLogger.parseNpcInfo is off-by-one** (needs fix, Stream C);
+    the 25 `ai_%` chars spawn in the **void** at (16600,17000,434) and die — relocated CombatBot_01 to the Wolf zone.
+- **Next tasks (B5+):** live **PvP**, quest, trade proofs — CombatAI/QuestAI/MerchantAI/SocialAI still run on
+  mock data; now they can be wired to the real packets demonstrated by `CombatProbe`.
 
 ## Blockers / open issues
 1. **✅ B3 RESOLVED (2026-08-03) — 1 AI player online.** Full external socket flow proven (no L2JM server source changed):
    - Phase 0: server **Blowfish is little-endian**, not JDK-compatible → ported `protocol/crypt/BlowfishEngine.java` (`Audit/32`).
    - Phase 1: client login packets use **session key + checksum** + **self-inclusive size** (`Audit/33`).
    - Phase 2: GS ProtocolVersion(746) → KeyPacket → AuthLogin → CharacterSelect → **online=1** live-verified (`Audit/34`, `scripts/b3_enter_world_prove.sh`).
-2. **B4–B10 (live NPC combat, PvP, quest, trade proof) are now UNGATED** — an AI player can be online; the AI engines still run on mock data and need wiring to real packets.
+2. **✅ B4 RESOLVED (2026-08-03) — live NPC combat PROVEN** (`CombatProbe`, `Audit/35`): AI player attacked a
+   real Wolf/Keltir monster → 18 `ATTACK`(0x05) hits + **exp 0→105, level 1→2**. **B5–B10 (live PvP, quest,
+   trade proof) next** — the AI engines still run on mock data and need wiring to the real packets now proven.
 3. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 4. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
 5. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions (Stream C).

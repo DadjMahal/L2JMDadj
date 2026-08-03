@@ -3,15 +3,16 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 2 — Combat AI (scaffolding done; **live verification is the real gap**)
-## Last completed: B2 — real L2J login handshake (LoginCrypt + L2JProtocol) compiles; B3 live-login BLOCKED (see SESSION_HANDOFF.md)
-## Next task: **B3** — live-login proof (connect 1 AI player, online=1). BLOCKED on Init-decrypt crypto. B4–B10 gated on B3.
-## Blockers: B3 live-login crypto (custom BlowfishEngine vs JDK); B4–B10 depend on B3; fake-test tasks 54/63 (Stream C); ~145 unwired stub classes (Stream G).
+## Phase: 2 — Combat AI (live PvE combat PROVEN; live gap now only PvP/quest/trade and mock-data wiring)
+## Last completed: B4 — live NPC combat proof (CombatProbe): AI player attacked real Wolf/Keltir, 18 ATTACK(0x05) hits, exp 0→105, level 1→2 (Audit/35, scripts/b4_combat_prove.sh)
+## Next task: **B5** — live PvP proof (or wire CombatAI/PacketLogger to the real packets CombatProbe proved). B6–B10 (quest, trade) after.
+## Blockers: fake-test tasks 54/63 (Stream C); ~145 unwired stub classes (Stream G); PacketLogger.parseNpcInfo off-by-one (real AbstractNpcInfo layout) — needs fix; 24 remaining ai_% chars still in the void spawn (16600,17000,434).
 
-## Honest state (source: ai_progress_report.txt + real_status.sh)
-Engine compiles (155 files); Combat/Quest/Merchant/Social AI use **mock data**, not connected to real gameplay.
-25 AI chars exist in DB at level 1, 0 online. Server UP (LoginServer :2106, GameServer :7777).
-Bootup cost: ~73k → ~1,272 tokens (cold-start test PASS).
+## Honest state (source: real_status.sh + live probe evidence)
+Server UP (LoginServer :2106, GameServer :7777). Live combat PROVEN: CombatBot_01 fought a Talking Island
+Wolf/Elder Keltir — server ATTACK(0x05) packets + exp 0→105 + level 1→2. Combat/Quest/Merchant/Social AI engine
+classes still use mock data internally, but the external-socket path to real packets is now demonstrated.
+25 AI chars in DB; CombatBot_01 relocated to Wolf zone + healed for combat.
 
 ## Recent RuntimeLogs (most recent first)
 - 2026-08-03-a1-cold-start-test.md
