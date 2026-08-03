@@ -88,9 +88,19 @@ packets. Live proof (`Audit/39`):
 - `MoveToLocation`(0x01) client layout: `[targetX,targetY,targetZ,originX,originY,originZ,moveType:int]`
   (moveType 0 = cursor-key walk, 1 = mouse). Server auto-paths the character to the target.
 
-### Most likely causes / next — B3/B4/B5/B6/B8 fully RESOLVED (above). Remaining live gap:
+## 4f. ✅ B9 — LIVE CHAT — DONE 2026-08-03 (server delivered the AI's whisper to another bot)
+`ChatProbe` (examples) = two-bot enter-world (proven flow) → bot A sends **`Say2`(0x38)** whisper →
+token delivered to bot B as **`CREATURE_SAY`(0x4A)**. Live proof (`Audit/40`, `scripts/b9_chat_prove.sh`):
+- Client `Say2`(0x38): `[0x38][text:UTF-16LE null-term][type:int][target:UTF-16LE null-term (whisper)]`;
+  WHISPER client id = 2; `readString()` = null-terminated UTF-16LE.
+- Server `CREATURE_SAY`(0x4A): `[0x4A][senderObjId][chatType][senderName][text]`.
+- Whisper (`ChatWhisper`) has NO level gate/range (GENERAL chat is gated to `MinimumChatLevel`=20 → not usable
+  for L1-2 bots). B's connection got the token (`received=true`), A got its `->CombatBot_02` echo (`echo=true`).
+- No L2JM server source changed.
+
+### Most likely causes / next — B3/B4/B5/B6/B8/B9 fully RESOLVED (above). Remaining live gap:
 B7 (trade proof) is IN PROGRESS — the buy-dialog open is blocked on bypass validation (generic Trader emits no
-HTML menu on plain-click; see `Audit/38`), **plus** wiring the proven PvE/PvP/quest/movement packets into
+HTML menu on plain-click; see `Audit/38`), **plus** wiring the proven PvE/PvP/quest/movement/chat packets into
 `CombatAI`/`QuestAI`/`PacketLogger` (Stream C). B6b (bot earns a quest via NPC talk + `RequestBypassToServer`(0x21))
 is a follow-on.
 
