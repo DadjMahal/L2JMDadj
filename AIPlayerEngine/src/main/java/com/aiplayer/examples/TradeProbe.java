@@ -217,6 +217,10 @@ public class TradeProbe
 				break;
 			}
 			int op = pl[0] & 0xff;
+			if (op != OP_NPC_INFO) // NPC_INFO is noisy; skip logging it
+			{
+				System.out.println("[TradeProbe] rx opcode=0x" + Integer.toHexString(op) + " len=" + pl.length);
+			}
 			if ((op == OP_NPC_INFO) && (pl.length >= 25))
 			{
 				int npcType = leInt(pl, 5); // displayId+1000000 (AbstractNpcInfo [objId][type][attackable][x][y][z])
