@@ -23,11 +23,28 @@
 4. Seed adena (≥ price). Send `RequestBuyItem`(0x1F)[listId][1][itemId][1].
 5. Read resulting packets; verify DB (adena decreased + new item row) via the script.
 
-## Verification (paste both)
-- Probe stdout: parsed BuyList (listId, item, price) + "buy sent".
-- DB before/after: `items` for charId 2 gains the item; adena (item 57) count decreased.
-- B7 PROVEN if the server processed the buy (item row added / adena dropped / ItemList/SystemMessage confirms).
+## ✅/🟡 Result — B7 (2026-08-03): merchant TARGETING + full protocol traced; buy-window OPEN blocked
 
-## Reproduce
-`scripts/b7_trade_prove.sh` (position/heal bot + seed adena → restart LS → run `TradeProbe` → assert
-item row added or adena decreased in DB).
+**Live-proven:** `TradeProbe` (single bot) logs in, enters the world, and **locates + targets a real Trader
+NPC (Silvia 30003, objId seen via NPC_INFO)** — the AI can identify and interact-target a merchant.
+
+**Protocol fully mapped (audited, SourceCode):**
+- Merchant buy window opens via the `Buy <listId>` bypass → `BuyList(0x11)` → then `RequestBuyItem`(0x1F).
+- Silvia (30003) sells buy-list **3000301** (`data/buylists/3000301.xml`, e.g. Spellbook item 1055).
+- `BuyList.writeImpl` (0x11): `[money][listId][size:short]` + per item `[..][itemId][..][price]`.
+- `RequestBuyItem`(0x1F): `[listId:int][n:int][{itemId,count}]`. Adena = item 57.
+
+**Blocker (why no buy completed):** `RequestBypassToServer.runImpl` calls `player.validateHtmlAction(_command)`;
+an unused bypass is **silently dropped (bypassOriginId==-1)** unless it came from a server-issued HTML action.
+This generic "Merchant" Trader (Silvia) does **not** send an HTML menu on a plain `Action` click (no `onFirstTalk`),
+so the `Buy 3000301` bypass is rejected → no `BuyList(0x11)` arrives. (Sending the buy list id requires a prior
+validated HTML action.)
+
+**Honest status:** B7 is IN PROGRESS — merchant locating/targeting done; the buy-dialog open is blocked on
+obtaining a validated buy action. Next options (documented): (a) use a merchant with an `onFirstTalk` HTML
+menu (quest/shop NPC that emits a Buy link) so the bypass is validated; or (b) if a test-only convenience is
+acceptable, the operator can add "Buy"/non-HTML bypass exceptions. No server source changed; not claimed PROVEN.
+
+## Reproduce (partial)
+`AIPlayerEngine/.../examples/TradeProbe.java` (CD in scripts dir pending); current run: `scripts/TradeProbe` not finalized.
+

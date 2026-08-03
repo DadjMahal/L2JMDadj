@@ -1,27 +1,24 @@
-# SESSION IN PROGRESS — B7: live trade proof
+# SESSION IN PROGRESS — B7: live trade proof (PARTIAL — buy-open blocked)
 
-> Resume check: if this file exists, the last turn was cut off. Resume "Current step". On clean completion
-> fold into the final RuntimeLog + `git rm` this file.
+> Resume: B7 not PROVEN. TradeProbe is committed WIP; merchant targeting works live; buy-window OPEN is
+> blocked by bypass validation (details below). Resume from the "Next step".
 
-## Goal
-Prove an AI bot buys an item from a merchant NPC live: target Trader → `BuyList`(0x11) → `RequestBuyItem`(0x1F)
-→ DB (item row added / adena dropped). Spec: `Audit/38-b7-live-trade.md`.
+## What works (live-verified)
+- `TradeProbe` logs in, enters world, and **locates + targets Trader Silvia (30003)** via live `NPC_INFO`.
+- Merchant-buy protocol fully traced: `Buy 3000301` bypass → `BuyList`(0x11) → `RequestBuyItem`(0x1F).
+- Bot is positioned at Silvia's spot (-83789,240799,-3717) with **500k adena** (item 57, object_id 900000001).
 
-## Idempotent checklist
-- [x] Audit-first: BuyList(0x11) layout; RequestBuyItem(0x1F)/RequestSellItem(0x1E); Trader NPCs 30003/30004
-      (+ locations); Merchant.showBuyWindow; adena=item 57; bots have empty inventory.
-- [x] Document before code: wrote `Audit/38`.
-- [ ] DB: position+heal CombatBot_01 next to Trader 30003; seed adena (item 57).
-- [ ] Implement `TradeProbe.java` (enter-world → NPC_INFO Trader objId → Action → parse BuyList → RequestBuyItem).
-- [ ] `mvn clean compile` → BUILD SUCCESS; write `scripts/b7_trade_prove.sh`.
-- [ ] Run live; paste BuyList parse + DB before/after.
-- [ ] RuntimeLog + sync KB (START_HERE, STATUS, SESSION_HANDOFF, ai_progress_report); `git rm` this; commit.
+## Blocker
+`RequestBypassToServer.runImpl` → `player.validateHtmlAction(<bypass>)`; an un-issued bypass is **silently
+dropped** (`bypassOriginId==-1`). Generic Trader 30003 emits **no HTML menu on a plain `Action` click**
+(no onFirstTalk), so `Buy 3000301` is dropped → no `BuyList`. See `Audit/38-b7-live-trade.md`.
 
-## Current step
-Audit + spec done. Next: seed adena + position bot, then code `TradeProbe`.
+## Next step (choose one)
+1. **Use a merchant/shop NPC that HAS an onFirstTalk HTML menu** (emits a Buy link) → bot clicks → parses the
+   validated Buy action from NpcHtmlMessage(0x0F) → sends it → BuyList → RequestBuyItem. (Most "genuine" path.)
+2. **Operator convenience:** add "Buy"/`_possibleNonHtmlCommands` bypass exception (test server only) so the
+   bot's `Buy <listId>` is accepted directly. (Fast, but a server-behavior change — needs user OK.)
 
-## If resuming: do this next
-1. DB: UPDATE CombatBot_01 to Trader 30003 location (-83789,240799,-3717) + heal; INSERT adena (item 57,
-   owner_id 2, loc='INVENTORY', count e.g. 500000, with a free object_id).
-2. Finish `TradeProbe.java`: enter world → find npcType 1003003 in NPC_INFO → Action → parse BuyList(0x11)
-   listId + first item/price → RequestBuyItem(0x1F). Build, restart LS, run via setsid; verify DB.
+Run: `cd AIPlayerEngine && mvn clean compile`; `scripts/b7` (TBD) or `setsid bash -c 'java -cp target/classes
+com.aiplayer.examples.TradeProbe ai_combat_01 ai123pass 127.0.0.1 7777'`; then verify DB adena (57) / item row.
+

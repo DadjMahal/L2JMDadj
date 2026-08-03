@@ -157,13 +157,12 @@ public class TradeProbe
 		{
 			sendAction(cn.out, cn.useEnc, traderObjId, -83789, 240799, -3717);
 			System.out.println("[TradeProbe] sent Action(0x04) on trader " + traderObjId);
-			Thread.sleep(2000); // server should reply NpcHtmlMessage menu (and maybe BuyList)
-			if (buyBypass != null)
-			{
-				System.out.println("[TradeProbe] sending buy bypass: " + buyBypass);
-				sendBypass(cn.out, cn.useEnc, buyBypass);
-				Thread.sleep(2000); // merchant opens BuyList(0x11)
-			}
+			Thread.sleep(1500);
+			// No HTML menu for this generic Trader; use the known Buy bypass for Silvia (list 3000301).
+			String bypass = (buyBypass != null) ? buyBypass : "Buy 3000301";
+			System.out.println("[TradeProbe] sending buy bypass: " + bypass);
+			sendBypass(cn.out, cn.useEnc, bypass);
+			Thread.sleep(2000); // merchant opens BuyList(0x11)
 		}
 
 		// Send the buy once we parsed a BuyList (listId + item + price).
