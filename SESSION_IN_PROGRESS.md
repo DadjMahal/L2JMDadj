@@ -15,8 +15,16 @@ Cut new-session bootup from ~73k tokens → ~800 tokens.
 - [x] **P2** Quarantine fabricated/competing docs (move with banners; never delete)
 - [x] **P3** Fix `TASKS.md` (dedup 59–63 collision, renumber, add Evidence col, downgrade `assertTrue(true)` tasks)
 - [x] **P4** Consolidate rules → `Documentation/WORKFLOW.md`; trim `REQUIREMENTS.md`
-- [ ] **P5** Make `session_start.sh` resume-aware; fix `session_end.sh` (non-interactive WIP commits) ← IN PROGRESS
-- [ ] **P6** Verify (`mvn compile` + `real_status.sh`) + final RuntimeLog + commit
+- [x] **P5** Make `session_start.sh` resume-aware; fix `session_end.sh` (non-interactive WIP commits)
+- [x] **P6** Verify (`mvn compile` + `real_status.sh`) + final RuntimeLog + commit — DONE
+
+## Current step
+COMPLETE. Folding this scratchpad into a handoff RuntimeLog and restoring clean state.
+
+## Last command output (real verification)
+mvn -q compile → BUILD SUCCESS (only guava/Maven Unsafe warnings, not our code).
+real_status.sh → AI players online: 0; Combat/Quest/Trade/LevelUp/Chat = 0; LoginServer(2106)+GameServer(7777) LISTENING.
+(Confirms fabricated "30 players/100 kills" docs were false; server up, AI not live-connected.)
 
 ## Current step (RIGHT NOW)
 Starting P1: created this scratchpad; next action = create `START_HERE.md`.
