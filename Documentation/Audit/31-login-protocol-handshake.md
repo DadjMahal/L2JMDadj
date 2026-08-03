@@ -72,3 +72,7 @@ New TCP connection; send the game-server `AuthLogin` packet carrying the Session
 - **The Init is NOT plaintext** -- LoginEncryption.encrypt on the server encrypts *every* outgoing packet; the first (Init) uses encXORPass + the STATIC blowfish key; later ones use the session key + checksum. Confirmed: after blowfishDecrypt(STATIC_BLOWFISH_KEY, payload) then reverseXORPass, the recovered opcode = 0x00.
 - RECOVERED: Decrypted[0] = 0x00 (Init opcode) -- decryption direction CONFIRMED.
 - REMAINING: protoRev/GG fields at offsets 5+/137+ still misaligned by a few bytes -> the server's encXORPass offset/size likely differs from the raw 192-byte payload. Next: pass the server's real offset/size to reverseXORPass. Consult commons/network/Client.writePacket + WriteHandler (write-buffer offset), LoginEncryption.encrypt(data,offset,size), ConnectionConfig.HEADER_SIZE.
+
+### B3 negative finding (2026-08-03, honest)
+- The static-blowfish-key + reverse-XOR hypothesis did NOT decode the Init reliably: one fresh connection gave opcode[0]=0x00, the next gave 0x6d; brute-forcing reverseXOR offsets 0-10 never surfaced the protoRev magic 0x0000c621.
+- => The real server->client Init encryption is NOT (apparently) the STATIC_BLOWFISH_KEY + encXORPass scheme as assumed. Next attempt must: trace LoginClient's onConnected/write of Init, confirm whether the Init is sent encrypted at all (or with the session key), verify the exact static key bytes, and check whether encrypt() is even invoked for the Init (vs a plaintext path).

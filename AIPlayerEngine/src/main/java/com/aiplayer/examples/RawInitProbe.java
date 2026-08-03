@@ -38,20 +38,24 @@ public class RawInitProbe {
             byte[] enc = new byte[d.length - 2];
             System.arraycopy(d, 2, enc, 0, enc.length);
             try {
-                byte[] dec = com.aiplayer.protocol.LoginCrypt.blowfishDecrypt(com.aiplayer.protocol.LoginCrypt.STATIC_BLOWFISH_KEY, enc);
-                com.aiplayer.protocol.LoginCrypt.reverseXORPass(dec, 0, dec.length);
-                System.out.println("\nDecrypted Init payload (" + dec.length + " bytes):");
-                for (int i = 0; i < dec.length; i++) {
-                    System.out.printf("%02x ", dec[i] & 0xff);
-                    if ((i + 1) % 16 == 0) System.out.println();
+                byte[] base = com.aiplayer.protocol.LoginCrypt.blowfishDecrypt(com.aiplayer.protocol.LoginCrypt.STATIC_BLOWFISH_KEY, enc);
+                System.out.println("\nBrute-force reverseXOR offset for protoRev 0x0000c621 (LE 21 c6 00 00):");
+                for (int o = 0; o <= 10; o++) {
+                    byte[] dec = java.util.Arrays.copyOf(base, base.length);
+                    try {
+                        com.aiplayer.protocol.LoginCrypt.reverseXORPass(dec, o, dec.length);
+                    } catch (Exception e) {
+                        continue;
+                    }
+                    boolean proto = (dec.length > 9 && (dec[5] & 0xff) == 0x21 && (dec[6] & 0xff) == 0xc6 && dec[7] == 0 && dec[8] == 0);
+                    if (proto || o <= 4) {
+                        System.out.printf("offset=%d opcode=%02x proto=%02x%02x%02x%02x %s%n",
+                                o, dec[0] & 0xff, dec[5] & 0xff, dec[6] & 0xff, dec[7] & 0xff, dec[8] & 0xff,
+                                proto ? " <== protoRev MATCH!" : "");
+                    }
                 }
-                System.out.println("\nDecrypted[0] (opcode, expect 0x00) = 0x" + Integer.toHexString(dec[0] & 0xff));
-                // GG magic check: opcode+session(4)+proto(4)=9, modulus 9..136 (128), GG 137..152
-                System.out.printf("GG magic @137 (expect 4e 95 dd 29 fc 9c c3 77): %02x %02x %02x %02x %02x %02x %02x %02x%n",
-                        dec[137] & 0xff, dec[138] & 0xff, dec[139] & 0xff, dec[140] & 0xff,
-                        dec[141] & 0xff, dec[142] & 0xff, dec[143] & 0xff, dec[144] & 0xff);
             } catch (Exception e) {
-                System.out.println("Decrypt failed: " + e);
+                System.out.println("Decrypt/bf failed: " + e);
             }
         }
     }
