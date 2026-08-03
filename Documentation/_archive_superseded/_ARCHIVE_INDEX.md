@@ -8,3 +8,6 @@
 | PARSE_Tasks.md | `TASKS.md` (migrated per old task 4; collision-fixed 2026-08-02). |
 | PROGRESS.md.bak | `Audit/PROGRESS.md` (redundant backup). |
 | SessionRecovery.md | `START_HERE.md` (was stale 2026-07-31, contradicted `STATUS.md`). |
+| SESSION_PROTOCOL.md | `Documentation/WORKFLOW.md` (merged 2026-08-02). |
+| MULTI_AGENT_RULES.md | `Documentation/WORKFLOW.md` (merged 2026-08-02). |
+| WORKFLOW_RULES.md | `Documentation/WORKFLOW.md` (merged 2026-08-02). |

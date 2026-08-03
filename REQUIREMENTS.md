@@ -1,121 +1,30 @@
 # REQUIREMENTS
 
-## 📋 **WORKFLOW RULES - READ BEFORE EVERY SESSION**
-
-**All development must follow the comprehensive rules in [`Documentation/WORKFLOW_RULES.md`](WORKFLOW_RULES.md)**
-
-Key principles:
-1. **Verify before claim** - Never say "working" without proof
-2. **Read-only logs** - Never modify server log files
-3. **Usage validation** - Code isn't complete without callers
-4. **Audit-first** - Reference docs before protocol code
-
----
+> **Read `START_HERE.md` first** for orientation, and `Documentation/WORKFLOW.md` for all rules.
+> This file keeps project-specific development requirements.
 
 ## 1. Startup
+1. Read `START_HERE.md` (orient; resume check if `SESSION_IN_PROGRESS.md` exists).
+2. Read `Documentation/WORKFLOW.md` (rules + session workflow + resumability).
+3. Read ONLY the specific `Documentation/Audit/*.md` your task touches (audit-first); **do not read all docs**.
+4. Check if LoginServer/GameServer are running (reuse; never start duplicates).
+5. Clear server cache / free memory only if a restart is needed.
 
-Before starting any task:
+### Resuming the source-code audit
+If `Documentation/Audit/PROGRESS.md` lists an iteration `pending`/`in_progress`, continue that audit unless the user requests otherwise. Follow PROGRESS.md's resume protocol.
 
-1. First read all files inside `Documentation/`.
-2. Use the documentation as the primary source of truth.
-3. Do not rescan the repository unless the documentation is missing or outdated.
-4. Check whether LoginServer or GameServer are already running.
-5. If a restart is required, stop existing processes cleanly before starting new ones.
-6. Never leave duplicate LoginServer or GameServer processes running.
-7. Clear linux server's cache and free memory to be faster.
-8. Reuse running services whenever possible.
+## 2. Development
+- Work only inside this project. Modify source only where intended by the architecture.
+- No manual runtime fixes that should come from source. If a rebuild is required, rebuild and deploy into the runtime dir.
+- Never leave the project in a broken state.
 
-Always understand the current project state before making changes.
+## 3. Validation (before finishing every task)
+- No startup exceptions; GameServer + LoginServer start; "Server loaded" in logs; GameServer registers on LoginServer; runtime matches expected state.
+- If validation fails, fix it or clearly document why it can't be resolved.
 
-### Resuming the source code audit
+## 4. Documentation & runtime logs
+- Keep docs short, accurate, useful. Update outdated files. Never delete — quarantine to `_archive_*`.
+- After every prompt create `Documentation/RuntimeLogs/<timestamp>-<task>.md` (prompt, objective, files, problems, solutions, remaining issues, summary, next steps; ≤70 lines).
 
-If `Documentation/Audit/PROGRESS.md` exists and lists any iteration with status
-`pending` or `in_progress`, the **current task is to continue that audit** unless the
-user explicitly requests something else. Follow the resume protocol in
-`Documentation/Audit/PROGRESS.md` exactly:
-
-1. Read `Documentation/Audit/PROGRESS.md`.
-2. Find the first `pending` iteration (or finish the `in_progress` one first).
-3. Read every file in that iteration's Scope.
-4. Write its Output doc under `Documentation/Audit/`.
-5. Update `PROGRESS.md` (mark done, set next pending → in_progress).
-6. Repeat while token budget allows, then save `PROGRESS.md`.
-
-No further user instruction is required to resume — the protocol is self-contained.
-
-
----
-
-## 2. Development Rules
-
-- Work only inside the current project.
-- Modify source code only where intended by the project architecture.
-- Never make manual runtime fixes that should instead come from the source code.
-- If a rebuild is required, rebuild the project.
-- Deploy the build into the runtime directory.
-- Verify that the server still works.
-
-Never leave the project in a broken state.
-
----
-
-## 3. Validation
-
-Before finishing every task verify:
-
-- No startup exceptions remain.
-- GameServer starts successfully.
-- LoginServer starts successfully.
-- "Server loaded" appears in the logs.
-- GameServer registers on LoginServer.
-- Runtime behavior matches the expected state.
-
-If validation fails, continue working until the issue is resolved or clearly document why it cannot be resolved.
-
----
-
-## 4. Documentation
-
-Documentation is part of the project.
-
-After every completed task:
-
-- Keep documentation short, accurate and useful.
-- Update existing files inside `Documentation/` if they became outdated.
-- Never delete or replace existing documentation files unless explicitly requested.
-- Document only information that will help future work.
-
----
-
-## 5. Runtime Logs
-
-After every completed prompt create a new report:
-
-`Documentation/RuntimeLogs/<timestamp>-<task>.md`
-
-The report should contain:
-
-- Original user prompt (short version).
-- Objective.
-- Files modified.
-- Problems encountered.
-- How the problems were solved.
-- Remaining issues (if any).
-- Summary of completed work.
-- Recommended next steps.
-
-Keep the report concise (typically 10-70 lines).
-
-These reports provide context for future sessions and should not duplicate the main documentation.
-
----
-
-## 6. General Rules
-
-- Minimize token usage.
-- Prefer simple solutions.
-- Prefer clean architecture.
-- Minimize unnecessary complexity.
-- Trust documentation before scanning source code.
-- If documentation is outdated, update it immediately.
-- Leave the repository cleaner than you found it.
+## 5. General
+- Minimize token usage. Prefer simple, clean solutions. Trust docs before scanning source; update stale docs immediately. Leave the repo cleaner than you found it.
