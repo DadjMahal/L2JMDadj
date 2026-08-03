@@ -13,9 +13,10 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
 - Source-code audit complete (iterations 1–30, `Documentation/Audit/`).
 - Docs restructured: `START_HERE.md` = single entry; `Documentation/WORKFLOW.md` = single rules doc;
   `TASKS.md` = 103-task board (collision-fixed); fabricated docs quarantined in `Documentation/_archive_*`.
-- **25 AI characters exist** in DB; **live PvE combat PROVEN (B4)** and **live PvP PROVEN (B5)** —
-  `CombatBot_01` leveled 1→2 killing a Wolf/Keltir (exp 0→105), and a two-bot fight produced mutual
-  `Attack` hits (objId2:13 / objId3:12) with `CombatBot_02` taking PvP damage (curHp 126→120). 0 online at rest.
+- **25 AI characters exist** in DB; **live PvE combat (B4), live PvP (B5), AND live quest (B6) PROVEN** —
+  CombatBot_01 leveled killing a Wolf/Keltir (exp 0→105), a two-bot fight produced mutual `Attack` hits
+  (objId2:13/objId3:12 + CombatBot_02 damage), and an enter-world triggered the real server quest engine
+  (added Q00255_Tutorial `Ex`/`ucMemo` state to `character_quests`). 0 online at rest.
 - AIPlayerEngine **compiles** (155 files). The external socket path is proven end-to-end
   (login → enter-world → `EnterWorld`(0x03) → real NPC combat). The Combat/Quest/Merchant/Social **decision**
   classes still use **mock data** internally and need wiring to the real packets now proven by `CombatProbe`
@@ -68,8 +69,18 @@ attacker objectId. Live proof (`Audit/36`, `scripts/b5_pvp_prove.sh`):
 - PvP path: `AttackRequest` → `Creature.onForcedAttack` → flag + attack (blocked only in peace zones /
   non-attackable / confused). No newbie-protection gate in this config.
 
-### Most likely causes / next — B3/B4/B5 fully RESOLVED (above). Remaining live gap:
-B6–B10 (quest, trade proof) + wiring the proven PvE/PvP packets into `CombatAI`/`PacketLogger` (Stream C).
+## 4d. ✅ B6 — LIVE QUEST — DONE 2026-08-03 (server processed the bot's tutorial on enter-world)
+`QuestProbe` (examples) = enter-world → `EnterWorld.loadTutorial` → `Q00255_Tutorial` `notifyEvent("UC")` ran
+the quest's live event handler and **wrote new quest state to `character_quests`**; the bot also exercised the
+two-way quest protocol `RequestQuestList`(0x63) → `QuestList`(0x80). Live proof (`Audit/37`, `scripts/b6_quest_prove.sh`):
+- DB delta for charId 2 (Q00255_Tutorial): **before=1 row → after=3 rows** (server added `Ex=-2`, `ucMemo=0`).
+- The Tutorial is excluded from the visible QuestList by its `Ex` flag (so questCount=0 by design); the DB
+  delta is the primary proof.
+- `loadTutorial` only *advances* an existing tutorial state; the `<state>=Started` fixture mirrors char-creation opt-in.
+
+### Most likely causes / next — B3/B4/B5/B6 fully RESOLVED (above). Remaining live gap:
+B7–B10 (trade proof etc.) + wiring the proven PvE/PvP/quest packets into `CombatAI`/`QuestAI`/`PacketLogger`
+(Stream C). B6b (bot earns a quest via NPC talk + `RequestBypassToServer`(0x21)) is a follow-on.
 
 ### What I found (empirical + source)
 - Live probe (`LoginProbe`/`RawInitProbe`) connected to :2106, got the **Init** frame: **194 bytes**,
@@ -89,13 +100,13 @@ B6–B10 (quest, trade proof) + wiring the proven PvE/PvP packets into `CombatAI
 - RSA 1024-bit, exponent F4=65537, `RSA/ECB/NoPadding`.
 - Client→S opcodes: AuthGameGuard=0x07, RequestAuthLogin=0x00, RequestServerLogin=0x02, RequestServerList=0x05.
 
-## 5. Recommended paths (next — B6+)
-1. **B6 — live quest proof** (pick up/advance/complete a quest; extends the enter-world flow).
+## 5. Recommended paths (next — B7+)
+1. **B7 — live trade proof** (a bot buys/sells with an NPC merchant; extends Action+RequestBuyItem/RequestSellItem).
 2. **Wire the proven packets into the engine** (Stream C): fix `PacketLogger.parseNpcInfo` to the real
-   `AbstractNpcInfo` layout, then route real Action/Attack/StatusUpdate into `CombatAI.makeDecision()`.
-3. **Relocate + heal the remaining 23 `ai_%` chars** (still in the void at 16600,17000,434 → die on login)
-   so quest/trade proofs can proceed.
-4. Stream C/G cleanup — fake `assertTrue(true)` tests 54/63; ~145 unwired stub classes.
+   `AbstractNpcInfo` layout, then route real Action/Attack/StatusUpdate/QuestList into `CombatAI`/`QuestAI`.
+3. **B6b — bot earns a quest via NPC talk + `RequestBypassToServer`(0x21)** (needs NPC navigation + HTML/bypass).
+4. **Relocate + heal the remaining 23 `ai_%` chars** (still in the void at 16600,17000,434 → die on login).
+5. Stream C/G cleanup — fake `assertTrue(true)` tests 54/63; ~145 unwired stub classes.
 
 ## 6. Key file/command map
 - Orient: `START_HERE.md` · Rules: `Documentation/WORKFLOW.md` · Board: `TASKS.md` · Status: `STATUS.md`
