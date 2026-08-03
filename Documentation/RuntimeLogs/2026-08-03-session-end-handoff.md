@@ -1,19 +1,17 @@
 # Session End Handoff
 
 # Session In Progress (rate-limit-safe)
-Started 2026-08-03 · Goal: **A1 — cold-start orientation test (TASKS #100)**
+Started 2026-08-03 · Goal: **A2 — fix real_status.sh double-print bug**
 Last updated: 2026-08-03
 
 ## Checklist (idempotent)
-- [x] A1.2 Lean `AGENT_ONBOARDING.md` (point to START_HERE; fix archived refs)
-- [x] A1.3 Create `scripts/cold_start_test.sh`
-- [x] A1.4 Run it; capture proof + token estimate (17/17 PASS, ~1,272 tokens)
-- [x] A1.5 RuntimeLog (2026-08-03-a1-cold-start-test.md)
-- [x] A1.6 Mark TASKS #100 done; update STATUS
-- [x] A1.7 Fold scratchpad + commit — COMPLETE
+- [x] A2.1 Fix `real_status.sh` activity counts (single number each)
+- [x] A2.2 Run it; confirm no more `0\n0` (cat -A shows single `$` line end)
+- [x] A2.3 RuntimeLog (2026-08-03-a2-real-status-fix.md)
+- [x] A2.4 Fold scratchpad + commit — COMPLETE
 
 ## Current step
-Writing lean AGENT_ONBOARDING + cold_start_test.sh.
+Patching the `grep -c ... || echo 0` lines with a `count()` helper that returns exactly one number.
 
 ## If resuming
 Do the first unchecked item; WIP-commit after each; keep steps idempotent.
