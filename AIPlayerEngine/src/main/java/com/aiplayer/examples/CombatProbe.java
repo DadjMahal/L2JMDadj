@@ -61,6 +61,7 @@ public class CombatProbe
 	// Client->server opcodes (from SourceCode/.../network/ClientPackets.java)
 	private static final int OP_C_ACTION = 0x04;
 	private static final int OP_C_ATTACK_REQUEST = 0x0A;
+	private static final int OP_C_ENTER_WORLD = 0x03;
 
 	// Target candidate (first attackable NPC_INFO seen)
 	private static int targetObjId = -1;
@@ -161,6 +162,14 @@ public class CombatProbe
 				login.disconnect();
 				System.exit(4);
 			}
+
+			// Send EnterWorld (0x03) to finalize entering the world. Without it the connection stays
+			// in ENTERING state and the server never spawns the player / sends the world burst
+			// (NpcInfo, etc.), so no nearby monster is ever visible (B3 only needed online=1, which is
+			// set in CharacterSelect.runImpl before EnterWorld). Read initial world-population packets
+			// for ~3s so the player finishes spawning.
+			sendEnterWorld(out, crypt, useEnc);
+			System.out.println("[CombatProbe] sent EnterWorld(0x03) — world should populate now");
 
 		// Player origin (Action/AttackRequest origin coords) — defaults to CombatBot_01 spawn.
 		int px = args.length > 4 ? Integer.parseInt(args[4]) : 16600;
@@ -396,6 +405,38 @@ public class CombatProbe
 		bb.putInt(0);
 		bb.putInt(0);
 		bb.putInt(0);
+		byte[] plain = new byte[bb.position()];
+		bb.flip();
+		bb.get(plain);
+		if (useEnc)
+		{
+			crypt.encrypt(plain, 0, plain.length);
+		}
+		sendFrame(out, plain);
+	}
+
+	/** Send EnterWorld (0x03): readBytes(32) + 4xint + readBytes(32) + int + 5x4 tracert (all zeros). */
+	private static void sendEnterWorld(OutputStream out, GameCrypt crypt, boolean useEnc) throws Exception
+	{
+		ByteBuffer bb = ByteBuffer.allocate(1 + 32 + 16 + 32 + 4 + 20).order(ByteOrder.LITTLE_ENDIAN);
+		bb.put((byte) OP_C_ENTER_WORLD); // 0x03
+		for (int i = 0; i < 32; i++)
+		{
+			bb.put((byte) 0);
+		}
+		bb.putInt(0); // Unknown
+		bb.putInt(0); // Unknown
+		bb.putInt(0); // Unknown
+		bb.putInt(0); // Unknown
+		for (int i = 0; i < 32; i++)
+		{
+			bb.put((byte) 0);
+		}
+		bb.putInt(0); // Unknown
+		for (int i = 0; i < 20; i++) // 5x4 tracert bytes (server builds 0.0.0.0 IPs)
+		{
+			bb.put((byte) 0);
+		}
 		byte[] plain = new byte[bb.position()];
 		bb.flip();
 		bb.get(plain);
