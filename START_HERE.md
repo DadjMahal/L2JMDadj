@@ -1,11 +1,12 @@
 # 🚀 START HERE — L2JM (read this first, every session)
 
-> Single source of truth to orient a fresh session in ~800 tokens.
+> 📖 **For the FULL project history & near-context, read `Documentation/SESSION_HANDOFF.md`** (once per session, ~2–3k tokens). This file (below) is the fast orientation; the handoff is the depth.
 > Rules live in `AGENT_ONBOARDING.md`; deep context is read **on demand** via the routing table.
 
 ## ⚠️ Resume check (do this first)
 If `SESSION_IN_PROGRESS.md` exists at repo root → the last session was **rate-limited mid-work**.
 Read it FIRST and resume the "Current step" (don't pick a new task). If absent, continue below.
+
 
 ## Project (one line)
 L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Player Engine** (`AIPlayerEngine/`)
@@ -22,16 +23,16 @@ that connects as real client sockets — **no server code modifications**.
 ## Current phase / next task
 - **Phase:** 2 — Combat AI (scaffolding done; **live verification is the real gap**).
 - **Stream A DONE (2026-08-03):** A1 cold-start test (17/17 PASS; bootup ~73k→~1.3k tokens); A2 `real_status.sh` fix; A3 `count_ai_players.sh` fix (real DB: 25 registered, 0 online).
-- **B1 DONE (2026-08-03):** AI account credentials made valid (DB pw plaintext→Base64(SHA1); connectPlayer double-prefix bug fixed); build OK.
-- **Next task:** **B2** — implement the real `RequestAuthLogin` packet (RSA/blowfish session key + encrypted creds) so a live login actually passes; then B3 connect 1 AI player live.
+- **B1 DONE:** AI credentials valid (DB pw → Base64(SHA1); connectPlayer bug fixed).
+- **B2 DONE (compiles, NOT live-proven):** real L2J login handshake — `LoginCrypt` + `L2JProtocol` rewrite; spec in `Audit/31-login-protocol-handshake.md`.
+- **Next task: B3 — LIVE-LOGIN PROOF (currently BLOCKED).** Goal: connect 1 AI player live (online=1). B4–B10 all depend on it. See Blockers + `SESSION_HANDOFF.md` §4 for the crypto finding.
 
 ## Blockers / open issues
-1. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/`:
-   `PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`,
-   2 fake `AIStatusLogs` reports. **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
-2. **Recent work uncommitted** until the cleanup commit lands.
-3. **DB name is `gameserver`** (NOT `l2jmobius`); `real_status.sh` uses `sudo mysql -u root gameserver`.
-4. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions.
+1. **🔴 B3 = live-login crypto BLOCKED.** Connected to :2106, but the Init frame doesn't decode reliably under the static-blowfish-key + reverse-XOR hypothesis (opcode 0x00 one run, 0x6d next). Likely the server's **custom `BlowfishEngine` ≠ JDK Blowfish** (need to verify/port). Full detail + handshake steps in `SESSION_HANDOFF.md` §4 + `Audit/31-login-protocol-handshake.md`.
+2. **B4–B10 (live NPC combat, PvP, quest, trade proof) are gated on B3** — nothing plays until a player logs in.
+3. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
+4. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
+5. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions (Stream C).
 
 ## Reality check — run these and paste the output
 ```bash

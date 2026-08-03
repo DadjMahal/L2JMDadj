@@ -4,9 +4,9 @@
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
 ## Phase: 2 — Combat AI (scaffolding done; **live verification is the real gap**)
-## Last completed: B2 — real L2J login handshake implemented (LoginCrypt + L2JProtocol rewrite), build OK. **NOT yet live-verified.**
-## Next task: **B3** — live-connect probe: run connectAndLogin against :2106, iterate framing until LoginOk, prove online=1 (B2 code written but UNVERIFIED live).
-## Blockers: tasks 54 & 63 have `assertTrue(true)` fake tests (→ in_progress); ~145 stub classes unwired; AI not live-verified (0 online). [real_status.sh fixed; count_ai_players.sh fixed — both return real DB data]
+## Last completed: B2 — real L2J login handshake (LoginCrypt + L2JProtocol) compiles; B3 live-login BLOCKED (see SESSION_HANDOFF.md)
+## Next task: **B3** — live-login proof (connect 1 AI player, online=1). BLOCKED on Init-decrypt crypto. B4–B10 gated on B3.
+## Blockers: B3 live-login crypto (custom BlowfishEngine vs JDK); B4–B10 depend on B3; fake-test tasks 54/63 (Stream C); ~145 unwired stub classes (Stream G).
 
 ## Honest state (source: ai_progress_report.txt + real_status.sh)
 Engine compiles (155 files); Combat/Quest/Merchant/Social AI use **mock data**, not connected to real gameplay.
