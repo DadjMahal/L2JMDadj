@@ -76,6 +76,9 @@ that connects as real client sockets — **no server code modifications**.
    run-unique token to bot B via client `Say2`(0x38) (WHISPER, no level gate); the server delivered
    `CREATURE_SAY`(0x4A) containing the token to B's connection (`received = true`) and echoed to A
    (`echo = true`).
+4d. **✅ B10 RESOLVED (2026-08-03) — live PARTY PROVEN** (`PartyProbe`, `Audit/41`): A invited B via
+   `RequestJoinParty`(0x29); B accepted `RequestAnswerJoinParty`(0x2A); the server created a real party →
+   joiner B received `PARTY_SMALL_WINDOW_ALL`(0x4E) and leader A received `PARTY_SMALL_WINDOW_ADD`(0x4F).
 5. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 6. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
 7. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions (Stream C).

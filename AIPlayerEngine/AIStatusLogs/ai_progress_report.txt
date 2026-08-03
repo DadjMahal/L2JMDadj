@@ -27,8 +27,9 @@ Run: ./real_status.sh  (queries MySQL `gameserver` DB + server logs + ports)
 - Protocol: login + enter-world work; combat packets (Action/AttackRequest) proven live.
 - AI players: 25 accounts/chars exist in DB; CombatBot_01 relocated to Talking Island Wolf zone + healed
   (other 24 ai_% chars still in the void at 16600,17000,434 and die on login — relocate before quest/PvP).
-- Real gameplay: PvE combat PROVEN (B4), PvP PROVEN (B5), quest PROVEN (B6), movement PROVEN (B8), **chat
-  PROVEN (B9)** — ChatProbe whispered a token CombatBot_01→CombatBot_02 via Say2(0x38); server delivered
-  CREATURE_SAY(0x4A) to B (received=true) + echo to A. B7 (trade) IN PROGRESS — buy-dialog open blocked on
-  bypass validation (Audit/38). Wiring mock->real is next (Stream C).
+- Real gameplay: PvE combat PROVEN (B4), PvP PROVEN (B5), quest PROVEN (B6), movement PROVEN (B8), chat
+  PROVEN (B9), **party PROVEN (B10)** — PartyProbe: A invited B via RequestJoinParty(0x29); B accepted (0x2A);
+  server created a real Party (joiner got PARTY_SMALL_WINDOW_ALL 0x4E, leader got PARTY_SMALL_WINDOW_ADD 0x4F).
+  B7 (trade) is the only live proof still IN PROGRESS — buy-dialog open blocked on bypass validation (Audit/38).
+  Wiring mock->real is next (Stream C).
 ============================================================

@@ -98,11 +98,23 @@ token delivered to bot B as **`CREATURE_SAY`(0x4A)**. Live proof (`Audit/40`, `s
   for L1-2 bots). B's connection got the token (`received=true`), A got its `->CombatBot_02` echo (`echo=true`).
 - No L2JM server source changed.
 
-### Most likely causes / next — B3/B4/B5/B6/B8/B9 fully RESOLVED (above). Remaining live gap:
-B7 (trade proof) is IN PROGRESS — the buy-dialog open is blocked on bypass validation (generic Trader emits no
-HTML menu on plain-click; see `Audit/38`), **plus** wiring the proven PvE/PvP/quest/movement/chat packets into
-`CombatAI`/`QuestAI`/`PacketLogger` (Stream C). B6b (bot earns a quest via NPC talk + `RequestBypassToServer`(0x21))
-is a follow-on.
+## 4g. ✅ B10 — LIVE PARTY — DONE 2026-08-03 (two AI bots formed a real party)
+`PartyProbe` (examples) = two-bot enter-world (proven flow, co-located) → A sends `RequestJoinParty`(0x29) →
+server asks B `AskJoinParty`(0x39) → B accepts `RequestAnswerJoinParty`(0x2A) → server `Party.addPartyMember`
+pushes party windows. Live proof (`Audit/41`, `scripts/b10_party_prove.sh`):
+- Client `RequestJoinParty`(0x29): `[0x29][targetName:UTF-16LE null-term][partyDistributionTypeId:int]`
+  (invite by NAME; dist RANDOM=1).
+- Client `RequestAnswerJoinParty`(0x2A): `[0x2A][response:int]` (1 = accept).
+- On accept, `Party.addPartyMember` sends `PARTY_SMALL_WINDOW_ALL`(0x4E) to the **joiner** (B, len 83) and
+  `PARTY_SMALL_WINDOW_ADD`(0x4F) to the **existing members** (leader A, len 79) — only after a real `Party`
+  exists. A also got `JOIN_PARTY`(0x3A). Invite requires `target.isVisibleFor(requestor)` (bots co-located).
+- No L2JM server source changed. (First build watched the wrong connections → false; fixed + verified.)
+
+### Most likely causes / next — B3/B4/B5/B6/B8/B9/B10 fully RESOLVED (above). Remaining live gap:
+**B7 (trade proof)** is the only live gameplay proof still IN PROGRESS — the buy-dialog open is blocked on
+bypass validation (generic Trader emits no HTML menu on plain-click; see `Audit/38`). After that, wire the
+proven PvE/PvP/quest/movement/chat/party packets into `CombatAI`/`QuestAI`/`PacketLogger` (Stream C);
+B6b (bot earns a quest via NPC talk + `RequestBypassToServer`(0x21)) is a follow-on.
 
 ### What I found (empirical + source)
 - Live probe (`LoginProbe`/`RawInitProbe`) connected to :2106, got the **Init** frame: **194 bytes**,

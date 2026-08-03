@@ -3,8 +3,8 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 2 — Combat AI (live PvE + PvP + quest + movement + chat PROVEN; B7 trade IN PROGRESS)
-## Last completed: B9 — live chat proof (ChatProbe): bot A (CombatBot_01) whispered token B9WHISPER_621452 to bot B (CombatBot_02) via Say2(0x38); server delivered CREATURE_SAY(0x4A) containing the token to B's connection (received=true) + echoed to A (echo=true). No level gate via WHISPER (GENERAL gated to L20). (Audit/40)
+## Phase: 2 — Combat AI (live PvE + PvP + quest + movement + chat + party PROVEN; B7 trade IN PROGRESS)
+## Last completed: B10 — live party proof (PartyProbe): A (CombatBot_01) invited B (CombatBot_02) via RequestJoinParty(0x29); B accepted (0x2A); server created a real Party → joiner B got PARTY_SMALL_WINDOW_ALL(0x4E) + leader A got PARTY_SMALL_WINDOW_ADD(0x4F) (Audit/41)
 ## Current (in progress): **B7 trade** — TradeProbe live-targets Trader (Silvia 30003) + full merchant-buy protocol mapped (Buy 3000301 bypass → BuyList 0x11 → RequestBuyItem 0x1F); buy-dialog OPEN blocked: RequestBypassToServer drops un-validated bypasses (validateHtmlAction) and this merchant emits no HTML menu on plain-click (Audit/38). Not PROVEN.
 ## Next (after B7): wire proven packets into CombatAI/QuestAI/PacketLogger (Stream C); B6b (bot earns quest via NPC talk).
 ## Blockers: B7 buy-open needs a merchant that emits an HTML Buy menu (or a bypass exception); fake-test tasks 54/63 (Stream C); ~145 stub classes (Stream G); PacketLogger.parseNpcInfo off-by-one; 23 ai_% chars in the void spawn.
