@@ -41,6 +41,15 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
 
 - **Stream C slice 2 (done, 2026-08-03):** real client combat encoders `PacketCodec.encodeAction(0x04)` /
 - **Stream C slice 3 (done, 2026-08-03):** decision→send wiring. `CombatFramePlanner` maps a combat
+- **Stream C slice 5 (done, 2026-08-03) — LIVE PROVEN:** `CombatLoop` (examples) + `scripts/c5_live_combat_proof.sh`.
+  Full engine-driven live loop: login → GameServerClient enter-world → startReader → `CombatAI.setPacketLogger`
+  (share live reader buffer — this fix made decisions real) → loop `makeDecision()` → CombatFramePlanner →
+  `sendGameFrame` (Action 0x04 / AttackRequest 0x0A). Proof scored `engaged-actions=18, serverConfirmedDamage=1`
+  (target wolf HP 107→103 in server StatusUpdate). 55/55 tests, BUILD SUCCESS. Added the new unit test
+  `testSetPacketLoggerSharesLiveBuffer`. `SKIP_RESTART=1` option to run without restarting LoginServer.
+  (RuntimeLog/2026-08-03-streamC-live-driver.md) Note: level-2 ungeared bot dies before landing kills (no exp);
+  server-confirmed damage is the proof. Next: Slice 6 (packet feedback drive) / B6b (NPC quest via
+  RequestBypassToServer).
 - **Stream C slice 4 (done, 2026-08-03):** reusable in-engine `GameServerClient` (classic Socket) retaining
   the proven B3/B4 handshake (ProtocolVersion → KeyPacket → AuthLogin → CharSelectInfo → CharacterSelect →
   CharSelected → EnterWorld), a background reader feeding `PacketLogger`, and `attachToConnection` +

@@ -213,6 +213,25 @@ public class CombatAITest {
         assertFalse(ai2.shouldDefend(), "healthy + single hostile should not defend");
     }
 
+    @Test
+    public void testSetPacketLoggerSharesLiveBuffer() {
+        // Slice 5: CombatAI must decide from the SAME buffer the live GameServerClient reader feeds,
+        // not from its own empty private buffer. Attaching the live logger (shared object) must make
+        // makeDecision() see real parsed NPC_INFO entities.
+        AIPlayer player = new AIPlayer("LiveBot", 1, 1, 0);
+        player.setPosition(0, 0, 0);
+        CombatAI ai = new CombatAI(player);
+        PacketLogger live = new PacketLogger("LiveBot");
+        // Hostile NPC at (100,100,0) - well inside the 1500 target distance from (0,0,0).
+        live.logPacket(buildNpcInfoFrame(4242, 1000000 + 20545, 1, 100, 100, 0, 0));
+        ai.setPacketLogger(live);
+        CombatDecision decision = ai.makeDecision();
+        assertEquals(CombatDecision.Action.ATTACK, decision.getAction(),
+            "attaching the live reader logger must make decisions from real parsed NPC_INFO");
+        assertEquals(4242, ai.getSelectedTargetObjId(),
+            "the shared logger's hostile NPC must become the selected combat target");
+    }
+
     // Real-layout builders matching the proven probe framing (same as PacketLoggerNpcInfoTest).
     private byte[] buildNpcInfoFrame(int objectId, int displayId, int isAttackable,
                                      int x, int y, int z, int heading) {

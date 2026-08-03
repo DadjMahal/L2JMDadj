@@ -17,7 +17,7 @@ public class CombatAI {
     
     private final AIPlayer aiPlayer;
     private final CombatConfig config;
-    private final PacketLogger packetLogger; // For PvP entity tracking
+    private PacketLogger packetLogger; // For PvP entity tracking; swappable to the live reader logger (Slice 5)
     private CombatState combatState;
     private String currentTarget;
     private long lastSkillUseTime;
@@ -156,6 +156,17 @@ public class CombatAI {
     /** Expose the packet logger (telemetry + tests can feed real parsed packets). */
     public PacketLogger getPacketLogger() {
         return packetLogger;
+    }
+
+    /**
+     * Stream C slice 5: attach the LIVE reader's packet logger (GameServerClient) so decisions are
+     * made from real CharInfo / NPC_INFO / StatusUpdate packets instead of an empty private buffer.
+     * Idempotent — calling it again simply re-targets the shared buffer.
+     */
+    public void setPacketLogger(PacketLogger packetLogger) {
+        if (packetLogger != null) {
+            this.packetLogger = packetLogger;
+        }
     }
     
     private CombatDecision handleCombatEnd() {

@@ -13,10 +13,14 @@
 Server UP (LoginServer :2106, GameServer :7777). Live PvE combat (B4, exp 0→105), live PvP (B5, two bots
 mutual hits + damage), AND live quest (B6, server-side Q00255 state mutation persisted) all PROVEN by the
 probes. The engine now has real parsing (slice 1), real encoders + no-random decisions (slice 2),
-decision→send planning (slice 3), and a reusable in-engine GS client (slice 4) — the only remaining gap is
-driving them together in one live loop and running the proof.
+decision→send planning (slice 3), a reusable in-engine GS client (slice 4), and a **live combat loop
+driver + proof (slice 5)** — `CombatLoop` logs in, enters the world, detects real hostiles via the shared
+`PacketLogger` (`CombatAI.setPacketLogger`), and sends real Action/AttackRequest frames in a loop.
+**C5 PROVEN live**: `scripts/c5_live_combat_proof.sh` scored `engaged-actions=18`,
+`serverConfirmedDamage=1` (target wolf HP 107→103 in server StatusUpdate). 55/55 tests, BUILD SUCCESS.
 
 ## Recent RuntimeLogs (most recent first)
+- 2026-08-03-streamC-live-driver.md
 - 2026-08-03-streamC-gs-client.md
 - 2026-08-03-streamC-decision-to-send.md
 - 2026-08-03-streamC-combat-decisions.md

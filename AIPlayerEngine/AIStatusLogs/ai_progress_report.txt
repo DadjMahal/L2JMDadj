@@ -38,4 +38,11 @@ Run: ./real_status.sh  (queries MySQL `gameserver` DB + server logs + ports)
   npc_<objId>_Buy bypass -> BuyList -> RequestBuyItem); server deducted adena and added the item (DB-verified),
   correcting the earlier trade "blocker" misdiagnosis. All with no L2JM server source changes.
   Next: wiring mock->real (Stream C).
+- **Stream C (in progress): slices 1-5 DONE (55/55 tests).** Slice 5 (2026-08-03) delivered the live
+  combat-loop driver `CombatLoop` + `scripts/c5_live_combat_proof.sh` and proved it LIVE: the engine logs
+  in, enters the world, detects real hostiles via the shared `PacketLogger` (`CombatAI.setPacketLogger`),
+  and sends real Action(0x04)/AttackRequest(0x0A) frames. Proof: engaged-actions=18, serverConfirmedDamage=1
+  (target wolf HP 107->103 in server StatusUpdate). Note: lvl-2 ungeared bot dies before landing kills (no
+  exp) — damage evidence is the proof. Next: slice 6 (packet feedback drive) / B6b (NPC quest via
+  RequestBypassToServer).
 ============================================================
