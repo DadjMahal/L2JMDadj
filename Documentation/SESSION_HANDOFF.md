@@ -78,9 +78,21 @@ two-way quest protocol `RequestQuestList`(0x63) → `QuestList`(0x80). Live proo
   delta is the primary proof.
 - `loadTutorial` only *advances* an existing tutorial state; the `<state>=Started` fixture mirrors char-creation opt-in.
 
-### Most likely causes / next — B3/B4/B5/B6 fully RESOLVED (above). Remaining live gap:
-B7–B10 (trade proof etc.) + wiring the proven PvE/PvP/quest packets into `CombatAI`/`QuestAI`/`PacketLogger`
-(Stream C). B6b (bot earns a quest via NPC talk + `RequestBypassToServer`(0x21)) is a follow-on.
+## 4e. ✅ B8 — LIVE MOVEMENT — DONE 2026-08-03 (AI walked its real character to a destination)
+`MoveProbe` (examples) = login (proven flow) → GS handshake → CharacterSelect → **EnterWorld** → wait for the
+world burst → **`MoveToLocation`(0x01)** to Trader 30040's spawn (-82515,241221,-3728) → tally movement
+packets. Live proof (`Audit/39`):
+- Server broadcast **17× `CHAR_MOVE_TO_LOCATION`(0x01)** + **1× `VALIDATE_LOCATION`(0x61)** after our walk.
+- DB (`gameserver.characters`, CombatBot_01): **(-83789,240799,-3717) → (-82515,241221,-3728)** = exactly the
+  requested destination (persisted on logout). No L2JM server source changed.
+- `MoveToLocation`(0x01) client layout: `[targetX,targetY,targetZ,originX,originY,originZ,moveType:int]`
+  (moveType 0 = cursor-key walk, 1 = mouse). Server auto-paths the character to the target.
+
+### Most likely causes / next — B3/B4/B5/B6/B8 fully RESOLVED (above). Remaining live gap:
+B7 (trade proof) is IN PROGRESS — the buy-dialog open is blocked on bypass validation (generic Trader emits no
+HTML menu on plain-click; see `Audit/38`), **plus** wiring the proven PvE/PvP/quest/movement packets into
+`CombatAI`/`QuestAI`/`PacketLogger` (Stream C). B6b (bot earns a quest via NPC talk + `RequestBypassToServer`(0x21))
+is a follow-on.
 
 ### What I found (empirical + source)
 - Live probe (`LoginProbe`/`RawInitProbe`) connected to :2106, got the **Init** frame: **194 bytes**,

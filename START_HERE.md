@@ -67,6 +67,11 @@ that connects as real client sockets — **no server code modifications**.
 4. **✅ B6 RESOLVED (2026-08-03) — live quest PROVEN** (`QuestProbe`, `Audit/37`): enter-world triggered the
    real server quest engine (`Q00255_Tutorial` UC handler) → server added quest state (`Ex`/`ucMemo`) to
    `character_quests` (DB 1→3 rows). **B7–B10 (live trade proof etc.) next** — engine decision classes still on mock data.
+4b. **✅ B8 RESOLVED (2026-08-03) — live MOVEMENT PROVEN** (`MoveProbe`, `Audit/39`): AI sent
+   `MoveToLocation`(0x01) from Silvia's spot to Trader 30040's spawn (-82515,241221,-3728); the server
+   broadcast 17× `CHAR_MOVE_TO_LOCATION`(0x01) + `VALIDATE_LOCATION`(0x61) and **`characters.x/y/z` moved
+   from (-83789,240799,-3717) to exactly (-82515,241221,-3728)**. B7 (trade) still IN PROGRESS — buy-dialog
+   open blocked on bypass validation (`Audit/38`).
 5. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 6. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
 7. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions (Stream C).
