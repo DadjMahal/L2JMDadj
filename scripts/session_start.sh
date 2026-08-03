@@ -1,49 +1,57 @@
 #!/bin/bash
-# Session Start Script
-# Pre-session setup for agent work
+# Session Start — resume-aware orientation. Run: ./scripts/session_start.sh [--build]
+# If SESSION_IN_PROGRESS.md exists, it means the last session was rate-limited mid-work → resume it.
+set -uo pipefail
+REPO=/home/volodro/L2JM
 
 echo "=========================================="
 echo "  SESSION START"
 echo "=========================================="
-echo ""
 
-# Step 1: Sync with repo
-echo "[1] Syncing with repository..."
-git -C /home/volodro/L2JM pull 2>/dev/null || echo "  (no remote or not a git repo)"
-
-# Step 2: Read onboarding
-echo ""
-echo "[2] Reading onboarding documents..."
-echo "  - AGENT_ONBOARDING.md"
-echo "  - STATUS.md"
-echo "  - STYLEGUIDE.md"
-echo "  - TASKS.md"
-
-# Step 3: Check build status
-echo ""
-echo "[3] Checking build status..."
-cd /home/volodro/L2JM/AIPlayerEngine
-if mvn compile -q 2>/dev/null; then
-    echo "  BUILD SUCCESS"
-else
-    echo "  BUILD FAILED - check compilation errors"
+# 0. RESUME CHECK (rate-limit-safe) — do this FIRST, before anything else
+if [ -f "$REPO/SESSION_IN_PROGRESS.md" ]; then
+  echo ""
+  echo "⚠️  INTERRUPTED WORK DETECTED — last session was rate-limited mid-work."
+  echo "Resuming (do NOT pick a new task):"
+  echo "------------------------------------------------------------"
+  cat "$REPO/SESSION_IN_PROGRESS.md"
+  echo "------------------------------------------------------------"
+  echo "→ Do the 'Current step' / first unchecked item, mark it, then WIP-commit."
+  exit 0
 fi
 
-# Step 4: Display next task
+# 1. Orientation pointer
 echo ""
-echo "[4] Next pending task:"
-grep -E '\|\s+[0-9]+\s+\|' /home/volodro/L2JM/TASKS.md | grep "pending" | head -1
+echo "[1] Orientation: read $REPO/START_HERE.md (~800 tokens; honest state + routing table)"
+
+# 2. Reality check (paste these outputs before claiming anything works)
+echo ""
+echo "[2] Reality check:"
+echo "  -- git status (short) --"
+git -C "$REPO" status --short | head | sed 's/^/    /'
+echo "  -- ports (expect 2106 + 7777 LISTEN) --"
+ss -tlnp 2>/dev/null | grep -E '2106|7777' | sed 's/^/    /' || echo "    (login/game ports not listening)"
+echo "  -- real_status.sh --"
+"$REPO/AIPlayerEngine/AIStatusLogs/real_status.sh" 2>/dev/null | sed 's/^/    /' || echo "    (real_status.sh failed)"
+
+# 3. Next pending task
+echo ""
+echo "[3] Next pending task (first 'pending' row in TASKS.md):"
+grep -E '^\| [0-9]+ \|' "$REPO/TASKS.md" | grep 'pending' | head -1 | sed 's/^/    /' || echo "    (none pending)"
+
+# 4. Optional build check
+if [ "${1:-}" = "--build" ]; then
+  echo ""
+  echo "[4] Build check:"
+  (cd "$REPO/AIPlayerEngine" && mvn compile -q 2>&1 | tail -3 | sed 's/^/    /') || echo "    BUILD FAILED"
+else
+  echo ""
+  echo "[4] (skip --build; run './scripts/session_start.sh --build' to compile)"
+fi
 
 echo ""
 echo "=========================================="
 echo "  READY TO START WORK"
 echo "=========================================="
-echo ""
-
-# Output token estimate
-echo "Token budget reminder:"
-echo "  Docs only: 500-1500 tokens"
-echo "  Code + docs: 2000-5000 tokens"
-echo "  Full feature: 5000-10000 tokens"
-echo ""
-echo "Read the task carefully before starting."
+echo "Token budget: docs 500-1.5k | code+docs 2-5k | full feature 5-10k | audit 1.5-3k"
+echo "Read START_HERE.md + the task carefully before starting."

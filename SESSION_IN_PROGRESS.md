@@ -14,8 +14,8 @@ Cut new-session bootup from ~73k tokens → ~800 tokens.
 - [x] **P1** Create `START_HERE.md` (single entry point) + slim `STATUS.md`
 - [x] **P2** Quarantine fabricated/competing docs (move with banners; never delete)
 - [x] **P3** Fix `TASKS.md` (dedup 59–63 collision, renumber, add Evidence col, downgrade `assertTrue(true)` tasks)
-- [ ] **P4** Consolidate rules → `Documentation/WORKFLOW.md`; trim `REQUIREMENTS.md` ← IN PROGRESS
-- [ ] **P5** Make `session_start.sh` resume-aware; fix `session_end.sh` (non-interactive WIP commits)
+- [x] **P4** Consolidate rules → `Documentation/WORKFLOW.md`; trim `REQUIREMENTS.md`
+- [ ] **P5** Make `session_start.sh` resume-aware; fix `session_end.sh` (non-interactive WIP commits) ← IN PROGRESS
 - [ ] **P6** Verify (`mvn compile` + `real_status.sh`) + final RuntimeLog + commit
 
 ## Current step (RIGHT NOW)
