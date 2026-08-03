@@ -25,10 +25,21 @@ that connects as real client sockets — **no server code modifications**.
 - **Stream A DONE (2026-08-03):** A1 cold-start test (17/17 PASS; bootup ~73k→~1.3k tokens); A2 `real_status.sh` fix; A3 `count_ai_players.sh` fix (real DB: 25 registered, 0 online).
 - **B1 DONE:** AI credentials valid (DB pw → Base64(SHA1); connectPlayer bug fixed).
 - **B2 DONE (compiles, NOT live-proven):** real L2J login handshake — `LoginCrypt` + `L2JProtocol` rewrite; spec in `Audit/31-login-protocol-handshake.md`.
-- **Next task: B3 — LIVE-LOGIN PROOF (currently BLOCKED).** Goal: connect 1 AI player live (online=1). B4–B10 all depend on it. See Blockers + `SESSION_HANDOFF.md` §4 for the crypto finding.
+- **Next task: B3 — LIVE-LOGIN PROOF.** Goal: connect 1 AI player live (online=1). B4–B10 all depend on it.
+  - **Phase 0 DONE (2026-08-03):** Init frame now decodes — root cause was **little-endian Blowfish ≠ JDK Blowfish**.
+    Ported server engine → `protocol/crypt/BlowfishEngine.java`; `LoginCrypt` uses it. Live probe prints
+    opcode 0x00 + protoRev 0x0000c621 + GG magics (see `Audit/32-init-decode.md`). B3 itself is NOT done yet.
+  - **Phase 1 next:** finish login: AuthGameGuard → RequestAuthLogin (RSA) → LoginOk/PlayOk.
+  - **Phase 2:** GameServer enter-world → prove `online=1`.
 
 ## Blockers / open issues
-1. **🔴 B3 = live-login crypto BLOCKED.** Connected to :2106, but the Init frame doesn't decode reliably under the static-blowfish-key + reverse-XOR hypothesis (opcode 0x00 one run, 0x6d next). Likely the server's **custom `BlowfishEngine` ≠ JDK Blowfish** (need to verify/port). Full detail + handshake steps in `SESSION_HANDOFF.md` §4 + `Audit/31-login-protocol-handshake.md`.
+1. **~~B3 = live-login crypto BLOCKED~~ → Init decode UNBLOCKED (2026-08-03).** Root cause found & fixed:
+   the server's **Blowfish is little-endian-byte-order, NOT compatible with JDK `Blowfish/ECB/NoPadding`**
+   (big-endian) — so decrypting the Init with JDK never worked (it was never a framing/XOR issue).
+   Fix (external, no server source changed): `AIPlayerEngine/protocol/crypt/BlowfishEngine.java` (ported
+   verbatim from server) + `LoginCrypt` uses it. Live `InitDecodeProbe` now decodes the Init
+   (opcode 0x00, protoRev 0x0000c621, GG magics). Remaining: **Phase 1** full login handshake + **Phase 2**
+   enter-world (online=1). Detail: `Documentation/Audit/32-init-decode.md`.
 2. **B4–B10 (live NPC combat, PvP, quest, trade proof) are gated on B3** — nothing plays until a player logs in.
 3. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 4. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.

@@ -100,23 +100,35 @@ public final class LoginCrypt {
         return block;
     }
 
-    // ---- Blowfish (ECB, NoPadding) via JDK ----
+    // ---- Blowfish (ECB, NoPadding) — little-endian byte order, ported from the server's
+    //      BlowfishEngine for byte-for-byte wire compatibility with the LoginServer.
+    //      IMPORTANT (verified empirically 2026-08-03): JDK "Blowfish/ECB/NoPadding" is
+    //      BIG-endian and is NOT wire-compatible with L2J's little-endian Blowfish.
+    //      See Documentation/Audit/32-init-decode.md. RSA above stays JDK (RSA is BE-standard).
 
-    private static javax.crypto.Cipher blowfish(byte[] key, int mode) throws Exception {
-        javax.crypto.spec.SecretKeySpec sk = new javax.crypto.spec.SecretKeySpec(key, "Blowfish");
-        javax.crypto.Cipher c = javax.crypto.Cipher.getInstance("Blowfish/ECB/NoPadding");
-        c.init(mode, sk);
-        return c;
+    private static final int BLOWFISH_BLOCK = 8;
+
+    private static byte[] blowfishProcess(byte[] key, byte[] data, boolean encrypting) throws Exception {
+        if (data.length == 0 || (data.length % BLOWFISH_BLOCK) != 0) {
+            throw new IllegalArgumentException("Blowfish data length must be a non-zero multiple of 8, got " + data.length);
+        }
+        byte[] out = data.clone();
+        final com.aiplayer.protocol.crypt.BlowfishEngine engine = new com.aiplayer.protocol.crypt.BlowfishEngine();
+        engine.init(encrypting, key);
+        for (int off = 0; off < out.length; off += BLOWFISH_BLOCK) {
+            engine.processBlock(out, off); // ECB: independent 8-byte blocks
+        }
+        return out;
     }
 
-    /** Blowfish-encrypt (size must be a multiple of 8). Returns a new array. */
+    /** Blowfish-encrypt (size must be a non-zero multiple of 8). Returns a new array. */
     public static byte[] blowfishEncrypt(byte[] key, byte[] data) throws Exception {
-        return blowfish(key, javax.crypto.Cipher.ENCRYPT_MODE).doFinal(data);
+        return blowfishProcess(key, data, true);
     }
 
-    /** Blowfish-decrypt (size must be a multiple of 8). Returns a new array. */
+    /** Blowfish-decrypt (size must be a non-zero multiple of 8). Returns a new array. */
     public static byte[] blowfishDecrypt(byte[] key, byte[] data) throws Exception {
-        return blowfish(key, javax.crypto.Cipher.DECRYPT_MODE).doFinal(data);
+        return blowfishProcess(key, data, false);
     }
 
     // ---- NewCrypt checksum / XOR pass (LE ints) ----
