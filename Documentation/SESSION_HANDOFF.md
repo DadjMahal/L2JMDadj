@@ -33,6 +33,13 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
   - `protocol/L2JProtocol.java` (REWRITTEN): parse Init → unscramble RSA → AuthGameGuard(0x07) → RequestAuthLogin(0x00) → LoginOk(0x03)/ServerList(0x04).
   - Spec doc: `Documentation/Audit/31-login-protocol-handshake.md`.
 
+- **Stream C started (done slice, 2026-08-03):** `PacketLogger.parseNpcInfo` OFF-BY-ONE fixed to the real
+  `[objId][displayId+1000000][isAttackable][x][y][z][heading]` layout (Audit/35); hostile now packet-derived
+  (attackable) with range-heuristic fallback; fake tests TASKS 54/63 → real assertions on
+  `makeDecision()`/`makePvPDuidedDecision()`; `PerceptionAccuracyTest`(42) reconciled to the real layout.
+  36/36 tests pass, BUILD SUCCESS. (RuntimeLog/2026-08-03-streamC-npc-info-fix.md)
+
+
 ## 4. ✅ B3 — LIVE LOGIN — DONE 2026-08-03 (1 AI player online=1)
 B4–B10 (live NPC combat, PvP, quest, trade proof) are now UNGATED. Full external socket flow (no server source changes):
 - **Phase 0:** little-endian Blowfish ≠ JDK → ported `protocol/crypt/BlowfishEngine.java` (`Audit/32`).

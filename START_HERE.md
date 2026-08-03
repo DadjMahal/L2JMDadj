@@ -88,9 +88,14 @@ that connects as real client sockets — **no server code modifications**.
    server caches, not `Buy <listId>`).
    → **ALL B-stream live gameplay proofs are now DONE (B4 PvE, B5 PvP, B6 quest, B7 trade, B8 movement,
    B9 chat, B10 party).** Next: Stream C wiring of the proven packets into the engine.
+4f. **🔄 STREAM C STARTED (2026-08-03) — slice 1 done:** `PacketLogger.parseNpcInfo` off-by-one fixed to the
+   real `AbstractNpcInfo` layout (`[objId][displayId+1000000][isAttackable][x][y][z][heading]`), hostility now
+   packet-derived; fake tests 54/63 → real assertions; `PerceptionAccuracyTest`(42) reconciled to the real
+   layout. **36/36 tests PASS, BUILD SUCCESS.** (RuntimeLog/2026-08-03-streamC-npc-info-fix.md) Remaining
+   Stream C: wire probe-proven sends (Action/AttackRequest/StatusUpdate/QuestList/…) into CombatAI/QuestAI.
 5. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
 6. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
-7. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions (Stream C).
+7. ✅ Tasks 54 & 63 RESOLVED (Stream C, 2026-08-03) — their fake `assertTrue(true)` tests replaced with real assertions on `makeDecision()`/`makePvPDuidedDecision()`; now `done` in TASKS.md.
 
 ## Reality check — run these and paste the output
 ```bash

@@ -81,7 +81,7 @@
 | 39 | Implement line-of-sight checks | done | System | `LineOfSight.java` (Bresenham, 3D); BUILD SUCCESS |
 | 40 | Add aggro/emotion detection | done | System | `AggroManager.java` threat/emotion; BUILD SUCCESS |
 | 41 | Implement threat table | done | System | AggroManager history/modifiers/decay/priority; BUILD SUCCESS |
-| 42 | Verify perception accuracy | done | System | `PerceptionAccuracyTest` (17 tests); not live-verified this session |
+| 42 | Verify perception accuracy | done | System | `PerceptionAccuracyTest` (17 tests) reconciled to real NPC_INFO layout + fixed 3 broken fixtures (Stream C); passes with real assertions |
 
 ---
 
@@ -104,7 +104,7 @@
 | 51 | Implement defensive behavior | done | System | shouldDefend()/defensiveAction(); 11/11 tests; not live-verified |
 | 52 | Implement retreat strategy | done | System | shouldRetreat()/retreat() escape direction; not live-verified |
 | 53 | Add combat telemetry | done | System | logCombatTelemetry() actions/HP/MP/entities/latency |
-| 54 | Test combat decisions in isolation | **in_progress** | System | `CombatAITest.java` — **2 tests are fake `assertTrue(true)`** (testCombatDecisionNotNull, testCombatAI_PvPMethods); needs real assertions on `makeDecision()` |
+| 54 | Test combat decisions in isolation | done | System | `CombatAITest.testCombatDecisionNotNull` now calls `makeDecision()` and asserts a real non-null decision+action (Stream C; was fake `assertTrue(true)`) |
 | 55 | Fix any dead code from combat refactoring | done | System | Build clean; EntityTracker removed |
 | 56 | Document combat AI in Audit docs | done | System | `Audit/15-combat-ai.md` |
 | 57 | Verify combat doesn't break server stability | done | System | Build compiles, 4/4 tests, no dead code; not live-verified |
@@ -113,7 +113,7 @@
 | 60 | Verify AI players can engage NPCs | done | System | **LIVE-VERIFIED (B4)** — `CombatProbe` attacked a real Wolf/Elder Keltir: 18 `ATTACK`(0x05) hits, exp 0→105, level 1→2 (`Audit/35`, `scripts/b4_combat_prove.sh`) |
 | 61 | Verify PvP combat logic | done | System | **LIVE-VERIFIED (B5)** — `PvPProbe` two-bot fight: attacker objId2:13 / objId3:12 hits + CombatBot_02 PvP damage (curHp 126→120) (`Audit/36`) |
 | 62 | Implement advanced combat behaviors | done | System | calculateEscapeRoute()/getNearbyEntities(); not live-verified |
-| 63 | Verify PvP combat enhancements | **in_progress** | System | `testCombatAI_PvPMethods` is **fake `assertTrue(true)`**; real tests exist for PKDecision/PvPSkillRotation/safeZone but `makePvPDuidedDecision()` path unverified |
+| 63 | Verify PvP combat enhancements | done | System | `CombatAITest.testCombatAI_PvPMethods` now calls `makePvPDuidedDecision()` + asserts non-null decision/action and non-null karma/skill helpers (Stream C; was fake `assertTrue(true)` on the PvP path) |
 
 ---
 

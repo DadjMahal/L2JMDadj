@@ -195,20 +195,29 @@ public class PacketLogger
    {
       try
       {
-         int objectId = buf.getInt();
-         int npcId = buf.getInt();
-         int x = buf.getInt();
-         int y = buf.getInt();
-         int z = buf.getInt();
-         
-         // Determine if NPC/monster is hostile based on NPC ID ranges
-         // Typical hostile NPCs: 1-200000 (regional), 210000+ (special), 800000+ (events)
-         boolean isHostile = isHostileNpc(npcId);
-         
+         // Stream C: fixed the OFF-BY-ONE vs the real Interlude AbstractNpcInfo layout
+         // (proven by B4 / Audit/35). Real field order after the 0x16 opcode:
+         //    [objectId][displayId+1000000][isAttackable][x][y][z][heading]...
+         // The old code read [objectId][id][x][y][z], so it misread the packet's
+         // isAttackable as x (position was shifted 4 bytes early). CombatProbe proved
+         // the working offsets: isAttackable@9, x@13, y@17, z@21.
+         int objectId = buf.getInt();          // offset 1
+         int displayId = buf.getInt();         // offset 5 : real template id + 1000000
+         int isAttackable = buf.getInt();      // offset 9 : packet-derived flag (0 or 1)
+         int x = buf.getInt();                 // offset 13
+         int y = buf.getInt();                 // offset 17
+         int z = buf.getInt();                 // offset 21
+         int heading = buf.remaining() >= 4 ? buf.getInt() : 0; // offset 25 (optional tail)
+
+         int npcId = displayId - 1000000;      // real NPC template id
+         // The real packet gives isAttackable directly — better than the ID-range heuristic
+         // (Audit/35). Keep the heuristic as a fallback for monsters not flagged in this field.
+         boolean isHostile = isAttackable != 0 || isHostileNpc(npcId);
+
          // Track entity for enemy detection (Task 47)
-         entitiesById.put(objectId, new EntityInfo(objectId, npcId, x, y, z, 0, isHostile));
-         
-         LOGGER.info("[PACKET-LOG] [" + playerName + "] NPC_INFO: objId=" + objectId + " npcId=" + npcId + " pos=(" + x + "," + y + "," + z + ") hostile=" + isHostile);
+         entitiesById.put(objectId, new EntityInfo(objectId, npcId, x, y, z, heading, isHostile));
+
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] NPC_INFO: objId=" + objectId + " npcId=" + npcId + " attackable=" + isAttackable + " pos=(" + x + "," + y + "," + z + ") heading=" + heading + " hostile=" + isHostile);
       }
       catch (Exception e)
       {

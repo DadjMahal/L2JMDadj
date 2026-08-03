@@ -12,10 +12,14 @@ public class CombatAITest {
     
     @Test
     public void testCombatDecisionNotNull() {
-        // Test that makeDecision returns a valid decision
-        // This is an integration test that verifies the combat logic runs
-        System.out.println("[TEST] Combat decision test passed - logic verified via logs");
-        assertTrue(true);
+        // Task 54 real assertion (Stream C): makeDecision() must return a concrete,
+        // non-null CombatDecision with a valid action after exercising the decision path.
+        CombatAI ai = new CombatAI(new AIPlayer("TestPlayer", 1, 1, 0));
+        CombatDecision decision = ai.makeDecision();
+        assertNotNull(decision, "makeDecision() should always return a decision");
+        assertNotNull(decision.getAction(), "decision should carry an action");
+        assertTrue(decision.toString() != null && !decision.toString().isEmpty(),
+                   "decision should have a toString representation");
     }
     
     @Test
@@ -151,9 +155,17 @@ public class CombatAITest {
     
     @Test
     public void testCombatAI_PvPMethods() {
-        // Test that CombatAI has PvP methods (integration test)
-        assertNotNull(new CombatAI(new AIPlayer("TestPlayer", 1, 1, 0)));
-        // Methods tested via reflection in real usage
-        assertTrue(true);
+        // Task 63 real assertion (Stream C): the PvP decision path must execute without throwing
+        // and return a concrete, non-null decision; PvP helper methods must return valid values.
+        CombatAI ai = new CombatAI(new AIPlayer("TestPlayer", 1, 1, 0));
+        CombatDecision decision = ai.makePvPDuidedDecision();
+        assertNotNull(decision, "makePvPDuidedDecision() should return a decision");
+        assertNotNull(decision.getAction(), "PvP decision should carry an action");
+
+        // PvP helper methods return deterministic values (never null)
+        assertNotNull(ai.getPvPKarmaDecision(0, -20000), "karma decision should not be null");
+        assertNotNull(ai.getOptimalPvPSkill(75), "skill selection should not be null");
+        assertNotNull(ai.getOptimalPvPSkill(40), "skill selection should handle medium MP");
+        assertNotNull(ai.getDefensiveSkill(), "defensive skill should not be null");
     }
 }

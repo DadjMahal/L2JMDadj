@@ -1,5 +1,8 @@
 package com.aiplayer.engine;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.protocol.PacketLogger.EntityInfo;
 import org.junit.jupiter.api.BeforeEach;
@@ -202,9 +205,10 @@ public class PerceptionAccuracyTest {
     @Test
     public void testHpMpInCombatAI() {
         packetLogger.logPacket(createStatusUpdatePacket());
-        
-        assertTrue(packetLogger.getHpPercentage() > 50, "Should detect healthy HP");
-        assertTrue(packetLogger.getMpPercentage() > 40, "Should detect healthy MP");
+
+        // Data: curHp=500 / maxHp=1000 = 50%, curMp=150 / maxMp=300 = 50%.
+        assertTrue(packetLogger.getHpPercentage() >= 50, "Should detect at least 50% HP");
+        assertTrue(packetLogger.getMpPercentage() >= 40, "Should detect healthy MP");
     }
     
     @Test
@@ -229,7 +233,7 @@ public class PerceptionAccuracyTest {
             (byte) 0xF8, (byte) 0x2A, (byte) 0x00, (byte) 0x00,  // x = 11000
             (byte) 0xF0, (byte) 0x55, (byte) 0x00, (byte) 0x00,  // y = 22000
             (byte) 0xCE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,  // z = -50
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00   // heading = 0
+            (byte) 0x00, (byte) 0x80, (byte) 0x00, (byte) 0x00   // heading = 32768 (0x8000 LE)
         };
     }
     
@@ -238,8 +242,8 @@ public class PerceptionAccuracyTest {
             (byte) 0x17, (byte) 0x00,  // size = 23
             (byte) 0x03,  // opcode
             0x39, 0x30, (byte) 0x00, (byte) 0x00,  // objectId = 12345
-            (byte) 0xD0, (byte) 0x27, (byte) 0x00, (byte) 0x00,  // x = 10000
-            (byte) 0x30, (byte) 0x4E, (byte) 0x00, (byte) 0x00,  // y = 20000
+            (byte) 0x10, (byte) 0x27, (byte) 0x00, (byte) 0x00,  // x = 10000 (0x2710 LE)
+            (byte) 0x20, (byte) 0x4E, (byte) 0x00, (byte) 0x00,  // y = 20000 (0x4E20 LE)
             (byte) 0x9C, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,  // z = -100
             (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00   // heading = 0
         };
@@ -273,61 +277,42 @@ public class PerceptionAccuracyTest {
     }
     
     private byte[] createNpcInfoPacket() {
-        return createNpcInfoWithId(1001, 10001);
+        // Positioned hostile monster at (11000, 22000, -50) — matches the parsing assertions.
+        return createNpcInfoAt(1001, 10001, 11000, 22000, -50);
     }
     
     private byte[] createNpcInfoWithId(int objectId, int npcId) {
-        // NPC ID 10001 should be hostile (1-199999 range) - using dynamic encoding
-        byte[] packet = new byte[23];
-        int idx = 0;
-        packet[idx++] = 0x17; packet[idx++] = 0x00;
-        packet[idx++] = (byte) 0x16;
-        // objectId
-        packet[idx++] = (byte) (objectId & 0xFF);
-        packet[idx++] = (byte) ((objectId >> 8) & 0xFF);
-        packet[idx++] = (byte) ((objectId >> 16) & 0xFF);
-        packet[idx++] = (byte) ((objectId >> 24) & 0xFF);
-        // npcId
-        packet[idx++] = (byte) (npcId & 0xFF);
-        packet[idx++] = (byte) ((npcId >> 8) & 0xFF);
-        packet[idx++] = (byte) ((npcId >> 16) & 0xFF);
-        packet[idx++] = (byte) ((npcId >> 24) & 0xFF);
-        // x, y, z = 0
-        for (int i = 0; i < 12; i++) packet[idx++] = 0x00;
-        return packet;
+        // Stream C: real Interlude AbstractNpcInfo layout (Audit/35, proven by B4):
+        //   [0x16][objectId][displayId = npcId+1000000][isAttackable][x][y][z][heading]
+        // Frame = [2-byte self-inclusive size=31][payload]. isAttackable is left 0 here so the
+        // ID-range heuristic (isHostileNpc) exercises hostility, as these tests intend; the
+        // packet-flag path is covered by PacketLoggerNpcInfoTest.
+        return buildNpcInfoFrame(objectId, npcId + 1000000, 0, 0, 0, 0, 0);
     }
-    
+
     private byte[] createNpcInfoAt(int objectId, int npcId, int x, int y, int z) {
-        byte[] packet = new byte[23];
-        int idx = 0;
-        packet[idx++] = 0x17; packet[idx++] = 0x00;
-        packet[idx++] = (byte) 0x16;
-        // objectId
-        packet[idx++] = (byte) (objectId & 0xFF);
-        packet[idx++] = (byte) ((objectId >> 8) & 0xFF);
-        packet[idx++] = (byte) ((objectId >> 16) & 0xFF);
-        packet[idx++] = (byte) ((objectId >> 24) & 0xFF);
-        // npcId
-        packet[idx++] = (byte) (npcId & 0xFF);
-        packet[idx++] = (byte) ((npcId >> 8) & 0xFF);
-        packet[idx++] = (byte) ((npcId >> 16) & 0xFF);
-        packet[idx++] = (byte) ((npcId >> 24) & 0xFF);
-        // x
-        packet[idx++] = (byte) (x & 0xFF);
-        packet[idx++] = (byte) ((x >> 8) & 0xFF);
-        packet[idx++] = (byte) ((x >> 16) & 0xFF);
-        packet[idx++] = (byte) ((x >> 24) & 0xFF);
-        // y
-        packet[idx++] = (byte) (y & 0xFF);
-        packet[idx++] = (byte) ((y >> 8) & 0xFF);
-        packet[idx++] = (byte) ((y >> 16) & 0xFF);
-        packet[idx++] = (byte) ((y >> 24) & 0xFF);
-        // z
-        packet[idx++] = (byte) (z & 0xFF);
-        packet[idx++] = (byte) ((z >> 8) & 0xFF);
-        packet[idx++] = (byte) ((z >> 16) & 0xFF);
-        packet[idx++] = (byte) ((z >> 24) & 0xFF);
-        return packet;
+        return buildNpcInfoFrame(objectId, npcId + 1000000, 0, x, y, z, 0);
+    }
+
+    /** Build a real-layout NPC_INFO frame: [2-byte self-inclusive size][opcode][fields]. */
+    private byte[] buildNpcInfoFrame(int objectId, int displayId, int isAttackable,
+                                     int x, int y, int z, int heading) {
+        int payloadLen = 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4; // opcode + 7 ints
+        ByteBuffer payload = ByteBuffer.allocate(payloadLen).order(ByteOrder.LITTLE_ENDIAN);
+        payload.put((byte) 0x16);
+        payload.putInt(objectId);
+        payload.putInt(displayId);     // real template id + 1000000
+        payload.putInt(isAttackable);  // 0 or 1
+        payload.putInt(x);
+        payload.putInt(y);
+        payload.putInt(z);
+        payload.putInt(heading);
+
+        int frameLen = payloadLen + 2; // self-inclusive size header
+        ByteBuffer frame = ByteBuffer.allocate(frameLen).order(ByteOrder.LITTLE_ENDIAN);
+        frame.putShort((short) frameLen);
+        frame.put(payload.array());
+        return frame.array();
     }
     
     private byte[] createItemListPacket(byte itemCount) {
