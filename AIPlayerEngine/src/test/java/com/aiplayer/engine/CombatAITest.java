@@ -232,6 +232,52 @@ public class CombatAITest {
             "the shared logger's hostile NPC must become the selected combat target");
     }
 
+    @Test
+    public void testDeathGateReturnsIdle() {
+        // Slice 6: self-death feedback via real StatusUpdate (self objId 5). A dead bot must NOT
+        // attack even with hostiles present; makeDecision must return IDLE and no target is selected.
+        AIPlayer player = new AIPlayer("DeadBot", 1, 1, 0);
+        player.setPosition(0, 0, 0);
+        CombatAI ai = new CombatAI(player);
+        PacketLogger live = new PacketLogger("DeadBot");
+        live.setSelfObjectId(5);
+        live.logPacket(buildStatusUpdateFrame(5, 0, 100));        // self HP = 0 -> dead
+        live.logPacket(buildNpcInfoFrame(1001, 1000000 + 20545, 1, 100, 100, 0, 0)); // hostile present
+        ai.setPacketLogger(live);
+        assertFalse(ai.isBotAlive(), "self HP 0 must mean the bot is dead");
+        assertEquals(CombatDecision.Action.IDLE, ai.makeDecision().getAction(),
+            "a dead bot must not attack (slice 6 death gate)");
+        assertEquals(-1, ai.getSelectedTargetObjId(), "a dead bot must not select a combat target");
+    }
+
+    @Test
+    public void testRetargetsAfterTargetDeath() {
+        // Slice 6: DeleteObject removes the engaged target -> combat ends -> the bot re-acquires the
+        // NEXT hostile. Previously handleCombatEnd left combatState.inCombat=true so it stayed stuck.
+        AIPlayer player = new AIPlayer("RetargetBot", 1, 1, 0);
+        player.setPosition(0, 0, 0);
+        CombatAI ai = new CombatAI(player);
+        PacketLogger live = new PacketLogger("RetargetBot");
+        live.logPacket(buildNpcInfoFrame(1001, 1000000 + 20545, 1, 100, 0, 0, 0)); // nearest
+        live.logPacket(buildNpcInfoFrame(1002, 1000000 + 20546, 1, 300, 0, 0, 0)); // second
+        ai.setPacketLogger(live);
+
+        assertEquals(CombatDecision.Action.ATTACK, ai.makeDecision().getAction());
+        assertEquals(1001, ai.getSelectedTargetObjId(), "should engage the nearest hostile first");
+
+        live.logPacket(buildDeleteObjectFrame(1001)); // server: target died/despawned
+        CombatDecision end = ai.makeDecision();
+        assertEquals(CombatDecision.Action.LEAVE_COMBAT, end.getAction(),
+            "vanished target must end combat");
+        assertEquals(-1, ai.getSelectedTargetObjId(), "cleared target after combat end");
+
+        CombatDecision again = ai.makeDecision();
+        assertEquals(CombatDecision.Action.ATTACK, again.getAction(),
+            "must re-acquire the next enemy after the previous died");
+        assertEquals(1002, ai.getSelectedTargetObjId(),
+            "re-target must select the next nearest hostile");
+    }
+
     // Real-layout builders matching the proven probe framing (same as PacketLoggerNpcInfoTest).
     private byte[] buildNpcInfoFrame(int objectId, int displayId, int isAttackable,
                                      int x, int y, int z, int heading) {
@@ -261,6 +307,36 @@ public class CombatAITest {
         payload.putInt(2);
         payload.putInt(0x09); payload.putInt(curHp);
         payload.putInt(0x0A); payload.putInt(maxHp);
+        int frameLen = payloadLen + 2;
+        ByteBuffer frame = ByteBuffer.allocate(frameLen).order(ByteOrder.LITTLE_ENDIAN);
+        frame.putShort((short) frameLen);
+        frame.put(payload.array());
+        return frame.array();
+    }
+
+    // Slice 6 helpers: objId-controlled StatusUpdate + DeleteObject
+    // [0x0E][objectId][attrCount][CUR_HP=9][val][MAX_HP=10][val]
+    private byte[] buildStatusUpdateFrame(int objectId, int curHp, int maxHp) {
+        int payloadLen = 1 + 4 + 4 + 8 + 8;
+        ByteBuffer payload = ByteBuffer.allocate(payloadLen).order(ByteOrder.LITTLE_ENDIAN);
+        payload.put((byte) 0x0E);
+        payload.putInt(objectId);
+        payload.putInt(2);
+        payload.putInt(0x09); payload.putInt(curHp);
+        payload.putInt(0x0A); payload.putInt(maxHp);
+        int frameLen = payloadLen + 2;
+        ByteBuffer frame = ByteBuffer.allocate(frameLen).order(ByteOrder.LITTLE_ENDIAN);
+        frame.putShort((short) frameLen);
+        frame.put(payload.array());
+        return frame.array();
+    }
+
+    // [0x12][objectId]
+    private byte[] buildDeleteObjectFrame(int objectId) {
+        int payloadLen = 1 + 4;
+        ByteBuffer payload = ByteBuffer.allocate(payloadLen).order(ByteOrder.LITTLE_ENDIAN);
+        payload.put((byte) 0x12);
+        payload.putInt(objectId);
         int frameLen = payloadLen + 2;
         ByteBuffer frame = ByteBuffer.allocate(frameLen).order(ByteOrder.LITTLE_ENDIAN);
         frame.putShort((short) frameLen);

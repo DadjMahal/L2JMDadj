@@ -41,6 +41,12 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
 
 - **Stream C slice 2 (done, 2026-08-03):** real client combat encoders `PacketCodec.encodeAction(0x04)` /
 - **Stream C slice 3 (done, 2026-08-03):** decision→send wiring. `CombatFramePlanner` maps a combat
+- **Stream C slice 6 (done, 2026-08-03) — LIVE PROVEN:** packet feedback into the decision loop. PacketLogger
+  self-tracking is objId-aware (`setSelfObjectId`; a target wolf's StatusUpdate no longer clobbers the bot's HP —
+  live ignored 23 `self=false` updates); CombatAI death-gates `makeDecision()`/`isBotAlive()` (live: self HP
+  145→…→0 → `[CombatLoop] DEAD` → **0 Action frames after death**, was unlimited); `handleCombatEnd()` now really
+  ends combat so a DeleteObject'd target → re-acquire next (RE_TARGET); DeleteObject logs at INFO. 59/59 tests.
+  New tests: objId self-HP, DeleteObject removal, death gate, re-target. (RuntimeLog/2026-08-03-streamC-packet-feedback.md)
 - **Stream C slice 5 (done, 2026-08-03) — LIVE PROVEN:** `CombatLoop` (examples) + `scripts/c5_live_combat_proof.sh`.
   Full engine-driven live loop: login → GameServerClient enter-world → startReader → `CombatAI.setPacketLogger`
   (share live reader buffer — this fix made decisions real) → loop `makeDecision()` → CombatFramePlanner →

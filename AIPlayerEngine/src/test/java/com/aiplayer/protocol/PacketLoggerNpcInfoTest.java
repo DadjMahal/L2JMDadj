@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -107,5 +108,68 @@ public class PacketLoggerNpcInfoTest
       PacketLogger.EntityInfo nearest = logger.findNearestHostile(0, 0, 0, 100000);
       assertNotNull(nearest);
       assertEquals(nearNpc, nearest.objectId, "nearest hostile should be the closest NPC");
+   }
+
+   // ============================================
+   // Stream C slice 6: packet feedback (self-HP safety + DeleteObject)
+   // ============================================
+
+   /** Build a StatusUpdate frame for a SPECIFIC objectId: [0x0E][objId][count=2][CUR_HP=9][v][MAX_HP=10][v]. */
+   private static byte[] buildStatusUpdateFrame(int objectId, int curHp, int maxHp)
+   {
+      int payloadLen = 1 + 4 + 4 + 8 + 8;
+      ByteBuffer payload = ByteBuffer.allocate(payloadLen).order(ByteOrder.LITTLE_ENDIAN);
+      payload.put((byte) 0x0E);
+      payload.putInt(objectId);
+      payload.putInt(2);
+      payload.putInt(0x09); payload.putInt(curHp);
+      payload.putInt(0x0A); payload.putInt(maxHp);
+      int frameLen = payloadLen + 2;
+      ByteBuffer frame = ByteBuffer.allocate(frameLen).order(ByteOrder.LITTLE_ENDIAN);
+      frame.putShort((short) frameLen);
+      frame.put(payload.array());
+      return frame.array();
+   }
+
+   /** Build a DeleteObject frame: [0x12][objectId]. */
+   private static byte[] buildDeleteObjectFrame(int objectId)
+   {
+      int payloadLen = 1 + 4;
+      ByteBuffer payload = ByteBuffer.allocate(payloadLen).order(ByteOrder.LITTLE_ENDIAN);
+      payload.put((byte) 0x12);
+      payload.putInt(objectId);
+      int frameLen = payloadLen + 2;
+      ByteBuffer frame = ByteBuffer.allocate(frameLen).order(ByteOrder.LITTLE_ENDIAN);
+      frame.putShort((short) frameLen);
+      frame.put(payload.array());
+      return frame.array();
+   }
+
+   @Test
+   public void testSelfStatusUpdateNotClobberedByTarget()
+   {
+      // Slice 6: the server sends StatusUpdate for MANY entities. Once setSelfObjectId is set, only the
+      // SELF object may drive curHp. A monster's StatusUpdate (objId=777) must not overwrite self HP.
+      PacketLogger logger = new PacketLogger("p");
+      logger.setSelfObjectId(5);
+      logger.logPacket(buildStatusUpdateFrame(5, 80, 100));   // self: hp 80/100
+      logger.logPacket(buildStatusUpdateFrame(777, 50, 100)); // monster: must NOT clobber self HP
+      assertEquals(80, logger.getCurHp(), "target StatusUpdate must not clobber self HP (Slice 6)");
+      assertEquals(100, logger.getMaxHp(), "self max HP must remain from the self StatusUpdate");
+      assertEquals(80.0, logger.getHpPercentage(), 0.1, "self HP percentage must stay 80%");
+   }
+
+   @Test
+   public void testDeleteObjectRemovesTrackedEntity()
+   {
+      // Slice 6: DeleteObject (0x12) is the server's signal that an entity died/despawned. It must
+      // remove the entity so findNearestHostile/calculateDistanceTo stop targeting it -> end of combat
+      // -> re-target of the next enemy.
+      PacketLogger logger = new PacketLogger("p");
+      logger.logPacket(buildNpcInfoFrame(1001, 1000000 + 20545, 1, 10, 10, 0, 0));
+      assertEquals(1, logger.getEntityCount(), "NPC should be tracked");
+      logger.logPacket(buildDeleteObjectFrame(1001));
+      assertNull(logger.getEntity(1001), "deleted entity must be removed from tracking");
+      assertEquals(0, logger.getEntityCount(), "entity count must drop after DeleteObject");
    }
 }

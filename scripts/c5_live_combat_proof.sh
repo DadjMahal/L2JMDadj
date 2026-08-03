@@ -62,7 +62,7 @@ LOOP=$!
 wait "$LOOP" 2>/dev/null
 
 echo "[c5] >>> CombatLoop output (combat-relevant lines):"
-grep -E 'ENGAGED|SENT opcode|no-target|in world|COMPLETE|FAIL|ATTACK_START' "$OUT" | head -40
+grep -E 'ENGAGED|SENT opcode|no-target|in world|COMPLETE|FAIL|ATTACK_START|DEAD|ALIVE|RE_TARGET|DELETE_OBJECT' "$OUT" | head -50
 
 echo "[c5] >>> AFTER: $CHAR"
 AFTER=$(sudo mysql -u root gameserver -e "SELECT exp,sp,level,online FROM characters WHERE char_name='${CHAR}';" 2>/dev/null | tail -1)
@@ -83,6 +83,15 @@ if [ -n "$TARGET" ]; then
 fi
 
 echo "[c5] engaged-actions=${ENGAGED:-0}; target=$TARGET serverConfirmedDamage=$DAMAGE; exp before=${EXP_BEFORE:-?} after=${EXP_AFTER:-?}"
+
+# Slice 6 death-gating: if the bot died in-window, no Action/AttackRequest frames may be sent after.
+DEAD=$(grep -c '\[CombatLoop\] DEAD' "$OUT" 2>/dev/null || true)
+SENT_AFTER_DEAD=0
+DEADLN=$(grep -nE '\[CombatLoop\] DEAD' "$OUT" 2>/dev/null | head -1 | cut -d: -f1)
+if [ -n "$DEADLN" ]; then
+    SENT_AFTER_DEAD=$(awk -v d="$DEADLN" 'NR>d && /SENT opcode/' "$OUT" | wc -l)
+fi
+echo "[c5] slice-6 death gate: fired=${DEAD}; Action/AttackRequest frames after self HP hit 0 = ${SENT_AFTER_DEAD}"
 
 if [ "${ENGAGED:-0}" -ge 1 ] && { [ "$DAMAGE" = "1" ] || [ "${EXP_AFTER:-0}" -gt "${EXP_BEFORE:-0}" ] 2>/dev/null; }; then
     echo "[OK] C5 PROVEN: live loop engaged a target AND the server confirmed it"

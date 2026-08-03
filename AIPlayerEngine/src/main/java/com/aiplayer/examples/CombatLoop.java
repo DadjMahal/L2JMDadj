@@ -80,11 +80,15 @@ public class CombatLoop
 		// Slice 5 fix: CombatAI must decide from the SAME buffer the reader feeds, not its own empty
 		// private one. Attach the live logger (also lets StatusUpdate drive HP in shouldDefend()).
 		player.getCombatAI().setPacketLogger(gs.getPacketLogger());
+		// Slice 6: tell the logger which objId is the bot itself (the charId) so ONLY our own
+		// StatusUpdate drives self HP — a target wolf's StatusUpdate must not clobber bot HP.
+		gs.getPacketLogger().setSelfObjectId(charId);
 
 		CombatFramePlanner planner = new CombatFramePlanner();
 		long deadline = System.currentTimeMillis() + seconds * 1000L;
 		int sentActions = 0;
 		long lastDiag = 0;
+		boolean wasAlive = true;
 
 		System.out.println("[CombatLoop] in world at (" + seedX + "," + seedY + "," + seedZ
 			+ ") — running live combat loop for " + seconds + "s");
@@ -100,6 +104,26 @@ public class CombatLoop
 			}
 
 			CombatDecision decision = player.getCombatAI().makeDecision();
+
+			// Slice 6 death feedback: when the server's StatusUpdate reports our HP hit 0, stop
+			// transmitting (no more Action/AttackRequest). makeDecision() already returns IDLE for a
+			// dead bot; this also surfaces the event + resumes cleanly if HP comes back (respawn).
+			if (!player.getCombatAI().isBotAlive())
+			{
+				if (wasAlive)
+				{
+					System.out.println("[CombatLoop] DEAD — server StatusUpdate shows self HP 0; pausing combat sends");
+					wasAlive = false;
+				}
+				Thread.sleep(LOOP_SLEEP_MS);
+				continue;
+			}
+			if (!wasAlive)
+			{
+				System.out.println("[CombatLoop] ALIVE — self HP positive again; resuming combat sends");
+				wasAlive = true;
+			}
+
 			int targetId = player.getCombatAI().getSelectedTargetObjId();
 
 			if (targetId > 0 && (decision.getAction() == CombatDecision.Action.ATTACK

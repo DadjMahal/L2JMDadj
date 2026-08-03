@@ -48,10 +48,16 @@ public class PacketLogger
    private int questInfoCount = 0;
 
    // HP/MP/CP tracking (Task 48, 49)
+   // Slice 6: these are SELF values. The server sends StatusUpdate for MANY entities (the player
+   // AND every monster around), so we only update them when the packet's objId is the self object id
+   // (set via setSelfObjectId, e.g. the character's objId from CharSelected). Without this filter a
+   // target wolf's StatusUpdate would clobber the bot's HP.
+   private int selfObjectId = 0;   // 0 = not set: keep legacy behavior (track first/any StatusUpdate)
    private int curHp = 100;
    private int maxHp = 100;
    private int curMp = 30;
    private int maxMp = 30;
+
    
    // Position tracking (Task 33, 34)
    private int playerX = 0;
@@ -167,6 +173,9 @@ public class PacketLogger
          int objectId = buf.getInt();
          int attributeCount = buf.getInt();
          StringBuilder attrs = new StringBuilder();
+         // Slice 6: only let THIS entity's StatusUpdate drive the bot's own HP/MP when it is the self
+         // object id (or when selfObjectId is unset, to preserve legacy single-threaded test behavior).
+         boolean isSelf = selfObjectId == 0 || objectId == selfObjectId;
          for (int i = 0; i < attributeCount && buf.remaining() >= 8; i++)
          {
             int attrId = buf.getInt();
@@ -174,13 +183,14 @@ public class PacketLogger
             attrs.append(getAttributeName(attrId)).append("=").append(value);
             if (i < attributeCount - 1) attrs.append(", ");
             
-            // Track HP/MP values
-            if (attrId == STAT_CUR_HP) curHp = value;
-            if (attrId == STAT_MAX_HP) maxHp = value;
-            if (attrId == STAT_CUR_MP) curMp = value;
-            if (attrId == STAT_MAX_MP) maxMp = value;
+            // Track HP/MP values (self only; a target's StatusUpdate must not overwrite the bot's HP)
+            if (isSelf && attrId == STAT_CUR_HP) curHp = value;
+            if (isSelf && attrId == STAT_MAX_HP) maxHp = value;
+            if (isSelf && attrId == STAT_CUR_MP) curMp = value;
+            if (isSelf && attrId == STAT_MAX_MP) maxMp = value;
          }
-         LOGGER.info("[PACKET-LOG] [" + playerName + "] STATUS_UPDATE: objId=" + objectId + " [" + attrs + "] hp=" + curHp + "/" + maxHp + " mp=" + curMp + "/" + maxMp);
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] STATUS_UPDATE: objId=" + objectId
+            + " [self=" + isSelf + "] [" + attrs + "] hp=" + curHp + "/" + maxHp + " mp=" + curMp + "/" + maxMp);
       }
       catch (Exception e)
       {
@@ -330,12 +340,13 @@ public class PacketLogger
       {
          int objectId = buf.getInt();
          
-         // Remove entity from tracking map (Task 38)
+         // Remove entity from tracking map (Task 38). INFO level so the live proof can show the target
+         // despawning (Slice 6 feedback: DeleteObject drives end-of-combat and re-targeting).
          EntityInfo removed = entitiesById.remove(objectId);
          if (removed != null) {
-            LOGGER.fine("[PACKET-LOG] [" + playerName + "] DELETE_OBJECT: objId=" + objectId + " (removed " + removed.npcId + ")");
+            LOGGER.info("[PACKET-LOG] [" + playerName + "] DELETE_OBJECT: objId=" + objectId + " (removed " + removed.npcId + ")");
          } else {
-            LOGGER.fine("[PACKET-LOG] [" + playerName + "] DELETE_OBJECT: objId=" + objectId + " (not tracked)");
+            LOGGER.info("[PACKET-LOG] [" + playerName + "] DELETE_OBJECT: objId=" + objectId + " (not tracked)");
          }
       }
       catch (Exception e)
@@ -391,6 +402,11 @@ public class PacketLogger
    public int getItemListCount() { return itemListCount; }
    
    // HP/MP tracking getters (Task 48, 49)
+   public int getSelfObjectId() { return selfObjectId; }
+
+   /** Slice 6: tell the logger which object id is the bot itself so StatusUpdate self-tracking is safe. */
+   public void setSelfObjectId(int selfObjectId) { this.selfObjectId = selfObjectId; }
+
    public int getCurHp() { return curHp; }
    public int getMaxHp() { return maxHp; }
    public int getCurMp() { return curMp; }

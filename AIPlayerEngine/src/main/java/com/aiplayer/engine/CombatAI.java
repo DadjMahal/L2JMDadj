@@ -22,6 +22,8 @@ public class CombatAI {
     private String currentTarget;
     private long lastSkillUseTime;
     private int comboCount;
+    // Slice 6: last objId we engaged, so we can log when DeleteObject + re-detect makes us switch targets
+    private int lastEngagedObjId = 0;
     
     public CombatAI(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
@@ -40,6 +42,17 @@ public class CombatAI {
         }
         
         try {
+            // Slice 6: SELF-death feedback from real StatusUpdate packets. When the bot's HP hits 0 the
+            // server is telling us it is dead: end combat and stop acting (the driver also gate on
+            // isBotAlive() so it transmits nothing while dead). On a later StatusUpdate with HP>0 the
+            // bot would resume normally (respawn/revive path).
+            if (!isBotAlive()) {
+                if (combatState.isInCombat() || currentTarget != null) {
+                    onCombatEnd();
+                }
+                return CombatDecision.idle();
+            }
+            
             // Check if we're in combat
             if (combatState.isInCombat()) {
                 return manageActiveCombat();
@@ -153,6 +166,13 @@ public class CombatAI {
         return parseTargetObjId(currentTarget);
     }
 
+    /** Slice 6: is the bot itself alive? Real self HP from the shared PacketLogger's StatusUpdate (self
+     * object id). Used by makeDecision() for the death gate and by the live driver to stop sending. */
+    public boolean isBotAlive() {
+        return packetLogger.getCurHp() > 0;
+    }
+
+
     /** Expose the packet logger (telemetry + tests can feed real parsed packets). */
     public PacketLogger getPacketLogger() {
         return packetLogger;
@@ -170,7 +190,12 @@ public class CombatAI {
     }
     
     private CombatDecision handleCombatEnd() {
-        return CombatDecision.leaveCombat();
+        // Slice 6: actually END combat state (inCombat=false, target cleared) so the next
+        // makeDecision() re-runs detectNearbyEnemy() and acquires the NEXT enemy after DeleteObject
+        // reported this one died/despawned. Previously this returned LEAVE_COMBAT while leaving
+        // combatState.inCombat=true, so the bot was stuck attacking a corpse forever.
+        onCombatEnd();
+        return CombatDecision.leaveCombat("target down or out of range");
     }
     
     private boolean shouldHeal() {
@@ -226,6 +251,15 @@ public class CombatAI {
     private CombatDecision engageEnemy(String enemyId) {
         currentTarget = enemyId;
         combatState.setInCombat(true);
+        // Slice 6 re-target feedback: log when we switch to a different target (the previous one was
+        // removed by DeleteObject). Lets the live proof / logs show target-hopping off dead mobs.
+        int objId = parseTargetObjId(enemyId);
+        if (objId > 0 && lastEngagedObjId != 0 && objId != lastEngagedObjId) {
+            LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] RE_TARGET: old=" + lastEngagedObjId + " new=" + objId);
+        }
+        if (objId > 0) {
+            lastEngagedObjId = objId;
+        }
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] ATTACK_START: target=" + enemyId);
         return CombatDecision.attack();
     }

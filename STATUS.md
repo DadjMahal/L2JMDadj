@@ -19,7 +19,15 @@ driver + proof (slice 5)** — `CombatLoop` logs in, enters the world, detects r
 **C5 PROVEN live**: `scripts/c5_live_combat_proof.sh` scored `engaged-actions=18`,
 `serverConfirmedDamage=1` (target wolf HP 107→103 in server StatusUpdate). 55/55 tests, BUILD SUCCESS.
 
+**Slice 6 (packet feedback) — DONE & LIVE PROVEN (59/59 tests):** the decision loop now *reacts* to real
+`StatusUpdate`/`DeleteObject` packets. `PacketLogger` self-tracking is objId-aware (`setSelfObjectId`;
+a target wolf's StatusUpdate no longer clobbers the bot's HP — live saw 23 `self=false` updates ignored);
+`CombatAI` death-gates `makeDecision()` + `isBotAlive()` (live: self HP 145→…→0 → `[CombatLoop] DEAD` →
+**0 Action frames after death**, vs unlimited before); `handleCombatEnd()` now really ends combat so a
+DeleteObject'd target leads to re-acquiring the next enemy (RE_TARGET). RuntimeLog/2026-08-03-streamC-packet-feedback.md.
+
 ## Recent RuntimeLogs (most recent first)
+- 2026-08-03-streamC-packet-feedback.md
 - 2026-08-03-streamC-live-driver.md
 - 2026-08-03-streamC-gs-client.md
 - 2026-08-03-streamC-decision-to-send.md
