@@ -4,8 +4,8 @@
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
 ## Phase: 2 — Combat AI (scaffolding done; **live verification is the real gap**)
-## Last completed: B1 — AI account credentials made valid (DB pw plaintext→Base64(SHA1); connectPlayer double-prefix fixed); build OK
-## Next task: **B2** — implement the real RequestAuthLogin packet (RSA/blowfish session key + encrypted creds) so a live login passes. B1 made credentials valid.
+## Last completed: B2 — real L2J login handshake implemented (LoginCrypt + L2JProtocol rewrite), build OK. **NOT yet live-verified.**
+## Next task: **B3** — live-connect probe: run connectAndLogin against :2106, iterate framing until LoginOk, prove online=1 (B2 code written but UNVERIFIED live).
 ## Blockers: tasks 54 & 63 have `assertTrue(true)` fake tests (→ in_progress); ~145 stub classes unwired; AI not live-verified (0 online). [real_status.sh fixed; count_ai_players.sh fixed — both return real DB data]
 
 ## Honest state (source: ai_progress_report.txt + real_status.sh)
