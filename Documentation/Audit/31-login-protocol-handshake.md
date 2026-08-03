@@ -66,3 +66,9 @@ New TCP connection; send the game-server `AuthLogin` packet carrying the Session
 1. `protocol/LoginCrypt.java` — unscramble modulus; blowfish enc/dec (JDK `Blowfish/ECB/NoPadding`); `appendChecksum`/`encXORPass` ports of `NewCrypt`.
 2. Rewrite `L2JProtocol.connectAndLogin`: parse Init → unscramble → AuthGameGuard (static key) → RequestAuthLogin (RSA + session key) → parse LoginOk/ServerList/PlayOk → return SessionKey.
 3. Then B3: GS connect + game AuthLogin + enter world → prove `online=1`.
+
+## Empirical wire data (B3 live probe, 2026-08-03)
+- Connected to :2106; server sends a **194-byte** frame: first 2 bytes = LE size (194, self-inclusive per ReadHandler; dataSize = size - HEADER_SIZE), payload starts at [2] (192 bytes).
+- **The Init is NOT plaintext** -- LoginEncryption.encrypt on the server encrypts *every* outgoing packet; the first (Init) uses encXORPass + the STATIC blowfish key; later ones use the session key + checksum. Confirmed: after blowfishDecrypt(STATIC_BLOWFISH_KEY, payload) then reverseXORPass, the recovered opcode = 0x00.
+- RECOVERED: Decrypted[0] = 0x00 (Init opcode) -- decryption direction CONFIRMED.
+- REMAINING: protoRev/GG fields at offsets 5+/137+ still misaligned by a few bytes -> the server's encXORPass offset/size likely differs from the raw 192-byte payload. Next: pass the server's real offset/size to reverseXORPass. Consult commons/network/Client.writePacket + WriteHandler (write-buffer offset), LoginEncryption.encrypt(data,offset,size), ConnectionConfig.HEADER_SIZE.

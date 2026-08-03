@@ -154,6 +154,23 @@ public final class LoginCrypt {
         writeIntLE(data, pos, progressiveKey);
     }
 
+    /**
+     * Reverse the XOR pass applied by encXORPass (port of the client-side deXOR).
+     * Iterates from the end using the stored progressive key.
+     */
+    public static void reverseXORPass(byte[] data, int offset, int size) {
+        final int stop = size - 8;
+        int pos = stop - 4;
+        int progressiveKey = readIntLE(data, stop); // final key stored at [size-8..size-5]
+        while (pos >= 4 + offset) {
+            int s = readIntLE(data, pos);
+            int v = s ^ progressiveKey;
+            writeIntLE(data, pos, v);
+            progressiveKey -= v;
+            pos -= 4;
+        }
+    }
+
     static int readIntLE(byte[] d, int i) {
         return (d[i] & 0xff) | ((d[i + 1] & 0xff) << 8) | ((d[i + 2] & 0xff) << 16) | ((d[i + 3] & 0xff) << 24);
     }
