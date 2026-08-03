@@ -4,13 +4,15 @@
 Session: Real-time status from database + server logs
 Last updated: 2026-08-03 (B4 milestone) — see real_status.sh + START_HERE.md
 
-🤖 PHASE 2 STATUS: COMPILED, boot+login+enter-world PROVEN; live PvE combat DONE (B4)
+🤖 PHASE 2 STATUS: COMPILED; login+enter-world PROVEN; live PvE combat (B4) + live PvP (B5) DONE
 - External socket path proven end-to-end: LoginServer auth (PlayOk) -> GameServer handshake ->
-  CharacterSelect -> EnterWorld(0x03) -> real NPC combat.
-- Live combat PROVEN (2026-08-03, Audit/35): CombatBot_01 attacked a Talking Island Wolf/Elder Keltir
-  -> 18 server ATTACK(0x05) packets -> exp 0->105, level 1->2. Test: scripts/b4_combat_prove.sh.
+  CharacterSelect -> EnterWorld(0x03) -> real NPC combat + real PvP.
+- Live PvE DONE (2026-08-03, Audit/35): CombatBot_01 killed a Wolf/Elder Keltir -> exp 0->105, level 1->2.
+  Test: scripts/b4_combat_prove.sh.
+- Live PvP DONE (2026-08-03, Audit/36): PvPProbe two bots -> mutual Attack hits (objId2:13 / objId3:12),
+  CombatBot_02 took PvP damage (curHp 126->120). Test: scripts/b5_pvp_prove.sh.
 - CombatAI, QuestAI, MerchantAI, SocialAI: still implemented with **mock data** internally (decision
-  classes need wiring to the real packets CombatProbe demonstrates).
+  classes need wiring to the real packets the probes demonstrate).
 
 ============================================================
 📊 REAL STATUS FROM ACTUAL QUERIES:

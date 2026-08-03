@@ -16,15 +16,17 @@ that connects as real client sockets — **no server code modifications**.
 - ✅ Server **UP**: LoginServer :2106, GameServer :7777 (since Jul 31).
 - ✅ Source-code **audit complete** — iterations 1–30 in `Documentation/Audit/` (plus 31–35 protocol/combat).
 - ✅ AIPlayerEngine **compiles** (155 files). Bootstrap + telemetry + perception scaffolding done.
-- ✅ **Live NPC combat PROVEN (B4, 2026-08-03)** — `CombatBot_01` attacked a real Wolf/Elder Keltir
-  (18 server `ATTACK` packets, exp 0→105, level 1→2). The external-socket path is proven end-to-end.
+- ✅ **Live NPC combat PROVEN (B4) & live PvP PROVEN (B5, 2026-08-03)** — an AI bot killed a Wolf/Keltir
+  (exp 0→105, level 1→2), and two bots fought each other (Attacker objId 2: 13 / objId 3: 12 hits;
+  CombatBot_02 took PvP damage curHp 126→120). External-socket path proven end-to-end.
 - 🔴 The **CombatAI/QuestAI/MerchantAI/SocialAI decision classes still run on mock data** — they need wiring
   to the real packets `CombatProbe` demonstrates (Stream C). PvP / quest / trade proofs (B5+) not yet live.
 - 🔴 Fabricated status docs were quarantined (see Blockers).
 
 ## Current phase / next task
-- **Current phase:** **B4 DONE — live NPC combat PROVEN (2026-08-03).** An AI player attacked a real Wolf/Keltir
-  monster (18 server `ATTACK` packets) and **gained 105 exp / leveled 1→2**. PvP / quest / trade proofs (B5+) are next.
+- **Current phase:** **B5 DONE — live PvP PROVEN (2026-08-03).** Two AI bots (`CombatBot_01`→`CombatBot_02`)
+  fought each other: mutual `Attack` packets (13 vs 12 hits) + `CombatBot_02` took PvP damage (curHp 126→120).
+  Quest / trade proofs (B6+) are next.
 - **Stream A DONE (2026-08-03):** A1 cold-start test (17/17 PASS; bootup ~73k→~1.3k tokens); A2 `real_status.sh` fix; A3 `count_ai_players.sh` fix (real DB: 25 registered, 0 online).
 - **B1 DONE:** AI credentials valid (DB pw → Base64(SHA1); connectPlayer bug fixed).
 - **B2 DONE (compiles, NOT live-proven):** real L2J login handshake — `LoginCrypt` + `L2JProtocol` rewrite; spec in `Audit/31-login-protocol-handshake.md`.
@@ -39,8 +41,13 @@ that connects as real client sockets — **no server code modifications**.
   - Key discoveries: client MUST send **EnterWorld** to spawn; NIO SocketChannel ignores setSoTimeout (hang) —
     CombatProbe uses classic Socket; **PacketLogger.parseNpcInfo is off-by-one** (needs fix, Stream C);
     the 25 `ai_%` chars spawn in the **void** at (16600,17000,434) and die — relocated CombatBot_01 to the Wolf zone.
-- **Next tasks (B5+):** live **PvP**, quest, trade proofs — CombatAI/QuestAI/MerchantAI/SocialAI still run on
-  mock data; now they can be wired to the real packets demonstrated by `CombatProbe`.
+- **B5 — LIVE PVP PROVEN (2026-08-03):** `PvPProbe` (two GS connections: `ai_combat_01` objId2 &
+  `ai_combat_02` objId3 at the same open field) each sent `Action`(0x04)+`AttackRequest`(0x0A) on the other →
+  server broadcast **Attacker objId 2: 13 hits / objId 3: 12 hits** on both connections; **`CombatBot_02`
+  curHp 126→120** (took real PvP damage). Evidence: `Audit/36-b5-live-pvp.md`; reproduce: `scripts/b5_pvp_prove.sh`.
+  - AttackRequest on a player = `Creature.onForcedAttack` → PvP flag + attack (blocked only in peace zones).
+- **Next tasks (B6+):** live **quest**, **trade** proofs — CombatAI/QuestAI/MerchantAI/SocialAI decision classes
+  still run on mock data; wire them to the real packets now proven (`CombatProbe`, `PvPProbe`).
 
 ## Blockers / open issues
 1. **✅ B3 RESOLVED (2026-08-03) — 1 AI player online.** Full external socket flow proven (no L2JM server source changed):
@@ -48,11 +55,13 @@ that connects as real client sockets — **no server code modifications**.
    - Phase 1: client login packets use **session key + checksum** + **self-inclusive size** (`Audit/33`).
    - Phase 2: GS ProtocolVersion(746) → KeyPacket → AuthLogin → CharacterSelect → **online=1** live-verified (`Audit/34`, `scripts/b3_enter_world_prove.sh`).
 2. **✅ B4 RESOLVED (2026-08-03) — live NPC combat PROVEN** (`CombatProbe`, `Audit/35`): AI player attacked a
-   real Wolf/Keltir monster → 18 `ATTACK`(0x05) hits + **exp 0→105, level 1→2**. **B5–B10 (live PvP, quest,
-   trade proof) next** — the AI engines still run on mock data and need wiring to the real packets now proven.
-3. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
-4. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
-5. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions (Stream C).
+   real Wolf/Keltir monster → 18 `ATTACK`(0x05) hits + **exp 0→105, level 1→2**.
+3. **✅ B5 RESOLVED (2026-08-03) — live PvP PROVEN** (`PvPProbe`, `Audit/36`): two bots fought each other →
+   mutual `Attack` hits (objId2:13 / objId3:12) + `CombatBot_02` took PvP damage (curHp 126→120).
+   **B6–B10 (live quest, trade proof) next** — engine decision classes still run on mock data.
+4. **Fabricated docs quarantined** in `Documentation/_archive_fabricated/` (`PHASE2_COMPLETE.md`, `README-MAGIC.md`, `REFACTORED_ROADMAP.md` (333-task), `WorkLog/SMARTPROJECT.md`, 2 fake reports). **Trust only** `ai_progress_report.txt`, `MORNING_REPORT_*.txt`, `real_status.sh`.
+5. **DB names:** accounts are in the **`loginserver`** DB; characters in **`gameserver`**. `real_status.sh` uses `sudo mysql -u root gameserver`.
+6. Tasks 54 & 63 downgraded to `in_progress` — their tests contain `assertTrue(true)` (fake); need real assertions (Stream C).
 
 ## Reality check — run these and paste the output
 ```bash

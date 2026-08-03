@@ -13,8 +13,9 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
 - Source-code audit complete (iterations 1–30, `Documentation/Audit/`).
 - Docs restructured: `START_HERE.md` = single entry; `Documentation/WORKFLOW.md` = single rules doc;
   `TASKS.md` = 103-task board (collision-fixed); fabricated docs quarantined in `Documentation/_archive_*`.
-- **25 AI characters exist** in DB; **live PvE combat PROVEN (B4)** — `CombatBot_01` fought a Talking Island
-  Wolf/Elder Keltir (18 server `ATTACK` packets) and **leveled 1→2 / gained 105 exp**. 0 AI online at rest.
+- **25 AI characters exist** in DB; **live PvE combat PROVEN (B4)** and **live PvP PROVEN (B5)** —
+  `CombatBot_01` leveled 1→2 killing a Wolf/Keltir (exp 0→105), and a two-bot fight produced mutual
+  `Attack` hits (objId2:13 / objId3:12) with `CombatBot_02` taking PvP damage (curHp 126→120). 0 online at rest.
 - AIPlayerEngine **compiles** (155 files). The external socket path is proven end-to-end
   (login → enter-world → `EnterWorld`(0x03) → real NPC combat). The Combat/Quest/Merchant/Social **decision**
   classes still use **mock data** internally and need wiring to the real packets now proven by `CombatProbe`
@@ -57,8 +58,18 @@ B4–B10 (live NPC combat, PvP, quest, trade proof) are now UNGATED. Full extern
    Other AI chars need the same before PvE/quest proof.
 5. `combatProven` must require `ATTACK`(0x05)/`DIE`(0x06), NOT `STATUS_UPDATE`(0x0E) (idle players get those).
 
-### Most likely causes / next — B3 & B4 crypto/enter-world fully RESOLVED (above). Remaining live gap:
-B5–B10 (PvP, quest, trade proof) + wiring the proven packets into `CombatAI`/`PacketLogger` (Stream C).
+## 4c. ✅ B5 — LIVE PVP — DONE 2026-08-03 (two bots fought each other)
+`PvPProbe` (examples) = login BOTH accounts (`ai_combat_01` objId2, `ai_combat_02` objId3) → enter-world both
+→ each sends `Action`(0x04)+`AttackRequest`(0x0A) on the other → two reader threads tally `Attack`(0x05) by
+attacker objectId. Live proof (`Audit/36`, `scripts/b5_pvp_prove.sh`):
+- Attack traffic broadcast to both connections: **attacker objId 2 → 13 hits / objId 3 → 12 hits**.
+- DB damage: **`CombatBot_02` curHp 126 → 120** (real PvP damage from CombatBot_01).
+- No L2JM server source changed; both bots logged out cleanly (online=0).
+- PvP path: `AttackRequest` → `Creature.onForcedAttack` → flag + attack (blocked only in peace zones /
+  non-attackable / confused). No newbie-protection gate in this config.
+
+### Most likely causes / next — B3/B4/B5 fully RESOLVED (above). Remaining live gap:
+B6–B10 (quest, trade proof) + wiring the proven PvE/PvP packets into `CombatAI`/`PacketLogger` (Stream C).
 
 ### What I found (empirical + source)
 - Live probe (`LoginProbe`/`RawInitProbe`) connected to :2106, got the **Init** frame: **194 bytes**,
@@ -78,11 +89,11 @@ B5–B10 (PvP, quest, trade proof) + wiring the proven packets into `CombatAI`/`
 - RSA 1024-bit, exponent F4=65537, `RSA/ECB/NoPadding`.
 - Client→S opcodes: AuthGameGuard=0x07, RequestAuthLogin=0x00, RequestServerLogin=0x02, RequestServerList=0x05.
 
-## 5. Recommended paths (next — B5+)
-1. **B5 — live PvP proof** (a second bot / flag+PK rules) — extends `CombatProbe` (login → enter-world → attack).
+## 5. Recommended paths (next — B6+)
+1. **B6 — live quest proof** (pick up/advance/complete a quest; extends the enter-world flow).
 2. **Wire the proven packets into the engine** (Stream C): fix `PacketLogger.parseNpcInfo` to the real
    `AbstractNpcInfo` layout, then route real Action/Attack/StatusUpdate into `CombatAI.makeDecision()`.
-3. **Relocate + heal the remaining 24 `ai_%` chars** (still in the void at 16600,17000,434 → die on login)
+3. **Relocate + heal the remaining 23 `ai_%` chars** (still in the void at 16600,17000,434 → die on login)
    so quest/trade proofs can proceed.
 4. Stream C/G cleanup — fake `assertTrue(true)` tests 54/63; ~145 unwired stub classes.
 

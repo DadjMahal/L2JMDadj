@@ -87,9 +87,9 @@
 
 ## Part 3 — Combat AI (Tasks 43-63)
 
-> Combat builds on perception with real enemy detection. **Note:** PvE live combat is now PROVEN —
-> B4 (`CombatProbe`, `Audit/35`) attacked a real Wolf/Elder Keltir (18 `ATTACK` packets, exp 0→105,
-> level 1→2). PvP + advanced behaviors are still unit/mock-verified only.
+> Combat builds on perception with real enemy detection. **Note:** PvE live combat (B4) AND live PvP (B5)
+> are now PROVEN — `CombatProbe` killed a Wolf/Keltir (18 `ATTACK` hits, exp 0→105, level 1→2); `PvPProbe`
+> two-bot fight (attacker objId2:13 / objId3:12 + CombatBot_02 PvP damage). Advanced behaviors still unit/mock-only.
 
 | # | Task | Status | Owner | Evidence/Result |
 |---|------|--------|-------|-----------------|
@@ -111,7 +111,7 @@
 | 58 | Final combat integration test | done | System | 6 tests pass, getAttackRange() added; not live-verified |
 | 59 | Start first combat test against live server | done | System | Superseded by B4 — `CombatProbe` is the live combat proof (`Audit/35`) |
 | 60 | Verify AI players can engage NPCs | done | System | **LIVE-VERIFIED (B4)** — `CombatProbe` attacked a real Wolf/Elder Keltir: 18 `ATTACK`(0x05) hits, exp 0→105, level 1→2 (`Audit/35`, `scripts/b4_combat_prove.sh`) |
-| 61 | Verify PvP combat logic | done | System | `test_pvp_combat.sh`, 7 tests; not live-verified |
+| 61 | Verify PvP combat logic | done | System | **LIVE-VERIFIED (B5)** — `PvPProbe` two-bot fight: attacker objId2:13 / objId3:12 hits + CombatBot_02 PvP damage (curHp 126→120) (`Audit/36`) |
 | 62 | Implement advanced combat behaviors | done | System | calculateEscapeRoute()/getNearbyEntities(); not live-verified |
 | 63 | Verify PvP combat enhancements | **in_progress** | System | `testCombatAI_PvPMethods` is **fake `assertTrue(true)`**; real tests exist for PKDecision/PvPSkillRotation/safeZone but `makePvPDuidedDecision()` path unverified |
 

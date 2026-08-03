@@ -35,6 +35,35 @@ Both bots must be alive and at a PvP-legal (non-peace-zone), monster-light spot.
 Talking Island Wolf field (open world). Wolves may aggro; PvP verdict is isolated by attacker-objId
 (players=2,3; wolves=large ids).
 
+## ✅ Verified result — B5 PVP PROVEN 2026-08-03
+
+`PvPProbe` logged in both accounts, entered both at the same open-field spot, and each sent
+`Action`(0x04)+`AttackRequest`(0x0A) on the other. Two reader threads tallied `Attack`(0x05) by attacker
+objectId on each connection. Pasted evidence (`/tmp/b5_pvp.log`):
+
+```
+[PvPProbe] A IN WORLD (ai_combat_01)      [PvPProbe] B IN WORLD (ai_combat_02)
+[PvPProbe] A sent Action(0x04) on objId 3 ... A sent AttackRequest(0x0A) on objId 3
+[PvPProbe] B sent Action(0x04) on objId 2 ... B sent AttackRequest(0x0A) on objId 2
+=== A's connection Attack attacker-objId -> hits ===
+  attacker objId 2 : 13 hits      <-- CombatBot_01 attacking
+  attacker objId 3 : 12 hits      <-- CombatBot_02 attacking
+=== B's connection Attack attacker-objId -> hits ===
+  attacker objId 2 : 13 hits
+  attacker objId 3 : 12 hits
+A's conn saw attacks by {2,3}=true ; B's conn saw {2,3}=true
+PVP PROVEN (mutual player-vs-player attacks) = true
+```
+**DB damage proof:** `CombatBot_02` `curHp` **126 → 120** after the fight (took real PvP damage from
+CombatBot_01). No L2JM server source changed. Both bots logged out cleanly (online=0).
+
+### Notes
+- Player objectId == charId (CombatBot_01=2, CombatBot_02=3). Both connections see the same broadcast
+  `Attack` packets, so each shows both attackers — mutual PvP is proven when a connection sees {2,3}.
+- Neither bot died, so no `karma/pvpkills/pkkills` change (expected for a no-kill mutual fight);
+  the damage on CombatBot_02 is the DB kill-proof substitute.
+
 ## Reproduce
-`scripts/b5_pvp_prove.sh` — position+heal both bots → restart LS → run `PvPProbe` → assert mutual
-attacker ids on both connections and/or DB PvP counter changes.
+`scripts/b5_pvp_prove.sh` (position+heal both bots → restart LS → run `PvPProbe` → assert mutual attacker
+ids and/or CombatBot_02 hp drop).
+
