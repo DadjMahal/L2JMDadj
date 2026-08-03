@@ -13,8 +13,12 @@ L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Pla
 - Source-code audit complete (iterations 1–30, `Documentation/Audit/`).
 - Docs restructured: `START_HERE.md` = single entry; `Documentation/WORKFLOW.md` = single rules doc;
   `TASKS.md` = 103-task board (collision-fixed); fabricated docs quarantined in `Documentation/_archive_*`.
-- **25 AI characters exist** in DB at level 1, **0 online** — no AI has ever actually played.
-- AIPlayerEngine **compiles** (155 files). Combat/Quest/Merchant/Social AI use **mock data**, not connected to real gameplay.
+- **25 AI characters exist** in DB; **live PvE combat PROVEN (B4)** — `CombatBot_01` fought a Talking Island
+  Wolf/Elder Keltir (18 server `ATTACK` packets) and **leveled 1→2 / gained 105 exp**. 0 AI online at rest.
+- AIPlayerEngine **compiles** (155 files). The external socket path is proven end-to-end
+  (login → enter-world → `EnterWorld`(0x03) → real NPC combat). The Combat/Quest/Merchant/Social **decision**
+  classes still use **mock data** internally and need wiring to the real packets now proven by `CombatProbe`
+  (`Documentation/Audit/35-b4-live-npc-combat.md`).
 
 ## 3. Work completed (committed)
 - **Stream A (done):** A1 cold-start test (`scripts/cold_start_test.sh`, 17/17 PASS; bootup 73k→~1.3k tokens);
@@ -33,6 +37,29 @@ B4–B10 (live NPC combat, PvP, quest, trade proof) are now UNGATED. Full extern
 - **Phase 1:** login server auth to PlayOk; client packets = session key + checksum + self-inclusive size (`Audit/33`).
 - **Phase 2:** GS ProtocolVersion(746) → KeyPacket (packetEncryption=0 → plaintext) → AuthLogin → CharSelectInfo → CharacterSelect → CharSelected → online=1 (`Audit/34`, `scripts/b3_enter_world_prove.sh`).
 
+## 4b. ✅ B4 — LIVE NPC COMBAT — DONE 2026-08-03 (attacked a real monster)
+`CombatProbe` (examples) = login → GS handshake → CharacterSelect → **EnterWorld(0x03)** → scan `NPC_INFO`(0x16)
+→ **Action**(0x04)+**AttackRequest**(0x0A) → comb tally. Live proof (`Audit/35`, `scripts/b4_combat_prove.sh`):
+- Target = a real Talking Island Elder Keltir/Wolf (`npcType` = id+1000000, `attackable=1`).
+- Server broadcast **18 `ATTACK`(0x05)** + 32 `STATUS_UPDATE`(0x0E) + 31 `SYSTEM_MESSAGE`(0x64).
+- DB: CombatBot_01 **level 1/exp 0 → level 2/exp 105**, curHp 126→145. No L2JM server source changed.
+
+### B4 discoveries (matters for B5+ / Stream C / G)
+1. **Client MUST send `EnterWorld`(0x03) after `CharSelected`** to spawn; otherwise GS stays in
+   `ConnectionState.ENTERING` and sends no world burst (B3's `online=1` is set in CharacterSelect.runImpl,
+   so B3 worked without it). EnterWorld payload (105 B): `[0x03][32B][4×int][32B][int][5×4 tracert]`.
+2. **NIO `SocketChannel` ignores `setSoTimeout`** and blocks forever on paused reads → the probe hung.
+   Fixed with a classic `java.net.Socket` + `DataInputStream.readFully` (honors `setSoTimeout`).
+3. **`PacketLogger.parseNpcInfo` is OFF-BY-ONE** vs real `AbstractNpcInfo`:
+   `[0x16][objectId][displayId+1000000][isAttackable][x][y][z][heading]`. Fix in Stream C; CombatProbe parses real offsets.
+4. **All 25 `ai_%` chars were created at (16600,17000,434) — in the void** (no real map): they die instantly
+   (curHp=0) and see no monsters. CombatBot_01 was relocated + healed to the Talking Island Wolf zone.
+   Other AI chars need the same before PvE/quest proof.
+5. `combatProven` must require `ATTACK`(0x05)/`DIE`(0x06), NOT `STATUS_UPDATE`(0x0E) (idle players get those).
+
+### Most likely causes / next — B3 & B4 crypto/enter-world fully RESOLVED (above). Remaining live gap:
+B5–B10 (PvP, quest, trade proof) + wiring the proven packets into `CombatAI`/`PacketLogger` (Stream C).
+
 ### What I found (empirical + source)
 - Live probe (`LoginProbe`/`RawInitProbe`) connected to :2106, got the **Init** frame: **194 bytes**,
   2-byte LE **self-inclusive** size (`ReadHandler`: `dataSize = size - HEADER_SIZE`, `HEADER_SIZE=2`), payload starts at `[2]` (192 bytes).
@@ -40,14 +67,9 @@ B4–B10 (live NPC combat, PvP, quest, trade proof) are now UNGATED. Full extern
   `onConnected()` sends `Init` via `sendPacket → encrypt() → LoginEncryption.encrypt`; `_usingStaticKey=true` only for the
   **first** packet = the **Init uses the STATIC blowfish key + encXORPass**; later packets use the session key + checksum.
 - STATIC blowfish key = `{0x6b,0x60,0xcb,0x5b,0x82,0xce,0x90,0xb1,0xcc,0x2b,0x6c,0x55,0x6c,0x6c,0x6c,0x6c}`.
-- **Negative finding:** `blowfishDecrypt(STATIC) + reverseXORPass` did NOT give a stable Init (opcode 0x00 in one run,
-  0x6d in the next; protoRev magic `0x0000c621` never found when brute-forcing XOR offsets 0–10).
-
-### Most likely causes to investigate next (NOT yet resolved)
-1. The server's **custom 1468-line `BlowfishEngine`** output may not match JDK `javax.crypto "Blowfish/ECB/NoPadding"`.
-   VERIFY: port the custom engine (or confirm standard-compatible) — if incompatible, my decrypt corrupts every byte.
-2. `reverseXORPass` offset/order (server's `encXORPass(data, offset=HEADER_SIZE, packetEndOffset, key)`).
-3. Init may use the **session** key not static (but source says static-first).
+- **Resolved (B3):** the Init instability was the **little-endian Blowfish ≠ JDK** mismatch — ported the server's
+  engine to `protocol/crypt/BlowfishEngine.java` (see `Audit/32`); `reverseXORPass` order was fixed; the first
+  packet uses the STATIC key + XOR, later packets the session key + checksum.
 
 ### The rest of the handshake (from Audit/31, ready to implement once Init decodes)
 - `AuthGameGuard` (0x07, static key + XOR, payload = sessionId + 4×0) → server replies `GGAuth`(0x0b).
@@ -56,11 +78,13 @@ B4–B10 (live NPC combat, PvP, quest, trade proof) are now UNGATED. Full extern
 - RSA 1024-bit, exponent F4=65537, `RSA/ECB/NoPadding`.
 - Client→S opcodes: AuthGameGuard=0x07, RequestAuthLogin=0x00, RequestServerLogin=0x02, RequestServerList=0x05.
 
-## 5. Recommended paths (choose ONE; all D-B tasks hang on it)
-1. **Finish B3** (dedicated crypto pass): verify/port the custom BlowfishEngine, decode Init → LoginOk → connected player.
-2. **Pivot to server-side `FakePlayer`** (in-process; the approach `PARSE_Tasks.md` originally recommended) — much faster to
-   "AI players actually playing", avoids the whole external-socket protocol rabbit hole.
-3. **Do unblocked work**: Stream C (replace fake `assertTrue(true)` tests — tasks 54/63) or Stream G (stub-class cleanup ~145 files).
+## 5. Recommended paths (next — B5+)
+1. **B5 — live PvP proof** (a second bot / flag+PK rules) — extends `CombatProbe` (login → enter-world → attack).
+2. **Wire the proven packets into the engine** (Stream C): fix `PacketLogger.parseNpcInfo` to the real
+   `AbstractNpcInfo` layout, then route real Action/Attack/StatusUpdate into `CombatAI.makeDecision()`.
+3. **Relocate + heal the remaining 24 `ai_%` chars** (still in the void at 16600,17000,434 → die on login)
+   so quest/trade proofs can proceed.
+4. Stream C/G cleanup — fake `assertTrue(true)` tests 54/63; ~145 unwired stub classes.
 
 ## 6. Key file/command map
 - Orient: `START_HERE.md` · Rules: `Documentation/WORKFLOW.md` · Board: `TASKS.md` · Status: `STATUS.md`

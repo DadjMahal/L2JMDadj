@@ -15,6 +15,6 @@ classes still use mock data internally, but the external-socket path to real pac
 25 AI chars in DB; CombatBot_01 relocated to Wolf zone + healed for combat.
 
 ## Recent RuntimeLogs (most recent first)
+- 2026-08-03-102759-b4-combat.md
 - 2026-08-03-a1-cold-start-test.md
 - 2026-08-02-doc-gap-fix.md
-- 2026-08-02-task63-pvp-enhancements.md

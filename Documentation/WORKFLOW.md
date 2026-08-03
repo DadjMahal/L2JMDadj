@@ -21,10 +21,20 @@
 ## 3. Session Workflow (one task per session)
 1. Claim one task: set `in_progress` + your agent name in `TASKS.md`.
 2. Do the work; modify only intended source.
-3. Verify with a real command; paste the output.
-4. Update `TASKS.md` (`done` + one-line Result + Evidence) and `STATUS.md`.
-5. Write a RuntimeLog (`Documentation/RuntimeLogs/YYYY-MM-DD-<task>.md`).
-6. Git commit (`type(scope): brief`).
+3. Verify with a real command; paste the output BEFORE claiming anything works.
+4. **Sync the knowledge base at every milestone** — update ALL of: `TASKS.md` (status + one-line Result +
+   Evidence), `STATUS.md`, `START_HERE.md` (orient), `Documentation/SESSION_HANDOFF.md` (depth), and
+   `AIPlayerEngine/AIStatusLogs/ai_progress_report.txt` (the trusted status source). Never leave a fresh
+   session able to read stale context.
+5. Write a RuntimeLog (`Documentation/RuntimeLogs/YYYY-MM-DD-<task>.md`) recording problems & solutions.
+6. Git commit (`type(scope): brief`) WITH the doc updates + RuntimeLog + evidence.
+
+> ⚠️ **Milestone doc-sync is MANDATORY at every milestone even when the whole session is NOT finished.**
+> Do NOT defer doc updates to the end of a complete session. If a turn is cut off (e.g., by a
+> rate-limit), you MUST still have committed: the milestone's report (`ai_progress_report.txt`),
+> `STATUS.md`/`START_HERE.md` orient, `SESSION_HANDOFF.md` depth, `TASKS.md` board status, the new
+> Audit/RuntimeLog evidence, and (for multi-step work) a `SESSION_IN_PROGRESS.md` checkpoint. The next
+> session then resumes from accurate, current context — no re-deriving and no stale claims.
 
 ## 4. Rate-limit-safe resumability (IMPORTANT)
 Multi-step work MUST be recoverable if a session is cut off mid-work:

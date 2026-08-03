@@ -25,6 +25,10 @@ If `Documentation/Audit/PROGRESS.md` lists an iteration `pending`/`in_progress`,
 ## 4. Documentation & runtime logs
 - Keep docs short, accurate, useful. Update outdated files. Never delete — quarantine to `_archive_*`.
 - After every prompt create `Documentation/RuntimeLogs/<timestamp>-<task>.md` (prompt, objective, files, problems, solutions, remaining issues, summary, next steps; ≤70 lines).
+- **Milestone doc-sync (MANDATORY at every milestone, even mid-session):** update `START_HERE.md`,
+  `STATUS.md`, `Documentation/SESSION_HANDOFF.md`, the `TASKS.md` board, and
+  `AIPlayerEngine/AIStatusLogs/ai_progress_report.txt`, then git-commit — BEFORE the turn/session ends,
+  so a fresh session never starts from stale context. Never defer knowledge-base updates to session end.
 
 ## 5. General
 - Minimize token usage. Prefer simple, clean solutions. Trust docs before scanning source; update stale docs immediately. Leave the repo cleaner than you found it.

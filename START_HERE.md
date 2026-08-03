@@ -12,12 +12,14 @@ Read it FIRST and resume the "Current step" (don't pick a new task). If absent, 
 L2JMobius **Interlude** server (`/home/volodro/L2JM`) + external-socket **AI Player Engine** (`AIPlayerEngine/`)
 that connects as real client sockets — **no server code modifications**.
 
-## Honest current state *(source: `AIPlayerEngine/AIStatusLogs/ai_progress_report.txt`)*
+## Honest current state *(source: `real_status.sh` + `AIPlayerEngine/AIStatusLogs/ai_progress_report.txt`, refreshed at each milestone)*
 - ✅ Server **UP**: LoginServer :2106, GameServer :7777 (since Jul 31).
-- ✅ Source-code **audit complete** — iterations 1–30 in `Documentation/Audit/`.
+- ✅ Source-code **audit complete** — iterations 1–30 in `Documentation/Audit/` (plus 31–35 protocol/combat).
 - ✅ AIPlayerEngine **compiles** (155 files). Bootstrap + telemetry + perception scaffolding done.
-- 🔴 AI is **NOT live-verified**: "CombatAI/QuestAI/MerchantAI/SocialAI implemented with **mock data**,
-  not connected to real gameplay. Awaiting protocol packet parsing to complete." **No AI players proven online.**
+- ✅ **Live NPC combat PROVEN (B4, 2026-08-03)** — `CombatBot_01` attacked a real Wolf/Elder Keltir
+  (18 server `ATTACK` packets, exp 0→105, level 1→2). The external-socket path is proven end-to-end.
+- 🔴 The **CombatAI/QuestAI/MerchantAI/SocialAI decision classes still run on mock data** — they need wiring
+  to the real packets `CombatProbe` demonstrates (Stream C). PvP / quest / trade proofs (B5+) not yet live.
 - 🔴 Fabricated status docs were quarantined (see Blockers).
 
 ## Current phase / next task
@@ -69,6 +71,8 @@ ss -tlnp 2>/dev/null | grep -E '2106|7777'   # expect both LISTEN
 | Docs / workflow only | `AGENT_ONBOARDING.md`, `Documentation/WORKFLOW.md` |
 | Anything L2JMobius protocol | **audit-first** — read the matching `Audit/*.md` before writing code |
 
-## Rules (6 hard rules — full text in `AGENT_ONBOARDING.md`)
+## Rules (7 hard rules — full text in `AGENT_ONBOARDING.md`)
 1. Verify before claim (no "working" without pasted output). 2. No fake logs. 3. Usage validation (grep for callers).
 4. Audit-first. 5. Document before code. 6. Leave cleaner than you found it.
+7. **Milestone doc-sync** — update the knowledge base (this file, `STATUS.md`, `SESSION_HANDOFF.md`,
+   `TASKS.md`, `ai_progress_report.txt`) + commit after EVERY milestone, even mid-session (see `WORKFLOW.md` §3).

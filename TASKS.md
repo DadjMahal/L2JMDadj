@@ -87,8 +87,9 @@
 
 ## Part 3 — Combat AI (Tasks 43-63)
 
-> Combat builds on perception with real enemy detection. **Note:** these are unit/mock-verified only;
-> no session has proven live in-game combat (see honest state in `START_HERE.md`).
+> Combat builds on perception with real enemy detection. **Note:** PvE live combat is now PROVEN —
+> B4 (`CombatProbe`, `Audit/35`) attacked a real Wolf/Elder Keltir (18 `ATTACK` packets, exp 0→105,
+> level 1→2). PvP + advanced behaviors are still unit/mock-verified only.
 
 | # | Task | Status | Owner | Evidence/Result |
 |---|------|--------|-------|-----------------|
@@ -108,8 +109,8 @@
 | 56 | Document combat AI in Audit docs | done | System | `Audit/15-combat-ai.md` |
 | 57 | Verify combat doesn't break server stability | done | System | Build compiles, 4/4 tests, no dead code; not live-verified |
 | 58 | Final combat integration test | done | System | 6 tests pass, getAttackRange() added; not live-verified |
-| 59 | Start first combat test against live server | done | System | `test_combat_live.sh`; checked connectivity only — **no live combat proven** |
-| 60 | Verify AI players can engage NPCs | done | System | `test_npc_engagement.sh`; unit-test output only — not live-verified |
+| 59 | Start first combat test against live server | done | System | Superseded by B4 — `CombatProbe` is the live combat proof (`Audit/35`) |
+| 60 | Verify AI players can engage NPCs | done | System | **LIVE-VERIFIED (B4)** — `CombatProbe` attacked a real Wolf/Elder Keltir: 18 `ATTACK`(0x05) hits, exp 0→105, level 1→2 (`Audit/35`, `scripts/b4_combat_prove.sh`) |
 | 61 | Verify PvP combat logic | done | System | `test_pvp_combat.sh`, 7 tests; not live-verified |
 | 62 | Implement advanced combat behaviors | done | System | calculateEscapeRoute()/getNearbyEntities(); not live-verified |
 | 63 | Verify PvP combat enhancements | **in_progress** | System | `testCombatAI_PvPMethods` is **fake `assertTrue(true)`**; real tests exist for PKDecision/PvPSkillRotation/safeZone but `makePvPDuidedDecision()` path unverified |

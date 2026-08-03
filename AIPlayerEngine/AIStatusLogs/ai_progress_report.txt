@@ -2,28 +2,25 @@
 🤖 AI PLAYER ENGINE - PHASE STATUS
 ============================================================
 Session: Real-time status from database + server logs
+Last updated: 2026-08-03 (B4 milestone) — see real_status.sh + START_HERE.md
 
-🤖 PHASE 2 STATUS: COMPILED BUT NOT TESTED (Tasks 67-96)
-- DeepLearningCore: Compiled, uses PatternMemory (rule-based lookup)
-- CombatAI, QuestAI, MerchantAI, SocialAI: Implemented with mock data
-- Advanced systems: Compiled but unverified
-
-🤖 PHASE 3-5 STATUS: CODE EXISTS BUT NOT CONNECTED TO REAL DATA
-- PKDecision, QuestConfig, MerchantConfig, etc. exist as classes
-- Many methods use placeholder/mock returns (see TODO comments)
+🤖 PHASE 2 STATUS: COMPILED, boot+login+enter-world PROVEN; live PvE combat DONE (B4)
+- External socket path proven end-to-end: LoginServer auth (PlayOk) -> GameServer handshake ->
+  CharacterSelect -> EnterWorld(0x03) -> real NPC combat.
+- Live combat PROVEN (2026-08-03, Audit/35): CombatBot_01 attacked a Talking Island Wolf/Elder Keltir
+  -> 18 server ATTACK(0x05) packets -> exp 0->105, level 1->2. Test: scripts/b4_combat_prove.sh.
+- CombatAI, QuestAI, MerchantAI, SocialAI: still implemented with **mock data** internally (decision
+  classes need wiring to the real packets CombatProbe demonstrates).
 
 ============================================================
 📊 REAL STATUS FROM ACTUAL QUERIES:
 ============================================================
-Run: ./real_status.sh
-This queries:
-- MySQL database for actual online AI players
-- Server logs for real activity counts
-- Port checks for live server status
+Run: ./real_status.sh  (queries MySQL `gameserver` DB + server logs + ports)
 
 ============================================================
 🎯 CURRENT STATE:
-- Protocol implementation: Reads Init, sends auth (untested with game server)
-- AI players spawn: Yes (24 created with database accounts)
-- Real gameplay: Awaiting protocol packet parsing to complete
+- Protocol: login + enter-world work; combat packets (Action/AttackRequest) proven live.
+- AI players: 25 accounts/chars exist in DB; CombatBot_01 relocated to Talking Island Wolf zone + healed
+  (other 24 ai_% chars still in the void at 16600,17000,434 and die on login — relocate before quest/PvP).
+- Real gameplay: PvE combat PROVEN (B4). PvP / quest / trade proofs (B5+) + wiring mock->real are next.
 ============================================================
