@@ -1,9 +1,12 @@
 package com.aiplayer.examples;
 
-import java.net.InetSocketAddress;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -85,16 +88,19 @@ public class CombatProbe
 			System.exit(2);
 		}
 
-		try (SocketChannel gs = SocketChannel.open())
+		try (Socket gs = new Socket(host, gamePort))
 		{
-			gs.configureBlocking(true);
-			gs.connect(new InetSocketAddress(host, gamePort));
-			gs.socket().setSoTimeout(2000); // short timeout; combat loop tolerates gaps
+			// Classic blocking Socket: setSoTimeout IS honored by InputStream.read (throws
+			// SocketTimeoutException after the timeout) — unlike NIO SocketChannel, which ignores it.
+			// This lets the scan/combat loops tolerate server pauses without hanging forever.
+			gs.setSoTimeout(3000);
+			final OutputStream out = gs.getOutputStream();
+			final InputStream in = gs.getInputStream();
 			System.out.println("[CombatProbe] connected to GS " + host + ":" + gamePort);
 
-			sendFrame(gs, buildProtocolVersion());
+			sendFrame(out, buildProtocolVersion());
 
-			byte[] keyFrame = readFrame(gs);
+			byte[] keyFrame = readFrame(in);
 			if (keyFrame == null)
 			{
 				System.out.println("[CombatProbe][FAIL] no KeyPacket");
@@ -111,7 +117,7 @@ public class CombatProbe
 			System.out.println("[CombatProbe] KeyPacket packetEncryption=" + packetEncFlag + " useGameCrypt=" + useEnc);
 
 			// AuthLogin + enter world.
-			sendAuthLogin(gs, crypt, useEnc, account, login);
+			sendAuthLogin(out, crypt, useEnc, account, login);
 
 			boolean entered = false;
 			long enterDeadline = System.currentTimeMillis() + 12000;
@@ -120,7 +126,7 @@ public class CombatProbe
 				byte[] payload;
 				try
 				{
-					payload = readPayload(gs);
+					payload = readPayload(in);
 				}
 				catch (Exception e)
 				{
@@ -139,7 +145,7 @@ public class CombatProbe
 				System.out.println("[CombatProbe] GS opcode=0x" + Integer.toHexString(op) + " len=" + plain.length);
 				if (op == OP_CHAR_SELECT_INFO)
 				{
-					sendCharacterSelect(gs, crypt, useEnc, 0);
+					sendCharacterSelect(out, crypt, useEnc, 0);
 					System.out.println("[CombatProbe] sent CharacterSelect(0x0D) slot=0");
 				}
 				if (op == OP_CHAR_SELECTED)
@@ -168,7 +174,7 @@ public class CombatProbe
 				byte[] payload;
 				try
 				{
-					payload = readPayload(gs);
+					payload = readPayload(in);
 				}
 				catch (Exception e)
 				{
@@ -217,11 +223,11 @@ public class CombatProbe
 				System.out.println("[CombatProbe] TARGET acquired objId=" + targetObjId + " npcType=" + targetNpcType
 					+ " at (" + targetX + "," + targetY + "," + targetZ + ")");
 				// Action(0x04): select + auto-attack (sets ATTACK intention; auto-runs into range).
-				sendAction(gs, crypt, useEnc, targetObjId, px, py, pz);
+				sendAction(out, crypt, useEnc, targetObjId, px, py, pz);
 				System.out.println("[CombatProbe] sent Action(0x04) target=" + targetObjId);
 				Thread.sleep(1000); // respect flood protector canPerformPlayerAction()
 				// AttackRequest(0x0A): force attack on the now-selected target.
-				sendAttackRequest(gs, crypt, useEnc, targetObjId);
+				sendAttackRequest(out, crypt, useEnc, targetObjId);
 				System.out.println("[CombatProbe] sent AttackRequest(0x0A) target=" + targetObjId);
 			}
 
@@ -232,7 +238,7 @@ public class CombatProbe
 				byte[] payload;
 				try
 				{
-					payload = readPayload(gs);
+					payload = readPayload(in);
 				}
 				catch (Exception e)
 				{
@@ -277,7 +283,7 @@ public class CombatProbe
 	// ------------------------------------------------------------------
 
 	/** Action (0x04): [0x04][targetObjId][originX][originY][originZ][actionId]. */
-	private static void sendAction(SocketChannel ch, GameCrypt crypt, boolean useEnc, int targetObjId, int ox, int oy, int oz) throws Exception
+	private static void sendAction(OutputStream out, GameCrypt crypt, boolean useEnc, int targetObjId, int ox, int oy, int oz) throws Exception
 	{
 		ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 4 + 4 + 4 + 1).order(ByteOrder.LITTLE_ENDIAN);
 		bb.put((byte) OP_C_ACTION);
@@ -286,11 +292,11 @@ public class CombatProbe
 		bb.putInt(oy);
 		bb.putInt(oz);
 		bb.put((byte) 0); // actionId = 0 (simple click)
-		sendPayload(ch, crypt, useEnc, bb);
+		sendPayload(out, crypt, useEnc, bb);
 	}
 
 	/** AttackRequest (0x0A): [0x0A][targetObjId][originX][originY][originZ][attackId]. */
-	private static void sendAttackRequest(SocketChannel ch, GameCrypt crypt, boolean useEnc, int targetObjId) throws Exception
+	private static void sendAttackRequest(OutputStream out, GameCrypt crypt, boolean useEnc, int targetObjId) throws Exception
 	{
 		ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 4 + 4 + 4 + 1).order(ByteOrder.LITTLE_ENDIAN);
 		bb.put((byte) OP_C_ATTACK_REQUEST);
@@ -299,10 +305,10 @@ public class CombatProbe
 		bb.putInt(0);
 		bb.putInt(0);
 		bb.put((byte) 0); // attackId = 0
-		sendPayload(ch, crypt, useEnc, bb);
+		sendPayload(out, crypt, useEnc, bb);
 	}
 
-	private static void sendPayload(SocketChannel ch, GameCrypt crypt, boolean useEnc, ByteBuffer bb) throws Exception
+	private static void sendPayload(OutputStream out, GameCrypt crypt, boolean useEnc, ByteBuffer bb) throws Exception
 	{
 		byte[] plain = new byte[bb.position()];
 		bb.flip();
@@ -311,7 +317,7 @@ public class CombatProbe
 		{
 			crypt.encrypt(plain, 0, plain.length);
 		}
-		sendFrame(ch, plain);
+		sendFrame(out, plain);
 	}
 
 	private static void tally(int op)
@@ -359,7 +365,7 @@ public class CombatProbe
 	}
 
 	/** Build AuthLogin (0x08) plaintext then encrypt (if game crypt enabled) and send. */
-	private static void sendAuthLogin(SocketChannel ch, GameCrypt crypt, boolean useEnc, String account, L2JProtocol login) throws Exception
+	private static void sendAuthLogin(OutputStream out, GameCrypt crypt, boolean useEnc, String account, L2JProtocol login) throws Exception
 	{
 		byte[] name = account.getBytes(StandardCharsets.UTF_16LE);
 		ByteBuffer bb = ByteBuffer.allocate(1 + name.length + 2 + 16).order(ByteOrder.LITTLE_ENDIAN);
@@ -377,11 +383,11 @@ public class CombatProbe
 		{
 			crypt.encrypt(plain, 0, plain.length);
 		}
-		sendFrame(ch, plain);
+		sendFrame(out, plain);
 	}
 
 	/** Send CharacterSelect (0x0D): charSlot(int), unk1(short), unk2/3/4(ints) — unks are zeros. */
-	private static void sendCharacterSelect(SocketChannel ch, GameCrypt crypt, boolean useEnc, int charSlot) throws Exception
+	private static void sendCharacterSelect(OutputStream out, GameCrypt crypt, boolean useEnc, int charSlot) throws Exception
 	{
 		ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 2 + 4 + 4 + 4).order(ByteOrder.LITTLE_ENDIAN);
 		bb.put((byte) 0x0D);
@@ -397,23 +403,26 @@ public class CombatProbe
 		{
 			crypt.encrypt(plain, 0, plain.length);
 		}
-		sendFrame(ch, plain);
+		sendFrame(out, plain);
 	}
 
-	// ---------------- GS wire helpers ----------------
+	// ---------------- GS wire helpers (classic Socket; setSoTimeout honored) ----------------
 
-	private static void sendFrame(SocketChannel ch, byte[] payload) throws Exception
+	private static void sendFrame(OutputStream out, byte[] payload) throws Exception
 	{
 		ByteBuffer buf = ByteBuffer.allocate(2 + payload.length).order(ByteOrder.LITTLE_ENDIAN);
 		buf.putShort((short) (payload.length + 2)); // self-inclusive size
 		buf.put(payload);
 		buf.flip();
-		ch.write(buf);
+		byte[] data = new byte[buf.remaining()];
+		buf.get(data);
+		out.write(data);
+		out.flush();
 	}
 
-	private static byte[] readFrame(SocketChannel ch) throws Exception
+	private static byte[] readFrame(InputStream in) throws Exception
 	{
-		byte[] payload = readPayload(ch);
+		byte[] payload = readPayload(in);
 		if (payload == null)
 		{
 			return null;
@@ -425,51 +434,23 @@ public class CombatProbe
 		return frame;
 	}
 
-	private static byte[] readPayload(SocketChannel ch) throws Exception
+	/**
+	 * Read one GS packet payload (after the 2-byte self-inclusive size header).
+	 * Uses DataInputStream.readFully which honors the socket SO_TIMEOUT: if no data arrives
+	 * within the timeout, it throws SocketTimeoutException (caught by callers to tolerate gaps).
+	 */
+	private static byte[] readPayload(InputStream in) throws Exception
 	{
-		ByteBuffer sizeBuf = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN);
-		long deadline = System.currentTimeMillis() + 9000;
-		while (sizeBuf.hasRemaining())
-		{
-			int n = ch.read(sizeBuf);
-			if (n < 0)
-			{
-				return null;
-			}
-			if (n == 0)
-			{
-				if (System.currentTimeMillis() > deadline)
-				{
-					return null;
-				}
-				Thread.sleep(10);
-			}
-		}
-		sizeBuf.flip();
-		int size = sizeBuf.getShort() & 0xffff;
+		DataInputStream dis = (in instanceof DataInputStream) ? (DataInputStream) in : new DataInputStream(in);
+		byte[] sizeBytes = new byte[2];
+		dis.readFully(sizeBytes); // throws SocketTimeoutException on timeout, EOFException on close
+		int size = (sizeBytes[0] & 0xff) | ((sizeBytes[1] & 0xff) << 8);
 		if (size < 2 || size > 65535)
 		{
 			return null;
 		}
 		byte[] payload = new byte[size - 2];
-		ByteBuffer dataBuf = ByteBuffer.wrap(payload);
-		deadline = System.currentTimeMillis() + 9000;
-		while (dataBuf.hasRemaining())
-		{
-			int n = ch.read(dataBuf);
-			if (n < 0)
-			{
-				return null;
-			}
-			if (n == 0)
-			{
-				if (System.currentTimeMillis() > deadline)
-				{
-					return null;
-				}
-				Thread.sleep(10);
-			}
-		}
+		dis.readFully(payload);
 		return payload;
 	}
 
