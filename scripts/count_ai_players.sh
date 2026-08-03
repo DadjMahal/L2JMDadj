@@ -10,7 +10,7 @@ echo ""
 # Check if MySQL is available
 if command -v mysql &> /dev/null; then
     echo "=== ONLINE AI PLAYERS ==="
-    ONLINE=$(mysql -u root gameserver -N -s -e "SELECT COUNT(*) FROM characters WHERE account_name LIKE 'ai_%' AND online = 1;" 2>/dev/null)
+    ONLINE=$(sudo mysql -u root gameserver -N -s -e "SELECT COUNT(*) FROM characters WHERE account_name LIKE 'ai_%' AND online = 1;" 2>/dev/null)
     if [ $? -eq 0 ] && [ -n "$ONLINE" ]; then
         echo "AI players currently online: $ONLINE"
     else
@@ -19,7 +19,7 @@ if command -v mysql &> /dev/null; then
     echo ""
 
     echo "=== REGISTERED AI PLAYERS ==="
-    TOTAL=$(mysql -u root gameserver -N -s -e "SELECT COUNT(*) FROM characters WHERE account_name LIKE 'ai_%';" 2>/dev/null)
+    TOTAL=$(sudo mysql -u root gameserver -N -s -e "SELECT COUNT(*) FROM characters WHERE account_name LIKE 'ai_%';" 2>/dev/null)
     if [ $? -eq 0 ] && [ -n "$TOTAL" ]; then
         echo "Total registered AI players: $TOTAL"
     else
@@ -28,7 +28,7 @@ if command -v mysql &> /dev/null; then
     echo ""
 
     echo "=== AI PLAYERS BY TYPE ==="
-    mysql -u root gameserver -N -s -e "
+    sudo mysql -u root gameserver -N -s -e "
     SELECT 
         CASE 
             WHEN account_name LIKE 'ai_combat_%' THEN 'Combat'

@@ -4,9 +4,9 @@
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
 ## Phase: 2 — Combat AI (scaffolding done; **live verification is the real gap**)
-## Last completed: A2 — fixed real_status.sh double-print (counts now single numbers); prior: Task 100 cold-start test PASS
+## Last completed: A3 — count_ai_players.sh now uses sudo mysql (real: 25 registered, 0 online); Stream A DONE
 ## Next task: first `pending` row in `TASKS.md` → #43 (audit CombatAI). Critical-path milestone = Stream B (live-verify 1 AI player).
-## Blockers: tasks 54 & 63 have `assertTrue(true)` fake tests (→ in_progress); ~145 stub classes unwired; AI not live-verified (0 online). [real_status.sh double-print FIXED]
+## Blockers: tasks 54 & 63 have `assertTrue(true)` fake tests (→ in_progress); ~145 stub classes unwired; AI not live-verified (0 online). [real_status.sh fixed; count_ai_players.sh fixed — both return real DB data]
 
 ## Honest state (source: ai_progress_report.txt + real_status.sh)
 Engine compiles (155 files); Combat/Quest/Merchant/Social AI use **mock data**, not connected to real gameplay.
