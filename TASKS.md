@@ -176,7 +176,7 @@
 | 97 | Full integration test | pending | | Spawn N players, run hours |
 | 98 | Load/performance test | pending | | Test on target hardware |
 | 99 | Security/abuse review | pending | | |
-| 100 | Write "new agent cold-start" test | pending | | Fresh context, complete real task |
+| 100 | Write "new agent cold-start" test | done | System | scripts/cold_start_test.sh: 17/17 PASS (exit 0); fresh context orients in ~1272 tokens (vs ~73k) |
 | 101 | Update token budget doc | pending | | Measure actual token usage |
 | 102 | Retrospective on original roadmap | pending | | Compare 103-task vs Level 0-9 |
 | 103 | Define next task-cycle scope | pending | | Based on telemetry data |
