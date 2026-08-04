@@ -125,7 +125,8 @@ ss -tlnp 2>/dev/null | grep -E '2106|7777'   # expect both LISTEN
 | Network / protocol | `Audit/01-commons.md`, `Audit/04-gameserver-network.md`, `protocol/L2JProtocol.java` |
 | Perception | `Audit/PART2-01-perception-systems.md`, `protocol/PacketLogger.java` |
 | Quest system | `Audit/30-quest-progression.md`, `engine/QuestAI.java` |
-| Docs / workflow only | `AGENT_ONBOARDING.md`, `Documentation/WORKFLOW.md` |
+| Goals / personality / emotion | `Documentation/Streams.md` (Stream D), `engine/LongTermGoalsAI.java`, `advanced/`, `Audit/36-goal-personality-audit.md` |
+| Docs / workflow only | `AGENT_ONBOARDING.md`, `Documentation/WORKFLOW.md`, `Documentation/Streams.md` |
 | Anything L2JMobius protocol | **audit-first** — read the matching `Audit/*.md` before writing code |
 
 ## Rules (7 hard rules — full text in `AGENT_ONBOARDING.md`)

@@ -6,7 +6,8 @@
 ## Phase: 2 — Combat + Quest AI (ALL live proofs PROVEN: PvE + PvP + quest + trade + movement + chat + party + **NPC-dialog quest start**)
 ## Last completed: **Stream C slice 7/B6b (2026-08-04) — LIVE PROVEN**: genuine NPC-dialog quest driver. Engine talks to Roien (NPC 30008) via 2x Action(0x04) (select then open dialog), parses validated `NpcHtmlMessage(0x0F)`, and walks the real bypass chain (Script -> Q00101 30008-02a/02b/03.htm) to start **Q00101_SwordOfSolidarity**. Root cause of the earlier "gap": `encodeBypass` sent UTF-8, but L2JMobius reads client strings as **UTF-16LE**; fixed to UTF_16LE + null short. **DB-verified**: `character_quests` now has `<state>=Started` + `cond=1` for Q00101, and item 796 (Roien's Letter) granted. 64/64 tests PASS. (Earlier: slices 1 parseNpcInfo 36/36, 2 encoders+no-random 41/41, 3 decision→send 49/49, 4 GS client 54/54, 5 live combat loop PROVEN 55/55, 6 packet feedback PROVEN 59/59)
 ## Current: **Stream C fully live-proven through quest start.** Open: reconcile the 2 fake `assertTrue(true)` tests is DONE (54/63); task 43 (CombatAI audit) still pending.
-## Next: declare streams D/E/F formally; then implement stream D (Goals & Long-Term, Part 4 tasks 64-77), E (Social & Economy, Part 5), F (Multi-Agent/QA, Part 6).
+## Next: declare streams D/E/F formally; then implement stream D (Goals & Long-Term, Part 4 tasks 64-77), E (Social & Economy, Part 5), F (Multi-Agent/QA, Part 6). **Streams D/E/F declared** in `Documentation/Streams.md` (2026-08-04). Implementing Stream D now.
+## Stream docs: see `Documentation/Streams.md` for the D/E/F definitions, scope, and entry/exit criteria.
 ## Blockers: ~145 unwired stub classes (Stream G); 23 ai_% chars still in the void spawn (relocate+heal before multi-bot gameplay).
 
 ## Honest state (source: real_status.sh + live probe evidence)
