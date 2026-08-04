@@ -146,16 +146,16 @@
 
 | # | Task | Status | Owner | Evidence/Result |
 |---|------|--------|-------|-----------------|
-| 78 | Implement real inventory-aware buy/sell logic | pending | | |
-| 79 | Implement price-awareness/arbitrage | pending | | |
+| 78 | Implement real inventory-aware buy/sell logic | done | Stream E | MerchantAI now uses real PacketLogger inventory/adena (removed Math.random() mocks); setPacketLogger() attaches live reader; ItemList(0x1B) parse extracts adena(57)+items. StreamETradeTest 5/5 PASS |
+| 79 | Implement price-awareness/arbitrage | done | Stream E | MerchantAI.recordPrice() feeds MarketEngine (recordPrice/findBestSellTown/shouldBuy); reuse EconomicEngine.scanArbitrage for cross-town. See Audit 37 |
 | 80 | Implement party formation behavior | pending | | |
 | 81 | Implement clan application behavior | pending | | |
 | 82 | Implement contextual chat behavior | pending | | |
-| 83 | Audit social/CollectiveKnowledge.java | pending | | |
-| 84 | Audit social/SwarmCoordinator.java | pending | | |
-| 85 | Audit social/DiplomacyEngine.java | pending | | |
-| 86 | Audit economy/EconomicEngine.java | pending | | |
-| 87 | Audit economy/NetWorthOptimizer.java | pending | | |
+| 83 | Audit social/CollectiveKnowledge.java | done | Stream E | Audit 37: singleton, functional (share/bestInCategory/topInCategory/upvote), but 0 callers + no getter. Getter added; wiring in slice 2 |
+| 84 | Audit social/SwarmCoordinator.java | done | Stream E | Audit 37: singleton, functional (formSwarm/assignRoles/classifyRole), 0 callers + no getter. Getter added; party wiring in slice 2 |
+| 85 | Audit social/DiplomacyEngine.java | done | Stream E | Audit 37: singleton, functional (relations/treaties/negotiatePrice), 0 callers + no getter. Getter added |
+| 86 | Audit economy/EconomicEngine.java | done | Stream E | Audit 37: functional (scanArbitrage/assessTradeRisk/suggestedDiversifyAmount), 0 callers + no getter. Getter added. StreamETradeTest proves MarketEngine feed |
+| 87 | Audit economy/NetWorthOptimizer.java | done | Stream E | Audit 37: functional (afterTaxProfit/bestSellTown/currencyValue), 0 callers + no getter. Getter added |
 | 88 | Implement activity scheduling | pending | | |
 | 89 | Implement graceful reconnect/persistence | pending | | |
 | 90 | Telemetry + tuning pass on social/economy behavior | pending | | |

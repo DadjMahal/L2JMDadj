@@ -73,6 +73,8 @@ public class PacketLogger
    // Inventory tracking (Task 33, 35)
    private int adena = 0;
    private int inventoryUsagePercent = 0;
+   // Stream E (task 78): real inventory contents parsed from ItemList(0x1B). itemId -> count.
+   private final java.util.Map<Integer, Long> inventoryItems = new java.util.concurrent.ConcurrentHashMap<>();
    
    // Quest tracking (Task 36)
    private int activeQuestCount = 0;
@@ -276,14 +278,32 @@ public class PacketLogger
       {
          int showWindow = buf.getShort() & 0xFFFF;
          int itemCount = buf.getShort() & 0xFFFF;
-         
-         // Calculate inventory usage
-         // Total slots would be from character configuration, estimate based on itemCount
-         int totalSlots = 120; // Typical L2J max inventory + equipment slots
+         // Stream E (task 78): parse real item list so MerchantAI acts on genuine inventory.
+         // Per-item layout (L2J ItemList 0x1B): [type1:short][objId:int][itemId:int][count:int]
+         // [type2:short][coobj:short][bodypart:int][enchant:short][0:short][0:short] = 32 bytes.
+         inventoryItems.clear();
+         for (int i = 0; i < itemCount; i++)
+         {
+            if (buf.remaining() < 32) break;
+            buf.getShort();                       // type1
+            buf.getInt();                          // objectId
+            int itemId = buf.getInt();
+            long count = buf.getInt() & 0xFFFFFFFFL;
+            buf.getShort();                        // type2
+            buf.getShort();                        // coobjectId
+            buf.getInt();                          // bodypart
+            buf.getShort();                        // enchant
+            buf.getShort();                        // customType1
+            buf.getShort();                        // customType2
+            if (itemId == 57) this.adena = (int) Math.min(count, Integer.MAX_VALUE);
+            inventoryItems.put(itemId, count);
+         }
+         int totalSlots = 120;
          this.inventoryUsagePercent = (int)((itemCount * 100.0) / totalSlots);
          if (inventoryUsagePercent > 100) inventoryUsagePercent = 100;
-         
-         LOGGER.info("[PACKET-LOG] [" + playerName + "] ITEM_LIST: showWindow=" + showWindow + " itemCount=" + itemCount + " usage=" + inventoryUsagePercent + "%");
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] ITEM_LIST: showWindow=" + showWindow
+                 + " itemCount=" + itemCount + " usage=" + inventoryUsagePercent
+                 + "% adena=" + adena + " distinctItems=" + inventoryItems.size());
       }
       catch (Exception e)
       {
@@ -519,6 +539,10 @@ public class PacketLogger
    public void setCurHp(int hp) { this.curHp = hp; }
    /** Stream D: test/telemetry hook to inject a live max-HP value. */
    public void setMaxHp(int hp) { this.maxHp = hp; }
+   /** Stream E: test/telemetry hook to inject adena (normally parsed from ItemList item 57). */
+   public void setAdena(int a) { this.adena = a; }
+   /** Stream E: test/telemetry hook to inject inventory usage (normally parsed from ItemList). */
+   public void setInventoryUsagePercent(int p) { this.inventoryUsagePercent = p; }
    public int getMaxHp() { return maxHp; }
    public int getCurMp() { return curMp; }
    public int getMaxMp() { return maxMp; }
@@ -533,6 +557,8 @@ public class PacketLogger
    
    // Inventory tracking getters (Task 35)
    public int getAdena() { return adena; }
+   /** Stream E (task 78): the real inventory map, itemId -> count, parsed from ItemList(0x1B). */
+   public java.util.Map<Integer, Long> getInventoryItems() { return inventoryItems; }
    public int getInventoryUsagePercent() { return inventoryUsagePercent; }
    public boolean isInventoryFull() { return inventoryUsagePercent >= 90; }
    public boolean hasSpaceForTrade(int itemCount) { return inventoryUsagePercent + (itemCount * 100 / 120) < 90; }

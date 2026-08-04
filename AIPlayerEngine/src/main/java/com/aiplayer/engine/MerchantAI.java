@@ -15,8 +15,8 @@ public class MerchantAI {
     
     private final AIPlayer aiPlayer;
     private final MerchantConfig config;
-    private final PacketLogger packetLogger;
-    
+    private PacketLogger packetLogger;
+
     public MerchantAI(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
         this.config = MerchantConfig.getInstance();
@@ -25,6 +25,12 @@ public class MerchantAI {
 
     /** Get the packet logger for telemetry. */
     public PacketLogger getPacketLogger() { return packetLogger; }
+
+    /** Stream E (task 78): attach the LIVE reader's packet logger so trade decisions use real
+     *  inventory/adena from parsed ItemList(0x1B) instead of an empty private buffer. */
+    public void setPacketLogger(PacketLogger logger) {
+        if (logger != null) this.packetLogger = logger;
+    }
     
     /**
      * Main merchant decision method
@@ -76,21 +82,15 @@ public class MerchantAI {
     }
     
     private int getInventoryUsagePercentage() {
-        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
-        // Currently returns mock data because AIPlayer.getProtocol() has no packet parsing
-        // Need: ItemList packet (opcode 0x06 from ClientPackets.java) with inventory items
-        // Once protocol parses ItemList, can get:
-        //   aiPlayer.getProtocol().getInventorySlotCount() / inventory.getMaxPackableSlots()
-        return 50 + (int)(Math.random() * 30); // Mock inventory usage - NOT YET TESTED
+        // Stream E (task 78): real inventory usage from the attached (live) PacketLogger's parsed
+        // ItemList(0x1B). Was `50 + Math.random()*30` mock — removed by Stream E.
+        return packetLogger.getInventoryUsagePercent();
     }
     
     private int getInventoryAdena() {
-        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
-        // Currently returns mock data because AIPlayer.getProtocol() has no packet parsing
-        // Need: ItemList packet (opcode 0x06 from ClientPackets.java) including adena (item ID 57)
-        // Once protocol parses ItemList, can get actual adena:
-        //   aiPlayer.getProtocol().getInventoryItemQuantity(57)
-        return 10000 + (int)(Math.random() * 50000); // Mock adena - NOT YET TESTED
+        // Stream E (task 78): real adena (item id 57) parsed from ItemList(0x1B).
+        // Was `10000 + Math.random()*50000` mock — removed by Stream E.
+        return packetLogger.getAdena();
     }
     
     private MerchantDecision findItemToSell() {
@@ -157,6 +157,36 @@ public class MerchantAI {
     public void logEconomicSummary(int totalSpent, int totalEarned, int profitLost, int itemsTraded) {
         LOGGER.info("[ECONOMIC_SUMMARY] [" + aiPlayer.getName() + "] spent=" + totalSpent + " earned=" + totalEarned + " profit_loss=" + profitLost + " items=" + itemsTraded);
     }
+
+    // --- Stream E (tasks 79, 86, 87): trade outcome feedback hooks ---
+    // Mirror the Stream D pattern: before Stream E, trading had NO feedback into the economy /
+    // emotion / reinforcement systems and MarketEngine was never fed real prices. The live
+    // trade driver (TradeProbe B7 path) calls these after a real buy/sell.
+
+    /** Record a real price observation (town, buy & sell prices) into MarketEngine for arbitrage. */
+    public void recordPrice(String itemId, String town, long buyPrice, long sellPrice) {
+        aiPlayer.getMarketEngine().recordPrice(itemId, town, buyPrice, sellPrice);
+        LOGGER.info("[TRADE-LOG-MARKET] [" + aiPlayer.getName() + "] PRICE: item=" + itemId
+                + " town=" + town + " buy=" + buyPrice + " sell=" + sellPrice
+                + " bestSell=" + aiPlayer.getMarketEngine().findBestSellTown(itemId));
+    }
+
+    /** Called after a profitable trade: bump emotion + register a positive reinforcement signal. */
+    public void onTradeProfit(String itemId, String action, long adenaProfit) {
+        aiPlayer.getEmotions().onProfitableTrade();          // excitement + confidence up
+        aiPlayer.getReinforcement().rewardTrade("market", action, adenaProfit); // learn it paid off
+        LOGGER.info("[TRADE-LOG-RL] [" + aiPlayer.getName() + "] PROFIT: action=" + action
+                + " item=" + itemId + " +" + adenaProfit + " adena, emotion="
+                + aiPlayer.getEmotions().getCurrentEmotion());
+    }
+
+    /** Called after a losing trade: register a negative signal (no emotion hit — keep it subtle). */
+    public void onTradeLoss(String itemId, String action, long adenaLoss) {
+        aiPlayer.getReinforcement().rewardTrade("market", action, -adenaLoss);
+        LOGGER.info("[TRADE-LOG-RL] [" + aiPlayer.getName() + "] LOSS: action=" + action
+                + " item=" + itemId + " -" + adenaLoss + " adena");
+    }
+
     public MerchantDecision findArbitrageOpportunity() {
         // Advanced feature: buy low at one merchant, sell high at another
         return MerchantDecision.arbitrage("ITEM_1", "BUY_MERCHANT_1", "SELL_MERCHANT_2");

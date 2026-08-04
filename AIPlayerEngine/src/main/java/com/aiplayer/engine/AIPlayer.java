@@ -318,6 +318,16 @@ public class AIPlayer {
     public DeepLearningCore getDeepLearning() { return deepLearning; }
     public LongTermGoalsAI getLongTermGoals() { return longTermGoals; }
     public GoalTree getGoalTree() { return goalTree; }
+
+    // --- Stream E: expose the social & economy subsystems (tasks 83-87) ---
+    // Same dead-wiring problem as Stream D: these singletons were instantiated in the ctor but had
+    // NO getters, so MerchantAI/SocialAI could never reach them to record prices, form swarms, etc.
+    public CollectiveKnowledge getCollectiveKnowledge() { return collectiveKnowledge; }
+    public SwarmCoordinator getSwarmCoordinator() { return swarmCoordinator; }
+    public DiplomacyEngine getDiplomacy() { return diplomacy; }
+    public MarketEngine getMarketEngine() { return marketEngine; }
+    public EconomicEngine getEconomicEngine() { return economicEngine; }
+    public NetWorthOptimizer getNetWorthOptimizer() { return netWorthOptimizer; }
     
     // AI State management
     public String getAIState() {
