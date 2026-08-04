@@ -255,19 +255,22 @@ public class PacketCodec {
      * Format: 2-byte size | 0x21 | request string (null-terminated, max 512)
      */
     public static byte[] encodeBypass(String request) {
-        // Max request string including null terminator: 508 bytes
-        // Total packet: 2 (size) + 1 (opcode) + requestLen
-        byte[] reqBytes = request.getBytes(StandardCharsets.UTF_8);
-        if (reqBytes.length > 508) {
-            reqBytes = java.util.Arrays.copyOf(reqBytes, 508);
+        // L2JMobius reads client strings as UTF-16LE: BaseReadablePacket.readString() does
+        // readShort() per 16-bit char until a short==0 terminator. Sending UTF-8 + single null
+        // (the original bug) garbles the command at the server (e.g. "Script" -> 0x6353, 0x6972..)
+        // and the bypass is silently dropped. Encode UTF-16LE + 2-byte null terminator.
+        // Max request string (incl null terminator) is 512 * 2 bytes.
+        byte[] reqBytes = request.getBytes(StandardCharsets.UTF_16LE);
+        if (reqBytes.length > 508 * 2) {
+            reqBytes = java.util.Arrays.copyOf(reqBytes, 508 * 2);
         }
-        int size = 4 + reqBytes.length + 1;  // header + opcode + request + null
+        int size = 3 + reqBytes.length + 2;  // size-header(2) + opcode(1) + UTF-16LE string + 2-byte null
         ByteBuffer buf = ByteBuffer.allocate(size);
         buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
         buf.putShort((short) size);
         buf.put((byte) 0x21);
         buf.put(reqBytes);
-        buf.put((byte) 0);   // null terminator
+        buf.putShort((short) 0);   // UTF-16LE null terminator
         buf.flip();
         return buf.array();
     }

@@ -73,6 +73,28 @@ public class PacketCodecCombatFrameTest
    }
 
    @Test
+   public void testEncodeBypassUsesUtf16Le()
+   {
+      // Regression for the C7/B6b gap: the server reads client strings as UTF-16LE
+      // (BaseReadablePacket.readString -> readShort per char, short 0 terminator). The old
+      // encoder sent UTF-8 + single null, so "Script" became 0x6353,0x6972.. -> silently dropped.
+      byte[] frame = PacketCodec.encodeBypass("Script");
+      // size(2) + opcode(1) + "Script" UTF-16LE (6*2) + null short (2) = 17 bytes total
+      assertEquals(17, frame.length, "bypass frame should be 17 bytes");
+      assertEquals(17, (frame[0] & 0xff) | ((frame[1] & 0xff) << 8), "self-inclusive size");
+      assertEquals(0x21, frame[2] & 0xff, "opcode should be RequestBypassToServer 0x21");
+      // verify UTF-16LE chars: 'S'=0x0053, 'c'=0x0063, then terminator short 0
+      assertEquals(0x53, frame[3] & 0xff, "'S' low byte");
+      assertEquals(0x00, frame[4] & 0xff, "'S' high byte");
+      assertEquals(0x63, frame[5] & 0xff, "'c' low byte");
+      assertEquals(0x74, frame[13] & 0xff, "'t' low byte");
+      assertEquals(0x00, frame[14] & 0xff, "'t' high byte");
+      // trailing null short
+      assertEquals(0, frame[15] & 0xff, "null terminator low byte");
+      assertEquals(0, frame[16] & 0xff, "null terminator high byte");
+   }
+
+   @Test
    public void testEncodeAuthLoginLayout()
    {
       byte[] p = PacketCodec.encodeAuthLogin("ai_combat_01", 0x11111111, 0x22222222, 0x33333333, 0x44444444);

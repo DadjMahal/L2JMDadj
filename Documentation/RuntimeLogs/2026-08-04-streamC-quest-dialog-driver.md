@@ -60,8 +60,38 @@ Every bypass is read from the html the server **actually** sent, so each one is 
 - extract `-h` stripped / real Q00101 chain / "bypassed" ignored
 - `findEntityByNpcId` locates quest-giver
 
-## Live result
-Dialogue path **proven**: the engine found Roien, clicked twice, received the genuine
-`NpcHtmlMessage` (`Grand Master Roien...` with `bypass Script`), and sent the validated
-`RequestBypassToServer: "Script"`. The quest-acceptance tail (Script Q00101 -> 30008-03.htm)
-is the remaining live step.
+## Live result — NODE-PROVEN (2026-08-04, second run)
+
+The UTF-16LE bypass encoding fix closed the gap. The engine walked the FULL validated
+dialog chain against the live server and **the server accepted the quest**:
+
+```
+SENT opcode=0x04 Action on NPC 30008 (click #1 -> selects)
+SENT opcode=0x04 Action on NPC 30008 (click #2 -> opens dialog)
+NPC_HTML -> default/30008.htm (links=1, first="Script")
+SENT RequestBypassToServer "Script"
+NPC_HTML -> quest window (links=1, first="Script Q00101_SwordOfSolidarity 30008-02a.htm")
+SENT "Script Q00101_SwordOfSolidarity 30008-02a.htm"
+NPC_HTML -> (links=1, first="... 30008-02b.htm")
+SENT "... 30008-02b.htm"
+NPC_HTML -> (links=1, first="... 30008-03.htm")
+SENT "... 30008-03.htm"  -> START_EVENT_SENT (startQuest path)
+```
+
+**DB truth after run (charId=2):**
+```
+character_quests:  Q00101_SwordOfSolidarity  <state>  Started
+                   Q00101_SwordOfSolidarity  cond      1
+items:             item_id=796 (Roien's Letter)  count=1  <- granted by startQuest()
+```
+=> **B6b / C7 / C8 fully LIVE-PROVEN: a real quest started by genuine NPC dialog.**
+
+## The root cause that was REALLY blocking (found 2026-08-04)
+The engine WAS opening the dialog correctly (2x Action -> NpcHtmlMessage). The blocker was
+`PacketCodec.encodeBypass`: it sent the command as **UTF-8 + single-null**, but L2JMobius reads
+client strings as **UTF-16LE** (`BaseReadablePacket.readString()` = `readShort()` per 16-bit char,
+short==0 terminator). So `"Script"` arrived as garbage shorts (0x6353, 0x6972, ...) and the server
+dropped it — hence no quest window ever returned.
+Fix: `encodeBypass` now writes `UTF_16LE` + `putShort(0)` terminator (matching the B9-proven
+`encodeChat` convention). Regression test `testEncodeBypassUsesUtf16Le` added. **64/64 tests PASS.**
+

@@ -3,10 +3,10 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 2 — Combat AI (ALL live proofs PROVEN: PvE + PvP + quest + trade + movement + chat + party)
-## Last completed: **Stream C slice 4 (2026-08-03)** — reusable in-engine `GameServerClient` (classic Socket): retained the proven B3/B4 handshake (ProtocolVersion → KeyPacket → AuthLogin → CharSelectInfo → CharacterSelect → CharSelected → EnterWorld), background reader feeding `PacketLogger`, `attachToConnection` + `sendGameFrame`. Handshake payload builders added to `PacketCodec` (ProtocolVersion/AuthLogin/CharacterSelect/EnterWorld). **54/54 tests PASS, BUILD SUCCESS** — incl. in-process fake-GS integration test of the whole handshake + a real `Action`(0x04) send. (Earlier slices: 1 parseNpcInfo fix 36/36 → 2 encoders+no-random 41/41 → 3 decision→send 49/49)
-## Current (in progress): **Stream C** — wire the pieces live: a driver that does login → `GameServerClient.connectAndEnterWorld` → `startReader` → `CombatAI.makeDecision()` → `executeCombatDecision` in a loop, then run the live proof against the server. Then StatusUpdate/QuestList feedback + B6b.
-## Next: live driver + proof script; then StatusUpdate/QuestList feedback; then B6b.
+## Phase: 2 — Combat + Quest AI (ALL live proofs PROVEN: PvE + PvP + quest + trade + movement + chat + party + **NPC-dialog quest start**)
+## Last completed: **Stream C slice 7/B6b (2026-08-04) — LIVE PROVEN**: genuine NPC-dialog quest driver. Engine talks to Roien (NPC 30008) via 2x Action(0x04) (select then open dialog), parses validated `NpcHtmlMessage(0x0F)`, and walks the real bypass chain (Script -> Q00101 30008-02a/02b/03.htm) to start **Q00101_SwordOfSolidarity**. Root cause of the earlier "gap": `encodeBypass` sent UTF-8, but L2JMobius reads client strings as **UTF-16LE**; fixed to UTF_16LE + null short. **DB-verified**: `character_quests` now has `<state>=Started` + `cond=1` for Q00101, and item 796 (Roien's Letter) granted. 64/64 tests PASS. (Earlier: slices 1 parseNpcInfo 36/36, 2 encoders+no-random 41/41, 3 decision→send 49/49, 4 GS client 54/54, 5 live combat loop PROVEN 55/55, 6 packet feedback PROVEN 59/59)
+## Current: **Stream C fully live-proven through quest start.** Open: reconcile the 2 fake `assertTrue(true)` tests is DONE (54/63); task 43 (CombatAI audit) still pending.
+## Next: declare streams D/E/F formally; then implement stream D (Goals & Long-Term, Part 4 tasks 64-77), E (Social & Economy, Part 5), F (Multi-Agent/QA, Part 6).
 ## Blockers: ~145 unwired stub classes (Stream G); 23 ai_% chars still in the void spawn (relocate+heal before multi-bot gameplay).
 
 ## Honest state (source: real_status.sh + live probe evidence)
