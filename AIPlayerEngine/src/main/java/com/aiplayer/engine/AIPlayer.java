@@ -56,6 +56,7 @@ public class AIPlayer {
     private final EmotionalState emotions;
     private final AdaptiveLearner adaptiveLearner;
     private final ReinforcementEngine reinforcement;
+    private final LongTermGoalsAI longTermGoals; // Stream D: long-term goal selection (task 65)
     
     // Collective & Economic Systems (Tasks 77-96)
     private final CollectiveKnowledge collectiveKnowledge;
@@ -87,6 +88,7 @@ public class AIPlayer {
         this.emotions = new EmotionalState();
         this.adaptiveLearner = new AdaptiveLearner(name, deepLearning);
         this.reinforcement = new ReinforcementEngine(deepLearning, adaptiveLearner);
+        this.longTermGoals = new LongTermGoalsAI();
         this.collectiveKnowledge = CollectiveKnowledge.getInstance();
         this.swarmCoordinator = SwarmCoordinator.getInstance();
         this.diplomacy = DiplomacyEngine.getInstance();
@@ -302,6 +304,17 @@ public class AIPlayer {
     public MerchantAI getMerchantAI() { return merchantAI; }
     public SocialAI getSocialAI() { return socialAI; }
     public L2JProtocol getProtocol() { return protocol; }
+
+    // --- Stream D: expose the advanced intelligence subsystems (tasks 70-76) ---
+    // These were always instantiated in the constructor but had NO getters, so the live combat
+    // loop could never feed real outcomes into them. CombatAI/QuestAI hooks now use these to
+    // drive EmotionalState + ReinforcementEngine + AdaptiveLearner from real game events.
+    public PersonalityProfile getPersonality() { return personality; }
+    public EmotionalState getEmotions() { return emotions; }
+    public AdaptiveLearner getAdaptiveLearner() { return adaptiveLearner; }
+    public ReinforcementEngine getReinforcement() { return reinforcement; }
+    public DeepLearningCore getDeepLearning() { return deepLearning; }
+    public LongTermGoalsAI getLongTermGoals() { return longTermGoals; }
     
     // AI State management
     public String getAIState() {

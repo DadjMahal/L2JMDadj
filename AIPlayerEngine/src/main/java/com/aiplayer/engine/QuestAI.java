@@ -50,6 +50,32 @@ public class QuestAI {
         return packetLogger != null && packetLogger.getCurHp() > 0;
     }
 
+    // --- Stream D (tasks 66, 72-76): quest outcome feedback hooks ---
+    // Before Stream D these events didn't exist; the emotion/learning subsystems were never told
+    // when a quest was accepted/completed. Now the live quest driver calls these so the AI
+    // genuinely feels + learns from quest progression.
+    public void onQuestAccepted(String questId) {
+        aiPlayer.getEmotions().onGoodLoot();                       // small positive bump
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] QUEST_ACCEPTED: " + questId
+                + " emotion=" + aiPlayer.getEmotions().getCurrentEmotion());
+    }
+
+    public void onQuestCompleted(String questId) {
+        aiPlayer.getEmotions().onQuestComplete();                  // confidence up, frustration down
+        aiPlayer.getReinforcement().rewardQuestComplete(questId, "turn_in");
+        // Quest completion is strong progress toward the COMPLETIONIST long-term goal.
+        aiPlayer.getLongTermGoals().advanceGoal(LongTermGoalsAI.Goal.MAX_LEVEL, 2);
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] QUEST_COMPLETED: " + questId
+                + " emotion=" + aiPlayer.getEmotions().getCurrentEmotion()
+                + " learned=" + aiPlayer.getAdaptiveLearner().getQuestActionsLearned());
+    }
+
+    public void onQuestAbandoned(String questId) {
+        aiPlayer.getReinforcement().penalizeQuestFail(questId, "abandon");
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] QUEST_ABANDONED: " + questId
+                + " emotion=" + aiPlayer.getEmotions().getCurrentEmotion());
+    }
+
     /**
      * Main quest decision method.
      * Decides what quest actions to take based on current state and live telemetry.

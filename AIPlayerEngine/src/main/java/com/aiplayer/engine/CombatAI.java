@@ -270,24 +270,47 @@ public class CombatAI {
     }
     
     public void onKill(String targetName) {
+        onKill(targetName, 0L);
+    }
+
+    /**
+     * Stream D (tasks 72-76): a real kill on the live path. Drives the FULL feedback chain:
+     *  - EmotionalState.onGoodLoot-style excitement (kill = positive event)
+     *  - ReinforcementEngine.rewardKill (XP-scaled reward signal)
+     *  - AdaptiveLearner/DeepLearning record it under "combat:&lt;mob&gt;"
+     * Before this, onKill only logged. Now the AI genuinely learns + feels from kills.
+     */
+    public void onKill(String targetName, long xpGained) {
         combatState.incrementKillCount();
-        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] KILL: target=" + targetName + " total_kills=" + combatState.getKillCount());
+        aiPlayer.getEmotions().onGoodLoot();           // excitement bump on a kill
+        aiPlayer.getReinforcement().rewardKill(targetName, "ATTACK", xpGained);
+        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] KILL: target=" + targetName
+                + " xp=" + xpGained + " total_kills=" + combatState.getKillCount()
+                + " emotion=" + aiPlayer.getEmotions().getCurrentEmotion());
     }
-    
+
     public void onDeath() {
-        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] DEATH");
+        aiPlayer.getEmotions().onDeath();              // frustration up, confidence down
+        aiPlayer.getReinforcement().penalizeDeath("unknown", "ATTACK"); // learn death is bad
+        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] DEATH emotion=" + aiPlayer.getEmotions().getCurrentEmotion());
     }
-    
+
     public void onRespawn(int level) {
-        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] RESPAWN: level=" + level);
+        aiPlayer.getEmotions().decay();                // cooldown toward neutral after respawn
+        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] RESPAWN: level=" + level + " emotion=" + aiPlayer.getEmotions().getCurrentEmotion());
     }
-    
+
     public void onLevelUp(int newLevel) {
-        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] LEVEL_UP: new_level=" + newLevel);
+        aiPlayer.setLevel(newLevel);
+        aiPlayer.getEmotions().onLevelUp();            // excitement + confidence up
+        // A level-up is a strong positive quest/progress signal for the long-term goal.
+        aiPlayer.getLongTermGoals().advanceGoal(LongTermGoalsAI.Goal.MAX_LEVEL, 1);
+        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] LEVEL_UP: new_level=" + newLevel + " emotion=" + aiPlayer.getEmotions().getCurrentEmotion());
     }
-    
+
     public void onItemDrop(String itemId) {
-        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] ITEM_DROP: item=" + itemId);
+        aiPlayer.getEmotions().onGoodLoot();           // loot = positive excitement bump
+        LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] ITEM_DROP: item=" + itemId + " emotion=" + aiPlayer.getEmotions().getCurrentEmotion());
     }
     
     private boolean shouldUseOffensiveSkill() {

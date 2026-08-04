@@ -123,19 +123,19 @@
 
 | # | Task | Status | Owner | Evidence/Result |
 |---|------|--------|-------|-----------------|
-| 64 | Audit AI goal systems (GoalTree, Goal, Strategy) | pending | | |
+| 64 | Audit AI goal systems (GoalTree, Goal, Strategy) | done | Stream D | Audit 36: no GoalTree/Goal/Strategy classes exist; LongTermGoalsAI was not even instantiated. advanced/neural classes instantiated but not driven. See `Audit/36-goal-personality-audit.md` |
 | 65 | Implement short-term goals for AI players | pending | | |
-| 66 | Implement quest-based goal generation | pending | | |
+| 66 | Implement quest-based goal generation | done | Stream D | QuestAI.onQuestAccepted/onQuestCompleted/onQuestAbandoned hooks added; drive emotion+reinforcement+long-term goal. See RuntimeLog 2026-08-04-streamD1 |
 | 67 | Implement social goals (party, clan) | pending | | |
 | 68 | Implement goal prioritization | pending | | |
 | 69 | Implement goal scheduling | pending | | |
-| 70 | Audit neural/NeuralNetwork.java — Wire or Remove | pending | | (Note: NeuralNetwork.java was removed per git; DeepLearningCore uses PatternMemory) |
-| 71 | Audit neural/DeepLearningCore.java | pending | | |
-| 72 | Audit advanced/EmotionalState.java | pending | | |
-| 73 | Audit advanced/PersonalityProfile.java | pending | | |
-| 74 | Audit advanced/AdaptiveLearner.java | pending | | |
-| 75 | Audit advanced/ReinforcementEngine.java | pending | | |
-| 76 | Implement emotional responses to combat outcomes | pending | | |
+| 70 | Audit neural/NeuralNetwork.java — Wire or Remove | done | Stream D | NeuralNetwork.java already removed (git); DeepLearningCore uses PatternMemory (functional). Audit 36 verdict: instantiated, not driven. DeepLearning wired in slice 1 via AdaptiveLearner |
+| 71 | Audit neural/DeepLearningCore.java | done | Stream D | Functional (predict/learn/PatternMemory); was never fed from live path. Slice 1 wires learn() via ReinforcementEngine→AdaptiveLearner. predict() to be consulted in slice 2 |
+| 72 | Audit advanced/EmotionalState.java | done | Stream D | Functional (onDeath/onLevelUp/onGoodLoot/decay); was never called. Slice 1 wires it from CombatAI + QuestAI hooks. StreamDFeedbackTest proves |
+| 73 | Audit advanced/PersonalityProfile.java | done | Stream D | Functional (6 personalities + weights); was instantiated but weights unused. Getters added in slice 1; weight→CombatAI wiring in slice 2 |
+| 74 | Audit advanced/AdaptiveLearner.java | done | Stream D | Functional (learnCombat/Quest/Trade/Movement); was never called. Slice 1 feeds it via ReinforcementEngine. StreamDFeedbackTest proves counters increment |
+| 75 | Audit advanced/ReinforcementEngine.java | done | Stream D | Functional (rewardKill/penalizeDeath/rewardQuestComplete); was never called. Slice 1 calls it from CombatAI/QuestAI hooks. StreamDFeedbackTest proves |
+| 76 | Implement emotional responses to combat outcomes | done | Stream D | CombatAI.onKill/onDeath/onLevelUp/onItemDrop rewired from log-only to drive EmotionalState + ReinforcementEngine + AdaptiveLearner. 70/70 tests PASS |
 | 77 | Document the full goal/personality system | pending | | |
 
 ---
