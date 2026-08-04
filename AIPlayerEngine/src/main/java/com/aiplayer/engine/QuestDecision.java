@@ -8,6 +8,7 @@ public class QuestDecision {
     public enum Action {
         IDLE,
         ACCEPT_QUEST,
+        TALK_TO_NPC,
         KILL_MONSTER,
         COLLECT_ITEM,
         FIND_NPC,
@@ -39,6 +40,11 @@ public class QuestDecision {
         this.z = z;
         this.shouldExecute = shouldExecute;
         this.timestamp = System.currentTimeMillis();
+    }
+    
+    // Factory methods
+    public static QuestDecision talkToNPC(String questId, String npcId, int x, int y, int z) {
+        return new QuestDecision(Action.TALK_TO_NPC, questId, null, 0, npcId, x, y, z, true);
     }
     
     // Factory methods
@@ -81,7 +87,12 @@ public class QuestDecision {
     public static QuestDecision classChangeQuest() {
         return new QuestDecision(Action.CLASS_CHANGE_QUEST, null, null, 0, null, 0, 0, 0, true);
     }
-    
+
+    // Stream C7 helper: Request quest list (0x63)
+    public static QuestDecision requestQuestList() {
+        return new QuestDecision(Action.IDLE, null, null, 0, null, 0, 0, 0, false);
+    }
+
     public static QuestDecision findBestQuest() {
         return new QuestDecision(Action.FIND_NPC, "BEST_QUEST_ID", null, 0, 
                                 "RECOMMEND_NPC", 16600, 17000, 434, true);

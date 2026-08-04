@@ -248,7 +248,44 @@ public class PacketCodec {
         buf.flip();
         return buf.array();
     }
-    
+
+    /**
+     * Stream C7: RequestBypassToServer (0x21) packet encoder.
+     * Used for NPC HTML bypass commands (quest starts, window opening, etc.)
+     * Format: 2-byte size | 0x21 | request string (null-terminated, max 512)
+     */
+    public static byte[] encodeBypass(String request) {
+        // Max request string including null terminator: 508 bytes
+        // Total packet: 2 (size) + 1 (opcode) + requestLen
+        byte[] reqBytes = request.getBytes(StandardCharsets.UTF_8);
+        if (reqBytes.length > 508) {
+            reqBytes = java.util.Arrays.copyOf(reqBytes, 508);
+        }
+        int size = 4 + reqBytes.length + 1;  // header + opcode + request + null
+        ByteBuffer buf = ByteBuffer.allocate(size);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) size);
+        buf.put((byte) 0x21);
+        buf.put(reqBytes);
+        buf.put((byte) 0);   // null terminator
+        buf.flip();
+        return buf.array();
+    }
+
+    /**
+     * Stream C7: RequestQuestList (0x63) packet encoder.
+     * Opcode-only client frame; no payload.
+     */
+    public static byte[] encodeQuestList() {
+        // size = 2(header) + 1(opcode) = 3
+        ByteBuffer buf = ByteBuffer.allocate(3);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) 3);
+        buf.put((byte) 0x63);
+        buf.flip();
+        return buf.array();
+    }
+
     /**
      * Decode received packet - returns opcode and buffer
      */
