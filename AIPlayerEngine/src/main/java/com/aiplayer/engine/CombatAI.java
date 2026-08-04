@@ -231,8 +231,9 @@ public class CombatAI {
         
         // Use PacketLogger to find nearest hostile entity (NPC or player in PvP)
         // This requires NPC_INFO packets to have been parsed
+        // Stream D: use personality/emotion-adjusted engage distance (was raw config.getTargetDistance)
         PacketLogger.EntityInfo nearestHostile = packetLogger.findNearestHostile(
-            playerX, playerY, playerZ, config.getTargetDistance());
+            playerX, playerY, playerZ, getEffectiveEngageDistance());
         
         if (nearestHostile != null) {
             // Return the object ID as target identifier
@@ -365,7 +366,51 @@ public class CombatAI {
             threatLevel += (hostilesNearby - 1) * 0.2;
         }
 
-        return threatLevel >= 0.3;
+        // Stream D (tasks 73,76): personality + emotion bias the defend threshold.
+        // A CAUTIOUS personality (safetyWeight>1) defends SOONER (lower threshold); AGGRESSIVE
+        // (safetyWeight<1) defends LATER. Frustration raises the urge to flee; excitement lowers it.
+        double defendThreshold = getEffectiveDefendThreshold();
+        return threatLevel >= defendThreshold;
+    }
+
+    /**
+     * Stream D: the defend threshold modified by personality (safety weight) and current emotion.
+     * Base 0.3. CAUTIOUS/frustrated -> lower (defend sooner); AGGRESSIVE/excited -> higher.
+     */
+    public double getEffectiveDefendThreshold() {
+        double base = 0.3;
+        // Personality: safetyWeight ranges 0.4 (AGGRESSIVE) .. 1.9 (CAUTIOUS); neutral=1.0.
+        // safetyWeight>1 pulls threshold DOWN (more cautious), <1 pushes it UP (more reckless).
+        double safety = aiPlayer.getPersonality().getSafetyWeight();
+        double personalityAdj = (1.0 - safety) * 0.1; // +-0.09 max
+        // Emotion: FRUSTRATED lowers threshold (defend/retreat sooner); EXCITED raises it.
+        double emotionAdj = 0.0;
+        switch (aiPlayer.getEmotions().getCurrentEmotion()) {
+            case FRUSTRATED: emotionAdj = -0.1; break;
+            case EXCITED:    emotionAdj = +0.05; break;
+            case CONFIDENT:  emotionAdj = +0.03; break;
+            case CAUTIOUS:   emotionAdj = -0.05; break;
+            default: break; // NEUTRAL/BORED: no shift
+        }
+        // Clamp to a sane band so defense never becomes impossible or always-on.
+        return Math.max(0.1, Math.min(0.5, base + personalityAdj + emotionAdj));
+    }
+
+    /**
+     * Stream D: the effective engage distance, biased by personality + emotion. CAUTIOUS /
+     * frustrated bots engage only very close targets; AGGRESSIVE / excited bots reach farther.
+     */
+    public int getEffectiveEngageDistance() {
+        int base = config.getTargetDistance();
+        double combat = aiPlayer.getPersonality().getCombatWeight(); // 0.5..1.8
+        // combat>1 -> farther engage; <1 -> closer. Scale +-30%.
+        double scale = 0.7 + (combat - 1.0) * 0.3; // AGGRESSIVE(1.8)->0.94, CAUTIOUS(0.6)->0.82
+        switch (aiPlayer.getEmotions().getCurrentEmotion()) {
+            case FRUSTRATED: scale *= 0.7; break; // pull back when frustrated
+            case EXCITED:    scale *= 1.15; break; // reach out when excited
+            default: break;
+        }
+        return Math.max(50, (int)(base * scale));
     }
 
     /** Public deterministic threat check (Stream C: real HP + hostile count, no randomness). */

@@ -515,6 +515,10 @@ public class PacketLogger
    public void setSelfObjectId(int selfObjectId) { this.selfObjectId = selfObjectId; }
 
    public int getCurHp() { return curHp; }
+   /** Stream D: test/telemetry hook to inject a live HP value (normally set by StatusUpdate parse). */
+   public void setCurHp(int hp) { this.curHp = hp; }
+   /** Stream D: test/telemetry hook to inject a live max-HP value. */
+   public void setMaxHp(int hp) { this.maxHp = hp; }
    public int getMaxHp() { return maxHp; }
    public int getCurMp() { return curMp; }
    public int getMaxMp() { return maxMp; }

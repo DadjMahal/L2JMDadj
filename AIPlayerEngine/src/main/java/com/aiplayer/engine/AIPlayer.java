@@ -57,6 +57,7 @@ public class AIPlayer {
     private final AdaptiveLearner adaptiveLearner;
     private final ReinforcementEngine reinforcement;
     private final LongTermGoalsAI longTermGoals; // Stream D: long-term goal selection (task 65)
+    private final GoalTree goalTree; // Stream D: short-term goal selection + scheduling (tasks 65,68,69)
     
     // Collective & Economic Systems (Tasks 77-96)
     private final CollectiveKnowledge collectiveKnowledge;
@@ -89,6 +90,7 @@ public class AIPlayer {
         this.adaptiveLearner = new AdaptiveLearner(name, deepLearning);
         this.reinforcement = new ReinforcementEngine(deepLearning, adaptiveLearner);
         this.longTermGoals = new LongTermGoalsAI();
+        this.goalTree = new GoalTree(this);
         this.collectiveKnowledge = CollectiveKnowledge.getInstance();
         this.swarmCoordinator = SwarmCoordinator.getInstance();
         this.diplomacy = DiplomacyEngine.getInstance();
@@ -315,6 +317,7 @@ public class AIPlayer {
     public ReinforcementEngine getReinforcement() { return reinforcement; }
     public DeepLearningCore getDeepLearning() { return deepLearning; }
     public LongTermGoalsAI getLongTermGoals() { return longTermGoals; }
+    public GoalTree getGoalTree() { return goalTree; }
     
     // AI State management
     public String getAIState() {

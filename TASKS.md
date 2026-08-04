@@ -124,15 +124,15 @@
 | # | Task | Status | Owner | Evidence/Result |
 |---|------|--------|-------|-----------------|
 | 64 | Audit AI goal systems (GoalTree, Goal, Strategy) | done | Stream D | Audit 36: no GoalTree/Goal/Strategy classes exist; LongTermGoalsAI was not even instantiated. advanced/neural classes instantiated but not driven. See `Audit/36-goal-personality-audit.md` |
-| 65 | Implement short-term goals for AI players | pending | | |
+| 65 | Implement short-term goals for AI players | done | Stream D | `GoalTree` class: SURVIVE/ACTIVE_QUEST/GRIND_XP/EXPLORE/SOCIAL/IDLE with priority + scheduling. Wired into AIPlayer.getGoalTree(). GoalTreeTest 6/6 PASS |
 | 66 | Implement quest-based goal generation | done | Stream D | QuestAI.onQuestAccepted/onQuestCompleted/onQuestAbandoned hooks added; drive emotion+reinforcement+long-term goal. See RuntimeLog 2026-08-04-streamD1 |
-| 67 | Implement social goals (party, clan) | pending | | |
-| 68 | Implement goal prioritization | pending | | |
-| 69 | Implement goal scheduling | pending | | |
+| 67 | Implement social goals (party, clan) | done | Stream D | GoalTree.SOCIAL goal eligible when personality socialWeight>1.5 (SOCIAL personality). Priority scheduling in GoalTree.selectActiveGoal |
+| 68 | Implement goal prioritization | done | Stream D | GoalTree priority enum (100..0) * personality weight; expired deadline force-promotes; stalled-goal demotion. GoalTreeTest proves SURVIVE>GRIND |
+| 69 | Implement goal scheduling | done | Stream D | GoalTree.selectActiveGoal schedules one active goal/tick; 60s stall demotes; markProgress() resets timer |
 | 70 | Audit neural/NeuralNetwork.java — Wire or Remove | done | Stream D | NeuralNetwork.java already removed (git); DeepLearningCore uses PatternMemory (functional). Audit 36 verdict: instantiated, not driven. DeepLearning wired in slice 1 via AdaptiveLearner |
 | 71 | Audit neural/DeepLearningCore.java | done | Stream D | Functional (predict/learn/PatternMemory); was never fed from live path. Slice 1 wires learn() via ReinforcementEngine→AdaptiveLearner. predict() to be consulted in slice 2 |
 | 72 | Audit advanced/EmotionalState.java | done | Stream D | Functional (onDeath/onLevelUp/onGoodLoot/decay); was never called. Slice 1 wires it from CombatAI + QuestAI hooks. StreamDFeedbackTest proves |
-| 73 | Audit advanced/PersonalityProfile.java | done | Stream D | Functional (6 personalities + weights); was instantiated but weights unused. Getters added in slice 1; weight→CombatAI wiring in slice 2 |
+| 73 | Audit advanced/PersonalityProfile.java | done | Stream D | Functional (6 personalities + weights); weights NOW wired into CombatAI via getEffectiveDefendThreshold/getEffectiveEngageDistance (slice 2). GoalTreeTest proves AGGRESSIVE>CAUTIOUS engage range |
 | 74 | Audit advanced/AdaptiveLearner.java | done | Stream D | Functional (learnCombat/Quest/Trade/Movement); was never called. Slice 1 feeds it via ReinforcementEngine. StreamDFeedbackTest proves counters increment |
 | 75 | Audit advanced/ReinforcementEngine.java | done | Stream D | Functional (rewardKill/penalizeDeath/rewardQuestComplete); was never called. Slice 1 calls it from CombatAI/QuestAI hooks. StreamDFeedbackTest proves |
 | 76 | Implement emotional responses to combat outcomes | done | Stream D | CombatAI.onKill/onDeath/onLevelUp/onItemDrop rewired from log-only to drive EmotionalState + ReinforcementEngine + AdaptiveLearner. 70/70 tests PASS |

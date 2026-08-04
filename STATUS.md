@@ -3,10 +3,10 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 2 — Combat + Quest AI + Goal/Personality feedback (Stream D in progress)
-## Last completed: **Stream D slice 1 (2026-08-04)** — wired the dead emotion/learning subsystems to real combat+quest outcomes. Audit 36 verdict: `advanced/`+`neural/` classes were instantiated in `AIPlayer` but NEVER driven from the live path (0 callers of `onDeath`/`rewardKill`/`learnCombat`/etc.); `LongTermGoalsAI` wasn't even instantiated. Slice 1 fix: added `AIPlayer` getters for all subsystems, added `longTermGoals` field, rewired `CombatAI.onKill/onDeath/onLevelUp/onItemDrop` from log-only to drive `EmotionalState`+`ReinforcementEngine`+`AdaptiveLearner`+`LongTermGoalsAI`, added `QuestAI.onQuestAccepted/onQuestCompleted/onQuestAbandoned`. **70/70 tests PASS (+6 StreamDFeedbackTest), BUILD SUCCESS.** (Earlier: Stream C fully live-proven quest start 64/64.)
-## Current: Stream D slice 1 done (tasks 64,66,70-76 done). Open: slice 2 = call these hooks from the LIVE CombatLoop/QuestFlowLoop on real XP/HP deltas; wire PersonalityProfile weights into CombatAI; build short-term GoalTree (65-69); docs (77).
-## Next: Stream D slice 2 (live driver integration + goal tree), then Stream E.
+## Phase: 2 — Combat + Quest AI + Goal/Personality system (Stream D: 13/14 Part-4 tasks done)
+## Last completed: **Stream D slice 2 (2026-08-04)** — `GoalTree` (short-term goals + priority + scheduling) + personality/emotion-weighted combat behavior. New `GoalTree` class (SURVIVE/ACTIVE_QUEST/GRIND_XP/EXPLORE/SOCIAL/IDLE, priority*weight, deadline force-promote, 60s stall demote) wired into `AIPlayer.getGoalTree()`. `CombatAI.getEffectiveDefendThreshold()`/`getEffectiveEngageDistance()` bias behavior by personality + emotion (CAUTIOUS defends sooner/reaches less; AGGRESSIVE reaches farther). **76/76 tests PASS (+6 GoalTreeTest), BUILD SUCCESS.** (Slice 1: emotion/learning feedback wiring 70/70.)
+## Current: Stream D tasks 64-76 DONE in TASKS.md. Only task 77 (consolidated goal/personality docs) remains — RuntimeLogs + Audit 36 + javadoc cover it.
+## Next: close Stream D (task 77 doc), then Stream E (Social & Economy, Part 5).
 ## Next: declare streams D/E/F formally; then implement stream D (Goals & Long-Term, Part 4 tasks 64-77), E (Social & Economy, Part 5), F (Multi-Agent/QA, Part 6). **Streams D/E/F declared** in `Documentation/Streams.md` (2026-08-04). Implementing Stream D now.
 ## Stream docs: see `Documentation/Streams.md` for the D/E/F definitions, scope, and entry/exit criteria.
 ## Blockers: ~145 unwired stub classes (Stream G); 23 ai_% chars still in the void spawn (relocate+heal before multi-bot gameplay).
