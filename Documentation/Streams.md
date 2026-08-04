@@ -9,7 +9,7 @@ Status legend: ✅ done | 🔄 in progress | ⏳ declared (not started)
 
 ---
 
-## Stream D — Goals & Long-Term Behavior  🔄 (declared 2026-08-04)
+## Stream D — Goals & Long-Term Behavior  ✅ DONE (2026-08-04)
 **Maps to:** `TASKS.md` Part 4 — tasks **64–77** (14 tasks)
 
 ### Purpose

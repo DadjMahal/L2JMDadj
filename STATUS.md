@@ -7,8 +7,8 @@
 ## Last completed: **Stream D slice 2 (2026-08-04)** — `GoalTree` (short-term goals + priority + scheduling) + personality/emotion-weighted combat behavior. New `GoalTree` class (SURVIVE/ACTIVE_QUEST/GRIND_XP/EXPLORE/SOCIAL/IDLE, priority*weight, deadline force-promote, 60s stall demote) wired into `AIPlayer.getGoalTree()`. `CombatAI.getEffectiveDefendThreshold()`/`getEffectiveEngageDistance()` bias behavior by personality + emotion (CAUTIOUS defends sooner/reaches less; AGGRESSIVE reaches farther). **76/76 tests PASS (+6 GoalTreeTest), BUILD SUCCESS.** (Slice 1: emotion/learning feedback wiring 70/70.)
 ## Current: Stream D tasks 64-76 DONE in TASKS.md. Only task 77 (consolidated goal/personality docs) remains — RuntimeLogs + Audit 36 + javadoc cover it.
 ## Next: close Stream D (task 77 doc), then Stream E (Social & Economy, Part 5).
-## Next: declare streams D/E/F formally; then implement stream D (Goals & Long-Term, Part 4 tasks 64-77), E (Social & Economy, Part 5), F (Multi-Agent/QA, Part 6). **Streams D/E/F declared** in `Documentation/Streams.md` (2026-08-04). Implementing Stream D now.
-## Stream docs: see `Documentation/Streams.md` for the D/E/F definitions, scope, and entry/exit criteria.
+## Next: declare streams D/E/F formally; then implement stream D (Goals & Long-Term, Part 4 tasks 64-77), E (Social & Economy, Part 5), F (Multi-Agent/QA, Part 6). **Streams D/E/F declared** in `Documentation/Streams.md` (2026-08-04). **Stream D DONE** (all 14 Part-4 tasks 64-77: GoalTree + personality/emotion feedback + reinforcement wiring; 76/76 tests). Next: Stream E (Social & Economy, Part 5).
+## Stream docs: see `Documentation/Streams.md` (D/E/F definitions) + `Documentation/goal-personality-system.md` (Stream D system).
 ## Blockers: ~145 unwired stub classes (Stream G); 23 ai_% chars still in the void spawn (relocate+heal before multi-bot gameplay).
 
 ## Honest state (source: real_status.sh + live probe evidence)

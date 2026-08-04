@@ -136,7 +136,7 @@
 | 74 | Audit advanced/AdaptiveLearner.java | done | Stream D | Functional (learnCombat/Quest/Trade/Movement); was never called. Slice 1 feeds it via ReinforcementEngine. StreamDFeedbackTest proves counters increment |
 | 75 | Audit advanced/ReinforcementEngine.java | done | Stream D | Functional (rewardKill/penalizeDeath/rewardQuestComplete); was never called. Slice 1 calls it from CombatAI/QuestAI hooks. StreamDFeedbackTest proves |
 | 76 | Implement emotional responses to combat outcomes | done | Stream D | CombatAI.onKill/onDeath/onLevelUp/onItemDrop rewired from log-only to drive EmotionalState + ReinforcementEngine + AdaptiveLearner. 70/70 tests PASS |
-| 77 | Document the full goal/personality system | pending | | |
+| 77 | Document the full goal/personality system | done | Stream D | `Documentation/goal-personality-system.md` consolidated doc: pipeline + all 5 subsystems + outcome-hook table + verification. RuntimeLogs D1/D2 + Audit 36. 76/76 tests PASS |
 
 ---
 
