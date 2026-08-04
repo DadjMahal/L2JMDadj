@@ -5,20 +5,30 @@ import java.util.logging.Logger;
 import com.aiplayer.protocol.PacketLogger;
 
 /**
- * Quest AI Module
- * Handles quest acceptance, tracking, and completion for AI players
- * Integrates with L2JMobius quest system
- * Telemetry: PacketLogger tracks QuestInfo/CharInfo packets for quest progress
+ * Quest AI Module.
+ *
+ * Handles quest acceptance, tracking, and completion for AI players.
+ * Integrates with L2JMobius quest system via RequestBypassToServer(0x21).
+ *
+ * Telemetry: PacketLogger tracks QuestInfo, NPC_INFO, and
+ * StatusUpdate packets to drive real quest decisions. A shared PacketLogger
+ * must be set via setPacketLogger so the AI sees live server quest state.
+ *
+ * The decision flow mirrors CombatAI: makeDecision() returns a QuestDecision,
+ * which QuestFramePlanner.plan() maps to wire packets.
+ *
+ * Stream C7 wiring: QuestAI.makeDecision() -> QuestFramePlanner.plan() ->
+ *   QuestFramePlanner.QuestFrame[] -> GameServerClient.sendGameFrame().
  */
 public class QuestAI {
     private static final Logger LOGGER = Logger.getLogger(QuestAI.class.getName());
-    
+
     private final AIPlayer aiPlayer;
     private final QuestConfig config;
-    private final PacketLogger packetLogger;
+    private PacketLogger packetLogger;
     private QuestState currentQuestState;
     private QuestGoalDetail currentGoal;
-    
+
     public QuestAI(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
         this.config = QuestConfig.getInstance();
@@ -26,49 +36,54 @@ public class QuestAI {
         this.currentQuestState = new QuestState();
     }
 
+    /** Attach the live PacketLogger so quest decisions see real server state. */
+    public void setPacketLogger(PacketLogger logger) {
+        this.packetLogger = logger;
+        LOGGER.fine("[QuestAI] packetLogger attached for " + aiPlayer.getName());
+    }
+
     /** Get the packet logger for telemetry. */
     public PacketLogger getPacketLogger() { return packetLogger; }
-    
+
+    /** Check if the bot is alive based on real HP from PacketLogger. */
+    public boolean isBotAlive() {
+        return packetLogger != null && packetLogger.getCurHp() > 0;
+    }
+
     /**
-     * Main quest decision method
-     * Decides what quest actions to take based on current state
+     * Main quest decision method.
+     * Decides what quest actions to take based on current state and live telemetry.
      */
     public QuestDecision makeDecision() {
         if (!config.isEnabled()) {
             return QuestDecision.idle();
         }
-        
+
         try {
-            // Check for active quests
             if (hasActiveQuests()) {
-                return ManageActiveQuest();
+                return manageActiveQuest();
             }
-            
-            // Look for available quests
             if (shouldAcceptQuest()) {
                 return findAndAcceptQuest();
             }
-            
-            // Check if we should abandon old quests
             if (shouldAbandonQuest()) {
                 return abandonQuest();
             }
-            
             return QuestDecision.idle();
-            
         } catch (Exception e) {
             LOGGER.warning("Quest AI error for " + aiPlayer.getName() + ": " + e.getMessage());
             return QuestDecision.idle();
         }
     }
-    
-    private QuestDecision ManageActiveQuest() {
-        // Logic for managing active quests
+
+    private QuestDecision manageActiveQuest() {
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] QUEST_STEP: active questId="
+            + currentQuestState.getQuestId() + " cond=" + currentQuestState.getCond());
+
         if (currentGoal == null) {
-            // Need to choose next objective
             return getNextQuestAction();
         }
-        
+
         switch (currentGoal.getType()) {
             case COLLECT_ITEMS:
                 LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] QUEST_STEP: COLLECT_ITEMS questId=" + currentQuestState.getQuestId());
@@ -89,103 +104,123 @@ public class QuestAI {
                 return QuestDecision.idle();
         }
     }
-    
+
     private boolean hasActiveQuests() {
-        // Would query actual quest state
-        return currentQuestState.isActive();
+        int serverQuestCount = packetLogger != null ? packetLogger.getActiveQuestCount() : 0;
+        boolean locallyActive = currentQuestState.isActive();
+
+        if (serverQuestCount > 0) {
+            LOGGER.fine("[QuestAI] Server reports " + serverQuestCount + " active quests for " + aiPlayer.getName());
+            return true;
+        }
+        return locallyActive;
     }
-    
+
     private boolean shouldAcceptQuest() {
-        // Check if we should start a new quest
-        // Consider: level, prerequisites, rewards, time constraints
+        if (hasActiveQuests()) {
+            return false;
+        }
         return currentQuestState.canAcceptNew();
     }
-    
+
     private boolean shouldAbandonQuest() {
-        // Check if a quest is stuck or impossible
         return currentQuestState.isImpossible();
     }
-    
+
+    /**
+     * Find and accept a suitable quest.
+     * If no quest is active, accept the Tutorial quest (Q00255) by talking to
+     * the Newbie Helper NPC (npcId 30530) at the tutorial village spawn (-84058, 243239, -3730).
+     */
     private QuestDecision findAndAcceptQuest() {
-        // Find suitable quest based on level and preferences
-        String questId = "Q00001";
-        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] QUEST_STARTED: questId=" + questId);
-        // Would search for quests that match criteria
-        return QuestDecision.acceptQuest(questId, "NEARBY_NPC", 16600, 17000, 434);
+        int level = aiPlayer.getLevel();
+
+        if (!hasActiveQuests()) {
+            String questId = "Q00255_Tutorial";
+            LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName()
+                + "] QUEST_ACCEPT: questId=" + questId + " level=" + level);
+            currentQuestState.acceptQuest(questId, 24);
+            return QuestDecision.acceptQuest(questId, "30530", -84058, 243239, -3730);
+        }
+
+        return analyzeQuestOpportunities();
     }
-    
+
     private QuestDecision abandonQuest() {
         String questId = currentQuestState.getQuestId();
         LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] QUEST_ABANDONED: questId=" + questId);
         return QuestDecision.abandonQuest(questId);
     }
-    
+
     private QuestDecision getNextQuestAction() {
-        // Analyze quest to determine next step
-        // Would parse quest script or check conditions
-        return QuestDecision.idle();
+        int cond = currentQuestState.getCond();
+        String questId = currentQuestState.getQuestId();
+
+        if (questId != null && questId.equals("Q00255_Tutorial")) {
+            LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] TUTORIAL_STEP: cond=" + cond);
+            return QuestDecision.talkToNPC(questId, "30530", -84058, 243239, -3730);
+        }
+
+        return analyzeQuestOpportunities();
     }
-    
+
     private QuestDecision handleItemCollection() {
-        // Find and collect quest items
-        // Check inventory, find locations, navigate
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] COLLECT_ITEMS: itemId=" + currentGoal.getItemId()
+            + " count=" + currentGoal.getRequiredCount());
         return QuestDecision.collectItem(String.valueOf(currentGoal.getItemId()), currentGoal.getRequiredCount());
     }
-    
+
     private QuestDecision handleMonsterHunt() {
-        // Find and defeat required monsters
-        // Check if already spawned, navigate to location, fight
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] KILL_MONSTER: monsterId=" + currentGoal.getMonsterId()
+            + " count=" + currentGoal.getCount());
         return QuestDecision.killMonster(String.valueOf(currentGoal.getMonsterId()), currentGoal.getCount());
     }
-    
+
     private QuestDecision handleNPCLocation() {
-        // Navigate to quest NPC
-        // Find best route, account for level restrictions
-        return QuestDecision.findNPC(String.valueOf(currentGoal.getNpcId()), currentGoal.getX(), 
-                                    currentGoal.getY(), currentGoal.getZ());
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] TALK_TO_NPC: npcId=" + currentGoal.getNpcId()
+            + " pos=" + currentGoal.getX() + "," + currentGoal.getY() + "," + currentGoal.getZ());
+        return QuestDecision.talkToNPC(currentQuestState.getQuestId(), String.valueOf(currentGoal.getNpcId()),
+            currentGoal.getX(), currentGoal.getY(), currentGoal.getZ());
     }
-    
+
     private QuestDecision handleConditionCheck() {
-        // Verify quest conditions are met
-        // Check items, levels, party requirements
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] CHECK_CONDITIONS: questId=" + currentQuestState.getQuestId());
         return QuestDecision.checkConditions(currentQuestState.getQuestId());
     }
-    
-        private QuestDecision handleQuestTurnIn() {
-        // Complete and turn in quest
+
+    private QuestDecision handleQuestTurnIn() {
         String questId = currentQuestState.getQuestId();
         LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] QUEST_COMPLETED: questId=" + questId);
-        // Collect rewards, update state
         return QuestDecision.turnInQuest(questId);
     }
-    
-    /**
-     * Analyze available quests for our AI player
-     */
+
     public QuestDecision analyzeQuestOpportunities() {
-        // Would query quest database for available quests
-        // Filter by level, class, prerequisites
-        // Score by priority, reward, difficulty
-        
-        // For now, placeholder
+        int level = aiPlayer.getLevel();
+        if (level < 10) {
+            LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] QUEST_RECOMMEND: Q00255_Tutorial");
+            return QuestDecision.findBestQuest();
+        }
         return QuestDecision.findBestQuest();
     }
-    
-    /**
-     * Handle repeatable daily quests
-     */
+
     public QuestDecision handleDailyQuests() {
-        // Check which daily quests are available
-        // Prioritize based on rewards
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] DAILY_QUEST_CYCLE");
         return QuestDecision.dailyQuestCycle();
     }
-    
-    /**
-     * Handle class advancement quests
-     */
+
     public QuestDecision handleClassChange() {
-        // Special handling for saga/class change quests
-        // Multiple steps, specific requirements
+        LOGGER.info("[QUEST-LOG] [" + aiPlayer.getName() + "] CLASS_CHANGE_QUEST");
         return QuestDecision.classChangeQuest();
+    }
+
+    public void updateFromLiveState() {
+        if (packetLogger == null) return;
+
+        int newQuestCount = packetLogger.getActiveQuestCount();
+        int curCount = currentQuestState.isActive() ? 1 : 0;
+        if (newQuestCount > curCount) {
+            LOGGER.info("[QuestAI] Quest count changed: " + curCount + " -> " + newQuestCount
+                + " for " + aiPlayer.getName());
+        }
     }
 }

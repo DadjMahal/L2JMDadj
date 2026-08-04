@@ -24,7 +24,8 @@ public class QuestState {
     
     public boolean canAcceptNew() {
         // Logic to determine if we should accept new quest
-        return state == 0 && Math.random() > 0.3; // 70% chance
+        // Returns true when no quest is currently active (deterministic)
+        return state == 0;
     }
     
     public boolean isImpossible() {
@@ -66,4 +67,6 @@ public class QuestState {
     
     // Setters
     public void setCond(int cond) { this.cond = cond; }
+
+    public void setQuestId(String questId) { this.questId = questId; }
 }

@@ -29,6 +29,11 @@ public class PacketLogger
    public static final int OP_SYSTEM_MESSAGE = 0x64;
    public static final int OP_EX_PACKET = 0xFE;
    public static final int OP_EX_QUEST_INFO = 0x19;
+   // Stream C7/C8: NpcHtmlMessage (0x0F) — the dialog the server SHOWS the player.
+   // Every valid RequestBypassToServer must reference a bypass link that was present in a
+   // previously-sent NpcHtmlMessage (server validates via validateHtmlAction), so the engine
+   // MUST parse these to know what bypass it is allowed to send next.
+   public static final int OP_NPC_HTML = 0x0F;
 
    // StatusUpdate attribute IDs (from StatusUpdate.java)
    public static final int STAT_LEVEL = 0x01;
@@ -71,6 +76,11 @@ public class PacketLogger
    
    // Quest tracking (Task 36)
    private int activeQuestCount = 0;
+
+   // Stream C7/C8: NPC dialog tracking. The last NpcHtmlMessage the server showed us.
+   private String lastNpcHtml = null;
+   private int lastNpcHtmlOriginObjId = 0;
+   private int npcHtmlCount = 0;
    
    // Entity tracking (Task 47)
    private final ConcurrentHashMap<Integer, EntityInfo> entitiesById = new ConcurrentHashMap<>();
@@ -129,6 +139,10 @@ public class PacketLogger
                break;
             case OP_DELETE_OBJECT:
                parseDeleteObject(buf);
+               break;
+            case OP_NPC_HTML:
+               npcHtmlCount++;
+               parseNpcHtml(buf);
                break;
             case OP_SYSTEM_MESSAGE:
                parseSystemMessage(buf);
@@ -355,6 +369,99 @@ public class PacketLogger
       }
    }
 
+   /**
+    * Parse NpcHtmlMessage (opcode 0x0F): the dialog the server shows the player.
+    * Wire layout (L2JMobius NpcHtmlMessage.writeImpl):
+    *    [npcObjId:int][html UTF-16LE null-terminated][itemId:int]
+    * The html body contains the links the player may click. The server ONLY accepts a
+    * RequestBypassToServer whose command string was previously shown in one of these html
+    * dialogs (validateHtmlAction), so the engine stores the raw html + origin NPC objId and
+    * exposes extractBypassLinks() so the quest driver can follow the real dialog chain.
+    */
+   private void parseNpcHtml(ByteBuffer buf)
+   {
+      try
+      {
+         if (buf.remaining() < 4) return;
+         int npcObjId = buf.getInt();
+         // html is UTF-16LE, null-terminated ('\0' as a 16-bit char)
+         StringBuilder sb = new StringBuilder();
+         while (buf.remaining() >= 2)
+         {
+            char c = buf.getChar();
+            if (c == 0) break;
+            sb.append(c);
+         }
+         String html = sb.toString();
+         this.lastNpcHtml = html;
+         this.lastNpcHtmlOriginObjId = npcObjId;
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] NPC_HTML: npcObjId=" + npcObjId
+            + " htmlLen=" + html.length() + " bypassLinks=" + extractBypassLinks(html).length
+            + " excerpt=\"" + (html.length() > 120 ? html.substring(0, 120) : html) + "\"");
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] NpcHtml parse incomplete: " + e.getMessage());
+      }
+   }
+
+   /** Extract the full command strings of every "bypass ..." link inside an NPC html dialog. */
+   public static String[] extractBypassLinks(String html)
+   {
+      if (html == null || html.isEmpty()) return new String[0];
+      java.util.List<String> links = new java.util.ArrayList<>();
+      String lower = html.toLowerCase(java.util.Locale.ROOT);
+      int idx = 0;
+      while (idx < html.length())
+      {
+         int pos = lower.indexOf("bypass", idx);
+         if (pos < 0) break;
+         // Require a word boundary: "bypass" must be followed by whitespace, a quote, or a '<'
+         // so a word like "bypassed" is NOT treated as a bypass command.
+         int boundary = pos + "bypass".length();
+         if (boundary < html.length())
+         {
+            char next = html.charAt(boundary);
+            boolean isWordChar = !Character.isWhitespace(next) && next != '\"' && next != '<' && next != '>';
+            if (isWordChar)
+            {
+               idx = boundary;
+               continue;
+            }
+         }
+         // The real link is: action="bypass -h <cmd>" or action="bypass <cmd>".
+         // Strip the optional "-h" (hidden) mode flag so the sendable command matches the
+         // exact string the server cached in validateHtmlAction (which keeps the -h OUT).
+         int after = boundary;
+         while (after < html.length() && Character.isWhitespace(html.charAt(after))) after++;
+         if (after < html.length() && html.charAt(after) == '-')
+         {
+            after++; // consume '-'
+            while (after < html.length() && !Character.isWhitespace(html.charAt(after))) after++; // consume 'h'
+         }
+         while (after < html.length() && Character.isWhitespace(html.charAt(after))) after++;
+         StringBuilder cmd = new StringBuilder();
+         while (after < html.length() && html.charAt(after) != '\"' && html.charAt(after) != '<'
+            && html.charAt(after) != '>' && html.charAt(after) != '\\')
+         {
+            cmd.append(html.charAt(after));
+            after++;
+         }
+         String link = cmd.toString().trim();
+         if (!link.isEmpty()) links.add(link);
+         idx = Math.max(pos + 1, after);
+      }
+      return links.toArray(new String[0]);
+   }
+
+   /** The full html of the most recent NPC dialog the server showed this player. */
+   public String getLastNpcHtml() { return lastNpcHtml; }
+
+   /** Object id of the NPC that sent the most recent html dialog. */
+   public int getLastNpcHtmlOriginObjId() { return lastNpcHtmlOriginObjId; }
+
+   public int getNpcHtmlCount() { return npcHtmlCount; }
+
    /** Parse SystemMessage packet (0x64) */
    private void parseSystemMessage(ByteBuffer buf)
    {
@@ -433,6 +540,18 @@ public class PacketLogger
    // Entity tracking getters (Task 47)
    public int getEntityCount() { return entitiesById.size(); }
    public EntityInfo getEntity(int objectId) { return entitiesById.get(objectId); }
+   /** Stream C7: find a tracked entity by its NPC template id (e.g. quest-giver NPC). */
+   public EntityInfo findEntityByNpcId(int npcId) {
+      for (EntityInfo e : entitiesById.values()) {
+         if (e.npcId == npcId) return e;
+      }
+      return null;
+   }
+
+   /** Test/telemetry hook: seed an entity (mirrors what live NPC_INFO parsing does). */
+   public void addEntityForTest(EntityInfo entity) {
+      entitiesById.put(entity.objectId, entity);
+   }
    public EntityInfo[] getHostileEntities() { return entitiesById.values().stream().filter(e -> e.isHostile).toArray(EntityInfo[]::new); }
    public EntityInfo findNearestHostile(int playerX, int playerY, int playerZ, int maxDistance) {
       EntityInfo nearest = null;
