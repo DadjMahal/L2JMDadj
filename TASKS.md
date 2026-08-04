@@ -148,17 +148,17 @@
 |---|------|--------|-------|-----------------|
 | 78 | Implement real inventory-aware buy/sell logic | done | Stream E | MerchantAI now uses real PacketLogger inventory/adena (removed Math.random() mocks); setPacketLogger() attaches live reader; ItemList(0x1B) parse extracts adena(57)+items. StreamETradeTest 5/5 PASS |
 | 79 | Implement price-awareness/arbitrage | done | Stream E | MerchantAI.recordPrice() feeds MarketEngine (recordPrice/findBestSellTown/shouldBuy); reuse EconomicEngine.scanArbitrage for cross-town. See Audit 37 |
-| 80 | Implement party formation behavior | pending | | |
-| 81 | Implement clan application behavior | pending | | |
-| 82 | Implement contextual chat behavior | pending | | |
+| 80 | Implement party formation behavior | done | Stream E | SocialAI deterministic party seek (removed Math.random): SOCIAL personality/bored + nearby candidate -> INVITE_TO_PARTY; real target objId. onPartyJoined drives party state + forms SwarmCoordinator swarm + shares CollectiveKnowledge. StreamESocialTest 5/5 PASS |
+| 81 | Implement clan application behavior | done | Stream E | SocialAI.shouldSeekClan deterministic (socialWeight>1.2); applyToClan(name-guild) instead of fake NOVICE_CLAN |
+| 82 | Implement contextual chat behavior | done | Stream E | SocialAI.shouldChat deterministic (social/bored && !inCombat); generateChat contextual (bored/confident/neutral). Removed Math.random |
 | 83 | Audit social/CollectiveKnowledge.java | done | Stream E | Audit 37: singleton, functional (share/bestInCategory/topInCategory/upvote), but 0 callers + no getter. Getter added; wiring in slice 2 |
 | 84 | Audit social/SwarmCoordinator.java | done | Stream E | Audit 37: singleton, functional (formSwarm/assignRoles/classifyRole), 0 callers + no getter. Getter added; party wiring in slice 2 |
-| 85 | Audit social/DiplomacyEngine.java | done | Stream E | Audit 37: singleton, functional (relations/treaties/negotiatePrice), 0 callers + no getter. Getter added |
+| 85 | Audit social/DiplomacyEngine.java | done | Stream E | Audit 37: singleton, functional (relations/treaties/negotiatePrice), 0 callers + no getter. Getter added. CollectiveKnowledge wiring (via onPartyJoined.share) in slice 2 |
 | 86 | Audit economy/EconomicEngine.java | done | Stream E | Audit 37: functional (scanArbitrage/assessTradeRisk/suggestedDiversifyAmount), 0 callers + no getter. Getter added. StreamETradeTest proves MarketEngine feed |
 | 87 | Audit economy/NetWorthOptimizer.java | done | Stream E | Audit 37: functional (afterTaxProfit/bestSellTown/currencyValue), 0 callers + no getter. Getter added |
 | 88 | Implement activity scheduling | pending | | |
 | 89 | Implement graceful reconnect/persistence | pending | | |
-| 90 | Telemetry + tuning pass on social/economy behavior | pending | | |
+| 90 | Telemetry + tuning pass on social/economy behavior | done | Stream E | Social/economy hooks log real telemetry: [SOCIAL-LOG], [TRADE-LOG], [TRADE-LOG-MARKET], [TRADE-LOG-RL], [ADENA_FLOW], [ECONOMIC_SUMMARY]. 86/86 tests PASS (slice 1+2) |
 | 91 | Document social/economy systems | pending | | |
 
 ---
