@@ -52,7 +52,7 @@ goal, get frustrated after deaths, pick easier mobs when cautious, and learn whi
 
 ---
 
-## Stream E — Social & Economy  ⏳ (declared 2026-08-04)
+## Stream E — Social & Economy  ✅ DONE (2026-08-04)
 **Maps to:** `TASKS.md` Part 5 — tasks **78–91** (14 tasks)
 
 ### Purpose

@@ -3,12 +3,13 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 2 — Combat + Quest + Goal/personality + Economy (Stream E in progress)
-## Last completed: **Stream E slice 2 (2026-08-04)** — deterministic social behavior. Removed the last Math.random() mocks from SocialAI: shouldSeekParty/shouldSeekClan/shouldChat now driven by personality (socialWeight) + emotion (bored) + real nearby entities (getNearbyEntities, real objId target). seekClan uses real guild name. generateChat contextual. onPartyJoined drives party state + forms SwarmCoordinator swarm + shares CollectiveKnowledge; onPartyLeft clears. setPacketLogger attaches live reader. **86/86 tests PASS (+5 StreamESocialTest), BUILD SUCCESS.** (E1: economy/real inventory 81/81.)
-## Current: Stream E tasks 78-82, 83-87, 90 done. Open: slice 3 = activity scheduling (88), graceful reconnect/persistence (89), consolidated docs (91).
+## Phase: 2 — Combat + Quest + Goal/personality + Social/Economy (Stream E DONE; Stream F next)
+## Last completed: **Stream E DONE (2026-08-04, all 14 Part-5 tasks 78-91).** Three slices: (E1) real inventory-aware trading — AIPlayer getters for 6 social/economy subsystems (had none); ItemList(0x1B) extracts adena(57)+items; MerchantAI uses real inventory/adena (removed Math.random mocks); trade hooks feed MarketEngine+emotion+reinforcement. (E2) deterministic social — removed Math.random from SocialAI (personality+emotion+nearby-entity driven); onPartyJoined forms SwarmCoordinator swarm + shares CollectiveKnowledge. (E3) ActivityScheduler (goal-aware periodic rotation) + reconnect (creds+3-retry+cooldown) + persistence (save/load session via PersistenceManager). **92/92 tests PASS (+16 StreamE tests), BUILD SUCCESS.** (Stream D done 76/76; Stream C live-proven.)
+## Current: Stream E complete. Open: call trade/party/scheduler hooks from the LIVE driver on real packets; live loop consult activityScheduler.nextActivity().
 ## Next: Stream E slices 2-3, then Stream F.
 ## Next: declare streams D/E/F formally; then implement stream D (Goals & Long-Term, Part 4 tasks 64-77), E (Social & Economy, Part 5), F (Multi-Agent/QA, Part 6). **Streams D/E/F declared** in `Documentation/Streams.md` (2026-08-04). **Stream D DONE** (all 14 Part-4 tasks 64-77: GoalTree + personality/emotion feedback + reinforcement wiring; 76/76 tests). Next: Stream E (Social & Economy, Part 5).
-## Stream docs: see `Documentation/Streams.md` (D/E/F definitions) + `Documentation/goal-personality-system.md` (Stream D system).
+## Stream docs: see `Documentation/Streams.md` (D/E/F definitions) + `Documentation/goal-personality-system.md` (Stream D) + `Documentation/social-economy-system.md` (Stream E).
+## Next: Stream F (Multi-Agent Scale & QA, Part 6 tasks 92-103).
 ## Blockers: ~145 unwired stub classes (Stream G); 23 ai_% chars still in the void spawn (relocate+heal before multi-bot gameplay).
 
 ## Honest state (source: real_status.sh + live probe evidence)

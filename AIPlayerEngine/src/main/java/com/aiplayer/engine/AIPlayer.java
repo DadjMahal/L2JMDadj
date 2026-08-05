@@ -32,6 +32,13 @@ public class AIPlayer {
     private int classId;
     private int race;
     private final L2JProtocol protocol; // REAL PROTOCOL FOR CONNECTING
+
+    // Stream E task 89: stored credentials so the bot can gracefully reconnect after a drop.
+    private String lastAccount;
+    private String lastPassword;
+    private int reconnectAttempts;
+    private long lastDisconnectMs;
+    private static final int MAX_RECONNECT_ATTEMPTS = 3;
     
     // Position tracking (Task 47, 31)
     private int x = 0, y = 0, z = 0;
@@ -58,6 +65,7 @@ public class AIPlayer {
     private final ReinforcementEngine reinforcement;
     private final LongTermGoalsAI longTermGoals; // Stream D: long-term goal selection (task 65)
     private final GoalTree goalTree; // Stream D: short-term goal selection + scheduling (tasks 65,68,69)
+    private final ActivityScheduler activityScheduler; // Stream E task 88: periodic activity rotation
     
     // Collective & Economic Systems (Tasks 77-96)
     private final CollectiveKnowledge collectiveKnowledge;
@@ -78,6 +86,7 @@ public class AIPlayer {
         this.accountId = accountId;
         this.classId = classId;
         this.race = race;
+        this.persist = new PersistenceManager("aiplayer-" + name + ".state"); // Stream E 89
         this.level = 1;
         this.state = AIPlayerState.OFFLINE;
         this.brain = new AIBrain(this);
@@ -91,6 +100,7 @@ public class AIPlayer {
         this.reinforcement = new ReinforcementEngine(deepLearning, adaptiveLearner);
         this.longTermGoals = new LongTermGoalsAI();
         this.goalTree = new GoalTree(this);
+        this.activityScheduler = new ActivityScheduler(this);
         this.collectiveKnowledge = CollectiveKnowledge.getInstance();
         this.swarmCoordinator = SwarmCoordinator.getInstance();
         this.diplomacy = DiplomacyEngine.getInstance();
@@ -262,6 +272,9 @@ public class AIPlayer {
                 this.isConnected = true;
                 this.isLoggedIn = true;
                 this.characterId = charId;
+                this.lastAccount = accountName;   // Stream E 89: store for graceful reconnect
+                this.lastPassword = password;
+                this.reconnectAttempts = 0;
                 this.lastActionTime = System.currentTimeMillis();
                 this.loginTime = System.currentTimeMillis();
                 this.state = AIPlayerState.IN_GAME;
@@ -274,7 +287,41 @@ public class AIPlayer {
             return false;
         }
     }
-    
+
+    /**
+     * Stream E task 89: graceful reconnect. Re-uses the last successful credentials after a
+     * disconnect, with a bounded retry + a minimum cooldown so we don't hammer the server.
+     */
+    public boolean reconnect() {
+        if (isConnected && isLoggedIn) {
+            return true; // already connected
+        }
+        if (lastAccount == null) {
+            LOGGER.warning("[" + name + "] Can't reconnect: no stored credentials");
+            return false;
+        }
+        long sinceDrop = System.currentTimeMillis() - lastDisconnectMs;
+        if (sinceDrop < 3000L) {
+            LOGGER.info("[" + name + "] reconnect cooldown in progress (" + sinceDrop + "ms)");
+            return false;
+        }
+        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            LOGGER.severe("[" + name + "] Give up: exceeded " + MAX_RECONNECT_ATTEMPTS + " reconnect attempts");
+            return false;
+        }
+        reconnectAttempts++;
+        boolean ok = connectToServer(lastAccount, lastPassword, characterId);
+        if (ok) {
+            LOGGER.info("[" + name + "] RECONNECTED on attempt " + reconnectAttempts);
+            // The executor/driver re-attaches the live packet logger after reconnect.
+        }
+        return ok;
+    }
+
+    /** Last disconnect timestamp (for reconnect cooldown). */
+    public void markDisconnect() { this.lastDisconnectMs = System.currentTimeMillis(); }
+    public int getReconnectAttempts() { return reconnectAttempts; }
+
     public void disconnect() {
         try {
             protocol.disconnect();
@@ -284,6 +331,7 @@ public class AIPlayer {
         this.isConnected = false;
         this.isLoggedIn = false;
         this.state = AIPlayerState.OFFLINE;
+        markDisconnect(); // Stream E 89: record when, for reconnect cooldown
     }
     
     // Getters and Setters
@@ -318,6 +366,60 @@ public class AIPlayer {
     public DeepLearningCore getDeepLearning() { return deepLearning; }
     public LongTermGoalsAI getLongTermGoals() { return longTermGoals; }
     public GoalTree getGoalTree() { return goalTree; }
+    public ActivityScheduler getActivityScheduler() { return activityScheduler; }
+
+    // --- Stream E task 89: session persistence across restarts ---
+    // Uses the (previously dead) PersistenceManager to save/restore the bot's persistent state so
+    // a bot can gracefully resume where it left off instead of starting from scratch each launch.
+    private PersistenceManager persist; // Stream E 89: initialized in ctor (needs `name`)
+
+    /** Persist current session state (level, position, goal progress, adena snapshot). */
+    public void saveSessionState() {
+        try {
+            persist.save("level", level);
+            persist.save("charId", characterId);
+            persist.save("x", x); persist.save("y", y); persist.save("z", z);
+            persist.save("goal", aiPlayerGoalsSnapshot());
+            persist.save("savedAt", System.currentTimeMillis());
+            LOGGER.info("[" + name + "] SESSION SAVED (lv" + level + " @ " + x + "," + y + ")");
+        } catch (Exception e) {
+            LOGGER.warning("[" + name + "] Session save failed: " + e.getMessage());
+        }
+    }
+
+    /** Restore persisted session state if present; returns true if anything was restored. */
+    @SuppressWarnings("unchecked")
+    public boolean loadSessionState() {
+        try {
+            Object lvl = persist.load("level");
+            Object cx = persist.load("x"), cy = persist.load("y"), cz = persist.load("z");
+            Object g = persist.load("goal");
+            if (lvl == null) return false;
+            setLevel((Integer) lvl);
+            if (cx != null) x = (Integer) cx;
+            if (cy != null) y = (Integer) cy;
+            if (cz != null) z = (Integer) cz;
+            if (g instanceof java.util.Map) {
+                for (java.util.Map.Entry<?, ?> e : ((java.util.Map<?, ?>) g).entrySet()) {
+                    longTermGoals.advanceGoal(LongTermGoalsAI.Goal.valueOf((String) e.getKey()),
+                            (Integer) e.getValue());
+                }
+            }
+            LOGGER.info("[" + name + "] SESSION RESTORED (lv" + level + " @ " + x + "," + y + ")");
+            return true;
+        } catch (Exception e) {
+            LOGGER.info("[" + name + "] No prior session state to restore");
+            return false;
+        }
+    }
+
+    private java.util.Map<String, Object> aiPlayerGoalsSnapshot() {
+        java.util.Map<String, Object> m = new java.util.HashMap<>();
+        for (LongTermGoalsAI.Goal g : LongTermGoalsAI.Goal.values()) {
+            m.put(g.name(), longTermGoals.getGoalProgress(g));
+        }
+        return m;
+    }
 
     // --- Stream E: expose the social & economy subsystems (tasks 83-87) ---
     // Same dead-wiring problem as Stream D: these singletons were instantiated in the ctor but had

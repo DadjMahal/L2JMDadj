@@ -156,10 +156,10 @@
 | 85 | Audit social/DiplomacyEngine.java | done | Stream E | Audit 37: singleton, functional (relations/treaties/negotiatePrice), 0 callers + no getter. Getter added. CollectiveKnowledge wiring (via onPartyJoined.share) in slice 2 |
 | 86 | Audit economy/EconomicEngine.java | done | Stream E | Audit 37: functional (scanArbitrage/assessTradeRisk/suggestedDiversifyAmount), 0 callers + no getter. Getter added. StreamETradeTest proves MarketEngine feed |
 | 87 | Audit economy/NetWorthOptimizer.java | done | Stream E | Audit 37: functional (afterTaxProfit/bestSellTown/currencyValue), 0 callers + no getter. Getter added |
-| 88 | Implement activity scheduling | pending | | |
-| 89 | Implement graceful reconnect/persistence | pending | | |
-| 90 | Telemetry + tuning pass on social/economy behavior | done | Stream E | Social/economy hooks log real telemetry: [SOCIAL-LOG], [TRADE-LOG], [TRADE-LOG-MARKET], [TRADE-LOG-RL], [ADENA_FLOW], [ECONOMIC_SUMMARY]. 86/86 tests PASS (slice 1+2) |
-| 91 | Document social/economy systems | pending | | |
+| 88 | Implement activity scheduling | done | Stream E | New `ActivityScheduler` class: GRIND/MERCHANT/QUEST/SOCIAL/REST on per-player intervals with deterministic jitter; goal-aware nextActivity() consults GoalTree; markDone/isDue. Wired into AIPlayer.getActivityScheduler(). StreamESchedulerTest 6/6 PASS |
+| 89 | Implement graceful reconnect/persistence | done | Stream E | AIPlayer.reconnect() reuses stored credentials, bounded 3 retries + 3s cooldown; disconnect() records time. saveSessionState()/loadSessionState() via (previously dead) PersistenceManager: level/position/goal-progress persist across restarts. StreamESchedulerTest proves |
+| 90 | Telemetry + tuning pass on social/economy behavior | done | Stream E | Social/economy hooks log real telemetry: [SOCIAL-LOG], [TRADE-LOG], [TRADE-LOG-MARKET], [TRADE-LOG-RL], [ADENA_FLOW], [ECONOMIC_SUMMARY], [Scheduler]. 92/92 tests PASS (slices 1-3) |
+| 91 | Document social/economy systems | done | Stream E | `Documentation/social-economy-system.md` consolidated doc: economy pipeline + social pipeline + scheduler/reconnect/persistence + outcome-hook table + verification. RuntimeLogs E1/E2/E3 + Audit 37. 92/92 tests PASS |
 
 ---
 
