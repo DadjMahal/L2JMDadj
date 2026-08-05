@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import com.aiplayer.protocol.L2JProtocol;
+import com.aiplayer.monitor.AIMonitorDashboard;
+import com.aiplayer.metrics.PerformanceMetrics;
 
 /**
  * AI Player Manager
@@ -73,13 +75,39 @@ public class AIPlayerManager {
     }
     
     /**
-     * Despawn an AI Player
+     * Despawn an AI Player — Stream F (task 97): graceful shutdown. Disconnects the bot from the
+     * server and persists its session state before removing it, so a despawn isn't a data loss.
      */
     public void despawnAIPlayer(int accountId) {
         AIPlayer removed = aiPlayers.remove(accountId);
         if (removed != null) {
+            try {
+                removed.saveSessionState(); // Stream E 89: persist level/pos/goals
+                removed.disconnect();       // Stream E 89: clean socket close + record drop time
+            } catch (Exception e) {
+                LOGGER.warning("Error during graceful despawn of " + removed.getName() + ": " + e.getMessage());
+            }
             LOGGER.info("Despawned AI Player: " + removed.getName());
         }
+    }
+
+    /**
+     * Stream F (task 97): gracefully shut down ALL managed AI players — disconnect + persist each,
+     * then stop the think scheduler. Safe to call once at process exit.
+     */
+    public void shutdownAll() {
+        LOGGER.info("Graceful shutdown of " + aiPlayers.size() + " AI players...");
+        for (AIPlayer player : aiPlayers.values()) {
+            try {
+                player.saveSessionState();
+                player.disconnect();
+            } catch (Exception e) {
+                LOGGER.warning("Error shutting down " + player.getName() + ": " + e.getMessage());
+            }
+        }
+        aiPlayers.clear();
+        stop();
+        LOGGER.info("All AI players shut down.");
     }
     
     /**
@@ -113,7 +141,14 @@ public class AIPlayerManager {
         
         for (AIPlayer player : aiPlayers.values()) {
             try {
+                // Stream F (task 98): measure + record decision latency via PerformanceMetrics
+                // (was previously dead code with no callers).
+                long startNanos = System.nanoTime();
                 player.think();
+                long latencyNanos = System.nanoTime() - startNanos;
+                PerformanceMetrics.getInstance().recordAction(player.getName(), latencyNanos);
+                // Stream F (task 98): feed the (previously dead) monitor dashboard so live stats exist.
+                AIMonitorDashboard.getInstance().updatePlayerStats(player);
             } catch (Exception e) {
                 LOGGER.severe("Error thinking for AI Player " + player.getName() + 
                     ": " + e.getMessage());
@@ -127,6 +162,11 @@ public class AIPlayerManager {
     
     public int getAIPlayerCount() {
         return aiPlayers.size();
+    }
+
+    /** Stream F (task 97): all currently-managed players (for integration tests / monitoring). */
+    public java.util.Collection<AIPlayer> getManagedPlayers() {
+        return aiPlayers.values();
     }
     
     // Specialized spawn methods for different AI player types
