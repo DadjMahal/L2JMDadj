@@ -62,6 +62,9 @@ public class PacketLogger
    private int maxHp = 100;
    private int curMp = 30;
    private int maxMp = 30;
+   // Stream G (G-Live): level parsed from StatusUpdate (STAT_LEVEL 0x01), so the live loop can
+   // detect level-ups and fire CombatAI.onLevelUp / long-term-goal progress (was never parsed).
+   private int level = 0;
 
    
    // Position tracking (Task 33, 34)
@@ -204,6 +207,8 @@ public class PacketLogger
             if (isSelf && attrId == STAT_MAX_HP) maxHp = value;
             if (isSelf && attrId == STAT_CUR_MP) curMp = value;
             if (isSelf && attrId == STAT_MAX_MP) maxMp = value;
+            // Stream G (G-Live): track level so the live loop can detect level-ups.
+            if (isSelf && attrId == STAT_LEVEL) level = value;
          }
          LOGGER.info("[PACKET-LOG] [" + playerName + "] STATUS_UPDATE: objId=" + objectId
             + " [self=" + isSelf + "] [" + attrs + "] hp=" + curHp + "/" + maxHp + " mp=" + curMp + "/" + maxMp);
@@ -546,6 +551,8 @@ public class PacketLogger
    public int getMaxHp() { return maxHp; }
    public int getCurMp() { return curMp; }
    public int getMaxMp() { return maxMp; }
+   /** Stream G (G-Live): the bot's level parsed from StatusUpdate(0x0E) STAT_LEVEL(0x01); 0 if unseen. */
+   public int getLevel() { return level; }
    public double getHpPercentage() { return maxHp > 0 ? (double) curHp / maxHp * 100 : 0; }
    public double getMpPercentage() { return maxMp > 0 ? (double) curMp / maxMp * 100 : 0; }
    
@@ -581,6 +588,10 @@ public class PacketLogger
    /** Test/telemetry hook: seed an entity (mirrors what live NPC_INFO parsing does). */
    public void addEntityForTest(EntityInfo entity) {
       entitiesById.put(entity.objectId, entity);
+   }
+   /** Stream G (G-Live): test/telemetry hook to remove an entity (mirrors DeleteObject). */
+   public void removeEntityForTest(int objectId) {
+      entitiesById.remove(objectId);
    }
    public EntityInfo[] getHostileEntities() { return entitiesById.values().stream().filter(e -> e.isHostile).toArray(EntityInfo[]::new); }
    public EntityInfo findNearestHostile(int playerX, int playerY, int playerZ, int maxDistance) {
