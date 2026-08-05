@@ -169,18 +169,18 @@
 
 | # | Task | Status | Owner | Evidence/Result |
 |---|------|--------|-------|-----------------|
-| 92 | Split remaining backlog into agent work packages | pending | | |
-| 93 | Onboard 2nd concurrent agent as pilot | pending | | |
-| 94 | Add merge-conflict resolution protocol doc | pending | | |
-| 95 | Build style consistency checker | pending | | |
+| 92 | Split remaining backlog into agent work packages | done | Stream F | `Documentation/MultiAgentQA.md` task 92: 5 disjoint packages for ~145 stubs (G-Combat/G-Content/G-Behavior/F-Live/E-Extra). See also task 103 |
+| 93 | Onboard 2nd concurrent agent as pilot | done | Stream F | `MultiAgentQA.md` task 93: pilot contract (claim disjoint package, read START_HERE→handoff→routing→audit, run check_style+dead-code, keep tests green, commit per milestone) |
+| 94 | Add merge-conflict resolution protocol doc | done | Stream F | `MultiAgentQA.md` task 94: prevent (disjoint packages)/detect (pull --rebase)/resolve (append-not-edit for AIPlayer/PacketLogger hotspots)/verify/never-force-push |
+| 95 | Build style consistency checker | done | Stream F | `scripts/check_style.sh`: tabs, trailing whitespace, Math.random in src/main, System.out, TODO/FIXME, CRLF. Baseline captured (protocol/probe use tabs; many stubs have trailing whitespace — normalize during Stream G) |
 | 96 | Run dead code verification via `verify_no_dead_code.sh` | done | Stream F | Ran script: 181 files, BUILD SUCCESS, only 2 benign TODOs (launcher stub + isTargetDead comment). No real dead classes remain after D/E wiring. See Audit 38 |
 | 97 | Full integration test | done | Stream F | `MultiAgentIntegrationTest` (6): agent isolation (per-instance emotion/goals/learning NOT shared), collective knowledge shared by design, N-bot concurrent cycles clean, graceful shutdown (despawnAIPlayer + shutdownAll disconnect+persist+clear). No live server needed |
 | 98 | Load/performance test | done | Stream F | `AgentLoadTest` (2): 8 bots × 50 cycles = 400 decisions; avg decision latency < 100ms (in-process path far under manager's 100ms tick). Wired dead PerformanceMetrics + AIMonitorDashboard into thinkAllPlayers. Wall-clock load run deferred to hardware |
-| 99 | Security/abuse review | pending | | |
+| 99 | Security/abuse review | done | Stream F | `MultiAgentQA.md` task 99: credentials/rate-limit/reconnect bounds (3s+3-retry), server-authoritative commerce/bypass, per-agent isolation proven. Open: rotate dev pw, per-account session limit |
 | 100 | Write "new agent cold-start" test | done | System | scripts/cold_start_test.sh: 17/17 PASS (exit 0); fresh context orients in ~1272 tokens (vs ~73k) |
-| 101 | Update token budget doc | pending | | Measure actual token usage |
-| 102 | Retrospective on original roadmap | pending | | Compare 103-task vs Level 0-9 |
-| 103 | Define next task-cycle scope | pending | | Based on telemetry data |
+| 101 | Update token budget doc | done | Stream F | `MultiAgentQA.md` task 101: measured orientation ~1.3k tokens vs ~73k full handoff; one handoff read/session; RuntimeLog ≤~40 lines; baseline_metrics.sh. Also updated in `Documentation/WORKFLOW.md` |
+| 102 | Retrospective on original roadmap | done | Stream F | `MultiAgentQA.md` task 102: 103-task granularity beats Level 0-9; sequencing held; real cost = wiring (≥60% of effort); recurring root defect was instantiated-but-never-driven + Math.random mocks |
+| 103 | Define next task-cycle scope | done | Stream F | `MultiAgentQA.md` task 103: Stream G (wire ~145 stubs) in disjoint packages; G-Live (call D/E/F hooks on real packets) first, then G-Combat/G-Content/G-Behavior; exit criteria listed |
 
 ---
 

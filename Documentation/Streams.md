@@ -77,7 +77,7 @@ path — not mock data.
 
 ---
 
-## Stream F — Multi-Agent Scale & QA  ⏳ (declared 2026-08-04)
+## Stream F — Multi-Agent Scale & QA  ✅ DONE (2026-08-04)
 **Maps to:** `TASKS.md` Part 6 — tasks **92–103** (12 tasks; task 100 already done)
 
 ### Purpose

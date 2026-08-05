@@ -127,6 +127,7 @@ ss -tlnp 2>/dev/null | grep -E '2106|7777'   # expect both LISTEN
 | Quest system | `Audit/30-quest-progression.md`, `engine/QuestAI.java` |
 | Goals / personality / emotion | `Documentation/goal-personality-system.md`, `Documentation/Streams.md` (Stream D), `engine/GoalTree.java`, `engine/LongTermGoalsAI.java`, `advanced/`, `Audit/36-goal-personality-audit.md` |
 | Social / economy / trading | `Documentation/social-economy-system.md`, `Documentation/Streams.md` (Stream E), `engine/MerchantAI.java`, `engine/SocialAI.java`, `engine/ActivityScheduler.java`, `economy/`, `social/`, `Audit/37-social-economy-audit.md` |
+| Multi-agent / QA / meta | `Documentation/MultiAgentQA.md`, `Documentation/Streams.md` (Stream F), `engine/AIPlayerManager.java`, `metrics/PerformanceMetrics.java`, `monitor/`, `scripts/check_style.sh`, `scripts/verify_no_dead_code.sh`, `Audit/38-multiagent-audit.md` |
 | Docs / workflow only | `AGENT_ONBOARDING.md`, `Documentation/WORKFLOW.md`, `Documentation/Streams.md` |
 | Anything L2JMobius protocol | **audit-first** — read the matching `Audit/*.md` before writing code |
 

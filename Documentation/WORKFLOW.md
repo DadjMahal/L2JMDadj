@@ -48,8 +48,8 @@ Multi-step work MUST be recoverable if a session is cut off mid-work:
 ## 5. Multi-Agent Rules
 - Naming: `Laguna` (lead), `Alpha`, `Bravo`, `Charlie`… Set your name in TASKS Owner + git author + RuntimeLog.
 - Lock: never edit a task line another agent set `in_progress`.
-- Token budget: docs-only 500–1.5k; code+docs 2–5k; full feature 5–10k; audit deep dive 1.5–3k.
-- Merge conflict: pull first; second agent commits WIP and re-syncs. One agent per subsystem folder at a time for multi-file changes.
+- Token budget: docs-only 500–1.5k; code+docs 2–5k; full feature 5–10k; audit deep dive 1.5–3k. Measured (Stream F task 100/101): fresh-agent orientation via `START_HERE.md`+routing ≈ **1.3k tokens** vs the **~73k** full handoff — prefer the routing table over bulk reads.
+- Merge conflict: pull first; second agent commits WIP and re-syncs. One agent per subsystem folder at a time for multi-file changes. Full protocol in `Documentation/MultiAgentQA.md` task 94 (prevent/detect/resolve/verify/never-force-push).
 
 ## 6. RuntimeLog convention
 `Documentation/RuntimeLogs/YYYY-MM-DD-HHMMSS-<agent>-task<N>.md`, ≤40–70 lines:
