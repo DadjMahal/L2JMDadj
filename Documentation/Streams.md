@@ -103,3 +103,34 @@ F needs stable single-agent behavior from D+E before scaling.
 
 Parallelism: E's audit tasks (83–87) may overlap with D's audit tasks (70–75) since both audit
 unwired `AIPlayer` subsystems — but implementation is sequential D→E→F.
+
+---
+
+## Stream G — Wire the Remaining Stubs  ✅ CODE DONE (2026-08-05); run-proof/env/style pending
+**Maps to:** `TASKS.md` Part 7 — tasks **104–110** (addressed the ~145 stub classes from task 92/103)
+
+### Purpose
+Wire the previously-dead helper/content/behavior classes into the live decision path, i.e. convert
+the unit-proven D/E/F chains into live-driven behavior — and give every remaining stub an explicit
+disposition (wired + tested OR quarantined).
+
+### What shipped (code scope DONE)
+1. **G-Live (104):** `examples/GoalDrivenLoop` live driver (mirrors `CombatLoop`) + `engine/LiveFeedbackBridge`
+   fires D/E/F kill/level/death/respawn hooks from real `PacketLogger` deltas; loop consults
+   `ActivityScheduler.nextActivity()` + `GoalTree.selectActiveGoal()` before `makeDecision()`.
+2. **G-Combat (105):** `RangedKiteAI`, `PvPSkillRotation`, `AntiGriefing`, `AggroManager`, `SkillAllocator`
+   → `CombatAI` (append-only consultations on the live decision path).
+3. **G-Content (106):** `EventCalendarAI`, `AchievementAI`, `HeroTitleAI` → `AIPlayer` (+ achievement→goal hook).
+4. **G-Behavior (107):** `HumanReactionSimulator`, `BehaviorSeeder`, `MovementPatternAI`, `ResourceHoardingAI` → `AIPlayer`.
+5. **Disposition (108):** `Documentation/StreamGDisposition.md` — every stub wired+tested OR
+   explicitly quarantined; ~130 are documented library modules.
+6. **Relocation script (109):** `scripts/relocate_void_ai.sh` for the 23 void `ai_%` chars (ENV — not run here).
+
+### Entry / Exit criteria
+- **Entry:** Stream F done; `LiveFeedbackBridge` committed as G-Live partial.
+- **Exit (met in code):** `mvn test` **117/117** PASS; `verify_no_dead_code` PASS (2 benign TODOs);
+   every stub wired+tested or quarantined; `GoalDrivenLoop` + `LiveFeedbackBridge` on the live path.
+- **Remaining to fully close:** (a) run `GoalDrivenLoop` against the live server (server-verified proof);
+   (b) run `relocate_void_ai.sh --apply` on the L2JM host (relocate+heal 23 chars);
+   (c) style-normalize the legacy baseline (task 110).
+

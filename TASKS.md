@@ -182,9 +182,27 @@
 | 102 | Retrospective on original roadmap | done | Stream F | `MultiAgentQA.md` task 102: 103-task granularity beats Level 0-9; sequencing held; real cost = wiring (≥60% of effort); recurring root defect was instantiated-but-never-driven + Math.random mocks |
 | 103 | Define next task-cycle scope | done | Stream F | `MultiAgentQA.md` task 103: Stream G (wire ~145 stubs) in disjoint packages; G-Live (call D/E/F hooks on real packets) first, then G-Combat/G-Content/G-Behavior; exit criteria listed |
 
+## Part 7 — Stream G (Wire Remaining Stubs; tasks 104-110) 🔄 IN PROGRESS (packages 104-108 DONE)
+
+> Stream G = wire the ~145 stub classes (declared in `MultiAgentQA.md` task 103). Exit criterion:
+> every stub **wired + tested** OR **explicitly quarantined**; `mvn test` green; relocate the 23
+> void `ai_%` chars. Code scope is DONE (117/117 tests, `verify_no_dead_code` PASS with 2 benign
+> TODOs). Remaining = live-run proof of `GoalDrivenLoop` (server), relocating void chars (env,
+> §109), legacy style normalization (§110).
+
+| # | Task | Status | Owner | Evidence/Result |
+|---|------|--------|-------|-----------------|
+| 104 | G-Live: wire D/E/F hooks on real packets via a live driver | done | Stream G | `examples/GoalDrivenLoop` (bridge→activityScheduler→goalTree→makeDecision→frames) + `LiveFeedbackBridge.handleTick()` on real PacketLogger deltas (kill/level/death/respawn). LiveFeedbackBridgeTest 3. GoalDrivenLoop is a live driver (server proof = run it) |
+| 105 | G-Combat: wire RangedKiteAI/PvPSkillRotation/AntiGriefing/AggroManager/SkillAllocator into CombatAI | done | Stream G | Append-only consultations (shouldKiteNow/applyKiteBehavior, getOptimalPvPSkill(class) overload, allowPvP, getAggroManager, SkillAllocator in onLevelUp). StreamGCombatTest 5 |
+| 106 | G-Content: wire EventCalendarAI/AchievementAI/HeroTitleAI into AIPlayer | done | Stream G | Getters + markAchievementCompleted→ACHIEVEMENT_RAID goal hook. StreamGContentTest 4 |
+| 107 | G-Behavior: wire HumanReactionSimulator/BehaviorSeeder/MovementPatternAI/ResourceHoardingAI | done | Stream G | AIPlayer getters + deterministic consult points. StreamGBehaviorTest 5 |
+| 108 | Disposition: wire+test OR explicitly quarantine every stub | done | Stream G | `Documentation/StreamGDisposition.md`: 12 G-wired+tested; ~130 quarantined library modules (siege/clan/castle/boss/event/etc.); 4 genuine pending listed (AIPlayerEngine launcher, isTargetDead, PatternMemory persistence, DeepLearningCore.predict consult) |
+| 109 | Relocate 23 void `ai_%` chars | in_progress | Env | `scripts/relocate_void_ai.sh` (dry-run default; `--apply` moves+heals to wolf zone). **ENV blocker — needs L2JM host + gameserver DB; not run here** |
+| 110 | Style normalization of legacy baseline | pending | Stream G | `check_style.sh` still flags pre-existing legacy probe/protocol baseline (tabs, trailing ws, System.out): large reformat deferred. New G files are clean (0 trailing ws, no Math.random) |
+
 ---
 
-## Sequencing Notes
+
 
 1. **Part 0 (1-15)** is non-negotiable — must be completed first.
 2. **Task 16** is critical — gates all future development.

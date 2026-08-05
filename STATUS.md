@@ -3,17 +3,13 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 2 — Streams A–F DONE & committed; Stream G in progress (G-Live PARTIAL only).
-## Streams A–F: DONE & committed. A (cold-start/orientation), B (live proofs B1–B10: login, enter-world, combat, PvP, quest, move, chat, party, trade), C (live combat loop; C5 server-confirmed damage), D (goals/personality, Part 4 tasks 64-77, 76 tests), E (social/economy, Part 5 tasks 78-91, 92 tests), F (multi-agent/QA, Part 6 tasks 92-103, 100 tests). All roadmap tasks 1-103 now `done` (task 43 flipped 2026-08-05).
-## Stream G status (HONEST — corrects earlier inaccurate "G-Live pushed" claim): G-Live is PARTIAL only.
-   Committed WIP `e292ddfa`: LiveFeedbackBridge + 3 LiveFeedbackBridgeTest (pass) + PacketLogger STAT_LEVEL(0x01) parse + getLevel() + removeEntityForTest().
-   BUT: LiveFeedbackBridge has 0 callers (unwired into any live loop); GoalDrivenLoop live driver was NOT created; NO live-server proof yet (only unit tests on a fake logger). G-Combat / G-Content / G-Behavior not started.
-## Last completed milestone: `83808aef` Stream F DONE. (`e292ddfa` is a G-Live partial WIP, NOT a completion.)
-## Current: 103/103 tests PASS, BUILD SUCCESS. Working tree clean.
-## Next: Stream G — finish G-Live (wire LiveFeedbackBridge into a real live loop + build GoalDrivenLoop + a live run calling D/E/F hooks + activityScheduler.nextActivity() on real packets = the server-verified proof), then G-Combat, G-Content, G-Behavior (~145 stub classes to wire-or-quarantine).
-## TBD (open items): (1) Stream G entirely; (2) 23 ai_% chars still in void spawn — relocate+heal before multi-bot gameplay; (3) style normalization of legacy files (check_style.sh baseline: trailing ws etc.); (4) PatternMemory persistence across restarts (Stream E deferral); (5) DeepLearningCore.predict() consulted in live decision branch (fed, not yet consulted); (6) live-verification gap — D/E perception/combat tasks are unit/mock-proven, not server-verified (G-Live is meant to close this).
-## Stream docs: `Documentation/Streams.md` (D/E/F) + `goal-personality-system.md` (D) + `social-economy-system.md` (E) + `MultiAgentQA.md` (F QA/meta + Stream G scope, task 103).
-## Blockers: ~145 unwired stub classes (Stream G); 23 ai_% chars in void spawn.
+## Phase: 3 — Streams A–G: code scope COMPLETE (117/117 tests); remaining = live-run proof + env + style.
+## Stream G DONE in code (2026-08-05): G-Live (GoalDrivenLoop + LiveFeedbackBridge wired), G-Combat (RangedKiteAI/PvPSkillRotation/AntiGriefing/AggroManager/SkillAllocator → CombatAI), G-Content (EventCalendarAI/AchievementAI/HeroTitleAI → AIPlayer), G-Behavior (HumanReactionSimulator/BehaviorSeeder/MovementPatternAI/ResourceHoardingAI → AIPlayer). +14 tests → **117/117 PASS, BUILD SUCCESS**. `verify_no_dead_code` PASS (2 benign TODOs). Disposition manifest: `Documentation/StreamGDisposition.md`.
+## Last completed milestone: Stream F `83808aef` + G-Live partial `e292ddfa` → **Stream G wire-work done** (new commits for full G).
+## Honest G status: the 4 named work packages are wired+tested. Genuinely-pending (documented, not claimable as done): (1) LIVE-RUN proof of `examples/GoalDrivenLoop` against the server (it drives the D/E/F hooks + scheduler + goal loop; unit-tested via bridge, but no server run this session); (2) PATTERN: `AIPlayerEngine` launcher + `CombatAI.isTargetDead` + PatternMemory persistence + DeepLearningCore.predict consultation; (3) ENV: 23 void `ai_%` chars need relocation+heal (`scripts/relocate_void_ai.sh`, not run); (4) legacy style normalization (task 110, pre-existing baseline).
+## TBD (open): (1) run GoalDrivenLoop live (server proof). (2) PatternMemory persistence + DeepLearningCore.predict consultation in makeDecision (E-Extra). (3) relocate+heal 23 void chars (env). (4) style-normalize legacy probe/protocol baseline (task 110). (5) AIPlayerEngine launcher real spawn.
+## Stream docs: `Streams.md` (A–F + G) + `goal-personality-system.md` (D) + `social-economy-system.md` (E) + `MultiAgentQA.md` (F + G scope) + **`StreamGDisposition.md` (new, G disposition manifest)**.
+## Blockers: 23 ai_% chars in void spawn (relocate needed); legacy style baseline (task 110).
 
 ## Honest state (source: real_status.sh + live probe evidence)
 Server UP (LoginServer :2106, GameServer :7777). Live PvE combat (B4, exp 0→105), live PvP (B5, two bots

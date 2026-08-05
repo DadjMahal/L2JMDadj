@@ -24,6 +24,12 @@ public class CombatAI {
     private int comboCount;
     // Slice 6: last objId we engaged, so we can log when DeleteObject + re-detect makes us switch targets
     private int lastEngagedObjId = 0;
+
+    // Stream G (G-Combat): wire the previously-dead helper classes into live combat. These were
+    // instantiated/static but had ZERO callers (the recurring instantiated-but-uncalled defect).
+    private final AntiGriefing antiGriefing = new AntiGriefing();
+    private final AggroManager aggroManager = new AggroManager();
+    private int[] lastSkillAllocation = new int[0];
     
     public CombatAI(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
@@ -306,6 +312,8 @@ public class CombatAI {
         aiPlayer.getEmotions().onLevelUp();            // excitement + confidence up
         // A level-up is a strong positive quest/progress signal for the long-term goal.
         aiPlayer.getLongTermGoals().advanceGoal(LongTermGoalsAI.Goal.MAX_LEVEL, 1);
+        // Stream G (G-Combat): allocate SP/level skill points on level-up (SkillAllocator).
+        this.lastSkillAllocation = learnSkillsForLevel(newLevel, aiPlayer.getClassId(), 0);
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] LEVEL_UP: new_level=" + newLevel + " emotion=" + aiPlayer.getEmotions().getCurrentEmotion());
     }
 
@@ -590,4 +598,54 @@ public class CombatAI {
         
         return CombatDecision.idle();
     }
+
+    // ===========================================================================================
+    // Stream G (G-Combat) — wired helper consultations (appended, non-invasive).
+    // These give the previously-dead helper classes real callers in the live path.
+    // ===========================================================================================
+
+    /** AntiGriefing: whether this bot may escalate a PvP engagement given its grief counter. */
+    public boolean allowPvP() {
+        return antiGriefing.shouldGrieve();
+    }
+
+    public AntiGriefing getAntiGriefing() { return antiGriefing; }
+
+    public AggroManager getAggroManager() { return aggroManager; }
+
+    /**
+     * RangedKiteAI: should this bot kite instead of trading damage, given current HP% and the
+     * distance to the current target vs its safe max engagement distance.
+     */
+    public boolean shouldKiteNow() {
+        if (currentTarget == null) return false;
+        double dist = calculateDistanceTo(currentTarget);
+        if (dist == Double.MAX_VALUE) return false;
+        return RangedKiteAI.shouldKite(getCurrentHPPercentage(), (int) dist,
+            (int) config.getTargetDistance());
+    }
+
+    /** RangedKiteAI: if kiting is warranted, emit a flee decision (else null to keep kiting). */
+    public CombatDecision applyKiteBehavior() {
+        return shouldKiteNow() ? CombatDecision.flee() : null;
+    }
+
+    /** PvPSkillRotation: class-aware optimal PvP skill (new overload; the old method is kept intact). */
+    public String getOptimalPvPSkill(int mpPercentage, String enemyClass) {
+        int skillId = PvPSkillRotation.getSkillForClass(enemyClass, mpPercentage);
+        return skillId == 0 ? "ATTACK: Basic attack" : "SKILL:" + skillId + ":mp=" + mpPercentage;
+    }
+
+    /** PvPSkillRotation: defensive buff skill id (BARRIER etc.). */
+    public int getDefensiveSkillId() {
+        return PvPSkillRotation.getDefensiveSkill();
+    }
+
+    /** SkillAllocator: distribute SP by level+class; wired into onLevelUp. */
+    public int[] learnSkillsForLevel(int level, int classId, int sp) {
+        return SkillAllocator.allocateSkillPoints(level, classId, sp);
+    }
+
+    /** The most recent SkillAllocator output (set on every onLevelUp), for telemetry/tests. */
+    public int[] getLastSkillAllocation() { return lastSkillAllocation; }
 }

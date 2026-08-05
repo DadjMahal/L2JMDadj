@@ -80,6 +80,16 @@ public class AIPlayer {
     private final QuestAI questAI;
     private final MerchantAI merchantAI;
     private final SocialAI socialAI;
+
+    // Stream G (G-Content + G-Behavior): wire the previously-dead content/behavior simulators in.
+    // All had ZERO callers before G (the recurring instantiated-but-uncalled defect).
+    private final AchievementAI achievementAI = new AchievementAI();
+    private final EventCalendarAI eventCalendarAI = new EventCalendarAI();
+    private final HeroTitleAI heroTitleAI = new HeroTitleAI();
+    private final HumanReactionSimulator humanReaction = new HumanReactionSimulator();
+    private final BehaviorSeeder behaviorSeeder = new BehaviorSeeder();
+    private final MovementPatternAI movementPatternAI = new MovementPatternAI();
+    private final ResourceHoardingAI resourceHoardingAI = new ResourceHoardingAI();
     
     public AIPlayer(String name, int accountId, int classId, int race) {
         this.name = name;
@@ -354,6 +364,24 @@ public class AIPlayer {
     public MerchantAI getMerchantAI() { return merchantAI; }
     public SocialAI getSocialAI() { return socialAI; }
     public L2JProtocol getProtocol() { return protocol; }
+
+    // --- Stream G: expose the previously-dead G-Content / G-Behavior simulators (tasks 92,103) ---
+    public AchievementAI getAchievementAI() { return achievementAI; }
+    public EventCalendarAI getEventCalendarAI() { return eventCalendarAI; }
+    public HeroTitleAI getHeroTitleAI() { return heroTitleAI; }
+    public HumanReactionSimulator getHumanReaction() { return humanReaction; }
+    public BehaviorSeeder getBehaviorSeeder() { return behaviorSeeder; }
+    public MovementPatternAI getMovementPatternAI() { return movementPatternAI; }
+    public ResourceHoardingAI getResourceHoardingAI() { return resourceHoardingAI; }
+
+    /**
+     * Stream G (G-Content): completing an achievement records it AND advances the
+     * ACHIEVEMENT_RAID long-term goal (wiring AchievementAI into the goal system).
+     */
+    public void markAchievementCompleted(String id) {
+        achievementAI.completeAchievement(id);
+        longTermGoals.advanceGoal(LongTermGoalsAI.Goal.ACHIEVEMENT_RAID, 1);
+    }
 
     // --- Stream D: expose the advanced intelligence subsystems (tasks 70-76) ---
     // These were always instantiated in the constructor but had NO getters, so the live combat

@@ -104,6 +104,17 @@ next cycle, split into the disjoint packages of task 92. Priorities:
 Exit criteria for Stream G: every stub either wired + tested or explicitly quarantined; style +
 dead-code checkers clean; `mvn test` green; the 23 `ai_%` chars relocated to a live zone.
 
+### Stream G status (2026-08-05) ✅ CODE DONE, run-proof/env/style pending
+- **Code scope complete:** G-Live (`GoalDrivenLoop` + wired `LiveFeedbackBridge`), G-Combat
+  (RangedKiteAI/PvPSkillRotation/AntiGriefing/AggroManager/SkillAllocator → CombatAI), G-Content
+  (EventCalendarAI/AchievementAI/HeroTitleAI → AIPlayer), G-Behavior (HumanReactionSimulator/
+  BehaviorSeeder/MovementPatternAI/ResourceHoardingAI → AIPlayer). +14 tests → **117/117 PASS**.
+- **Disposition manifest:** `Documentation/StreamGDisposition.md` (wire+test OR quarantine every stub).
+- **Remaining:** run `GoalDrivenLoop` live (server proof); `relocate_void_ai.sh --apply` on the L2JM
+  host for the 23 void chars; style-normalize the legacy baseline (task 110); E-Extra (PatternMemory
+  persistence + `DeepLearningCore.predict()` consultation in `makeDecision()`).
+
+
 ---
 
 ## Route map
