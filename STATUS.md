@@ -3,14 +3,17 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 2 — Combat + Quest + Goal/personality + Social/Economy + Multi-Agent QA (Streams D/E/F DONE)
-## Last completed: **Stream F DONE (2026-08-04, all 12 Part-6 tasks 92-103).** (F1-2) multi-agent isolation + graceful shutdown + load + dead-code: AIPlayerManager.despawnAIPlayer now persist+disconnect, added shutdownAll()/getManagedPlayers(); thinkAllPlayers feeds AIMonitorDashboard + records latency via PerformanceMetrics (both were dead). MultiAgentIntegrationTest (6: per-instance emotion/goals/PatternMemory isolation, collective shared by design, N-bot concurrency, graceful shutdown) + AgentLoadTest (2: 8x50=400 decisions avg<100ms). verify_no_dead_code.sh BUILD SUCCESS. (F3) check_style.sh + MultiAgentQA.md (work packages 92, pilot contract 93, merge-conflict protocol 94, security review 99, token budget 101, roadmap retrospective 102, Stream G scope 103). **100/100 tests PASS, BUILD SUCCESS.** (E done 92/92; D done 76/76; C live-proven.)
-## Current: Stream E complete. Open: call trade/party/scheduler hooks from the LIVE driver on real packets; live loop consult activityScheduler.nextActivity().
-## Next: Stream E slices 2-3, then Stream F.
-## Next: declare streams D/E/F formally; then implement stream D (Goals & Long-Term, Part 4 tasks 64-77), E (Social & Economy, Part 5), F (Multi-Agent/QA, Part 6). **Streams D/E/F declared** in `Documentation/Streams.md` (2026-08-04). **Stream D DONE** (all 14 Part-4 tasks 64-77: GoalTree + personality/emotion feedback + reinforcement wiring; 76/76 tests). Next: Stream E (Social & Economy, Part 5).
-## Stream docs: see `Documentation/Streams.md` (D/E/F definitions) + `Documentation/goal-personality-system.md` (Stream D) + `Documentation/social-economy-system.md` (Stream E) + `Documentation/MultiAgentQA.md` (Stream F QA/meta).
-## Next: Stream G (wire ~145 stub classes; G-Live first — call D/E/F hooks on real packets). See `Documentation/MultiAgentQA.md` task 103.
-## Blockers: ~145 unwired stub classes (Stream G); 23 ai_% chars still in the void spawn (relocate+heal before multi-bot gameplay).
+## Phase: 2 — Streams A–F DONE & committed; Stream G in progress (G-Live PARTIAL only).
+## Streams A–F: DONE & committed. A (cold-start/orientation), B (live proofs B1–B10: login, enter-world, combat, PvP, quest, move, chat, party, trade), C (live combat loop; C5 server-confirmed damage), D (goals/personality, Part 4 tasks 64-77, 76 tests), E (social/economy, Part 5 tasks 78-91, 92 tests), F (multi-agent/QA, Part 6 tasks 92-103, 100 tests). All roadmap tasks 1-103 now `done` (task 43 flipped 2026-08-05).
+## Stream G status (HONEST — corrects earlier inaccurate "G-Live pushed" claim): G-Live is PARTIAL only.
+   Committed WIP `e292ddfa`: LiveFeedbackBridge + 3 LiveFeedbackBridgeTest (pass) + PacketLogger STAT_LEVEL(0x01) parse + getLevel() + removeEntityForTest().
+   BUT: LiveFeedbackBridge has 0 callers (unwired into any live loop); GoalDrivenLoop live driver was NOT created; NO live-server proof yet (only unit tests on a fake logger). G-Combat / G-Content / G-Behavior not started.
+## Last completed milestone: `83808aef` Stream F DONE. (`e292ddfa` is a G-Live partial WIP, NOT a completion.)
+## Current: 103/103 tests PASS, BUILD SUCCESS. Working tree clean.
+## Next: Stream G — finish G-Live (wire LiveFeedbackBridge into a real live loop + build GoalDrivenLoop + a live run calling D/E/F hooks + activityScheduler.nextActivity() on real packets = the server-verified proof), then G-Combat, G-Content, G-Behavior (~145 stub classes to wire-or-quarantine).
+## TBD (open items): (1) Stream G entirely; (2) 23 ai_% chars still in void spawn — relocate+heal before multi-bot gameplay; (3) style normalization of legacy files (check_style.sh baseline: trailing ws etc.); (4) PatternMemory persistence across restarts (Stream E deferral); (5) DeepLearningCore.predict() consulted in live decision branch (fed, not yet consulted); (6) live-verification gap — D/E perception/combat tasks are unit/mock-proven, not server-verified (G-Live is meant to close this).
+## Stream docs: `Documentation/Streams.md` (D/E/F) + `goal-personality-system.md` (D) + `social-economy-system.md` (E) + `MultiAgentQA.md` (F QA/meta + Stream G scope, task 103).
+## Blockers: ~145 unwired stub classes (Stream G); 23 ai_% chars in void spawn.
 
 ## Honest state (source: real_status.sh + live probe evidence)
 Server UP (LoginServer :2106, GameServer :7777). Live PvE combat (B4, exp 0→105), live PvP (B5, two bots

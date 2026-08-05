@@ -93,7 +93,7 @@
 
 | # | Task | Status | Owner | Evidence/Result |
 |---|------|--------|-------|-----------------|
-| 43 | Audit existing `CombatAI.java` | pending | | |
+| 43 | Audit existing `CombatAI.java` | done | System | `Audit/15-combat-ai.md` exists (also cited by task 56); CombatAI audited + refactored across Stream C (Math.random mocks removed, real packet-driven decisions). Row was left `pending` by oversight; flipped done 2026-08-05 |
 | 44 | Audit existing `CombatState.java` | done | System | HP/MP%, DPS, combat summary; BUILD SUCCESS |
 | 45 | Audit existing `CombatDecision.java` | done | System | reason tracking, PvP action types, toString; BUILD SUCCESS |
 | 46 | Audit existing `CombatConfig.java` | done | System | PvP config, defensive thresholds, skill priority; BUILD SUCCESS |
