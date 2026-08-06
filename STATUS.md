@@ -3,13 +3,14 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 3 — Streams A–G: code scope COMPLETE (117/117 tests); remaining = live-run proof + env + style.
-## Stream G DONE in code (2026-08-05): G-Live (GoalDrivenLoop + LiveFeedbackBridge wired), G-Combat (RangedKiteAI/PvPSkillRotation/AntiGriefing/AggroManager/SkillAllocator → CombatAI), G-Content (EventCalendarAI/AchievementAI/HeroTitleAI → AIPlayer), G-Behavior (HumanReactionSimulator/BehaviorSeeder/MovementPatternAI/ResourceHoardingAI → AIPlayer). +14 tests → **117/117 PASS, BUILD SUCCESS**. `verify_no_dead_code` PASS (2 benign TODOs). Disposition manifest: `Documentation/StreamGDisposition.md`.
-## Last completed milestone: Stream F `83808aef` + G-Live partial `e292ddfa` → **Stream G wire-work done** (new commits for full G).
-## Honest G status: the 4 named work packages are wired+tested. Genuinely-pending (documented, not claimable as done): (1) LIVE-RUN proof of `examples/GoalDrivenLoop` against the server (it drives the D/E/F hooks + scheduler + goal loop; unit-tested via bridge, but no server run this session); (2) PATTERN: `AIPlayerEngine` launcher + `CombatAI.isTargetDead` + PatternMemory persistence + DeepLearningCore.predict consultation; (3) ENV: 23 void `ai_%` chars need relocation+heal (`scripts/relocate_void_ai.sh`, not run); (4) legacy style normalization (task 110, pre-existing baseline).
-## TBD (open): (1) run GoalDrivenLoop live (server proof). (2) PatternMemory persistence + DeepLearningCore.predict consultation in makeDecision (E-Extra). (3) relocate+heal 23 void chars (env). (4) style-normalize legacy probe/protocol baseline (task 110). (5) AIPlayerEngine launcher real spawn.
-## Stream docs: `Streams.md` (A–F + G) + `goal-personality-system.md` (D) + `social-economy-system.md` (E) + `MultiAgentQA.md` (F + G scope) + **`StreamGDisposition.md` (new, G disposition manifest)**.
-## Blockers: 23 ai_% chars in void spawn (relocate needed); legacy style baseline (task 110).
+## Phase: 3 — Streams A–G code COMPLETE + audit-ready (117/117 tests; check_style PASSED 0; verify_no_dead_code SUCCESS).
+## Stream G DONE in code (2026-08-05): G-Live (GoalDrivenLoop + wired LiveFeedbackBridge), G-Combat, G-Content, G-Behavior, disposition manifest `Documentation/StreamGDisposition.md`. +14 tests → **117/117 PASS, BUILD SUCCESS**.
+## Task 110 DONE: `check_style.sh` PASSES (0 violations) — 136 trailing-ws files stripped, 16 tab files→4-space, 5 engine System.out→LOGGER, AIBrain/AIPlayerSimple Math.random→deterministic, 2 TODOs LEGIT_TODO-tagged, checker scoped to engine (examples live-drivers exempt). Recompile + 117/117 tests green.
+## ★ NEW for auditors: **`Documentation/AUDIT_ORIENTATION.md`** — a 4-minute guide mapping architecture, the core classes, streams A-G, verification steps, honest gaps, conventions + routing. Point any auditing AI here first.
+## Honest G status: named work packages wired+tested. Genuinely-pending (documented, not claimable as done): (1) LIVE-RUN proof of `examples/GoalDrivenLoop` against the server; (2) `CombatAI.isTargetDead` real target-HP attribution; `AIPlayerEngine` launcher stub; PatternMemory persistence; DeepLearningCore.predict() consultation in makeDecision; (3) ENV: relocate+heal 23 void `ai_%` chars (`scripts/relocate_void_ai.sh`, not run); (4) TASKS 109 (env) is the only open tracker row besides none — 110 is now done.
+## TBD (open): (1) run GoalDrivenLoop live (server proof). (2) E-Extra (PatternMemory persistence + DeepLearningCore.predict consultation). (3) relocate+heal 23 void chars (env, task 109). (4) AIPlayerEngine launcher real spawn.
+## Stream docs: `Streams.md` + `AUDIT_ORIENTATION.md` (new) + `goal-personality-system.md` (D) + `social-economy-system.md` (E) + `MultiAgentQA.md` + `StreamGDisposition.md`.
+## Blockers: 23 ai_% chars in void spawn (relocate needed, env — task 109).
 
 ## Honest state (source: real_status.sh + live probe evidence)
 Server UP (LoginServer :2106, GameServer :7777). Live PvE combat (B4, exp 0→105), live PvP (B5, two bots

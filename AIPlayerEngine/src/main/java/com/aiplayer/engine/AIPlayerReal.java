@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class AIPlayerReal {
     private static final Logger LOGGER = Logger.getLogger(AIPlayerReal.class.getName());
-    
+
     private final String name;
     private final int accountId;
     private final String playerType;
@@ -21,28 +21,28 @@ public class AIPlayerReal {
     private Socket socket;
     private DataOutputStream out;
     private DataInputStream in;
-    
+
     // Progress Tracking
     private int level = 1;
     private int experience = 0;
     private int adena = 1000;
     private int questsCompleted = 0;
     private List<String> completedQuests = new ArrayList<>();
-    
+
     public AIPlayerReal(String name, int accountId) {
         this(name, accountId, "general");
     }
-    
+
     public AIPlayerReal(String name, int accountId, String playerType) {
         this.name = name;
         this.accountId = accountId;
         this.playerType = playerType.toLowerCase();
     }
-    
+
     public void start() {
         running.set(true);
         LOGGER.info("[AI] " + name + " starting EPIC NIGHT PLAY SESSION...");
-        
+
         new Thread(() -> {
             try {
                 initializePlayer();
@@ -52,7 +52,7 @@ public class AIPlayerReal {
             }
         }, name + "-AI-Thread").start();
     }
-    
+
     private void initializePlayer() throws IOException, InterruptedException {
         LOGGER.info("[AI] " + name + " connecting to EPIC WORLD...");
         Thread.sleep(1000);
@@ -61,7 +61,7 @@ public class AIPlayerReal {
         Thread.sleep(500);
         LOGGER.info("[GAME] " + name + " spawned at coordinates (16600, 17000, 434)");
     }
-    
+
     private void playAllNight() {
         int cycle = 0;
         while (running.get()) {
@@ -75,10 +75,10 @@ public class AIPlayerReal {
             }
         }
     }
-    
+
     private void makeDecision(int cycle) {
         // Each player type has specific behaviors
-        
+
         if ("merchant".equals(playerType)) {
             merchantBehavior(cycle);
         } else if ("combat".equals(playerType)) {
@@ -92,23 +92,23 @@ public class AIPlayerReal {
         } else if ("farming".equals(playerType)) {
             farmingBehavior(cycle);
         }
-        
+
         // Every 10 cycles - level up!
         if (cycle % 10 == 0) {
             gainLevel();
         }
-        
+
         // Every 20 cycles - quest progress
         if (cycle % 20 == 0) {
             completeQuest();
         }
-        
+
         // Every 5 cycles - gain adena
         if (cycle % 5 == 0) {
             gainAdena();
         }
     }
-    
+
     private void merchantBehavior(int cycle) {
         if (cycle % 3 == 0) {
             LOGGER.info("[MERCHANT] " + name + " scanning Gludio merchant for deals");
@@ -125,7 +125,7 @@ public class AIPlayerReal {
             LOGGER.info("[MERCHANT] " + name + " price comparison check - profit opportunity found!");
         }
     }
-    
+
     private void combatBehavior(int cycle) {
         if (cycle % 2 == 0) {
             int monster = ThreadLocalRandom.current().nextInt(20000, 20010);
@@ -141,7 +141,7 @@ public class AIPlayerReal {
             LOGGER.info("[LOOT] " + name + " received drop: Enchanted Leather");
         }
     }
-    
+
     private void questBehavior(int cycle) {
         if (cycle % 3 == 0) {
             LOGGER.info("[QUEST] " + name + " accepting quest from NPC 30017");
@@ -156,7 +156,7 @@ public class AIPlayerReal {
             LOGGER.info("[QUEST] " + name + " received reward: 1200 ADENA, 1 Skill Point");
         }
     }
-    
+
     private void socialBehavior(int cycle) {
         if (cycle % 4 == 0) {
             String[] messages = {
@@ -174,7 +174,7 @@ public class AIPlayerReal {
             LOGGER.info("[SOCIAL] " + name + " distributing 100% party loot fairly");
         }
     }
-    
+
     private void explorerBehavior(int cycle) {
         if (cycle % 3 == 0) {
             int x = 16000 + ThreadLocalRandom.current().nextInt(1000);
@@ -188,7 +188,7 @@ public class AIPlayerReal {
             LOGGER.info("[MAP] " + name + " unlocked new map zone - Elven Areas");
         }
     }
-    
+
     private void farmingBehavior(int cycle) {
         if (cycle % 4 == 0) {
             int herb = 1001 + ThreadLocalRandom.current().nextInt(50);
@@ -201,7 +201,7 @@ public class AIPlayerReal {
             LOGGER.info("[FARM] " + name + " farming session complete - 200 items collected");
         }
     }
-    
+
     private void gainLevel() {
         level++;
         int xpGained = 500 + ThreadLocalRandom.current().nextInt(1000);
@@ -209,7 +209,7 @@ public class AIPlayerReal {
         LOGGER.info("[LEVEL] " + name + " LEVEL UP! Now Level " + level + " (+XP: " + xpGained + ")");
         LOGGER.info("[GAME] " + name + " skill point allocated to STR attribute");
     }
-    
+
     private void completeQuest() {
         questsCompleted++;
         String[] questIds = {"Q00028", "Q00031", "Q00046", "Q00052", "Q00069"};
@@ -217,7 +217,7 @@ public class AIPlayerReal {
         completedQuests.add(questId);
         LOGGER.info("[ACHIEVEMENT] " + name + " completed quest " + questId);
     }
-    
+
     private void gainAdena() {
         int gained = 50 + ThreadLocalRandom.current().nextInt(200);
         adena += gained;
@@ -225,12 +225,12 @@ public class AIPlayerReal {
             LOGGER.info("[GOLD] " + name + " gained " + gained + " ADENA (Total: " + adena + ")");
         }
     }
-    
+
     public void stop() {
         running.set(false);
         LOGGER.info("[AI] " + name + " signing off for rest...");
     }
-    
+
     // Progress getters for tomorrow's report
     public int getLevel() { return level; }
     public int getExperience() { return experience; }

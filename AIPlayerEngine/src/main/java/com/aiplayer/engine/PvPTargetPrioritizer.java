@@ -11,33 +11,33 @@ public class PvPTargetPrioritizer {
         DPS(1.2),
         TANK(1.0),
         MAGIC(1.3);
-        
+
         private final double multiplier;
         TargetPriority(double mult) { this.multiplier = mult; }
         public double getMultiplier() { return multiplier; }
     }
-    
+
     public static class PvPTarget {
         public final String name;
         public final String className;
         public final int health;
         public final int maxHealth;
         public final int karma;
-        
+
         public PvPTarget(String name, String className, int health, int maxHealth, int karma) {
             this.name = name; this.className = className;
             this.health = health; this.maxHealth = maxHealth; this.karma = karma;
         }
-        
+
         public double getHealthPercent() {
             return maxHealth > 0 ? (double) health / maxHealth : 0;
         }
-        
+
         public boolean isHealer() {
             return className.equals("Wizard") || className.equals("Cleric");
         }
     }
-    
+
     public static double calculatePriority(PvPTarget target) {
         double score = 1.0;
         if (target.isHealer()) score *= 2.0;

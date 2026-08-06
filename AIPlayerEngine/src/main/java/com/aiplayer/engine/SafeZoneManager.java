@@ -10,46 +10,46 @@ import java.util.logging.Logger;
  */
 public class SafeZoneManager {
     private static final Logger LOGGER = Logger.getLogger(SafeZoneManager.class.getName());
-    
+
     // Safe zone types
     public enum ZoneType {
         TOWN, GVS_GATE, CASTLE_GATE, ESCORT_START, MONSTER_TRACK, OTHER
     }
-    
+
     // Safe zone definition
     public static class SafeZone {
         public final int minX, minY, maxX, maxY;
         public final ZoneType type;
         public final boolean isPvPForbidden;
-        
+
         public SafeZone(int minX, int minY, int maxX, int maxY, ZoneType type) {
             this.minX = minX; this.minY = minY;
             this.maxX = maxX; this.maxY = maxY;
             this.type = type;
             this.isPvPForbidden = (type == ZoneType.TOWN || type == ZoneType.GVS_GATE);
         }
-        
+
         public boolean contains(int x, int y) {
             return x >= minX && x <= maxX && y >= minY && y <= maxY;
         }
-        
+
         @Override
         public String toString() {
             return "SafeZone{" + type + "=[" + minX + "," + minY + "-" + maxX + "," + maxY + "]}";
         }
     }
-    
+
     private static SafeZone[] safeZones;
-    
+
     static {
         initializeDefaultZones();
     }
-    
+
     private static void initializeDefaultZones() {
         safeZones = new SafeZone[] {
             // Gludio town
             new SafeZone(-1850, -1750, -1550, -1450, ZoneType.TOWN),
-            // Gludin town  
+            // Gludin town
             new SafeZone(-8600, -20200, -8100, -19700, ZoneType.TOWN),
             // Giran town
             new SafeZone(-12300, -8200, -10200, -5900, ZoneType.TOWN),
@@ -64,7 +64,7 @@ public class SafeZoneManager {
         };
         LOGGER.info("SafeZoneManager: Initialized " + safeZones.length + " safe zones");
     }
-    
+
     /**
      * Check if coordinates are in a safe zone
      */
@@ -74,7 +74,7 @@ public class SafeZoneManager {
         }
         return false;
     }
-    
+
     /**
      * Get the safe zone at given coordinates, or null if not in safe zone
      */
@@ -84,7 +84,7 @@ public class SafeZoneManager {
         }
         return null;
     }
-    
+
     /**
      * Check if PvP is forbidden at given coordinates
      */
@@ -92,7 +92,7 @@ public class SafeZoneManager {
         SafeZone zone = getSafeZoneAt(x, y);
         return zone != null && zone.isPvPForbidden;
     }
-    
+
     /**
      * Add a new safe zone
      */
@@ -103,13 +103,13 @@ public class SafeZoneManager {
         safeZones = newZones;
         LOGGER.info("SafeZoneManager: Added " + zone);
     }
-    
+
     // Demo test
     public static void main(String[] args) {
-        System.out.println("=== Safe Zone Manager Demo ===");
-        System.out.println("Giran center (-11000, -7000): " + getSafeZoneAt(-11000, -7000));
-        System.out.println("Wilderness (50000, 50000): " + getSafeZoneAt(50000, 50000));
-        System.out.println("PvP forbidden at town: " + isPvPForbidden(-11000, -7000));
-        System.out.println("PvP forbidden in wild: " + isPvPForbidden(50000, 50000));
+        LOGGER.info("=== Safe Zone Manager Demo ===");
+        LOGGER.info("Giran center (-11000, -7000): " + getSafeZoneAt(-11000, -7000));
+        LOGGER.info("Wilderness (50000, 50000): " + getSafeZoneAt(50000, 50000));
+        LOGGER.info("PvP forbidden at town: " + isPvPForbidden(-11000, -7000));
+        LOGGER.info("PvP forbidden in wild: " + isPvPForbidden(50000, 50000));
     }
 }

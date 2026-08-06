@@ -12,13 +12,13 @@ import com.aiplayer.protocol.PacketLogger;
  */
 public class SocialAI {
     private static final Logger LOGGER = Logger.getLogger(SocialAI.class.getName());
-    
+
     private final AIPlayer aiPlayer;
     private final SocialConfig config;
     private PacketLogger packetLogger;
     private ClanState clanState;
     private PartyState partyState;
-    
+
     public SocialAI(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
         this.config = SocialConfig.getInstance();
@@ -69,7 +69,7 @@ public class SocialAI {
         LOGGER.info("[SOCIAL-LOG] [" + aiPlayer.getName() + "] PARTY_LEFT: " + partyId);
     }
 
-    
+
     /**
      * Main social decision method
      * Decides what social action to take
@@ -78,60 +78,60 @@ public class SocialAI {
         if (!config.isEnabled()) {
             return SocialDecision.idle();
         }
-        
+
         try {
             // Check party status
             if (inParty()) {
                 return managePartyActivity();
             }
-            
+
             // Check clan status
             if (inClan()) {
                 return manageClanActivity();
             }
-            
+
             // Look for party invitation opportunities
             if (config.isPartyInviteEnabled() && shouldSeekParty()) {
                 return seekParty();
             }
-            
+
             // Look for clan opportunities
             if (config.isClanJoinEnabled() && shouldSeekClan()) {
                 return seekClan();
             }
-            
+
             // Chat/IDLE behavior
             if (config.isChatEnabled() && shouldChat()) {
                 return generateChat();
             }
-            
+
             return SocialDecision.idle();
-            
+
         } catch (Exception e) {
             LOGGER.warning("Social AI error for " + aiPlayer.getName() + ": " + e.getMessage());
             return SocialDecision.idle();
         }
     }
-    
+
     private SocialDecision managePartyActivity() {
         // Help party leader
         if (partyState.isLeader()) {
             return managePartyLeadership();
         }
-        
+
         // Follow leader
         if (partyState.getLeader() != null) {
             return followPartyLeader();
         }
-        
+
         // Participate in party activities (loot, quests, etc.)
         return participateInParty();
     }
-    
+
     private boolean inParty() {
         return partyState.isInParty();
     }
-    
+
     private SocialDecision managePartyLeadership() {
         // Invite helpful players
         // Coordinate activities
@@ -139,25 +139,25 @@ public class SocialAI {
         LOGGER.info("[SOCIAL-LOG] [" + aiPlayer.getName() + "] PARTY_COORDINATION");
         return SocialDecision.coordinateParty();
     }
-    
+
     private SocialDecision followPartyLeader() {
         // Follow leader to hunting grounds
         // Assist in combat
         LOGGER.info("[SOCIAL-LOG] [" + aiPlayer.getName() + "] FOLLOW_PARTY_LEADER");
         return SocialDecision.followLeader(partyState.getLeader());
     }
-    
+
     private SocialDecision participateInParty() {
         // Share loot fairly
         // Assist nearby members
         LOGGER.info("[SOCIAL-LOG] [" + aiPlayer.getName() + "] PARTICIPATE_IN_PARTY");
         return SocialDecision.assistParty();
     }
-    
+
     private boolean inClan() {
         return clanState.isInClan();
     }
-    
+
     private SocialDecision manageClanActivity() {
         // Participate in clan events
         // Use clan warehouse
@@ -238,5 +238,5 @@ public class SocialAI {
         return SocialDecision.chat(message);
     }
 
-    
+
 }

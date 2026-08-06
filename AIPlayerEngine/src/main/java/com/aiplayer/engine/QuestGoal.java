@@ -11,19 +11,19 @@ public enum QuestGoal {
     CONDITION_CHECK("Check Conditions", false),
     TURN_IN("Turn In Quest", false),
     NONE("No Goal", false);
-    
+
     private final String description;
     private final boolean requiresTracking;
-    
+
     QuestGoal(String description, boolean requiresTracking) {
         this.description = description;
         this.requiresTracking = requiresTracking;
     }
-    
+
     public String getDescription() {
         return description;
     }
-    
+
     public boolean requiresTracking() {
         return requiresTracking;
     }
@@ -52,7 +52,7 @@ class QuestGoalDetail {
     private final int count;
     private final int npcId;
     private final int x, y, z;
-    
+
     public QuestGoalDetail(GoalType type) {
         this.type = type;
         this.itemId = 0;
@@ -64,7 +64,7 @@ class QuestGoalDetail {
         this.y = 0;
         this.z = 0;
     }
-    
+
     public GoalType getType() { return type; }
     public int getItemId() { return itemId; }
     public int getRequiredCount() { return requiredCount; }

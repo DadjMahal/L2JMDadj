@@ -4,16 +4,16 @@ import java.util.logging.Logger;
 
 public class ContentUnlocker {
     private static final Logger LOGGER = Logger.getLogger(ContentUnlocker.class.getName());
-    
+
     public enum ContentLevel { BEGINNER, INTERMEDIATE, ADVANCED, EXPERT, LEGENDARY }
-    
+
     public static class UnlockInfo {
         public final int level;
         public final String[] content;
-        
+
         public UnlockInfo(int lvl, String[] cont) { level = lvl; content = cont; }
     }
-    
+
     public static ContentLevel getContentLevel(int playerLevel) {
         if (playerLevel < 30) return ContentLevel.BEGINNER;
         if (playerLevel < 50) return ContentLevel.INTERMEDIATE;
@@ -21,7 +21,7 @@ public class ContentUnlocker {
         if (playerLevel < 90) return ContentLevel.EXPERT;
         return ContentLevel.LEGENDARY;
     }
-    
+
     public static boolean shouldProgress(int currentLevel, ContentLevel contentLevel) {
         switch (contentLevel) {
             case BEGINNER: return currentLevel >= 20;
@@ -32,7 +32,7 @@ public class ContentUnlocker {
             default: return false;
         }
     }
-    
+
     public static String[] getAvailableContent(int level) {
         ContentLevel cl = getContentLevel(level);
         switch (cl) {

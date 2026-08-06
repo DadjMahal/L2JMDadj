@@ -18,7 +18,7 @@ public class QuestDecision {
         DAILY_QUEST_CYCLE,
         CLASS_CHANGE_QUEST
     }
-    
+
     private final Action action;
     private final String questId;
     private final String itemId;
@@ -27,7 +27,7 @@ public class QuestDecision {
     private final int x, y, z;
     private final boolean shouldExecute;
     private final long timestamp;
-    
+
     private QuestDecision(Action action, String questId, String itemId, int count,
                          String npcId, int x, int y, int z, boolean shouldExecute) {
         this.action = action;
@@ -41,49 +41,49 @@ public class QuestDecision {
         this.shouldExecute = shouldExecute;
         this.timestamp = System.currentTimeMillis();
     }
-    
+
     // Factory methods
     public static QuestDecision talkToNPC(String questId, String npcId, int x, int y, int z) {
         return new QuestDecision(Action.TALK_TO_NPC, questId, null, 0, npcId, x, y, z, true);
     }
-    
+
     // Factory methods
     public static QuestDecision idle() {
         return new QuestDecision(Action.IDLE, null, null, 0, null, 0, 0, 0, false);
     }
-    
+
     public static QuestDecision acceptQuest(String questId, String npcId, int x, int y, int z) {
         return new QuestDecision(Action.ACCEPT_QUEST, questId, null, 0, npcId, x, y, z, true);
     }
-    
+
     public static QuestDecision killMonster(String monsterId, int count) {
         return new QuestDecision(Action.KILL_MONSTER, null, null, count, monsterId, 0, 0, 0, true);
     }
-    
+
     public static QuestDecision collectItem(String itemId, int count) {
         return new QuestDecision(Action.COLLECT_ITEM, null, itemId, count, null, 0, 0, 0, true);
     }
-    
+
     public static QuestDecision findNPC(String npcId, int x, int y, int z) {
         return new QuestDecision(Action.FIND_NPC, null, null, 0, npcId, x, y, z, true);
     }
-    
+
     public static QuestDecision checkConditions(String questId) {
         return new QuestDecision(Action.CHECK_CONDITIONS, questId, null, 0, null, 0, 0, 0, true);
     }
-    
+
     public static QuestDecision turnInQuest(String questId) {
         return new QuestDecision(Action.TURN_IN_QUEST, questId, null, 0, null, 0, 0, 0, true);
     }
-    
+
     public static QuestDecision abandonQuest(String questId) {
         return new QuestDecision(Action.ABANDON_QUEST, questId, null, 0, null, 0, 0, 0, true);
     }
-    
+
     public static QuestDecision dailyQuestCycle() {
         return new QuestDecision(Action.DAILY_QUEST_CYCLE, null, null, 0, null, 0, 0, 0, true);
     }
-    
+
     public static QuestDecision classChangeQuest() {
         return new QuestDecision(Action.CLASS_CHANGE_QUEST, null, null, 0, null, 0, 0, 0, true);
     }
@@ -94,10 +94,10 @@ public class QuestDecision {
     }
 
     public static QuestDecision findBestQuest() {
-        return new QuestDecision(Action.FIND_NPC, "BEST_QUEST_ID", null, 0, 
+        return new QuestDecision(Action.FIND_NPC, "BEST_QUEST_ID", null, 0,
                                 "RECOMMEND_NPC", 16600, 17000, 434, true);
     }
-    
+
     // Getters
     public Action getAction() { return action; }
     public String getQuestId() { return questId; }

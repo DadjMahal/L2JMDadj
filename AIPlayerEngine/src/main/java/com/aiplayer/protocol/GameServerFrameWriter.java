@@ -13,26 +13,26 @@ import java.io.OutputStream;
  */
 public class GameServerFrameWriter
 {
-	private final OutputStream out;
+    private final OutputStream out;
 
-	public GameServerFrameWriter(OutputStream out)
-	{
-		this.out = out;
-	}
+    public GameServerFrameWriter(OutputStream out)
+    {
+        this.out = out;
+    }
 
-	/**
-	 * Write a framed packet and flush.
-	 *
-	 * @throws IllegalArgumentException if the frame is not a valid [size][payload] packet
-	 * @throws IOException on write failure
-	 */
-	public synchronized void writeFrame(byte[] frame) throws IOException
-	{
-		if (frame == null || frame.length < 3)
-		{
-			throw new IllegalArgumentException("malformed frame: must contain a size header + opcode");
-		}
-		out.write(frame);
-		out.flush();
-	}
+    /**
+     * Write a framed packet and flush.
+     *
+     * @throws IllegalArgumentException if the frame is not a valid [size][payload] packet
+     * @throws IOException on write failure
+     */
+    public synchronized void writeFrame(byte[] frame) throws IOException
+    {
+        if (frame == null || frame.length < 3)
+        {
+            throw new IllegalArgumentException("malformed frame: must contain a size header + opcode");
+        }
+        out.write(frame);
+        out.flush();
+    }
 }

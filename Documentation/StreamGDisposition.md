@@ -8,8 +8,9 @@
 > ~130 `engine/` classes are already-implemented **standalone content/event/siege/economy library
 > modules** that are **explicitly quarantined** (documented below): they compile and are intended
 > pull-in modules, but are NOT on the live decision path this cycle. Two genuine pending items are
-> in §4. `verify_no_dead_code.sh` = PASS (only the 2 pre-existing benign TODOs). Style-debt on the
-> legacy probe/protocol baseline remains (see `MultiAgentQA.md` task 95).
+> in §4. `verify_no_dead_code.sh` = PASS (only the 2 LEGIT_TODO items). **Style: `check_style.sh`
+> PASSES (0 violations) since task 110** (trailing-ws stripped, tabs→4-space, engine System.out→
+> logging, engine Math.random→deterministic; examples/ live-drivers exempt by design).
 
 ---
 

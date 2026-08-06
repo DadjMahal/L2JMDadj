@@ -13,7 +13,7 @@ public class ProtocolPacket {
         AUTH_REQUEST,
         SERVER_LIST,
         PLAY_OK,
-        
+
         // Game play
         ENTER_WORLD,
         CHAR_SELECT,
@@ -22,56 +22,56 @@ public class ProtocolPacket {
         STOP_MOVE,
         ATTACK,
         STOP_ATTACK,
-        
+
         // Trade
         TRADE_REQUEST,
         TRADE_OK,
         TRADE_CANCEL,
         BUY_ITEM,
         SELL_ITEM,
-        
+
         // Quest
         QUEST_EVENT,
-        
+
         // Social
         PARTY_INVITE,
         PARTY_JOIN,
         PARTY_LEAVE,
         CLAN_JOIN,
         CLAN_PROMOTE,
-        
+
         // Chat
         CHAT,
         SHOUT,
-        
+
         // Movement
         MOVE_TO_LOCATION,
         STOP_MOVEMENT,
-        
+
         // Unknown/Placeholder
         UNKNOWN
     }
-    
+
     private final PacketType type;
     private final byte[] data;
-    
+
     public ProtocolPacket(PacketType type, byte[] data) {
         this.type = type;
         this.data = data != null ? data.clone() : new byte[0];
     }
-    
+
     public ProtocolPacket(PacketType type) {
         this(type, new byte[0]);
     }
-    
+
     public PacketType getType() {
         return type;
     }
-    
+
     public byte[] getData() {
         return data.clone();
     }
-    
+
     /**
      * Convert packet to byte array for network transmission
      * L2JMobius packet format: [size:2][type:1][data]
@@ -79,19 +79,19 @@ public class ProtocolPacket {
     public byte[] toByteArray() {
         int totalSize = 2 + 1 + data.length;
         ByteBuffer buffer = ByteBuffer.allocate(totalSize);
-        
+
         // Packet size (excluding size field itself)
         buffer.putShort((short) (totalSize - 2));
-        
+
         // Packet type
         buffer.put(getOpcode());
-        
+
         // Data
         buffer.put(data);
-        
+
         return buffer.array();
     }
-    
+
     /**
      * Get opcode for packet type
      */
@@ -109,11 +109,11 @@ public class ProtocolPacket {
             case CHAT: return 0x41;
             case MOVE_TO_LOCATION: return 0x33;
             case STOP_MOVEMENT: return 0x34;
-            case UNKNOWN: 
+            case UNKNOWN:
             default: return 0x00;
         }
     }
-    
+
     /**
      * Create a MOVE_TO packet
      */
@@ -124,10 +124,10 @@ public class ProtocolPacket {
         buffer.putInt(z);
         buffer.put((byte) heading);
         buffer.put((byte) 0); // Ground
-        
+
         return new ProtocolPacket(PacketType.MOVE_TO, buffer.array());
     }
-    
+
     /**
      * Create a CHAT packet
      */
@@ -137,20 +137,20 @@ public class ProtocolPacket {
         buffer.put((byte) type);
         buffer.put(textBytes);
         buffer.putInt(0); // Zone
-        
+
         return new ProtocolPacket(PacketType.CHAT, buffer.array());
     }
-    
+
     /**
      * Create an ATTACK packet
      */
     public static ProtocolPacket createAttack(int targetId) {
         ByteBuffer buffer = ByteBuffer.allocate(4);
         buffer.putInt(targetId);
-        
+
         return new ProtocolPacket(PacketType.ATTACK, buffer.array());
     }
-    
+
     @Override
     public String toString() {
         return "ProtocolPacket{" +

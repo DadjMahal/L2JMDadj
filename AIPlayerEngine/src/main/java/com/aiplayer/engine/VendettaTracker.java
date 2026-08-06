@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 public class VendettaTracker {
     private static final Logger LOGGER = Logger.getLogger(VendettaTracker.class.getName());
     private Map<String, Integer> vendettaCount = new HashMap<>();
-    
+
     public void recordGrief(String playerName) {
         vendettaCount.merge(playerName, 1, Integer::sum);
     }

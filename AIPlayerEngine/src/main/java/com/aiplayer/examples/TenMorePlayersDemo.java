@@ -8,16 +8,16 @@ import java.util.concurrent.*;
  * EPIC NIGHT MODE - 10 MORE AI PLAYERS FOR ALL NIGHT PLAYING
  */
 public class TenMorePlayersDemo {
-    
+
     public static void main(String[] args) {
         System.out.println("\n");
         System.out.println("╔═════════════════════════════════════════════════════════════════╗");
         System.out.println("║  🌙 EPIC NIGHT MODE - 10 MORE AI PLAYERS STARTING NOW! 🌙  ║");
         System.out.println("╚═════════════════════════════════════════════════════════════════╝");
         System.out.println();
-        
+
         List<AIPlayerReal> players = new ArrayList<>();
-        
+
         // 10 NEW AI Players with diverse personalities
         String[][] playerData = {
             {"GoldMiner_02", "1006", "merchant"},
@@ -31,23 +31,23 @@ public class TenMorePlayersDemo {
             {"HeroicKnight_01", "1014", "combat"},
             {"MysticSeeker_01", "1015", "quest"}
         };
-        
+
         System.out.println("🔧 SPAWNING 10 EPIC AI PLAYERS...\n");
-        
+
         for (String[] data : playerData) {
             AIPlayerReal player = new AIPlayerReal(data[0], Integer.parseInt(data[1]));
             players.add(player);
             System.out.println("✅ Spawned: " + data[0] + " (Account: " + data[1] + ", Type: " + data[2] + ")");
         }
-        
+
         System.out.println("\n🚀 STARTING ALL NIGHT PLAY SESSION...\n");
-        
+
         // Start all players - they will run all night!
         for (AIPlayerReal player : players) {
             player.start();
             try { Thread.sleep(100); } catch (InterruptedException e) {}
         }
-        
+
         System.out.println("═══════════════════════════════════════════════════════════════════");
         System.out.println("🎉 ALL 10 AI PLAYERS ARE NOW PLAYING 24/7! 🎉");
         System.out.println("   They will play all night and gain levels!");
@@ -69,7 +69,7 @@ public class TenMorePlayersDemo {
         System.out.println("   US: Check tomorrow morning for results!");
         System.out.println();
         System.out.println("═══════════════════════════════════════════════════════════════════");
-        
+
         // Keep running all night - just notify and let them play
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {

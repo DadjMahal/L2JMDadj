@@ -6,15 +6,15 @@ import com.aiplayer.protocol.PacketLogger;
 
 /**
  * Task 63: PvP Combat Enhancements
- * 
+ *
  * Combat AI Module - Handles combat decisions, skill usage, and target selection for AI players
  * Enhanced with PvP-specific behaviors: buff awareness, stance detection, karma handling, and skill rotation.
- * 
+ *
  * Telemetry: PacketLogger tracks CharInfo/StatusUpdate/NPC_INFO packets for decision making
  */
 public class CombatAI {
     private static final Logger LOGGER = Logger.getLogger(CombatAI.class.getName());
-    
+
     private final AIPlayer aiPlayer;
     private final CombatConfig config;
     private PacketLogger packetLogger; // For PvP entity tracking; swappable to the live reader logger (Slice 5)
@@ -30,14 +30,14 @@ public class CombatAI {
     private final AntiGriefing antiGriefing = new AntiGriefing();
     private final AggroManager aggroManager = new AggroManager();
     private int[] lastSkillAllocation = new int[0];
-    
+
     public CombatAI(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
         this.config = CombatConfig.getInstance();
         this.packetLogger = new PacketLogger(aiPlayer.getName());
         this.combatState = new CombatState();
     }
-    
+
     /**
      * Main combat decision method
      * Decides what action to take in combat
@@ -46,7 +46,7 @@ public class CombatAI {
         if (!config.isEnabled()) {
             return CombatDecision.idle();
         }
-        
+
         try {
             // Slice 6: SELF-death feedback from real StatusUpdate packets. When the bot's HP hits 0 the
             // server is telling us it is dead: end combat and stop acting (the driver also gate on
@@ -58,54 +58,54 @@ public class CombatAI {
                 }
                 return CombatDecision.idle();
             }
-            
+
             // Check if we're in combat
             if (combatState.isInCombat()) {
                 return manageActiveCombat();
             }
-            
+
             // Check for enemies nearby
             String enemy = detectNearbyEnemy();
             if (enemy != null) {
                 return engageEnemy(enemy);
             }
-            
+
             // AutoPlay mode (if player chose this)
             if (config.isAutoPlayEnabled()) {
                 return CombatDecision.autoPlay();
             }
-            
+
             // Passive - just monitor surroundings
             return CombatDecision.idle();
-            
+
         } catch (Exception e) {
             LOGGER.warning("Combat AI error for " + aiPlayer.getName() + ": " + e.getMessage());
             return CombatDecision.idle();
         }
     }
-    
+
     private CombatDecision manageActiveCombat() {
         // Check if target is dead or out of range
         if (isTargetDead() || isTargetOutOfRange()) {
             return handleCombatEnd();
         }
-        
+
         // Check if we need healing
         if (shouldHeal()) {
             return heal();
         }
-        
+
         // Check if we should use offensive skill
         if (shouldUseSkill()) {
             return useOffensiveSkill();
         }
-        
+
         // Basic auto-attack
         return CombatDecision.attack();
     }
-    
+
     private boolean isTargetDead() {
-        // TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1
+        // LEGIT_TODO: REQUIRES PROTOCOL IMPLEMENTATION - Prompt 1 (target-HP StatusUpdate attribution; tracked in StreamGDisposition.md §4)
         // Currently always returns false because no packet is parsed
         // Need: StatusUpdate packet from server for target health
         //   OR: Death packet (opcode 0x0F from clientpackets)
@@ -113,12 +113,12 @@ public class CombatAI {
         //   return aiPlayer.getProtocol().getTargetHealth(currentTarget) <= 0;
         return false; // NOT YET TESTED - Placeholder
     }
-    
+
     private boolean isTargetOutOfRange() {
         double distance = calculateDistanceTo(currentTarget);
         return distance > config.getTargetDistance();
     }
-    
+
     /**
      * Real 3D distance from the player to a target, computed from PacketLogger entity positions
      * (Stream C: replaced the mock {@code 100 + Math.random()*50}). Returns MAX_VALUE when the
@@ -194,7 +194,7 @@ public class CombatAI {
             this.packetLogger = packetLogger;
         }
     }
-    
+
     private CombatDecision handleCombatEnd() {
         // Slice 6: actually END combat state (inCombat=false, target cleared) so the next
         // makeDecision() re-runs detectNearbyEnemy() and acquires the NEXT enemy after DeleteObject
@@ -203,18 +203,18 @@ public class CombatAI {
         onCombatEnd();
         return CombatDecision.leaveCombat("target down or out of range");
     }
-    
+
     private boolean shouldHeal() {
         int hpPercent = getCurrentHPPercentage();
         return hpPercent < config.getHealthThreshold();
     }
-    
+
     private int getCurrentHPPercentage() {
         // Use PacketLogger for real HP tracking from StatusUpdate packet
         // StatusUpdate packet (opcode 0x0E) contains HP values
         return (int) packetLogger.getHpPercentage();
     }
-    
+
     private boolean shouldUseSkill() {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastSkillUseTime < config.getCooldown()) {
@@ -222,39 +222,39 @@ public class CombatAI {
         }
         return getCurrentMPPercentage() > 20;
     }
-    
+
     private int getCurrentMPPercentage() {
         // Use PacketLogger for real MP tracking from StatusUpdate packet
         // StatusUpdate packet (opcode 0x0E) contains MP values
         return (int) packetLogger.getMpPercentage();
     }
-    
+
     private String detectNearbyEnemy() {
         // Get player position for enemy detection
         int playerX = aiPlayer.getX();
         int playerY = aiPlayer.getY();
         int playerZ = aiPlayer.getZ();
-        
+
         // Use PacketLogger to find nearest hostile entity (NPC or player in PvP)
         // This requires NPC_INFO packets to have been parsed
         // Stream D: use personality/emotion-adjusted engage distance (was raw config.getTargetDistance)
         PacketLogger.EntityInfo nearestHostile = packetLogger.findNearestHostile(
             playerX, playerY, playerZ, getEffectiveEngageDistance());
-        
+
         if (nearestHostile != null) {
             // Return the object ID as target identifier
             return "objId=" + nearestHostile.objectId;
         }
-        
+
         // Check for PvP targets (players) if in PvP zone
         if (aiPlayer.isInPvPZone() && aiPlayer.isPvPEnabled()) {
             // Would check PvP player targets here when protocol supports it
             // For now, fall back to hostile NPCs
         }
-        
+
         return null;
     }
-    
+
     private CombatDecision engageEnemy(String enemyId) {
         currentTarget = enemyId;
         combatState.setInCombat(true);
@@ -270,12 +270,12 @@ public class CombatAI {
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] ATTACK_START: target=" + enemyId);
         return CombatDecision.attack();
     }
-    
+
     private void onAttackLanded(int damage) {
         combatState.addDamage(damage);
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] DAMAGE_DEALT: amount=" + damage + " total=" + combatState.getDamageDealt());
     }
-    
+
     public void onKill(String targetName) {
         onKill(targetName, 0L);
     }
@@ -321,28 +321,28 @@ public class CombatAI {
         aiPlayer.getEmotions().onGoodLoot();           // loot = positive excitement bump
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] ITEM_DROP: item=" + itemId + " emotion=" + aiPlayer.getEmotions().getCurrentEmotion());
     }
-    
+
     private boolean shouldUseOffensiveSkill() {
         // Skill selection logic using priority system
         String skillPriority = config.getSkillPriority();
-        
+
         // Parse priority config: "ATTACK:1,HEAL:2,POWER_STRIKE:3"
         // Select highest priority skill we can afford
-        
+
         int mpPercent = getCurrentMPPercentage();
         if (mpPercent < config.getManaThreshold()) {
             return false;  // Not enough MP
         }
-        
+
         // Check preferred skill first
-        if (config.getPreferredSkill() != null && 
+        if (config.getPreferredSkill() != null &&
             mpPercent > config.getSkillMpCost()) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     private CombatDecision useOffensiveSkill() {
         // Select best skill based on skill priority
         String skill = selectBestSkill();
@@ -351,7 +351,7 @@ public class CombatAI {
         combatState.incrementCombo();
         return CombatDecision.useSkill(skill, null, "Skill rotation priority");
     }
-    
+
     /**
      * Select the best skill based on priority and MP cost
      */
@@ -361,7 +361,7 @@ public class CombatAI {
         String preferred = config.getPreferredSkill();
         return preferred != null ? preferred : "ATTACK";
     }
-    
+
     private boolean shouldDefendDecision() {
         // Deterministic, real-data threat model (Stream C: removed Math.random()).
         int currentHp = getCurrentHPPercentage();           // real HP from StatusUpdate
@@ -425,43 +425,43 @@ public class CombatAI {
     public boolean shouldDefend() {
         return shouldDefendDecision();
     }
-    
+
     private boolean isHighThreatTarget() {
         // Check if this target poses high threat
         String target = combatState.getTarget();
         if (target == null) return false;
-        
+
         // Could check target HP, level difference, etc.
         // For now, check if we're in a dangerous situation
-        return getCurrentHPPercentage() < 50 || 
+        return getCurrentHPPercentage() < 50 ||
                combatState.getHostileEntitiesNearby() > 2;
     }
-    
+
     private CombatDecision defensiveAction() {
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] DEFEND_ACTION: threat level high");
         return CombatDecision.defend();
     }
-    
+
     private boolean shouldBlock() {
         // Block when we predict incoming damage
         return getCurrentHPPercentage() < config.getDefensiveThreshold();
     }
-    
+
     private CombatDecision blockAction() {
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] BLOCK_ACTION");
         return CombatDecision.block();
     }
-    
+
     private CombatDecision heal() {
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] HEAL: skill=" + config.getHealSkill());
         return CombatDecision.heal();
     }
-    
+
     public void onCombatStart() {
         combatState.setInCombat(true);
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] COMBAT_START: target=" + currentTarget);
     }
-    
+
     public void onCombatEnd() {
         combatState.setInCombat(false);
         float damageDealt = comboCount > 0 ? comboCount * 100 : 0;
@@ -469,7 +469,7 @@ public class CombatAI {
         currentTarget = null;
         comboCount = 0;
     }
-    
+
     /** Log combat telemetry event */
     private void logCombatTelemetry(String event, Object... args) {
         try {
@@ -482,34 +482,34 @@ public class CombatAI {
             LOGGER.warning("Combat telemetry log failed: " + e.getMessage());
         }
     }
-    
+
     public CombatState getCombatState() {
         return combatState;
     }
-    
+
     // ============================================
     // PvP-SPECIFIC ENHANCEMENTS (Task 100)
     // ============================================
-    
+
     /** Check if PvP is enabled in configuration */
     public boolean isPvPEnabled() {
         return config.isPvPenabled();
     }
-    
+
     /** Check if target is a player (for PvP decisions) */
     public boolean isHostilePlayer() {
         // Check if current target is a player character (npcId 0 = player)
         PacketLogger.EntityInfo entity = packetLogger.getEntity(
-            currentTarget != null && currentTarget.contains("objId=") ? 
+            currentTarget != null && currentTarget.contains("objId=") ?
             Integer.parseInt(currentTarget.split("objId=")[1]) : -1);
         return entity != null && entity.isHostile && entity.npcId == 0;
     }
-    
+
     /** Check if we're in a PvP context (game has PvP enabled in area) */
     public boolean isInPvPContext() {
         return aiPlayer.isInPvPZone();
     }
-    
+
     /** Check if current position is in safe zone */
     public boolean isInSafeZone() {
         int x = aiPlayer.getX();
@@ -525,13 +525,13 @@ public class CombatAI {
         }
         return false;
     }
-    
+
     /** Check if target is in a safe zone (cannot be attacked) */
     public boolean isTargetInSafeZone() {
         // Would need target position parsing from protocol
         return isInSafeZone();
     }
-    
+
     /** Make karma-based PK decision */
     public String getPvPKarmaDecision(int attackerKarma, int targetKarma) {
         if (isInSafeZone()) {
@@ -549,7 +549,7 @@ public class CombatAI {
         }
         return "OBSERVE: Cannot PK this target";
     }
-    
+
     /** Get optimal skill for PvP situation */
     public String getOptimalPvPSkill(int mpPercentage) {
         // Priority: Burst > Control > Basic attack
@@ -560,42 +560,42 @@ public class CombatAI {
         }
         return "ATTACK: Basic attack";
     }
-    
+
     /** Check if we should use defensive buff */
     public boolean shouldUseDefensiveBuff() {
         // Use defensive buff when: low buffs, high HP, out of combat
         return !combatState.isInCombat() && getCurrentHPPercentage() > 50;
     }
-    
+
     /** Get defensive skill */
     public String getDefensiveSkill() {
         return "BARRIER:101"; // Defense boost
     }
-    
+
     /** Enhanced combat decision with PvP awareness */
     public CombatDecision makePvPDuidedDecision() {
         // Skip if not PvP enabled
         if (!isPvPEnabled()) {
             return makeDecision();
         }
-        
+
         // Check safe zones
         if (isInSafeZone()) {
             LOGGER.info("[" + aiPlayer.getName() + "] In safe zone - cannot PK");
             return CombatDecision.idle();
         }
-        
+
         // If in combat, use normal combat logic
         if (combatState.isInCombat()) {
             return manageActiveCombat();
         }
-        
+
         // Check for PvP targets
         String enemy = detectNearbyEnemy();
         if (enemy != null) {
             return engageEnemy(enemy);
         }
-        
+
         return CombatDecision.idle();
     }
 

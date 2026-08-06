@@ -11,7 +11,7 @@ public class PartyState {
     private int memberCount;
     private int maxMembers;
     private long joinedTime;
-    
+
     public PartyState() {
         this.inParty = false;
         this.partyId = null;
@@ -20,11 +20,11 @@ public class PartyState {
         this.maxMembers = 8;
         this.joinedTime = 0;
     }
-    
+
     public boolean isInParty() {
         return inParty;
     }
-    
+
     public void joinParty(String partyId, String leader) {
         this.inParty = true;
         this.partyId = partyId;
@@ -32,7 +32,7 @@ public class PartyState {
         this.memberCount = 1; // Start with just us
         this.joinedTime = System.currentTimeMillis();
     }
-    
+
     public void leaveParty() {
         this.inParty = false;
         this.partyId = null;
@@ -40,11 +40,11 @@ public class PartyState {
         this.memberCount = 0;
         this.joinedTime = 0;
     }
-    
+
     public boolean isLeader() {
         return leader != null && "us".equals(leader); // Placeholder - will check actual leader
     }
-    
+
     public String getLeader() { return leader; }
     public String getPartyId() { return partyId; }
     public int getMemberCount() { return memberCount; }

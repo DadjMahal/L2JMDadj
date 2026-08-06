@@ -10,31 +10,31 @@ import com.aiplayer.protocol.L2JProtocol;
 /**
  * AI Player Connection Manager
  * Handles connection between AIPlayer and L2J server
- * 
+ *
  * Task 67 Extension - Protocol Integration
  */
 public class AIPlayerConnection {
     private static final Logger LOGGER = Logger.getLogger(AIPlayerConnection.class.getName());
-    
+
     private final AIPlayer aiPlayer;
     private final L2JProtocol protocol;
 
     /** Real GameServer frame writer (crypt disabled = plaintext); attached once a GS socket is held. */
-    private volatile GameServerFrameWriter gameServerWriter; 
-    
+    private volatile GameServerFrameWriter gameServerWriter;
+
     public AIPlayerConnection(AIPlayer aiPlayer, String serverHost, int loginPort, int gamePort) {
         this.aiPlayer = aiPlayer;
         this.protocol = new L2JProtocol(aiPlayer, serverHost, loginPort, gamePort);
     }
-    
+
     /**
      * Connect this AI player to the L2JM server
      */
     public boolean connect(String accountName, String password, int characterId) {
         LOGGER.info("[" + aiPlayer.getName() + "] Attempting connection...");
-        
+
         boolean result = protocol.connectAndLogin(accountName, password, characterId);
-        
+
         if (result) {
             aiPlayer.setConnected(true);
             aiPlayer.setLoggedIn(true);
@@ -43,10 +43,10 @@ public class AIPlayerConnection {
         } else {
             LOGGER.warning("[" + aiPlayer.getName() + "] Connection/login failed");
         }
-        
+
         return result;
     }
-    
+
     /**
      * Send movement command
      */
@@ -61,7 +61,7 @@ public class AIPlayerConnection {
             LOGGER.severe("[" + aiPlayer.getName() + "] Move error: " + e.getMessage());
         }
     }
-    
+
     /**
      * Send attack command
      */
@@ -76,7 +76,7 @@ public class AIPlayerConnection {
             LOGGER.severe("[" + aiPlayer.getName() + "] Attack error: " + e.getMessage());
         }
     }
-    
+
     /**
      * Send chat message
      */
@@ -91,7 +91,7 @@ public class AIPlayerConnection {
             LOGGER.severe("[" + aiPlayer.getName() + "] Chat error: " + e.getMessage());
         }
     }
-    
+
     /**
      * Disconnect the AI player
      */
@@ -101,15 +101,15 @@ public class AIPlayerConnection {
         aiPlayer.setLoggedIn(false);
         LOGGER.info("[" + aiPlayer.getName() + "] Disconnected");
     }
-    
+
     public boolean isConnected() {
         return aiPlayer.isConnected();
     }
-    
+
     public boolean isLoggedIn() {
         return aiPlayer.isLoggedIn();
     }
-    
+
     /**
      * Attach a real GameServer frame writer (from a held GS socket) so {@link CombatFramePlanner}
      * frames are actually written to the wire. May be null (no GS socket held yet).

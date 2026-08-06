@@ -5,29 +5,29 @@ import java.util.logging.Logger;
 /**
  * AI Brain - Decision Making Engine
  * Core intelligence that drives AI player behavior
- * 
+ *
  * Orchestrates all AI modules: CombatAI, QuestAI, MerchantAI, SocialAI
  * with priority-based decision making for smart AI behaviors
  */
 public class AIBrain {
     private static final Logger LOGGER = Logger.getLogger(AIBrain.class.getName());
-    
+
     private final AIPlayer aiPlayer;
     private final AIModuleLoader moduleLoader;
-    
+
     // AI Module references
     private CombatAI combatAI;
     private QuestAI questAI;
     private MerchantAI merchantAI;
     private SocialAI socialAI;
     private PKDecision pkDecision;
-    
+
     public AIBrain(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
         this.moduleLoader = new AIModuleLoader();
         this.pkDecision = new PKDecision();
     }
-    
+
     /**
      * Initialize AI modules - called once after AIPlayer setup
      */
@@ -38,7 +38,7 @@ public class AIBrain {
         this.socialAI = new SocialAI(aiPlayer);
         LOGGER.info("[" + aiPlayer.getName() + "] AI Modules initialized - READY FOR COMBAT, QUEST, TRADE, SOCIAL ACTIONS");
     }
-    
+
     /**
      * Main decision making method
      * Priority order: Emergency > Combat > Quest > Merchant > Social > Idle
@@ -50,7 +50,7 @@ public class AIBrain {
             if (emergency != null && emergency.shouldExecute()) {
                 return emergency;
             }
-            
+
             // Priority 2: Combat decisions
             if (AIConfiguration.getInstance().getBooleanProperty("behavior.combat.enabled", true)) {
                 AIDecision combat = handleCombat();
@@ -58,7 +58,7 @@ public class AIBrain {
                     return combat;
                 }
             }
-            
+
             // Priority 3: Quest progression
             if (AIConfiguration.getInstance().getBooleanProperty("behavior.quest.enabled", true)) {
                 AIDecision quest = handleQuest();
@@ -66,7 +66,7 @@ public class AIBrain {
                     return quest;
                 }
             }
-            
+
             // Priority 4: Merchant/Trade behavior
             if (AIConfiguration.getInstance().getBooleanProperty("behavior.merchant.enabled", true)) {
                 AIDecision trade = handleMerchant();
@@ -74,7 +74,7 @@ public class AIBrain {
                     return trade;
                 }
             }
-            
+
             // Priority 5: Social decisions
             if (AIConfiguration.getInstance().getBooleanProperty("behavior.social.enabled", true)) {
                 AIDecision social = handleSocial();
@@ -82,16 +82,16 @@ public class AIBrain {
                     return social;
                 }
             }
-            
+
             // Priority 6: Default behavior
             return handleDefaultBehavior();
-            
+
         } catch (Exception e) {
             LOGGER.severe("AI Brain error for " + aiPlayer.getName() + ": " + e.getMessage());
             return new AIDecision(false);
         }
     }
-    
+
     /**
      * Handle emergency situations
      */
@@ -103,7 +103,7 @@ public class AIBrain {
         }
         return new AIDecision(false);
     }
-    
+
     /**
      * Handle COMBAT AI decisions
      */
@@ -112,11 +112,11 @@ public class AIBrain {
         if (decision.shouldExecute()) {
             switch (decision.getAction()) {
                 case ATTACK:
-                    return new AIDecision(true, AIAction.ActionType.ATTACK, 
+                    return new AIDecision(true, AIAction.ActionType.ATTACK,
                         decision.getTargetId() != null ? decision.getTargetId() : "AUTO_TARGET");
                 case USE_SKILL:
                 case HEAL:
-                    return new AIDecision(true, AIAction.ActionType.USE_ITEM, 
+                    return new AIDecision(true, AIAction.ActionType.USE_ITEM,
                         decision.getSkillId() != null ? decision.getSkillId() : "HEAL_POTION", 1);
                 case DEFEND:
                     return new AIDecision(true, AIAction.ActionType.STAND, true);
@@ -135,7 +135,7 @@ public class AIBrain {
         }
         return new AIDecision(false);
     }
-    
+
     /**
      * Handle QUEST AI decisions
      */
@@ -144,19 +144,19 @@ public class AIBrain {
         if (decision.shouldExecute()) {
             switch (decision.getAction()) {
                 case ACCEPT_QUEST:
-                    return new AIDecision(true, AIAction.ActionType.INTERACT_NPC, 
+                    return new AIDecision(true, AIAction.ActionType.INTERACT_NPC,
                         decision.getQuestId(), "ACCEPT");
                 case KILL_MONSTER:
-                    return new AIDecision(true, AIAction.ActionType.HUNT, 
+                    return new AIDecision(true, AIAction.ActionType.HUNT,
                         decision.getItemId(), decision.getCount());
                 case COLLECT_ITEM:
-                    return new AIDecision(true, AIAction.ActionType.HUNT, 
+                    return new AIDecision(true, AIAction.ActionType.HUNT,
                         decision.getItemId(), decision.getCount());
                 case FIND_NPC:
-                    return new AIDecision(true, AIAction.ActionType.MOVE, 
+                    return new AIDecision(true, AIAction.ActionType.MOVE,
                         decision.getX(), decision.getY(), decision.getZ());
                 case TURN_IN_QUEST:
-                    return new AIDecision(true, AIAction.ActionType.INTERACT_NPC, 
+                    return new AIDecision(true, AIAction.ActionType.INTERACT_NPC,
                         decision.getQuestId(), "TURN_IN");
                 case DAILY_QUEST_CYCLE:
                 case CLASS_CHANGE_QUEST:
@@ -168,7 +168,7 @@ public class AIBrain {
         }
         return new AIDecision(false);
     }
-    
+
     /**
      * Handle MERCHANT AI decisions
      */
@@ -177,17 +177,17 @@ public class AIBrain {
         if (decision.shouldExecute()) {
             switch (decision.getAction()) {
                 case BUY_ITEM:
-                    return new AIDecision(true, AIAction.ActionType.BUY, 
+                    return new AIDecision(true, AIAction.ActionType.BUY,
                         decision.getItemId(), decision.getCount());
                 case SELL_ITEM:
-                    return new AIDecision(true, AIAction.ActionType.SELL, 
+                    return new AIDecision(true, AIAction.ActionType.SELL,
                         decision.getItemId(), decision.getCount());
                 case INTERACT_MERCHANT:
                     return new AIDecision(true, AIAction.ActionType.INTERACT_NPC, "MERCHANT", "TRADE");
                 case FIND_MERCHANT:
                     MerchantNPC merchant = decision.getMerchant();
                     if (merchant != null) {
-                        return new AIDecision(true, AIAction.ActionType.MOVE, 
+                        return new AIDecision(true, AIAction.ActionType.MOVE,
                             merchant.getX(), merchant.getY(), merchant.getZ());
                     }
                     break;
@@ -203,7 +203,7 @@ public class AIBrain {
         }
         return new AIDecision(false);
     }
-    
+
     /**
      * Handle SOCIAL AI decisions
      */
@@ -214,7 +214,7 @@ public class AIBrain {
                 case CHAT:
                     return new AIDecision(true, AIAction.ActionType.CHAT, decision.getMessage());
                 case INVITE_TO_PARTY:
-                    return new AIDecision(true, AIAction.ActionType.PARTY_INVITE, 
+                    return new AIDecision(true, AIAction.ActionType.PARTY_INVITE,
                         decision.getTargetId());
                 case JOIN_PARTY:
                 case JOIN_CLAN:
@@ -222,7 +222,7 @@ public class AIBrain {
                 case COORDINATE_PARTY:
                     return new AIDecision(true, AIAction.ActionType.CHAT, "Party activity started!");
                 case FOLLOW_LEADER:
-                    return new AIDecision(true, AIAction.ActionType.MOVE, 
+                    return new AIDecision(true, AIAction.ActionType.MOVE,
                         decision.getX(), decision.getY(), decision.getZ());
                 case ASSIST_PARTY:
                     return new AIDecision(true, AIAction.ActionType.COMBAT_MODE, true);
@@ -233,21 +233,26 @@ public class AIBrain {
         }
         return new AIDecision(false);
     }
-    
+
+    private int wanderTick = 0;
+
     private AIDecision handleDefaultBehavior() {
-        if (Math.random() > 0.5) {
-            int newX = 16600 + (int)(Math.random() * 100);
-            int newY = 17000 + (int)(Math.random() * 100);
+        // Stream G (task 110): deterministic wander instead of Math.random() (decision determinism).
+        wanderTick++;
+        int offset = (wanderTick * 37) % 100;
+        if (wanderTick % 2 == 1) {
+            int newX = 16600 + offset;
+            int newY = 17000 + (offset * 53) % 100;
             return new AIDecision(true, AIAction.ActionType.MOVE, newX, newY, 434);
         }
         return new AIDecision(false);
     }
-    
+
     // Helper methods
     private int getSimulatedHP() {
         return 85 + (int)(Math.random() * 15);
     }
-    
+
     public CombatAI getCombatAI() { return combatAI; }
     public QuestAI getQuestAI() { return questAI; }
     public MerchantAI getMerchantAI() { return merchantAI; }

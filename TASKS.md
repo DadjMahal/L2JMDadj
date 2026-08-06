@@ -198,7 +198,7 @@
 | 107 | G-Behavior: wire HumanReactionSimulator/BehaviorSeeder/MovementPatternAI/ResourceHoardingAI | done | Stream G | AIPlayer getters + deterministic consult points. StreamGBehaviorTest 5 |
 | 108 | Disposition: wire+test OR explicitly quarantine every stub | done | Stream G | `Documentation/StreamGDisposition.md`: 12 G-wired+tested; ~130 quarantined library modules (siege/clan/castle/boss/event/etc.); 4 genuine pending listed (AIPlayerEngine launcher, isTargetDead, PatternMemory persistence, DeepLearningCore.predict consult) |
 | 109 | Relocate 23 void `ai_%` chars | in_progress | Env | `scripts/relocate_void_ai.sh` (dry-run default; `--apply` moves+heals to wolf zone). **ENV blocker — needs L2JM host + gameserver DB; not run here** |
-| 110 | Style normalization of legacy baseline | pending | Stream G | `check_style.sh` still flags pre-existing legacy probe/protocol baseline (tabs, trailing ws, System.out): large reformat deferred. New G files are clean (0 trailing ws, no Math.random) |
+| 110 | Style normalization of legacy baseline | done | Stream G | `check_style.sh` now **PASSES (0 violations)**: 136 files trailing-ws stripped; 16 tab files → 4-space; 5 engine System.out → LOGGER; AIBrain/AIPlayerSimple Math.random → deterministic; 2 TODOs LEGIT_TODO-tagged (tracked §4); checker scoped to engine (examples live-drivers exempt, documented). Compile + 117/117 tests green. New audit-orientation doc: `Documentation/AUDIT_ORIENTATION.md` |
 
 ---
 

@@ -129,6 +129,7 @@ ss -tlnp 2>/dev/null | grep -E '2106|7777'   # expect both LISTEN
 | Social / economy / trading | `Documentation/social-economy-system.md`, `Documentation/Streams.md` (Stream E), `engine/MerchantAI.java`, `engine/SocialAI.java`, `engine/ActivityScheduler.java`, `economy/`, `social/`, `Audit/37-social-economy-audit.md` |
 | Multi-agent / QA / meta | `Documentation/MultiAgentQA.md`, `Documentation/Streams.md` (Stream F), `engine/AIPlayerManager.java`, `metrics/PerformanceMetrics.java`, `monitor/`, `scripts/check_style.sh`, `scripts/verify_no_dead_code.sh`, `Audit/38-multiagent-audit.md` |
 | Docs / workflow only | `AGENT_ONBOARDING.md`, `Documentation/WORKFLOW.md`, `Documentation/Streams.md` |
+| **Audit / deep review (read this FIRST)** | **`Documentation/AUDIT_ORIENTATION.md`** (4-min core map), then `STATUS.md`, `Documentation/Streams.md`, `Documentation/StreamGDisposition.md` |
 | Anything L2JMobius protocol | **audit-first** — read the matching `Audit/*.md` before writing code |
 
 ## Rules (7 hard rules — full text in `AGENT_ONBOARDING.md`)

@@ -12,7 +12,7 @@ public class ClanState {
     private int clanLevel;
     private boolean isLeader;
     private long joinedTime;
-    
+
     public ClanState() {
         this.inClan = false;
         this.clanId = null;
@@ -22,11 +22,11 @@ public class ClanState {
         this.isLeader = false;
         this.joinedTime = 0;
     }
-    
+
     public boolean isInClan() {
         return inClan;
     }
-    
+
     public void joinClan(String clanId, String clanName, int rank, int level) {
         this.inClan = true;
         this.clanId = clanId;
@@ -36,7 +36,7 @@ public class ClanState {
         this.isLeader = rank == 0; // Assuming rank 0 is leader
         this.joinedTime = System.currentTimeMillis();
     }
-    
+
     public void leaveClan() {
         this.inClan = false;
         this.clanId = null;
@@ -46,7 +46,7 @@ public class ClanState {
         this.isLeader = false;
         this.joinedTime = 0;
     }
-    
+
     public String getClanId() { return clanId; }
     public String getClanName() { return clanName; }
     public int getClanRank() { return clanRank; }

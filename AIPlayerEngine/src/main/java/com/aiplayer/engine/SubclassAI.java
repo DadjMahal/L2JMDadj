@@ -3,12 +3,12 @@ import java.util.logging.Logger;
 
 public class SubclassAI {
     private static final Logger LOGGER = Logger.getLogger(SubclassAI.class.getName());
-    
+
     public static boolean canSubclass(int level, int classId) {
         if (level < 37) return false;
         return classId < 8;
     }
-    
+
     public static String getSubclassForClass(int baseClassId) {
         switch (baseClassId) {
             case 0: return "WARRIOR";
@@ -22,7 +22,7 @@ public class SubclassAI {
             default: return "WARRIOR";
         }
     }
-    
+
     public static int getSubclassPenalty(int subclassLevel) {
         return subclassLevel * 3;
     }

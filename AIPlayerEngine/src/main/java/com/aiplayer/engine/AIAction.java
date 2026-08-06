@@ -30,29 +30,29 @@ public class AIAction {
         COMBAT_MODE,    // Toggle auto combat
         STOP_ATTACK     // Stop current attack
     }
-    
+
     private final ActionType type;
     private final Object[] parameters;
     private final long timestamp;
-    
+
     public AIAction(ActionType type, Object... parameters) {
         this.type = type;
         this.parameters = parameters;
         this.timestamp = System.currentTimeMillis();
     }
-    
+
     public ActionType getType() {
         return type;
     }
-    
+
     public Object[] getParameters() {
         return parameters;
     }
-    
+
     public long getTimestamp() {
         return timestamp;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

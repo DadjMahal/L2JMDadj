@@ -23,7 +23,7 @@ import com.aiplayer.protocol.L2JProtocol;
  */
 public class AIPlayer {
     private static final Logger LOGGER = Logger.getLogger(AIPlayer.class.getName());
-    
+
     // Core Identity
     private final String name;
     private final int accountId;
@@ -39,25 +39,25 @@ public class AIPlayer {
     private int reconnectAttempts;
     private long lastDisconnectMs;
     private static final int MAX_RECONNECT_ATTEMPTS = 3;
-    
+
     // Position tracking (Task 47, 31)
     private int x = 0, y = 0, z = 0;
-    
+
     // State Management
     private AIPlayerState state;
     private long lastActionTime;
     private long loginTime;
     private boolean isConnected;
     private boolean isLoggedIn;
-    
+
     // Behavior Control
     private final AIBrain brain;
     private final AIActionQueue actionQueue;
     private final AIConfiguration config;
-    
+
     // Deep Learning Intelligence (Task 68) - uses PatternMemory, not NeuralNetwork
     private final DeepLearningCore deepLearning;
-    
+
     // Advanced AI Systems (Tasks 73-76)
     private final PersonalityProfile personality;
     private final EmotionalState emotions;
@@ -66,7 +66,7 @@ public class AIPlayer {
     private final LongTermGoalsAI longTermGoals; // Stream D: long-term goal selection (task 65)
     private final GoalTree goalTree; // Stream D: short-term goal selection + scheduling (tasks 65,68,69)
     private final ActivityScheduler activityScheduler; // Stream E task 88: periodic activity rotation
-    
+
     // Collective & Economic Systems (Tasks 77-96)
     private final CollectiveKnowledge collectiveKnowledge;
     private final SwarmCoordinator swarmCoordinator;
@@ -74,7 +74,7 @@ public class AIPlayer {
     private final MarketEngine marketEngine;
     private final EconomicEngine economicEngine;
     private final NetWorthOptimizer netWorthOptimizer;
-    
+
     // AI Modules
     private final CombatAI combatAI;
     private final QuestAI questAI;
@@ -90,7 +90,7 @@ public class AIPlayer {
     private final BehaviorSeeder behaviorSeeder = new BehaviorSeeder();
     private final MovementPatternAI movementPatternAI = new MovementPatternAI();
     private final ResourceHoardingAI resourceHoardingAI = new ResourceHoardingAI();
-    
+
     public AIPlayer(String name, int accountId, int classId, int race) {
         this.name = name;
         this.accountId = accountId;
@@ -117,19 +117,19 @@ public class AIPlayer {
         this.marketEngine = MarketEngine.getInstance();
         this.economicEngine = EconomicEngine.getInstance();
         this.netWorthOptimizer = NetWorthOptimizer.getInstance();
-        
+
         // Initialize AI modules
         this.combatAI = new CombatAI(this);
         this.questAI = new QuestAI(this);
         this.merchantAI = new MerchantAI(this);
         this.socialAI = new SocialAI(this);
-        
+
         // Initialize protocol for REAL L2JM server connection
         this.protocol = new L2JProtocol(this, "localhost", 2106, 7777);
-        
+
         LOGGER.info("[Real Protocol] AI Player created: " + name + " (Class: " + classId + ", Race: " + race + ")");
     }
-    
+
     /**
      * AI Decision Making Loop
      * Called periodically to make decisions
@@ -138,14 +138,14 @@ public class AIPlayer {
         if (!isConnected || !isLoggedIn) {
             return;
         }
-        
+
         try {
             // Update state
             updateState();
-            
+
             // Make decision
             AIDecision decision = brain.makeDecision();
-            
+
             // Queue action
             if (decision != null && decision.shouldExecute()) {
                 actionQueue.add(decision.getAction());
@@ -155,12 +155,12 @@ public class AIPlayer {
             LOGGER.warning("[" + name + "] Think error: " + e.getMessage());
         }
     }
-    
+
     private void updateState() {
         // Update internal state tracking
         lastActionTime = System.currentTimeMillis();
     }
-    
+
     public void executeQueuedActions() {
         while (!actionQueue.isEmpty()) {
             AIAction action = actionQueue.poll();
@@ -169,7 +169,7 @@ public class AIPlayer {
             }
         }
     }
-    
+
     private void executeAction(AIAction action) {
         // REAL PROTOCOL ACTION EXECUTION - Connect to L2JM server
         try {
@@ -183,7 +183,7 @@ public class AIPlayer {
                         LOGGER.info("[PROTOCOL] " + name + " MOVED to: (" + x + ", " + y + ", " + z + ")");
                     }
                     break;
-                    
+
                 case ATTACK:
                     if (action.getParameters().length > 0) {
                         int targetId;
@@ -196,7 +196,7 @@ public class AIPlayer {
                         LOGGER.info("[PROTOCOL] " + name + " ATTACKING target: " + targetId);
                     }
                     break;
-                    
+
                 case CHAT:
                     if (action.getParameters().length > 0) {
                         String message = (String) action.getParameters()[0];
@@ -204,7 +204,7 @@ public class AIPlayer {
                         LOGGER.info("[PROTOCOL] " + name + " CHAT: " + message);
                     }
                     break;
-                    
+
                 case BUY:
                     if (action.getParameters().length >= 2) {
                         String itemId = (String) action.getParameters()[0];
@@ -212,7 +212,7 @@ public class AIPlayer {
                         LOGGER.info("[TRADE] " + name + " BUYING " + count + "x " + itemId);
                     }
                     break;
-                    
+
                 case SELL:
                     if (action.getParameters().length >= 2) {
                         String itemId = (String) action.getParameters()[0];
@@ -220,7 +220,7 @@ public class AIPlayer {
                         LOGGER.info("[TRADE] " + name + " SELLING " + count + "x " + itemId);
                     }
                     break;
-                    
+
                 case INTERACT_NPC:
                     if (action.getParameters().length >= 2) {
                         String npcId = (String) action.getParameters()[0];
@@ -228,14 +228,14 @@ public class AIPlayer {
                         LOGGER.info("[NPC] " + name + " INTERACTING with " + npcId + " (" + interactionType + ")");
                     }
                     break;
-                    
+
                 case USE_ITEM:
                     if (action.getParameters().length > 0) {
                         String itemId = (String) action.getParameters()[0];
                         LOGGER.info("[ITEM] " + name + " USING item: " + itemId);
                     }
                     break;
-                    
+
                 case HUNT:
                     if (action.getParameters().length >= 2) {
                         String targetId = (String) action.getParameters()[0];
@@ -243,29 +243,29 @@ public class AIPlayer {
                         LOGGER.info("[HUNT] " + name + " HUNTING " + count + "x " + targetId);
                     }
                     break;
-                    
+
                 case PARTY_INVITE:
                     if (action.getParameters().length > 0) {
                         String targetId = (String) action.getParameters()[0];
                         LOGGER.info("[PARTY] " + name + " INVITING " + targetId + " to party");
                     }
                     break;
-                    
+
                 case COMBAT_MODE:
                     if (action.getParameters().length > 0) {
                         Boolean enabled = (Boolean) action.getParameters()[0];
                         LOGGER.info("[COMBAT] " + name + " combat mode: " + (enabled ? "ON" : "OFF"));
                     }
                     break;
-                    
+
                 case STAND:
                     LOGGER.info("[ACTION] " + name + " STANDING");
                     break;
-                    
+
                 case STOP_ATTACK:
                     LOGGER.info("[ACTION] " + name + " STOPPING attack");
                     break;
-                    
+
                 default:
                     LOGGER.info("[ACTION] " + name + " executing: " + action);
             }
@@ -273,7 +273,7 @@ public class AIPlayer {
             LOGGER.warning("[" + name + "] Action execution failed: " + e.getMessage());
         }
     }
-    
+
     // REAL CONNECTION METHOD
     public boolean connectToServer(String accountName, String password, int charId) {
         try {
@@ -343,7 +343,7 @@ public class AIPlayer {
         this.state = AIPlayerState.OFFLINE;
         markDisconnect(); // Stream E 89: record when, for reconnect cooldown
     }
-    
+
     // Getters and Setters
     public String getName() { return name; }
     public int getAccountId() { return accountId; }
@@ -458,12 +458,12 @@ public class AIPlayer {
     public MarketEngine getMarketEngine() { return marketEngine; }
     public EconomicEngine getEconomicEngine() { return economicEngine; }
     public NetWorthOptimizer getNetWorthOptimizer() { return netWorthOptimizer; }
-    
+
     // AI State management
     public String getAIState() {
         return state != null ? state.name() : "UNKNOWN";
     }
-    
+
     public void setAIState(String stateStr) {
         try {
             this.state = AIPlayerState.valueOf(stateStr);
@@ -471,26 +471,26 @@ public class AIPlayer {
             LOGGER.warning("Unknown AI state: " + stateStr);
         }
     }
-    
+
     public void setConnected(boolean connected) { this.isConnected = connected; }
     public void setLoggedIn(boolean loggedIn) { this.isLoggedIn = loggedIn; }
     public void setLoginTime(long time) { this.loginTime = time; }
     public long getLoginTime() { return loginTime; }
     public void updateLastActionTime() { this.lastActionTime = System.currentTimeMillis(); }
-    
+
     // Position getters/setters (Task 31 - real enemy detection)
     public int getX() { return x; }
     public int getY() { return y; }
     public int getZ() { return z; }
     public void setPosition(int x, int y, int z) { this.x = x; this.y = y; this.z = z; }
-    
+
     // PvP helpers (Task 63)
     public boolean isInPvPZone() {
         // Check if current position is in a PvP-enabled zone
         // For now, default to false - would need zone data from server
         return false;
     }
-    
+
     public boolean isPvPEnabled() {
         return config.getBooleanProperty("combat.pvp_enabled", false);
     }

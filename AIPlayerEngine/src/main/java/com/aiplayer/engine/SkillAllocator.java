@@ -4,11 +4,11 @@ import java.util.logging.Logger;
 
 public class SkillAllocator {
     private static final Logger LOGGER = Logger.getLogger(SkillAllocator.class.getName());
-    
+
     public static int[] allocateSkillPoints(int level, int classId, int currentSp) {
         int[] allocation = new int[10]; // 10 skill categories
         if (level < 20) return allocation;
-        
+
         // Follow class build
         switch (classId) {
             case 0: // Fighter

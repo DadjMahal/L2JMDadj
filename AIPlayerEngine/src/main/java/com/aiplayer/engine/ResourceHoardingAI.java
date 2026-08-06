@@ -4,9 +4,9 @@ import java.util.logging.Logger;
 public class ResourceHoardingAI {
     private static final Logger LOGGER = Logger.getLogger(ResourceHoardingAI.class.getName());
     private int savedAdena = 0;
-    
+
     public enum HoardingStyle { SAVE, SPEND_BALANCED, SPEND_FREELY }
-    
+
     public boolean shouldSave(int adena, int marketPrice, HoardingStyle style) {
         switch (style) {
             case SAVE: return true;
@@ -15,10 +15,10 @@ public class ResourceHoardingAI {
             default: return false;
         }
     }
-    
+
     public void saveResource(int amount) {
         savedAdena += amount;
     }
-    
+
     public int getSavedAmount() { return savedAdena; }
 }

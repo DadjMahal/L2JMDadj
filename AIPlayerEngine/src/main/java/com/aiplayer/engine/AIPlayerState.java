@@ -18,13 +18,13 @@ public enum AIPlayerState {
     SOCIAL("Socializing"),
     DEAD("Dead"),
     DISCONNECTED("Disconnected");
-    
+
     private final String description;
-    
+
     AIPlayerState(String description) {
         this.description = description;
     }
-    
+
     public String getDescription() {
         return description;
     }

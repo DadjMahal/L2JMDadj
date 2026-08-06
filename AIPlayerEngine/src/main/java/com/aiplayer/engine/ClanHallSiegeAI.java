@@ -4,9 +4,9 @@ import java.util.logging.Logger;
 
 public class ClanHallSiegeAI {
     private static final Logger LOGGER = Logger.getLogger(ClanHallSiegeAI.class.getName());
-    
+
     public enum HallType { OWNERSHIP, MERCHANT, WAR_TEAR, HIDDEN_VILLAGE, ELYANS, ANGEL, REWARD }
-    
+
     public static class SiegePlan {
         public final HallType hallType;
         public final int requiredPlayers;
@@ -15,7 +15,7 @@ public class ClanHallSiegeAI {
             hallType = type; requiredPlayers = players; estimatedDuration = duration;
         }
     }
-    
+
     public static SiegePlan getOptimalPlan(HallType hall, int clanLevel) {
         int players = Math.max(5, clanLevel * 2);
         int duration;
@@ -28,7 +28,7 @@ public class ClanHallSiegeAI {
         }
         return new SiegePlan(hall, players, duration);
     }
-    
+
     public static boolean shouldSiege(HallType hallType, long lastSiegeTime, int cooldownHours) {
         return System.currentTimeMillis() - lastSiegeTime > cooldownHours * 3600000L;
     }

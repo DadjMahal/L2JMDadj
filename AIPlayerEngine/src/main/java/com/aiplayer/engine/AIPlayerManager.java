@@ -15,36 +15,36 @@ import com.aiplayer.metrics.PerformanceMetrics;
  */
 public class AIPlayerManager {
     private static final Logger LOGGER = Logger.getLogger(AIPlayerManager.class.getName());
-    
+
     private static final AIPlayerManager INSTANCE = new AIPlayerManager();
-    
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
     private final java.util.Map<Integer, AIPlayer> aiPlayers = new java.util.concurrent.ConcurrentHashMap<>();
     private volatile boolean running = false;
     private final String serverHost = "localhost";
     private final int loginPort = 2106;
     private final int gamePort = 7777;
-    
+
     // Character ID lookup tables (based on database setup)
     private static final int[] COMBAT_CHAR_IDS = {2, 3, 9, 10, 11, 12};
     private static final int[] QUEST_CHAR_IDS = {6, 7, 13, 14, 15, 16};
     private static final int[] MERCHANT_CHAR_IDS = {5, 17, 18, 19, 20, 21};
     private static final int[] SOCIAL_CHAR_IDS = {8, 22, 23, 24, 25, 26};
-    
+
     // Type-specific counters for database account mapping
     private int combatCount = 0;
     private int questCount = 0;
     private int merchantCount = 0;
     private int socialCount = 0;
-    
+
     private AIPlayerManager() {
         // Private constructor for singleton
     }
-    
+
     public static AIPlayerManager getInstance() {
         return INSTANCE;
     }
-    
+
     /**
      * Spawn a new AI Player with REAL connection to L2JM server
      */
@@ -52,14 +52,14 @@ public class AIPlayerManager {
         AIPlayer aiPlayer = new AIPlayer(playerName, accountId, classId, race);
         aiPlayers.put(accountId, aiPlayer);
         LOGGER.info("Spawned AI Player: " + playerName);
-        
+
         // ACTUAL CONNECTION TO L2JM SERVER
         new Thread(() -> {
             try {
                 // Connect to database account - account name should match the account parameter
                 String account = playerName.toLowerCase(); // e.g., "ai_combat_01"
                 String password = "ai123pass";
-                
+
                 // Login to L2JM server
                 if (aiPlayer.connectToServer(account, password, charId)) {
                     LOGGER.info("[REAL CONNECTION] " + playerName + " connected to L2JM server!");
@@ -70,10 +70,10 @@ public class AIPlayerManager {
                 LOGGER.severe("Connection failed for " + playerName + ": " + e.getMessage());
             }
         }).start();
-        
+
         return aiPlayer;
     }
-    
+
     /**
      * Despawn an AI Player — Stream F (task 97): graceful shutdown. Disconnects the bot from the
      * server and persists its session state before removing it, so a despawn isn't a data loss.
@@ -109,7 +109,7 @@ public class AIPlayerManager {
         stop();
         LOGGER.info("All AI players shut down.");
     }
-    
+
     /**
      * Start all AI players
      */
@@ -118,15 +118,15 @@ public class AIPlayerManager {
             LOGGER.warning("AI Player Manager already running!");
             return;
         }
-        
+
         running = true;
         LOGGER.info("Starting AI Player Manager...");
-        
+
         // Schedule AI think cycles
-        scheduler.scheduleAtFixedRate(this::thinkAllPlayers, 
+        scheduler.scheduleAtFixedRate(this::thinkAllPlayers,
             0, 100, TimeUnit.MILLISECONDS);
     }
-    
+
     /**
      * Stop all AI players
      */
@@ -135,10 +135,10 @@ public class AIPlayerManager {
         scheduler.shutdown();
         LOGGER.info("AI Player Manager stopped");
     }
-    
+
     private void thinkAllPlayers() {
         if (!running) return;
-        
+
         for (AIPlayer player : aiPlayers.values()) {
             try {
                 // Stream F (task 98): measure + record decision latency via PerformanceMetrics
@@ -150,16 +150,16 @@ public class AIPlayerManager {
                 // Stream F (task 98): feed the (previously dead) monitor dashboard so live stats exist.
                 AIMonitorDashboard.getInstance().updatePlayerStats(player);
             } catch (Exception e) {
-                LOGGER.severe("Error thinking for AI Player " + player.getName() + 
+                LOGGER.severe("Error thinking for AI Player " + player.getName() +
                     ": " + e.getMessage());
             }
         }
     }
-    
+
     public AIPlayer getAIPlayer(int accountId) {
         return aiPlayers.get(accountId);
     }
-    
+
     public int getAIPlayerCount() {
         return aiPlayers.size();
     }
@@ -168,9 +168,9 @@ public class AIPlayerManager {
     public java.util.Collection<AIPlayer> getManagedPlayers() {
         return aiPlayers.values();
     }
-    
+
     // Specialized spawn methods for different AI player types
-    
+
     /**
      * Spawn a Combat AI Player
      */
@@ -181,15 +181,15 @@ public class AIPlayerManager {
         int classId = combatCount % 3 == 0 ? 1 : combatCount % 3 == 1 ? 2 : 3;
         int race = combatCount % 4;
         int charId = COMBAT_CHAR_IDS[Math.min(combatCount - 1, COMBAT_CHAR_IDS.length - 1)];
-        
+
         AIPlayer player = new AIPlayer(name, 100 + combatCount, classId, race);
         aiPlayers.put(100 + combatCount, player);
-        
+
         connectPlayer(player, account, charId);
         LOGGER.info("[COMBAT AI] Spawned Combat AI Player: " + name + " (account=" + account + ", charId=" + charId + ")");
         return player;
     }
-    
+
     /**
      * Spawn a Quest AI Player
      */
@@ -200,15 +200,15 @@ public class AIPlayerManager {
         int classId = 1; // Hero class for quest completion
         int race = 0;
         int charId = QUEST_CHAR_IDS[Math.min(questCount - 1, QUEST_CHAR_IDS.length - 1)];
-        
+
         AIPlayer player = new AIPlayer(name, 300 + questCount, classId, race);
         aiPlayers.put(300 + questCount, player);
-        
+
         connectPlayer(player, account, charId);
         LOGGER.info("[QUEST AI] Spawned Quest AI Player: " + name + " (account=" + account + ", charId=" + charId + ")");
         return player;
     }
-    
+
     /**
      * Spawn a Merchant AI Player
      */
@@ -219,15 +219,15 @@ public class AIPlayerManager {
         int classId = 1;
         int race = 0;
         int charId = MERCHANT_CHAR_IDS[Math.min(merchantCount - 1, MERCHANT_CHAR_IDS.length - 1)];
-        
+
         AIPlayer player = new AIPlayer(name, 400 + merchantCount, classId, race);
         aiPlayers.put(400 + merchantCount, player);
-        
+
         connectPlayer(player, account, charId);
         LOGGER.info("[MERCHANT AI] Spawned Merchant AI Player: " + name + " (account=" + account + ", charId=" + charId + ")");
         return player;
     }
-    
+
     /**
      * Spawn a Social AI Player
      */
@@ -238,15 +238,15 @@ public class AIPlayerManager {
         int classId = 1;
         int race = 0;
         int charId = SOCIAL_CHAR_IDS[Math.min(socialCount - 1, SOCIAL_CHAR_IDS.length - 1)];
-        
+
         AIPlayer player = new AIPlayer(name, 500 + socialCount, classId, race);
         aiPlayers.put(500 + socialCount, player);
-        
+
         connectPlayer(player, account, charId);
         LOGGER.info("[SOCIAL AI] Spawned Social AI Player: " + name + " (account=" + account + ", charId=" + charId + ")");
         return player;
     }
-    
+
     /**
      * Connect a player to the L2JM server
      */
@@ -256,7 +256,7 @@ public class AIPlayerManager {
                 String account = name.toLowerCase(); // name already full account (e.g. ai_combat_01); fix double-prefix bug (B1)
                 String password = "ai123pass";
                 int charId = accountId; // Character ID matches account
-                
+
                 if (player.connectToServer(account, password, charId)) {
                     LOGGER.info("[L2JM CONNECTION] " + name + " successfully connected to L2JM server at localhost:7777!");
                 } else {

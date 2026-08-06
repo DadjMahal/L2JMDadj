@@ -4,17 +4,17 @@ import java.util.logging.Logger;
 
 public class ClassQuestAI {
     private static final Logger LOGGER = Logger.getLogger(ClassQuestAI.class.getName());
-    
+
     public static class QuestChain {
         public final String questId;
         public final String[] prerequisites;
         public final boolean isRequired;
-        
+
         public QuestChain(String id, String[] pre, boolean req) {
             questId = id; prerequisites = pre; isRequired = req;
         }
     }
-    
+
     public static Map<String, QuestChain> CLASS_QUESTS = new HashMap<>();
     static {
         CLASS_QUESTS.put("COMMON_BOSS", new QuestChain("COMMON_BOSS", new String[]{}, true));
@@ -23,7 +23,7 @@ public class ClassQuestAI {
         CLASS_QUESTS.put("ROGUE_INITIATION", new QuestChain("ROGUE_INITIATION", new String[]{"COMMON_BOSS"}, true));
         CLASS_QUESTS.put("ELF_MYSTERY", new QuestChain("ELF_MYSTERY", new String[]{"COMMON_BOSS"}, true));
     }
-    
+
     public static boolean canCompleteClassChange(String questId, Set<String> completed) {
         QuestChain qc = CLASS_QUESTS.get(questId);
         if (qc == null) return false;
@@ -32,7 +32,7 @@ public class ClassQuestAI {
         }
         return true;
     }
-    
+
     public static String getNextQuest(String currentQuest, Set<String> completed) {
         for (Map.Entry<String, QuestChain> e : CLASS_QUESTS.entrySet()) {
             QuestChain qc = e.getValue();

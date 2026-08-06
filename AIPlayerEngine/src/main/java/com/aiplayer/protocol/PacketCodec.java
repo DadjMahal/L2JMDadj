@@ -6,10 +6,10 @@ import java.util.logging.Logger;
 
 /**
  * L2J Packet Codec - Rewritten Task 67
- * 
+ *
  * Handles encoding/decoding of L2JMobius protocol packets.
  * Uses standard L2J packet format: [2-byte size][opcode][data]
- * 
+ *
  * OPCODES FROM SourceCode/java/org/l2jmobius/gameserver/network/ClientPackets.java:
  * - 0x00: Init (server-initiated login handshake)
  * - 0x08: AUTH_LOGIN (AUTH_LOGIN in clientpackets)
@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  */
 public class PacketCodec {
     private static final Logger LOGGER = Logger.getLogger(PacketCodec.class.getName());
-    
+
     /**
      * Encode a packet (size + opcode + data) - LITTLE_ENDIAN
      */
@@ -32,7 +32,7 @@ public class PacketCodec {
         buf.flip();
         return buf.array();
     }
-    
+
     /**
      * Encode packet with integer data - LITTLE_ENDIAN
      */
@@ -45,7 +45,7 @@ public class PacketCodec {
         buf.flip();
         return buf.array();
     }
-    
+
     /**
      * Encode movement packet (Client->Server)
      * OPCODE: 0x01 = MOVE_TO_LOCATION from ClientPackets.java
@@ -65,9 +65,9 @@ public class PacketCodec {
         buf.flip();
         return buf.array();
     }
-    
+
     /**
-     * Encode attack packet 
+     * Encode attack packet
      * OPCODE: 0x0A = ATTACK_REQUEST from ClientPackets.java
      * Format: cddddc (objectId, originX, originY, originZ, attackId)
      */
@@ -208,7 +208,7 @@ public class PacketCodec {
         for (int i = 0; i < 20; i++) bb.put((byte) 0); // 5x4 tracert bytes
         return bb.array();
     }
-    
+
     /**
      * Encode character select packet
      * OPCODE: 0x0D = CHARACTER_SELECT from ClientPackets.java
@@ -229,7 +229,7 @@ public class PacketCodec {
         System.arraycopy(buf.array(), 0, result, 0, result.length);
         return result;
     }
-    
+
     /**
      * Encode chat packet
      * OPCODE from L2J implementation
@@ -296,39 +296,39 @@ public class PacketCodec {
         if (data == null || data.length < 4) {
             return null;
         }
-        
+
         ByteBuffer buf = ByteBuffer.wrap(data);
         short size = buf.getShort();
         short opcode = buf.getShort();
-        
+
         byte[] payload = new byte[size - 4];
         buf.get(payload);
-        
+
         return new DecodedPacket(opcode, payload);
     }
-    
+
     /**
      * Decoded packet container
      */
     public static class DecodedPacket {
         public final short opcode;
         public final byte[] payload;
-        
+
         public DecodedPacket(short opcode, byte[] payload) {
             this.opcode = opcode;
             this.payload = payload;
         }
-        
+
         public int readInt() {
             if (payload.length < 4) return 0;
             return ByteBuffer.wrap(payload).getInt();
         }
-        
+
         public short readShort() {
             if (payload.length < 2) return 0;
             return ByteBuffer.wrap(payload).getShort();
         }
-        
+
         public String readString() {
             int len = 0;
             while (len < payload.length && payload[len] != 0) len++;

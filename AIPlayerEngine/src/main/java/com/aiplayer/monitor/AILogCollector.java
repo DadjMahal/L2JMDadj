@@ -13,34 +13,34 @@ import java.util.logging.Logger;
  */
 public class AILogCollector {
     private static final Logger LOGGER = Logger.getLogger(AILogCollector.class.getName());
-    
+
     private final String logDir;
     private final SimpleDateFormat dateFormatter;
-    
+
     public AILogCollector(String logDir) {
         this.logDir = logDir;
         this.dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         ensureLogDirExists();
     }
-    
+
     private void ensureLogDirExists() {
         File dir = new File(logDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
     }
-    
+
     /**
      * Log an AI player action
      */
     public void logAction(String playerName, String action, String details) {
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        String logLine = String.format("[%s] [%s] Action: %s | Details: %s%n", 
+        String logLine = String.format("[%s] [%s] Action: %s | Details: %s%n",
             timestamp, playerName, action, details);
         appendLog("actions.log", logLine);
         LOGGER.fine(logLine.trim());
     }
-    
+
     /**
      * Log AI player state changes
      */
@@ -50,7 +50,7 @@ public class AILogCollector {
             timestamp, playerName, oldState, newState);
         appendLog("states.log", logLine);
     }
-    
+
     /**
      * Log AI player errors
      */
@@ -61,7 +61,7 @@ public class AILogCollector {
         appendLog("errors.log", logLine);
         LOGGER.severe("[" + playerName + "] " + error);
     }
-    
+
     /**
      * Create a session report
      */
@@ -83,7 +83,7 @@ public class AILogCollector {
             LOGGER.warning("Failed to create session report: " + e.getMessage());
         }
     }
-    
+
     private void appendLog(String logFile, String logLine) {
         try {
             File file = new File(logDir, logFile);
@@ -94,11 +94,11 @@ public class AILogCollector {
             LOGGER.warning("Failed to write to log: " + logFile + " - " + e.getMessage());
         }
     }
-    
+
     public SimpleDateFormat getDateFormatter() {
         return dateFormatter;
     }
-    
+
     public String getLogDir() {
         return logDir;
     }

@@ -14,23 +14,23 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class GameServerFrameWriterTest
 {
-	@Test
-	public void testWritesFrameVerbatim() throws IOException
-	{
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		GameServerFrameWriter writer = new GameServerFrameWriter(out);
+    @Test
+    public void testWritesFrameVerbatim() throws IOException
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        GameServerFrameWriter writer = new GameServerFrameWriter(out);
 
-		byte[] action = PacketCodec.encodeAction(42, 1, 2, 3);
-		writer.writeFrame(action);
+        byte[] action = PacketCodec.encodeAction(42, 1, 2, 3);
+        writer.writeFrame(action);
 
-		assertArrayEquals(action, out.toByteArray(), "writer should emit the frame unchanged + flush");
-	}
+        assertArrayEquals(action, out.toByteArray(), "writer should emit the frame unchanged + flush");
+    }
 
-	@Test
-	public void testRejectsMalformedFrame()
-	{
-		GameServerFrameWriter writer = new GameServerFrameWriter(new ByteArrayOutputStream());
-		assertThrows(IllegalArgumentException.class, () -> writer.writeFrame(null), "null frame");
-		assertThrows(IllegalArgumentException.class, () -> writer.writeFrame(new byte[]{1, 2}), "short frame");
-	}
+    @Test
+    public void testRejectsMalformedFrame()
+    {
+        GameServerFrameWriter writer = new GameServerFrameWriter(new ByteArrayOutputStream());
+        assertThrows(IllegalArgumentException.class, () -> writer.writeFrame(null), "null frame");
+        assertThrows(IllegalArgumentException.class, () -> writer.writeFrame(new byte[]{1, 2}), "short frame");
+    }
 }

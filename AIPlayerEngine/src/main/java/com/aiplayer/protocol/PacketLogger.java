@@ -66,19 +66,19 @@ public class PacketLogger
    // detect level-ups and fire CombatAI.onLevelUp / long-term-goal progress (was never parsed).
    private int level = 0;
 
-   
+
    // Position tracking (Task 33, 34)
    private int playerX = 0;
    private int playerY = 0;
    private int playerZ = 0;
    private int playerHeading = 0;
-   
+
    // Inventory tracking (Task 33, 35)
    private int adena = 0;
    private int inventoryUsagePercent = 0;
    // Stream E (task 78): real inventory contents parsed from ItemList(0x1B). itemId -> count.
    private final java.util.Map<Integer, Long> inventoryItems = new java.util.concurrent.ConcurrentHashMap<>();
-   
+
    // Quest tracking (Task 36)
    private int activeQuestCount = 0;
 
@@ -86,7 +86,7 @@ public class PacketLogger
    private String lastNpcHtml = null;
    private int lastNpcHtmlOriginObjId = 0;
    private int npcHtmlCount = 0;
-   
+
    // Entity tracking (Task 47)
    private final ConcurrentHashMap<Integer, EntityInfo> entitiesById = new ConcurrentHashMap<>();
 
@@ -201,7 +201,7 @@ public class PacketLogger
             int value = buf.getInt();
             attrs.append(getAttributeName(attrId)).append("=").append(value);
             if (i < attributeCount - 1) attrs.append(", ");
-            
+
             // Track HP/MP values (self only; a target's StatusUpdate must not overwrite the bot's HP)
             if (isSelf && attrId == STAT_CUR_HP) curHp = value;
             if (isSelf && attrId == STAT_MAX_HP) maxHp = value;
@@ -255,7 +255,7 @@ public class PacketLogger
          LOGGER.fine("[" + playerName + "] NpcInfo parse incomplete");
       }
    }
-   
+
    /**
     * Determine if NPC ID represents a hostile creature
     * Based on L2J typical NPC ID ranges
@@ -265,7 +265,7 @@ public class PacketLogger
       // 1-199999: Standard monsters (varies by region)
       // 210000-210999: Beasts (usually hostile)
       // 800000-899999: Event monsters
-      
+
       // For now, we'll check common hostile ranges
       // In production, this would be extended with actual L2JMobius data
       if (npcId >= 1 && npcId < 200000) return true;  // Most monsters
@@ -351,17 +351,17 @@ public class PacketLogger
          // Format: [questCount: 2 bytes][for each quest: questId: 4 bytes state: 1 byte]
          int questCount = buf.getShort() & 0xFFFF;
          this.activeQuestCount = 0;
-         
+
          for (int i = 0; i < questCount; i++) {
             int questId = buf.getInt();
             byte state = buf.get();
-            
+
             // Count active quests (states 1-4 are active, 0 is not started, 5 is completed)
             if (state > 0 && state < 5) {
                activeQuestCount++;
             }
          }
-         
+
          LOGGER.info("[PACKET-LOG] [" + playerName + "] QUEST_INFO: count=" + questCount + " active=" + activeQuestCount);
       }
       catch (Exception e)
@@ -378,7 +378,7 @@ public class PacketLogger
       try
       {
          int objectId = buf.getInt();
-         
+
          // Remove entity from tracking map (Task 38). INFO level so the live proof can show the target
          // despawning (Slice 6 feedback: DeleteObject drives end-of-combat and re-targeting).
          EntityInfo removed = entitiesById.remove(objectId);
@@ -532,7 +532,7 @@ public class PacketLogger
    public int getStatusUpdateCount() { return statusUpdateCount; }
    public int getNpcInfoCount() { return npcInfoCount; }
    public int getItemListCount() { return itemListCount; }
-   
+
    // HP/MP tracking getters (Task 48, 49)
    public int getSelfObjectId() { return selfObjectId; }
 
@@ -555,13 +555,13 @@ public class PacketLogger
    public int getLevel() { return level; }
    public double getHpPercentage() { return maxHp > 0 ? (double) curHp / maxHp * 100 : 0; }
    public double getMpPercentage() { return maxMp > 0 ? (double) curMp / maxMp * 100 : 0; }
-   
+
    // Position tracking getters (Task 34)
    public int getPlayerX() { return playerX; }
    public int getPlayerY() { return playerY; }
    public int getPlayerZ() { return playerZ; }
    public int getPlayerHeading() { return playerHeading; }
-   
+
    // Inventory tracking getters (Task 35)
    public int getAdena() { return adena; }
    /** Stream E (task 78): the real inventory map, itemId -> count, parsed from ItemList(0x1B). */
@@ -569,11 +569,11 @@ public class PacketLogger
    public int getInventoryUsagePercent() { return inventoryUsagePercent; }
    public boolean isInventoryFull() { return inventoryUsagePercent >= 90; }
    public boolean hasSpaceForTrade(int itemCount) { return inventoryUsagePercent + (itemCount * 100 / 120) < 90; }
-   
+
    // Quest tracking getters (Task 36)
    public int getActiveQuestCount() { return activeQuestCount; }
    public int getQuestInfoCount() { return questInfoCount; }
-   
+
    // Entity tracking getters (Task 47)
    public int getEntityCount() { return entitiesById.size(); }
    public EntityInfo getEntity(int objectId) { return entitiesById.get(objectId); }
@@ -607,8 +607,8 @@ public class PacketLogger
       }
       return nearest;
    }
-   
-    
+
+
     /**
      * Get all entities within a radius of the player.
      * Used for advanced escape route calculation.
@@ -623,7 +623,7 @@ public class PacketLogger
             .filter(e -> Math.pow(e.x - centerX, 2) + Math.pow(e.y - centerY, 2) <= radiusSq)
             .toArray(EntityInfo[]::new);
     }
-    
+
     /**
      * Find nearest entity to player (any entity).
      * @param playerX player X coordinate
@@ -644,7 +644,7 @@ public class PacketLogger
         }
         return nearest;
     }
-    
+
     /**
      * Check if there are any hostile entities nearby.
      * @param playerX player X coordinate
@@ -656,7 +656,7 @@ public class PacketLogger
     public boolean hasHostileNearby(int playerX, int playerY, int playerZ, int maxDistance) {
         return findNearestHostile(playerX, playerY, playerZ, maxDistance) != null;
     }
-    
+
     /**
      * Clear all tracked entities (useful for zone changes).
      */
@@ -665,21 +665,21 @@ public class PacketLogger
         entitiesById.clear();
         LOGGER.info("[PACKET-LOG] [" + playerName + "] CLEARED_ENTITIES: " + count + " entities removed");
     }
-    
+
     /**
      * Get count of hostile entities only.
      */
     public int getHostileEntityCount() {
         return (int) entitiesById.values().stream().filter(e -> e.isHostile).count();
     }
-    
+
     // Inner class for tracked entity info
    public static class EntityInfo {
       public final int objectId;
       public final int npcId;
       public int x, y, z, heading;
       public boolean isHostile;
-      
+
       public EntityInfo(int objectId, int npcId, int x, int y, int z, int heading, boolean isHostile) {
          this.objectId = objectId;
          this.npcId = npcId;
@@ -689,10 +689,10 @@ public class PacketLogger
          this.heading = heading;
          this.isHostile = isHostile;
       }
-      
+
       @Override
       public String toString() {
-         return "Entity[" + (isHostile ? "HOSTILE" : "NEUTRAL") + "] objId=" + objectId + 
+         return "Entity[" + (isHostile ? "HOSTILE" : "NEUTRAL") + "] objId=" + objectId +
                 " npcId=" + npcId + " pos=(" + x + "," + y + "," + z + ")";
       }
    }

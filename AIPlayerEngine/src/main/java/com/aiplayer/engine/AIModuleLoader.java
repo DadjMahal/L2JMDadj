@@ -9,11 +9,11 @@ import java.util.logging.Logger;
  */
 public class AIModuleLoader {
     private static final Logger LOGGER = Logger.getLogger(AIModuleLoader.class.getName());
-    
+
     public AIModuleLoader() {
         LOGGER.info("AI Module Loader initialized");
     }
-    
+
     /**
      * Load behavior modules based on configuration
      */
@@ -22,23 +22,23 @@ public class AIModuleLoader {
         if (AIConfiguration.getInstance().getBooleanProperty("behavior.merchant.enabled")) {
             LOGGER.info("Merchant AI Module enabled");
         }
-        
+
         // Quest module
         if (AIConfiguration.getInstance().getBooleanProperty("behavior.quest.enabled")) {
             LOGGER.info("Quest AI Module enabled");
         }
-        
+
         // Combat module
         if (AIConfiguration.getInstance().getBooleanProperty("behavior.combat.enabled")) {
             LOGGER.info("Combat AI Module enabled");
         }
-        
+
         // Social module
         if (AIConfiguration.getInstance().getBooleanProperty("behavior.social.enabled")) {
             LOGGER.info("Social AI Module enabled");
         }
     }
-    
+
     /**
      * Get module class by name
      */

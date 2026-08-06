@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 
 public class SeasonalScheduler {
     private static final Logger LOGGER = Logger.getLogger(SeasonalScheduler.class.getName());
-    
+
     public static Map<ManorAI.ManorSeason, Integer> getSeasonModifier() {
         Map<ManorAI.ManorSeason, Integer> mods = new HashMap<>();
         mods.put(ManorAI.ManorSeason.SPRING, 120);  // Best growth
@@ -13,11 +13,11 @@ public class SeasonalScheduler {
         mods.put(ManorAI.ManorSeason.WINTER, 80);   // Slow growth
         return mods;
     }
-    
+
     public static int calculateAdjustedProduction(int base, ManorAI.ManorSeason season) {
         return (int)(base * getSeasonModifier().getOrDefault(season, 100) / 100.0);
     }
-    
+
     public static String getOptimalPlantingTime(ManorAI.ManorSeason season) {
         switch (season) {
             case SPRING: return "NOW";

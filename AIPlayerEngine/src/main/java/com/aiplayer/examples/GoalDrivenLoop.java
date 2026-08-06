@@ -37,146 +37,146 @@ import com.aiplayer.protocol.L2JProtocol;
  */
 public class GoalDrivenLoop
 {
-	private static final Logger LOGGER = Logger.getLogger(GoalDrivenLoop.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GoalDrivenLoop.class.getName());
 
-	private static final int LOGIN_PORT = 2106;
-	private static final long LOOP_SLEEP_MS = 500;
+    private static final int LOGIN_PORT = 2106;
+    private static final long LOOP_SLEEP_MS = 500;
 
-	public static void main(String[] args) throws Exception
-	{
-		Logger.getLogger("com.aiplayer").setLevel(Level.INFO);
+    public static void main(String[] args) throws Exception
+    {
+        Logger.getLogger("com.aiplayer").setLevel(Level.INFO);
 
-		String account = args.length > 0 ? args[0] : "ai_combat_01";
-		String password = args.length > 1 ? args[1] : "ai123pass";
-		String host = args.length > 2 ? args[2] : "127.0.0.1";
-		int gamePort = args.length > 3 ? Integer.parseInt(args[3]) : 7777;
-		int charId = args.length > 4 ? Integer.parseInt(args[4]) : 2;
-		int charSlot = args.length > 5 ? Integer.parseInt(args[5]) : 0;
-		int seedX = args.length > 6 ? Integer.parseInt(args[6]) : -82759;
-		int seedY = args.length > 7 ? Integer.parseInt(args[7]) : 250149;
-		int seedZ = args.length > 8 ? Integer.parseInt(args[8]) : -3600;
-		int seconds = args.length > 9 ? Integer.parseInt(args[9]) : 20;
+        String account = args.length > 0 ? args[0] : "ai_combat_01";
+        String password = args.length > 1 ? args[1] : "ai123pass";
+        String host = args.length > 2 ? args[2] : "127.0.0.1";
+        int gamePort = args.length > 3 ? Integer.parseInt(args[3]) : 7777;
+        int charId = args.length > 4 ? Integer.parseInt(args[4]) : 2;
+        int charSlot = args.length > 5 ? Integer.parseInt(args[5]) : 0;
+        int seedX = args.length > 6 ? Integer.parseInt(args[6]) : -82759;
+        int seedY = args.length > 7 ? Integer.parseInt(args[7]) : 250149;
+        int seedZ = args.length > 8 ? Integer.parseInt(args[8]) : -3600;
+        int seconds = args.length > 9 ? Integer.parseInt(args[9]) : 20;
 
-		AIPlayer player = new AIPlayer(account, 100, 1, 0);
-		player.setPosition(seedX, seedY, seedZ);
-		L2JProtocol login = new L2JProtocol(player, host, LOGIN_PORT, gamePort);
-		System.out.println("[GoalLoop] login...");
-		boolean ok = login.connectAndLogin(account, password, charId);
-		if (!ok)
-		{
-			System.out.println("[GoalLoop] FAIL login");
-			System.exit(2);
-		}
-		player.setLoggedIn(true);
-		player.setCharacterId(charId);
+        AIPlayer player = new AIPlayer(account, 100, 1, 0);
+        player.setPosition(seedX, seedY, seedZ);
+        L2JProtocol login = new L2JProtocol(player, host, LOGIN_PORT, gamePort);
+        System.out.println("[GoalLoop] login...");
+        boolean ok = login.connectAndLogin(account, password, charId);
+        if (!ok)
+        {
+            System.out.println("[GoalLoop] FAIL login");
+            System.exit(2);
+        }
+        player.setLoggedIn(true);
+        player.setCharacterId(charId);
 
-		GameServerClient gs = new GameServerClient(player, host, gamePort);
-		boolean entered = gs.connectAndEnterWorld(login, account, charSlot);
-		if (!entered)
-		{
-			System.out.println("[GoalLoop] FAIL enter-world");
-			login.disconnect();
-			System.exit(3);
-		}
-		gs.startReader();
+        GameServerClient gs = new GameServerClient(player, host, gamePort);
+        boolean entered = gs.connectAndEnterWorld(login, account, charSlot);
+        if (!entered)
+        {
+            System.out.println("[GoalLoop] FAIL enter-world");
+            login.disconnect();
+            System.exit(3);
+        }
+        gs.startReader();
 
-		// Attach the LIVE reader's buffer to CombatAI (same as CombatLoop, slice 5).
-		player.getCombatAI().setPacketLogger(gs.getPacketLogger());
-		gs.getPacketLogger().setSelfObjectId(charId);
+        // Attach the LIVE reader's buffer to CombatAI (same as CombatLoop, slice 5).
+        player.getCombatAI().setPacketLogger(gs.getPacketLogger());
+        gs.getPacketLogger().setSelfObjectId(charId);
 
-		// Stream G (G-Live): the bridge that turns real packet deltas into D/E/F outcome hooks.
-		LiveFeedbackBridge bridge = new LiveFeedbackBridge(player, gs.getPacketLogger());
-
-
-		CombatFramePlanner planner = new CombatFramePlanner();
-		long deadline = System.currentTimeMillis() + seconds * 1000L;
-		int sentActions = 0;
-		long lastDiag = 0;
-
-		System.out.println("[GoalLoop] in world at (" + seedX + "," + seedY + "," + seedZ
-			+ ") — running goal-aware live loop for " + seconds + "s");
+        // Stream G (G-Live): the bridge that turns real packet deltas into D/E/F outcome hooks.
+        LiveFeedbackBridge bridge = new LiveFeedbackBridge(player, gs.getPacketLogger());
 
 
-		while (System.currentTimeMillis() < deadline)
-		{
-			// G-Live: fire D/E/F outcome hooks from real packet state transitions.
-			if (bridge.handleTick())
-			{
-				System.out.println("[GoalLoop] FEEDBACK fired (kill/level/death/respawn) level="
-					+ gs.getPacketLogger().getLevel() + " hostiles="
-					+ gs.getPacketLogger().getHostileEntityCount());
-			}
+        CombatFramePlanner planner = new CombatFramePlanner();
+        long deadline = System.currentTimeMillis() + seconds * 1000L;
+        int sentActions = 0;
+        long lastDiag = 0;
 
-			// Follow real movement when CharInfo has been parsed.
-			int px = gs.getPacketLogger().getPlayerX();
-			int py = gs.getPacketLogger().getPlayerY();
-			int pz = gs.getPacketLogger().getPlayerZ();
-			if (px != 0 || py != 0 || pz != 0)
-			{
-				player.setPosition(px, py, pz);
-			}
+        System.out.println("[GoalLoop] in world at (" + seedX + "," + seedY + "," + seedZ
+            + ") — running goal-aware live loop for " + seconds + "s");
 
-			// G-Live: rotate activity via ActivityScheduler (Stream E task 88).
-			ActivityScheduler.Activity activity = player.getActivityScheduler().nextActivity();
-			// G-Live: select the ONE active goal before deciding (Stream D task 65/68/69).
-			GoalTree.ShortTermGoal goal = player.getGoalTree().selectActiveGoal();
-			if (System.currentTimeMillis() - lastDiag > 3000)
-			{
-				System.out.println("[GoalLoop] ACTIVITY=" + activity + " ACTIVE_GOAL=" + goal
-					+ " engageDist=" + player.getCombatAI().getEffectiveEngageDistance()
-					+ " hostiles=" + gs.getPacketLogger().getHostileEntityCount());
-				lastDiag = System.currentTimeMillis();
-			}
 
-			if (!player.getCombatAI().isBotAlive())
-			{
-				Thread.sleep(LOOP_SLEEP_MS);
-				continue;
-			}
+        while (System.currentTimeMillis() < deadline)
+        {
+            // G-Live: fire D/E/F outcome hooks from real packet state transitions.
+            if (bridge.handleTick())
+            {
+                System.out.println("[GoalLoop] FEEDBACK fired (kill/level/death/respawn) level="
+                    + gs.getPacketLogger().getLevel() + " hostiles="
+                    + gs.getPacketLogger().getHostileEntityCount());
+            }
 
-			CombatDecision decision = player.getCombatAI().makeDecision();
+            // Follow real movement when CharInfo has been parsed.
+            int px = gs.getPacketLogger().getPlayerX();
+            int py = gs.getPacketLogger().getPlayerY();
+            int pz = gs.getPacketLogger().getPlayerZ();
+            if (px != 0 || py != 0 || pz != 0)
+            {
+                player.setPosition(px, py, pz);
+            }
 
-			// G-Combat: RangedKiteAI may override with a FLEE kite decision when low HP + far.
-			CombatDecision kite = player.getCombatAI().applyKiteBehavior();
-			if (kite != null)
-			{
-				decision = kite;
-				System.out.println("[GoalLoop] KITING — low HP + beyond safe range (RangedKiteAI)");
-			}
+            // G-Live: rotate activity via ActivityScheduler (Stream E task 88).
+            ActivityScheduler.Activity activity = player.getActivityScheduler().nextActivity();
+            // G-Live: select the ONE active goal before deciding (Stream D task 65/68/69).
+            GoalTree.ShortTermGoal goal = player.getGoalTree().selectActiveGoal();
+            if (System.currentTimeMillis() - lastDiag > 3000)
+            {
+                System.out.println("[GoalLoop] ACTIVITY=" + activity + " ACTIVE_GOAL=" + goal
+                    + " engageDist=" + player.getCombatAI().getEffectiveEngageDistance()
+                    + " hostiles=" + gs.getPacketLogger().getHostileEntityCount());
+                lastDiag = System.currentTimeMillis();
+            }
 
-			int targetId = player.getCombatAI().getSelectedTargetObjId();
-			if (targetId > 0 && (decision.getAction() == CombatDecision.Action.ATTACK
-				|| decision.getAction() == CombatDecision.Action.ENGAGE_TARGET
-				|| decision.getAction() == CombatDecision.Action.FLEE))
-			{
-				List<CombatFramePlanner.FrameStep> steps =
-					planner.plan(decision, player.getX(), player.getY(), player.getZ(), targetId);
-				int sent = 0;
-				for (CombatFramePlanner.FrameStep step : steps)
-				{
-					gs.sendGameFrame(step.frame);
-					System.out.println("[GoalLoop] SENT opcode=0x" + String.format("%02X", step.getOpcode())
-						+ " target=" + targetId + " action=" + decision.getAction());
-					sent++;
-					if (step.delayAfterMs > 0)
-					{
-						Thread.sleep(step.delayAfterMs);
-					}
-				}
-				sentActions += sent;
-				System.out.println("[GoalLoop] ENGAGED target=" + targetId + " action=" + decision.getAction());
-			}
-			else
-			{
-				Thread.sleep(LOOP_SLEEP_MS);
-			}
-		}
+            if (!player.getCombatAI().isBotAlive())
+            {
+                Thread.sleep(LOOP_SLEEP_MS);
+                continue;
+            }
 
-		System.out.println("[GoalLoop] LIVE GOAL LOOP COMPLETE sentActions=" + sentActions
-			+ " level=" + gs.getPacketLogger().getLevel());
-		gs.disconnect();
-		login.disconnect();
-		System.exit(sentActions > 0 ? 0 : 4);
-	}
+            CombatDecision decision = player.getCombatAI().makeDecision();
+
+            // G-Combat: RangedKiteAI may override with a FLEE kite decision when low HP + far.
+            CombatDecision kite = player.getCombatAI().applyKiteBehavior();
+            if (kite != null)
+            {
+                decision = kite;
+                System.out.println("[GoalLoop] KITING — low HP + beyond safe range (RangedKiteAI)");
+            }
+
+            int targetId = player.getCombatAI().getSelectedTargetObjId();
+            if (targetId > 0 && (decision.getAction() == CombatDecision.Action.ATTACK
+                || decision.getAction() == CombatDecision.Action.ENGAGE_TARGET
+                || decision.getAction() == CombatDecision.Action.FLEE))
+            {
+                List<CombatFramePlanner.FrameStep> steps =
+                    planner.plan(decision, player.getX(), player.getY(), player.getZ(), targetId);
+                int sent = 0;
+                for (CombatFramePlanner.FrameStep step : steps)
+                {
+                    gs.sendGameFrame(step.frame);
+                    System.out.println("[GoalLoop] SENT opcode=0x" + String.format("%02X", step.getOpcode())
+                        + " target=" + targetId + " action=" + decision.getAction());
+                    sent++;
+                    if (step.delayAfterMs > 0)
+                    {
+                        Thread.sleep(step.delayAfterMs);
+                    }
+                }
+                sentActions += sent;
+                System.out.println("[GoalLoop] ENGAGED target=" + targetId + " action=" + decision.getAction());
+            }
+            else
+            {
+                Thread.sleep(LOOP_SLEEP_MS);
+            }
+        }
+
+        System.out.println("[GoalLoop] LIVE GOAL LOOP COMPLETE sentActions=" + sentActions
+            + " level=" + gs.getPacketLogger().getLevel());
+        gs.disconnect();
+        login.disconnect();
+        System.exit(sentActions > 0 ? 0 : 4);
+    }
 }
 
