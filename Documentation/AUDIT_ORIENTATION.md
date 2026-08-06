@@ -105,8 +105,8 @@ bash ../scripts/verify_no_dead_code.sh                  # build SUCCESS, 2 benig
 ## 7. Honest state — the gaps (do NOT claim these done)
 1. **Live run-proof of `GoalDrivenLoop`** (Stream G) — compiled + bridge unit-tested, but not run
    against the live server this session. This is the one remaining "server-verified proof."
-2. **Relocate + heal 23 void `ai_%` chars** (TASKS 109) — ENV/DB op on the L2JM host; script written
-   (`scripts/relocate_void_ai.sh --apply`), not executed here.
+2. ~~Relocate + heal 23 void `ai_%` chars (TASKS 109)~~ **RESOLVED 2026-08-05** — all 25 bots moved
+   to the combat zone + healed via `scripts/relocate_void_ai.sh --apply` (server + DB available).
 3. **`CombatAI.isTargetDead()`** needs real target-HP StatusUpdate attribution (uses DeleteObject now).
 4. **`AIPlayerEngine` launcher** is a stub (LEGIT_TODO).
 5. **E-Extra:** PatternMemory on-disk persistence; `DeepLearningCore.predict()` fed but not yet

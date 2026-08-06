@@ -3,14 +3,13 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 3 — Streams A–G code COMPLETE + audit-ready (117/117 tests; check_style PASSED 0; verify_no_dead_code SUCCESS).
-## Stream G DONE in code (2026-08-05): G-Live (GoalDrivenLoop + wired LiveFeedbackBridge), G-Combat, G-Content, G-Behavior, disposition manifest `Documentation/StreamGDisposition.md`. +14 tests → **117/117 PASS, BUILD SUCCESS**.
-## Task 110 DONE: `check_style.sh` PASSES (0 violations) — 136 trailing-ws files stripped, 16 tab files→4-space, 5 engine System.out→LOGGER, AIBrain/AIPlayerSimple Math.random→deterministic, 2 TODOs LEGIT_TODO-tagged, checker scoped to engine (examples live-drivers exempt). Recompile + 117/117 tests green.
-## ★ NEW for auditors: **`Documentation/AUDIT_ORIENTATION.md`** — a 4-minute guide mapping architecture, the core classes, streams A-G, verification steps, honest gaps, conventions + routing. Point any auditing AI here first.
-## Honest G status: named work packages wired+tested. Genuinely-pending (documented, not claimable as done): (1) LIVE-RUN proof of `examples/GoalDrivenLoop` against the server; (2) `CombatAI.isTargetDead` real target-HP attribution; `AIPlayerEngine` launcher stub; PatternMemory persistence; DeepLearningCore.predict() consultation in makeDecision; (3) ENV: relocate+heal 23 void `ai_%` chars (`scripts/relocate_void_ai.sh`, not run); (4) TASKS 109 (env) is the only open tracker row besides none — 110 is now done.
-## TBD (open): (1) run GoalDrivenLoop live (server proof). (2) E-Extra (PatternMemory persistence + DeepLearningCore.predict consultation). (3) relocate+heal 23 void chars (env, task 109). (4) AIPlayerEngine launcher real spawn.
-## Stream docs: `Streams.md` + `AUDIT_ORIENTATION.md` (new) + `goal-personality-system.md` (D) + `social-economy-system.md` (E) + `MultiAgentQA.md` + `StreamGDisposition.md`.
-## Blockers: 23 ai_% chars in void spawn (relocate needed, env — task 109).
+## Phase: 4 — Streams A–G COMPLETE + audit-ready; ALL 110 roadmap tasks DONE (117/117 tests; check_style PASSED 0; verify_no_dead_code SUCCESS).
+## Task 109 DONE (2026-08-05): relocated + healed the 23 void `ai_%` bots via the live gameserver DB (server UP). all 25 `ai_%` accounts now at the B4 combat zone (-82759,250149,-3600) with HP; CombatBot_01/02 left at tested positions. `still_stuck=0`.
+## ALL 110 TASKS DONE. Open work is only post-roadmap/verification (below) — nothing in the tracker remains.
+## ★ For auditors: **`Documentation/AUDIT_ORIENTATION.md`** — 4-min core map (architecture, core classes, streams A-G, verification commands, honest gaps, routing). Point any auditing AI here first.
+## Open (documented, not tracker tasks): (1) LIVE-RUN proof of `examples/GoalDrivenLoop` against the server (only server-verified proof still outstanding — the bots are now relocated/healed so it's ready to run); (2) E-Extra (PatternMemory persistence + DeepLearningCore.predict() consultation in makeDecision); (3) CombatAI.isTargetDead real target-HP attribution; (4) AIPlayerEngine launcher real spawn.
+## Stream docs: `Streams.md` + `AUDIT_ORIENTATION.md` + `goal-personality-system.md` (D) + `social-economy-system.md` (E) + `MultiAgentQA.md` + `StreamGDisposition.md`.
+## Blockers: none in tracker (void bots relocated).
 
 ## Honest state (source: real_status.sh + live probe evidence)
 Server UP (LoginServer :2106, GameServer :7777). Live PvE combat (B4, exp 0→105), live PvP (B5, two bots

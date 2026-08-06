@@ -101,9 +101,11 @@ demand). **Not dead code by intent — they are the project's content library.**
 
 ---
 
-## 5. Environmental blocker (not a code task)
-23 `ai_%` chars are still in the void spawn — they must be **relocated + healed** before multi-bot
-gameplay. See `scripts/relocate_void_ai.sh` (mysql UPDATE of char coords to a live zone; dry-run by
-default, `--apply` executes). Run it on the L2JM host against the live `gameserver` DB — intentionally
-**not** run here.
+## 5. Environmental blocker (was a code task; now RESOLVED 2026-08-05)
+23 `ai_%` chars were stuck at the default spawn (16600,17000,434). **Resolved on the L2JM host** via
+`scripts/relocate_void_ai.sh --apply` (server UP + sudo mysql): keys on `account_name LIKE 'ai_%'`,
+moves the 23 default-spawn bots to the B4 wolf-zone combat spawn (-82759,250149,-3600) and heals
+(`curHp=COALESCE(maxHp,100)`; the server normalizes to full on login). CombatBot_01/02 were already
+at tested positions and left untouched. Post-move `still_stuck=0`; all 25 `ai_%` accounts live at real
+coords with HP.
 
