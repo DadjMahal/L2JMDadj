@@ -35,9 +35,10 @@ if [ -n "$TABS" ]; then note "Tabs found in:"; echo "$TABS"; else echo -e "${GRE
 TRAIL=$(grep -rlP " +$" "$CODEBASE" --include="*.java" 2>/dev/null)
 if [ -n "$TRAIL" ]; then note "Trailing whitespace in:"; echo "$TRAIL"; else echo -e "${GREEN}[ok]${RESET} no trailing whitespace"; fi
 
-# 3. Math.random() CALL in the engine (excludes comment mentions; examples/ are demos)
-ENGINE_PKGS="$CODEBASE/com/aiplayer/{engine,advanced,neural,social,economy,monitor,metrics,protocol}"
-RAND_LINES=$(grep -rn "Math.random()" $ENGINE_PKGS --include="*.java" 2>/dev/null | grep -vE '//|/\*| \*')
+# 3. Math.random() CALL in the engine (excludes only lines that START as comments; examples/ are demos)
+ENGINE_ROOT="$CODEBASE/com/aiplayer"
+ENGINE_PKGS="$ENGINE_ROOT/engine $ENGINE_ROOT/advanced $ENGINE_ROOT/neural $ENGINE_ROOT/social $ENGINE_ROOT/economy $ENGINE_ROOT/monitor $ENGINE_ROOT/metrics $ENGINE_ROOT/protocol"
+RAND_LINES=$(grep -rn "Math.random()" $ENGINE_PKGS --include="*.java" 2>/dev/null | grep -vE '^[^:]+:[0-9]+:[ \t]*(//|/\*|\*)')
 if [ -n "$RAND_LINES" ]; then note "Math.random() call in engine code:"; echo "$RAND_LINES"; else echo -e "${GREEN}[ok]${RESET} no Math.random() call in engine"; fi
 
 # 4. System.out.println in the engine (examples/ drivers print proof markers by design)

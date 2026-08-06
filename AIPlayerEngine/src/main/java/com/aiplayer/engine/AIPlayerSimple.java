@@ -13,6 +13,7 @@ public class AIPlayerSimple {
     private final String name;
     private final int accountId;
     private AtomicBoolean running = new AtomicBoolean(false);
+    private int chatIndex = 0; // deterministic message rotation (no Math.random)
 
     public AIPlayerSimple(String name, int accountId) {
         this.name = name;
@@ -94,7 +95,10 @@ public class AIPlayerSimple {
             "What a beautiful day!",
             "May the blessings be upon you!"
         };
-        LOGGER.info("[CHAT] " + name + " says: \"" + messages[(int)(Math.random() * messages.length)] + "\"");
+        // Deterministic (no Math.random): rotate messages by a counter so decisions stay reproducible.
+        int idx = chatIndex % messages.length;
+        chatIndex++;
+        LOGGER.info("[CHAT] " + name + " says: \"" + messages[idx] + "\"");
     }
 
     public String getName() { return name; }

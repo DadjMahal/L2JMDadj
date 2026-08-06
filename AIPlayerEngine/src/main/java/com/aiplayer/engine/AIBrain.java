@@ -250,7 +250,8 @@ public class AIBrain {
 
     // Helper methods
     private int getSimulatedHP() {
-        return 85 + (int)(Math.random() * 15);
+        // Deterministic (no Math.random): derive HP from a stable counter so decisions stay reproducible.
+        return 85 + (wanderTick % 15);
     }
 
     public CombatAI getCombatAI() { return combatAI; }
