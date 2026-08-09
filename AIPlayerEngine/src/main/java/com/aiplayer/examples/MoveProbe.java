@@ -60,15 +60,17 @@ public class MoveProbe
         String host = args.length > 2 ? args[2] : "127.0.0.1";
         int gamePort = args.length > 3 ? Integer.parseInt(args[3]) : 7777;
 
-        // Destination (Trader 30040 spawn, Talking Island village — walkable ground).
-        int targetX = -82515;
-        int targetY = 241221;
-        int targetZ = -3728;
-
-        // Player origin (MoveToLocation origin coords) — CombatBot_01 current position (B7 left it at Silvia).
+        // Destination (walkable ground). Default = a SHORT walk from the origin so the character
+        // physically completes the move within the ~15s tally window (B8 regression fix, 2026-08-08:
+        // the old hardcoded destination was ~8.6k units from the current bot position and never
+        // persisted). b8_move_prove.sh now passes the live DB position as origin and a nearby
+        // destination, so the walk actually lands and the DB persists it on logout.
         int ox = args.length > 4 ? Integer.parseInt(args[4]) : -83789;
         int oy = args.length > 5 ? Integer.parseInt(args[5]) : 240799;
         int oz = args.length > 6 ? Integer.parseInt(args[6]) : -3717;
+        int targetX = args.length > 7 ? Integer.parseInt(args[7]) : ox + 120;
+        int targetY = args.length > 8 ? Integer.parseInt(args[8]) : oy;
+        int targetZ = args.length > 9 ? Integer.parseInt(args[9]) : oz;
 
         // Phase 1: same proven login as CombatProbe (LS auth -> SessionKey kept alive in-process).
         AIPlayer player = new AIPlayer(account, 100, 1, 0);
@@ -222,6 +224,8 @@ public class MoveProbe
             // A CHAR_MOVE_TO_LOCATION / VALIDATE_LOCATION packet is strong corroboration.
             boolean moveReplied = (moveCount > 0) || (validateCount > 0) || (stopCount > 0);
             System.out.println("[MoveProbe] server replied to our walk (move|validate|stop > 0) = " + moveReplied);
+            // Clean grep-able boolean for b8_move_prove.sh (avoid fragile regex on the tallies).
+            System.out.println("[MoveProbe] MOVE_PROVEN=" + moveReplied);
             System.out.println("[MoveProbe] done");
         }
         login.disconnect();

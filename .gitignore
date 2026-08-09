@@ -11,8 +11,15 @@
 /ServerBuild/**/log/
 *.log
 
+# Multi-player run data (large, regenerated per experiment)
+AIStatusLogs/multiplayer_run_*/
+
 # Eclipse
 bin/
 .settings/
 .classpath
 .project
+
+# Python
+__pycache__/
+*.pyc

@@ -12,6 +12,7 @@ import com.aiplayer.engine.GameServerClient;
 import com.aiplayer.engine.GoalTree;
 import com.aiplayer.engine.LiveFeedbackBridge;
 import com.aiplayer.protocol.L2JProtocol;
+import com.aiplayer.protocol.PacketCodec;
 
 /**
  * Stream G (G-Live) LIVE driver — goal-aware, scheduler-aware, feedback-wired live loop.
@@ -30,7 +31,7 @@ import com.aiplayer.protocol.L2JProtocol;
  *     -&gt; CombatFramePlanner -&gt; sendGameFrame (real Action 0x04 / AttackRequest 0x0A / Move 0x01)
  * </pre>
  * Prints grep-able markers: {@code [GoalLoop] ACTIVE_GOAL=..}, {@code [GoalLoop] ACTIVITY=..},
- * {@code [GoalLoop] LIVE GOAL LOOP COMPLETE}.
+ * {@code [GoalLoop] MOVE opcode=0x01 ..}, {@code [GoalLoop] LIVE GOAL LOOP COMPLETE}.
  *
  * <p>Usage: {@code java -cp target/classes com.aiplayer.examples.GoalDrivenLoop &lt;account&gt;
  * &lt;pass&gt; [host] [gamePort] [charId] [charSlot] [seedX] [seedY] [seedZ] [seconds]}
@@ -41,6 +42,13 @@ public class GoalDrivenLoop
 
     private static final int LOGIN_PORT = 2106;
     private static final long LOOP_SLEEP_MS = 500;
+
+    // Stream G (G-Live, 2026-08-08): live goal-driven MOVEMENT. When the selected goal is EXPLORE
+    // (or GRIND perceives an empty/dead zone), walk to a fresh nearby offset via the B8-proven
+    // MoveToLocation(0x01) wire format (PacketCodec.encodeMoveToLocation). Geo-aware escape routing
+    // is a documented follow-up (StreamGDisposition §4), not required for a demonstrative movement.
+    private static final int ROAM_STEP = 200;
+    private static final long ROAM_COOLDOWN_MS = 8000;
 
     public static void main(String[] args) throws Exception
     {
@@ -91,6 +99,8 @@ public class GoalDrivenLoop
         CombatFramePlanner planner = new CombatFramePlanner();
         long deadline = System.currentTimeMillis() + seconds * 1000L;
         int sentActions = 0;
+        int sentMoves = 0;
+        long lastMoveMs = 0;
         long lastDiag = 0;
 
         System.out.println("[GoalLoop] in world at (" + seedX + "," + seedY + "," + seedZ
@@ -145,6 +155,27 @@ public class GoalDrivenLoop
             }
 
             int targetId = player.getCombatAI().getSelectedTargetObjId();
+
+            // Stream G (G-Live, 2026-08-08): LIVE goal-driven MOVEMENT. When the active goal is
+            // EXPLORE, or GRIND perceives no hostiles at all (dead zone), walk to a fresh nearby
+            // offset instead of idling. Uses the B8-proven MoveToLocation(0x01) frame so the server
+            // physically walks the character (CHAR_MOVE packets + DB x/y/z change on logout).
+            boolean exploreRoam = goal == GoalTree.ShortTermGoal.EXPLORE;
+            boolean deadZoneRoam = goal == GoalTree.ShortTermGoal.GRIND_XP
+                && gs.getPacketLogger().getHostileEntityCount() == 0;
+            if ((exploreRoam || deadZoneRoam) && targetId <= 0
+                && System.currentTimeMillis() - lastMoveMs > ROAM_COOLDOWN_MS)
+            {
+                int nx = player.getX() + ROAM_STEP;
+                int ny = player.getY() + ROAM_STEP;
+                gs.sendGameFrame(PacketCodec.encodeMoveToLocation(nx, ny, player.getZ(),
+                    player.getX(), player.getY(), player.getZ(), 0));
+                System.out.println("[GoalLoop] MOVE opcode=0x01 to (" + nx + "," + ny + "," + player.getZ()
+                    + ") goal=" + goal + " hostiles=" + gs.getPacketLogger().getHostileEntityCount());
+                sentMoves++;
+                lastMoveMs = System.currentTimeMillis();
+            }
+
             if (targetId > 0 && (decision.getAction() == CombatDecision.Action.ATTACK
                 || decision.getAction() == CombatDecision.Action.ENGAGE_TARGET
                 || decision.getAction() == CombatDecision.Action.FLEE))
@@ -173,10 +204,11 @@ public class GoalDrivenLoop
         }
 
         System.out.println("[GoalLoop] LIVE GOAL LOOP COMPLETE sentActions=" + sentActions
+            + " sentMoves=" + sentMoves
             + " level=" + gs.getPacketLogger().getLevel());
         gs.disconnect();
         login.disconnect();
-        System.exit(sentActions > 0 ? 0 : 4);
+        System.exit((sentActions > 0 || sentMoves > 0) ? 0 : 4);
     }
 }
 
