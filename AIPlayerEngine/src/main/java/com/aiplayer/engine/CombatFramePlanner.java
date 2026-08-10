@@ -81,7 +81,7 @@ public class CombatFramePlanner
                 break;
 
             case USE_SKILL:
-                // REQUEST_MAGIC_SKILL_USE (0x2F) is LIVE-PROVEN on the H5 GameServer:
+                // REQUEST_MAGIC_SKILL_USE (0x2F) is LIVE-PROVEN on the Interlude GameServer:
                 // the probe sent [0x2F][int skillId][int ctrl][byte shift] straight after
                 // an Action(0x04) and the server parsed it (no disconnect; it replied
                 // ACTION_FAIL/SystemMessage on game conditions, never on opcode/parse).

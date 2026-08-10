@@ -15,13 +15,13 @@ public final class SkillDatabase {
     private static final Map<Integer, List<Integer>> CLASS_SKILLS = new HashMap<>();
 
     static {
-        // H5 (L2jMobius datapack, ServerBuild/game/data/stats/skills/00000-00099.xml) lv-1 values,
+        // Interlude (L2jMobius datapack, ServerBuild/game/data/stats/skills/00000-00099.xml) lv-1 values,
         // cross-checked 2026-08-10. 3 and 16 are the Human Fighter path actually used by
         // FighterRotation (via Phase0Integration/CombatAI when phase0 combat rotation is on).
         register(3,   "Power Strike",      10,  13000, 40,  SkillInfo.SkillTarget.SINGLE_ENEMY, 3,  true,  false, false);
         register(16,  "Mortal Blow",       9,   11000, 40,  SkillInfo.SkillTarget.SINGLE_ENEMY, 3,  true,  false, false);
-        // NOTE (H5 realignment): H5 skill id 36 is "Whirlwind" and id 70 is "Drain Health" — the
-        // Kimi draft's "Power Shot"(36)/"Iron Punch"(70) do NOT exist under those ids in the H5
+        // NOTE (Interlude realignment): Interlude skill id 36 is "Whirlwind" and id 70 is "Drain Health" — the
+        // Kimi draft's "Power Shot"(36)/"Iron Punch"(70) do NOT exist under those ids in the Interlude
         // datapack, so those wrong rows were removed rather than re-mapped with guessed numbers;
         // the full Gladiator/Warlord skill trees are a follow-up datapack task (Audit/43).
         register(56,  "Power Shot (Archer)",35, 6000,  700, SkillInfo.SkillTarget.SINGLE_ENEMY, 5,  true,  false, false);
@@ -55,7 +55,7 @@ public final class SkillDatabase {
 
         // === CLASS SKILL MAPPINGS ===
         // Human Fighter (0) / Warrior (1) / Gladiator (2) / Warlord (3)
-        // (36/70 dropped — see the H5-realignment note above; FighterRotation path = skills 3/16)
+        // (36/70 dropped — see the Interlude-realignment note above; FighterRotation path = skills 3/16)
         addClassSkills(0, 3, 16);
         addClassSkills(1, 3, 16);
         addClassSkills(2, 3, 16);

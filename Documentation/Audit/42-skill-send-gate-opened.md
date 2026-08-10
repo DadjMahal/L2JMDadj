@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-10
 **Branch:** master (after commit, see below)
-**Live server:** H5 L2jMobius GameServer (:7777), LoginServer (:2106/:9014), MariaDB 11.8
+**Live server:** Interlude (L2jMobius) GameServer (:7777), LoginServer (:2106/:9014), MariaDB 11.8
 **Probe char:** `ai_combat_01`/`CombatBot_01` (charId 100000, Human Fighter, lvl 22)
 
 ---
@@ -26,7 +26,7 @@ _shiftPressed = readByte() != 0;// shift    (1 byte)
 
 The throwaway `CombatProbe` (branch `probe/skillcast-0x2f`, **not committed**)
 sent the exact frame `[size=12][0x2F][int skillId][int ctrl=0][byte shift=0]` to
-the live H5 server with `skillId=3` (Power Strike, owned by the char). Result
+the live Interlude server with `skillId=3` (Power Strike, owned by the char). Result
 (histogram in `/tmp/probe_out.txt`):
 
 - **No disconnect** — the opcode and 12-byte frame were **accepted and parsed**.
@@ -98,8 +98,8 @@ delta and the CombatAI-wiring experiment; neither is required by master.
 2. Real `currentXp` packet parsing (`StatusUpdate`/`UserInfo`) — do not fake.
 3. Implement the "Not implemented" L2JProtocol stubs behind the same live-prove
    gate (item-use, restart-to-village, chat variants, NPC action).
-4. Align `combat/SkillDatabase` with the live H5 datapack (Power Strike in the
-   DB is MP 25/cooldown 5000; the H5 server says MP 10/reuse 13000/range 40).
+4. Align `combat/SkillDatabase` with the live Interlude datapack (Power Strike in the
+   DB is MP 25/cooldown 5000; the Interlude server says MP 10/reuse 13000/range 40).
 5. Resolve the three flagged `Thread.sleep` sites (per-bot thread?).
 6. Live-run `Phase0Driver` end-to-end; target the `MAGIC_SKILL_USE(0x48)` opcode in
    the histogram as the definitive "cast fired" signal.

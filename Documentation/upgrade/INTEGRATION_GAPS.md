@@ -15,8 +15,8 @@ Task 2 targeting/aggro, Task 8 humanize, Task 5 inventory advice) when the new
 `phase0.*` config flags are on. All flags default OFF = previous behavior.
 **Honest seams** keep their explicit SKIP status — they were NOT faked:
 Task 4 (respawn opcode not proven), Task 6 (no chat packet source / `sendSay()`
-stub), Tasks 9/11 (no real `currentXp`). **SkillDatabase H5 realignment** for the
-fighter path (skills 3/16 verified against the H5 datapack; wrong C4 ids 36/70
+stub), Tasks 9/11 (no real `currentXp`). **SkillDatabase Interlude realignment** for the
+fighter path (skills 3/16 verified against the Interlude datapack; wrong C4 ids 36/70
 removed, not re-mapped with guesses). Suite: 141/141.
 
 ## Fixed in this pass (pass 2)

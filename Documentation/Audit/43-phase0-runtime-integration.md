@@ -20,7 +20,7 @@ runtime seam without changing default behavior.
 |---|---|
 | `CombatAI` | `phase0` built only when enabled; rotation in `shouldUseSkill()`→`useOffensiveSkill()` (via `pendingPhase0Skill`, one rotation consultation per decision), rotation kiting + flee threshold in `manageActiveCombat()`/`shouldHeal()`, shots on cast, `getPhase0Integration()` |
 | `examples/Phase0Driver` | Targeting via seam when enabled, death-recovery seam message, inventory advice (1/min), humanized reaction delay on the tick |
-| `phase0/combat/SkillDatabase` | **H5 realignment:** skill 3 (Power Strike) mp10/cooldown13000/range40/lvl3, skill 16 (Mortal Blow) mp9/cooldown11000/range40/lvl3 (cross-checked against `ServerBuild/game/data/stats/skills/00000-00099.xml`); removed wrong C4-era ids 36/70 ("Power Shot"/"Iron Punch" are NOT those H5 skills — they are Whirlwind/Drain Health) instead of re-mapping with guessed numbers |
+| `phase0/combat/SkillDatabase` | **Interlude realignment:** skill 3 (Power Strike) mp10/cooldown13000/range40/lvl3, skill 16 (Mortal Blow) mp9/cooldown11000/range40/lvl3 (cross-checked against `ServerBuild/game/data/stats/skills/00000-00099.xml`); removed wrong C4-era ids 36/70 ("Power Shot"/"Iron Punch" are NOT those Interlude skills — they are Whirlwind/Drain Health) instead of re-mapping with guessed numbers |
 
 ## Status per subsystem (honest)
 - **REAL (callers + tests):** Task 1 combat rotation/cooldown/shots, Task 2 targeting/aggro, Task 8 humanized reaction, Task 5 inventory advice (read-only).
@@ -35,5 +35,5 @@ runtime seam without changing default behavior.
 1. Implement the SEAMs behind their stated blockers: real `sendSay()`/item-use/respawn opcodes (live-prove each like 0x2F), then wire ChatResponder/ConsumableManager/DeathHandler.
 2. Real `PacketLogger.getCurrentXp()` parser; then farm/quest scoring.
 3. Migrate the ~34 `GameStateMirror` readers → `BotSnapshot`.
-4. Full `SkillDatabase` alignment with the H5 datapack/class trees (Gladiator/Warlord).
+4. Full `SkillDatabase` alignment with the Interlude datapack/class trees (Gladiator/Warlord).
 5. Live run of `Phase0Driver` with the phase0 flags on; histogram target `MAGIC_SKILL_USE(0x48)` > 0 (approach-into-`castRange`-40 first).

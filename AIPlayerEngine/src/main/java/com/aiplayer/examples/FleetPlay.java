@@ -24,7 +24,7 @@ import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.protocol.PacketLogger.EntityInfo;
 
 /**
- * Launches a fleet of real AI Players against the live H5 stack and exposes a light
+ * Launches a fleet of real AI Players against the live Interlude stack and exposes a light
  * web dashboard. Each bot runs the same proven login -> enter-world -> decision loop
  * as Phase0Driver, on its own thread:
  *   - combat: target attackables via TargetSelector and execute the proven
@@ -302,7 +302,7 @@ public final class FleetPlay
           .append("table{border-collapse:collapse;margin-top:12px}td,th{border:1px solid #444;padding:4px 10px;text-align:left}")
           .append("</style></head><body>")
           .append("<h1>🤖 AI Fleet — Live</h1>")
-          .append("<p class=\"dim\">server 127.0.0.1:7777 · ").append(BOTS.size()).append(" bots · auto-refresh 2s · level '-' = H5 StatusUpdate carries no LEVEL attr yet (known parse gap)</p>")
+          .append("<p class=\"dim\">server 127.0.0.1:7777 · ").append(BOTS.size()).append(" bots · auto-refresh 2s · level '-' = Interlude StatusUpdate carries no LEVEL attr yet (known parse gap)</p>")
           .append("<table><tr><th>Account</th><th>charId</th><th>Level</th><th>HP</th><th>State</th><th>Connected</th></tr>");
         for (BotInfo b : BOTS.values())
         {
@@ -310,7 +310,7 @@ public final class FleetPlay
             sb.append("<tr><td>").append(b.account).append("</td><td>").append(b.charId)
               .append("</td><td>").append(b.level > 0 ? String.valueOf(b.level) : "-").append("</td><td>")
               .append(b.hp).append('/').append(b.hpMax).append("</td><td>")
-              // self-coords omitted from the dashboard: PacketLogger's self-position parse is offset for H5 (known gap, Audit/43).
+              // self-coords omitted from the dashboard: PacketLogger's self-position parse is offset for Interlude (known gap, Audit/43).
               .append("</td><td class=\"dim\">").append(b.state).append("</td><td>").append(status).append("</td></tr>");
         }
         sb.append("</table></body></html>");

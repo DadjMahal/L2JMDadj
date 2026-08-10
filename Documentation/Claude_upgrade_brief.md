@@ -9,14 +9,14 @@ and why. Work in branches, PR-style commits, keep the live stack untouched.
 ## 1. The project right now (verified 2026-08-10)
 
 - **Repo:** /home/dadj/Projects/l24lude — Java **AIPlayerEngine** (a real L2 bot client) + a
-  running H5 L2jMobius **ServerBuild** (GameServer :7777, LoginServer :2106/:9014, MariaDB 11.8).
+  running Interlude (L2jMobius) **ServerBuild** (GameServer :7777, LoginServer :2106/:9014, MariaDB 11.8).
 - **Master (d2cd7607, 79a1de41, b4b96f9e):** the Phase-0 Task1-11 package is committed and
   builds standalone; **skill-cast gate is open** (REQUEST_MAGIC_SKILL_USE `0x2F` live-proven:
   `RequestMagicSkillUse.java:42-44` = readInt skillId, readInt ctrl, readByte shift → 12-byte LE
   frame; `PacketCodec.encodeUseSkill`/`L2JProtocol.sendUseSkill`/`CombatFramePlanner.USE_SKILL`).
   Runtime seam `Phase0Integration` + gated `CombatAI` hooks + `Phase0Config` flags (all
   `phase0.*` OFF by default) wire Tasks 1/2/5/8 for real and expose honest SKIP seams for
-  4/6/9/11; `SkillDatabase` fighter path realigned to H5; **141/141 tests green.**
+  4/6/9/11; `SkillDatabase` fighter path realigned to Interlude; **141/141 tests green.**
 - **Live fleet:** `examples/FleetPlay` runs 5 bots (ai_combat_01..05 / CombatBot_01..05) that
   wander, target attackables, auto-attack/kill and level. Dashboard: **http://localhost:8080**
   (in-JVM: `/`, `/json`, `/report`).
@@ -24,9 +24,9 @@ and why. Work in branches, PR-style commits, keep the live stack untouched.
 ### Genuinely NOT done (your upgrade surface)
 | Area | Gap | Blocker |
 |---|---|---|
-| Data layer | `PacketLogger` has **no XP**, **no level from CharInfo**, **self-position parse offset**, no quest-state, no incoming-chat | real H5 packet research + parsing + **live-probe before claiming** |
+| Data layer | `PacketLogger` has **no XP**, **no level from CharInfo**, **self-position parse offset**, no quest-state, no incoming-chat | real Interlude packet research + parsing + **live-probe before claiming** |
 | Migration | ~34 files still read legacy `GameStateMirror` (unpopulated parallel state) | constructor/call-site rewrites → `BotSnapshot` |
-| Skill data | `SkillDatabase` is a hand-curated subset misaligned with H5 | full datapack/class-tree alignment |
+| Skill data | `SkillDatabase` is a hand-curated subset misaligned with Interlude | full datapack/class-tree alignment |
 | Protocol stubs | ~20 `L2JProtocol` methods `Not implemented - stub` (chat variants, item-use, NPC action, restart-to-village, warehouse…) | each opcode needs the **prove-then-wire** gate (like 0x2F) |
 | Lifecycle | death/respawn, consumables/soulshots, vendor/town, chat | blocked by the stubs above |
 | Quest-NPC play | bots don't navigate to quest NPCs | needs quest packets + navigation wiring |
@@ -57,8 +57,8 @@ and why. Work in branches, PR-style commits, keep the live stack untouched.
 ## 3. Workstreams (in this order; commit + document each)
 
 ### W1 — Real packet data layer (the foundation)
-- `PacketLogger`: parse **level from CharInfo** (live-probe the H5 CharInfo layout), parse
-  **`getCurrentXp()`/`getExp()`** (find which packet carries XP in H5 — StatusUpdate / UserInfo;
+- `PacketLogger`: parse **level from CharInfo** (live-probe the Interlude CharInfo layout), parse
+  **`getCurrentXp()`/`getExp()`** (find which packet carries XP in Interlude — StatusUpdate / UserInfo;
   probe it), parse **self X/Y/Z correctly** (the existing parse is offset — diagnose the real
   CharInfo field order), parse **incoming chat** packets.
 - Each parser = unit test with a captured real packet byte array (from the fleet log/probe) +
@@ -72,7 +72,7 @@ and why. Work in branches, PR-style commits, keep the live stack untouched.
   needed; keep `GameStateMirror` deprecated until ZERO readers remain, then delete it.
 - `mvn test` green after every ~5 files; update the INTEGRATION_GAPS "Done" table as you go.
 
-### W3 — SkillDatabase + class trees = the H5 truth
+### W3 — SkillDatabase + class trees = the Interlude truth
 - Verification task that reads `ServerBuild/game/data/stats/skills/*.xml` + class skill trees
   and produces a corrected `SkillDatabase` (names, lv1 mpConsume/reuseDelay/castRange/minLevel,
   targetType). Fix every registered skill; hang real Gladiator/Warlord/archer/healer/buffer

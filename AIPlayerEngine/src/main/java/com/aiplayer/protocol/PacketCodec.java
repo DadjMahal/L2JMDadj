@@ -89,9 +89,9 @@ public class PacketCodec {
     /**
      * Encode REQUEST_MAGIC_SKILL_USE (client->server skill cast).
      *
-     * OPCODE: 0x2F per SourceCode/java/.../ClientPackets.java (H5). This is the
+     * OPCODE: 0x2F per SourceCode/java/.../ClientPackets.java (Interlude). This is the
      * LIVE-verified opcode (the patch-upgrade tree's 0x39 is Interlude C4 and is WRONG;
-     * a real H5 GameServer parses 0x2F and replied ActionFailed to a correctly framed cast,
+     * a real Interlude GameServer parses 0x2F and replied ActionFailed to a correctly framed cast,
      * proving the opcode + field layout below).
      *
      * Field widths are server-authoritative per RequestMagicSkillUse.java:42-44:
@@ -111,7 +111,7 @@ public class PacketCodec {
         ByteBuffer buf = ByteBuffer.allocate(12);
         buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
         buf.putShort((short) 12); // self-inclusive packet size
-        buf.put((byte) 0x2F);      // REQUEST_MAGIC_SKILL_USE (H5 opcode)
+        buf.put((byte) 0x2F);      // REQUEST_MAGIC_SKILL_USE (Interlude opcode)
         buf.putInt(skillId);        // skillId (readInt, 4B)
         buf.putInt(ctrl ? 1 : 0);   // ctrl flag (readInt, 4B)
         buf.put((byte) (shift ? 1 : 0)); // shift flag (readByte, 1B)
