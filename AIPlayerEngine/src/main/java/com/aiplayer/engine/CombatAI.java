@@ -31,11 +31,18 @@ public class CombatAI {
     private final AggroManager aggroManager = new AggroManager();
     private int[] lastSkillAllocation = new int[0];
 
+    // Phase 0 / Tasks 1-11 upgrade (additive, OFF by default — config/ai-player.properties):
+    // built only when phase0.enabled=true so default behavior is byte-for-byte unchanged.
+    private final Phase0Integration phase0;
+    private int pendingPhase0Skill = -1; // set by shouldUseSkill(), consumed by useOffensiveSkill()
+
     public CombatAI(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
         this.config = CombatConfig.getInstance();
         this.packetLogger = new PacketLogger(aiPlayer.getName());
         this.combatState = new CombatState();
+        this.phase0 = Phase0Config.getInstance().isEnabled()
+            ? new Phase0Integration(aiPlayer) : null;
     }
 
     /**
@@ -88,6 +95,11 @@ public class CombatAI {
         // Check if target is dead or out of range
         if (isTargetDead() || isTargetOutOfRange()) {
             return handleCombatEnd();
+        }
+
+        // Phase 0 / Task 1 (additive, gated): class-rotation kiting (archer/mage hangback).
+        if (phase0 != null && Phase0Config.getInstance().isCombatRotationEnabled() && phase0.shouldKite()) {
+            return CombatDecision.flee();
         }
 
         // Check if we need healing
@@ -206,6 +218,11 @@ public class CombatAI {
 
     private boolean shouldHeal() {
         int hpPercent = getCurrentHPPercentage();
+        // Phase 0 / Task 1 (additive, gated): the rotation's class-specific flee threshold.
+        if (phase0 != null && Phase0Config.getInstance().isCombatRotationEnabled()
+                && hpPercent < phase0.fleeThreshold()) {
+            return true;
+        }
         return hpPercent < config.getHealthThreshold();
     }
 
@@ -219,6 +236,13 @@ public class CombatAI {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastSkillUseTime < config.getCooldown()) {
             return false;
+        }
+        // Phase 0 / Task 1 (additive, gated): let the class rotation pick the skill.
+        if (phase0 != null && Phase0Config.getInstance().isCombatRotationEnabled()) {
+            int recommended = phase0.recommendSkill(getCurrentHPPercentage(), getCurrentMPPercentage(),
+                calculateDistanceTo(currentTarget));
+            pendingPhase0Skill = recommended;
+            return recommended > 0;
         }
         return getCurrentMPPercentage() > 20;
     }
@@ -344,8 +368,16 @@ public class CombatAI {
     }
 
     private CombatDecision useOffensiveSkill() {
-        // Select best skill based on skill priority
-        String skill = selectBestSkill();
+        // Phase 0 / Task 1 (additive, gated): the rotation already chose the skill in shouldUseSkill().
+        String skill;
+        if (phase0 != null && Phase0Config.getInstance().isCombatRotationEnabled() && pendingPhase0Skill > 0) {
+            skill = String.valueOf(pendingPhase0Skill);
+            phase0.noteSkillUsed(pendingPhase0Skill);
+            phase0.tickShots();
+        } else {
+            skill = selectBestSkill();
+        }
+        pendingPhase0Skill = -1;
         LOGGER.info(aiPlayer.getName() + " using skill: " + skill);
         lastSkillUseTime = System.currentTimeMillis();
         combatState.incrementCombo();
@@ -612,6 +644,9 @@ public class CombatAI {
     public AntiGriefing getAntiGriefing() { return antiGriefing; }
 
     public AggroManager getAggroManager() { return aggroManager; }
+
+    /** Phase 0 / Tasks 1-11 integration seam (null when phase0.enabled=false). */
+    public Phase0Integration getPhase0Integration() { return phase0; }
 
     /**
      * RangedKiteAI: should this bot kite instead of trading damage, given current HP% and the
