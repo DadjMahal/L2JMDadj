@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Fleet Dashboard — Interlude</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#131a22; --line:#22303f; --txt:#cfe3d6;
+    --dim:#6e8791; --accent:#39d98a; --red:#ff5d5d; --or:#ffb454;
+    --cy:#4fd6ff; --lm:#b6ff3c; --gr:#7ee787; --pu:#c792ea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',Roboto,system-ui,sans-serif;padding:14px 18px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+  h1{margin:0;font-size:18px;color:var(--accent);letter-spacing:1px}
+  .meta{color:var(--dim);font-size:12px}
+  .spacer{flex:1}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{background:transparent;color:var(--txt);border:0;padding:7px 16px;cursor:pointer;font-size:13px}
+  .seg button.on{background:var(--accent);color:#04130b;font-weight:700}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px}
+  #mapWrap{position:relative;height:72vh;overflow:hidden}
+  #map{width:100%;height:100%}
+  #mapLegend{position:absolute;top:10px;left:10px;background:rgba(11,15,20,.85);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.7}
+  .lg{display:inline-flex;align-items:center;gap:6px;margin-right:12px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .pl{pulse base}
+  @keyframes pulse{0%{r:7;opacity:1}70%{opacity:.35}100%{r:15;opacity:0}}
+  .plr2{animation:pulse2 1.6s ease-out infinite}
+  @keyframes pulse2{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
+  tr:hover{background:#17202b}
+  .bar{height:7px;border-radius:4px;background:#1d2833;overflow:hidden;min-width:70px}
+  .bar>div{height:100%;transition:width .6s ease}
+  .st{font-weight:700}
+  .st-ATTACK,.st-ENGAGE_TARGET,.st-USE_SKILL,.st-engage{color:var(--red)}
+  .st-FLEE,.st-RETREAT{color:var(--or)}
+  .st-wander{color:var(--cy)}
+  .st-IDLE,.st-idle{color:var(--lm)}
+  .st-dead{color:var(--dim)}
+  .online{color:var(--gr);font-weight:700}
+  .offline{color:var(--red);font-weight:700}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+  #gridTbl{height:72vh;overflow:auto}
+  .th{color:var(--pu)}
+  .tooltip{pointer-events:none;position:absolute;background:rgba(11,15,20,.95);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.55;display:none;z-index:9;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+  .tick{color:var(--dim);font-size:11px}
+  .xp,.hp,.mp{text-align:left;font-size:11px}
+  .float{position:absolute;font-size:10px;color:#cfeeff;text-shadow:0 0 4px #000;pointer-events:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>🤖 AI FLEET — INTERLUDE :7777</h1>
+  <span class="meta" id="meta">loading…</span>
+  <div class="spacer"></div>
+  <div class="seg">
+    <button id="btnMap" class="on" onclick="setView('map')">🗺️ Map</button>
+    <button id="btnGrid" onclick="setView('grid')">📋 Grid</button>
+  </div>
+</header>
+
+<div class="panel" id="mapPanel">
+  <div id="mapWrap">
+    <svg id="map" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#ff5d5d"></path>
+        </marker>
+      </defs>
+    </svg>
+    <div id="mapLegend">
+      <span class="lg"><span class="dot" style="background:var(--accent)"></span>Players</span>
+      <span class="lg"><span class="dot" style="background:var(--red)"></span>Hostiles</span>
+      <span class="lg"><span class="dot" style="background:var(--gr)"></span>NPCs</span>
+      <span class="lg"><span class="dot" style="background:var(--pu)"></span>Towns</span>
+      <span class="lg"><span class="dot" style="background:var(--or)"></span>Target line</span>
+    </div>
+    <div class="tooltip" id="tip"></div>
+  </div>
+</div>
+
+<div class="panel" id="gridPanel" style="display:none">
+  <div id="gridTbl"></div>
+</div>
+
+<script>
+let bots=[], ent=[], towns=[], view='map';
+const $=id=>document.getElementById(id);
+const FMT=n=>n==null?'-':Number(n).toLocaleString('en-US');
+const pct=(a,b)=>b>0?Math.min(100,a/b*100):0;
+const stateColor=s=>{s=(s||'').toUpperCase();
+  if(['ATTACK','ENGAGE_TARGET','USE_SKILL','ENGAGE'].includes(s))return 'var(--red)';
+  if(['FLEE','RETREAT'].includes(s))return 'var(--or)';
+  if(s==='WANDER')return 'var(--cy)';
+  if(s==='DEAD')return 'var(--dim)';
+  return 'var(--lm)';};
+const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+
+async function poll(){
+  try{
+    const p=await fetch('/api/players').then(r=>r.json());
+    const l=await fetch('/api/landmarks').then(r=>r.json());
+    bots=p.bots||[]; ent=p.entities||[]; towns=l.towns||[];
+    $('meta').textContent=`${bots.length} bots · ${new Date().toLocaleTimeString()} · up ${Math.round((Date.now()-(window._t0||Date.now()))/1000)}s · poll OK`;
+    render();
+  }catch(e){ $('meta').textContent='poll error — fleet may be restarting'; }
+}
+function render(){ view==='map'?renderMap():renderGrid(); }
+
+function renderMap(){
+  const svg=$('map'); let out='';
+  let pts=[];
+  bots.forEach(b=>{ if(b.x||b.y)pts.push([b.x,b.y]); (b.ents||[]).forEach(e=>pts.push([e.x,e.y])); });
+  towns.forEach(t=>pts.push([t.x,t.y]));
+  let x0=-83000,x1=-83000,y0=250000,y1=250000;
+  if(pts.length>2){ const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]); x0=Math.min(...xs);x1=Math.max(...xs);y0=Math.min(...ys);y1=Math.max(...ys); }
+  const pad=1500; x0-=pad;x1+=pad;y0-=pad;y1+=pad;
+  const W=1000,H=700; const S=Math.min(W/(x1-x0||1),H/(y1-y0||1));
+  const ox=(W-S*(x1-x0))/2, oy=(H-S*(y1-y0))/2;
+  const px=v=>ox+(v-x0)*S, py=v=>oy+(y1-v)*S;
+  out+='<rect x="0" y="0" width="100%" height="100%" fill="#0d131b"/>';
+  for(let g=Math.ceil(x0/5000)*5000;g<=x1;g+=5000) out+=`<line x1="${px(g)}" y1="0" x2="${px(g)}" y2="700" stroke="#14202b" stroke-width="1"/>`;
+  for(let g=Math.ceil(y0/5000)*5000;g<=y1;g+=5000) out+=`<line x1="0" y1="${py(g)}" x2="1000" y2="${py(g)}" stroke="#14202b" stroke-width="1"/>`;
+  towns.forEach(t=>{
+    if(t.x<x0||t.x>x1||t.y<y0||t.y>y1)return;
+    out+=`<circle cx="${px(t.x)}" cy="${py(t.y)}" r="9" fill="var(--pu)" opacity=".85"><title>Town: ${esc(t.name)} (${t.x}, ${t.y})</title></circle>`+
+         `<text x="${px(t.x)}" y="${py(t.y)+26}" text-anchor="middle" font-size="12" fill="var(--pu)">${esc(t.name)}</text>`;
+  });
+  ent.forEach(e=>{
+    if(e.x<x0||e.x>x1||e.y<y0||e.y>y1)return;
+    const col=e.kind===1?'var(--red)':(e.kind===2?'var(--cy)':'var(--gr)');
+    out+=`<circle cx="${px(e.x)}" cy="${py(e.y)}" r="${e.kind===2?5:3}" fill="${col}" opacity=".8"><title>${esc(e.label)} · (${e.x},${e.y})</title></circle>`;
+  });
+  bots.forEach(b=>{
+    if(b.x==null)return;
+    if(b.target&&b.target.x!=null){
+      const dx=px(b.target.x)-px(b.x),dy=py(b.target.y)-py(b.y); const len=Math.hypot(dx,dy)||1;
+      out+=`<line x1="${px(b.x)}" y1="${py(b.y)}" x2="${px(b.target.x)-dx/len*6}" y2="${py(b.target.y)-dy/len*6}" stroke="var(--or)" stroke-width="1.5" marker-end="url(#arr)" opacity=".8"/>`;
+    }
+  });
+  bots.forEach(b=>{
+    if(b.x==null)return;
+    const col=stateColor(b.state), cx=px(b.x), cy=py(b.y);
+    const tip=`${esc(b.name)} (${b.account})\nL${b.level} · ${FMT(b.exp)}xp · HP ${b.hp}/${b.hpMax}\n(${b.x},${b.y},${b.z}) · ${b.state}\n${esc(b.thought||'')}`;
+    out+=`<circle cx="${cx}" cy="${cy}" r="8" fill="${col}" stroke="#04130b" stroke-width="1.5"><title>${tip}</title></circle>`+
+         `<circle cx="${cx}" cy="${cy}" r="8" fill="${col}" opacity=".3"><animate attributeName="r" values="8;26" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values=".4;0" dur="1.6s" repeatCount="indefinite"/></circle>`+
+         `<text x="${cx}" y="${cy-13}" text-anchor="middle" font-size="11" font-weight="700" fill="#eafff2">${esc(b.name)} L${b.level}</text>`+
+         `<text x="${cx}" y="${cy+22}" text-anchor="middle" font-size="9" fill="#bfe8ff">${esc((b.thought||b.action||'').slice(0,26))}</text>`;
+  });
+  svg.innerHTML=out;
+}
+function renderGrid(){
+  let h='<table><thead><tr><th>Account</th><th>Char</th><th>Lvl</th><th>EXP</th><th>HP</th><th>MP</th><th>CP</th><th>Pos (x,y,z)</th><th>Load</th><th>Weapon</th><th>Adena</th><th>SP</th><th>Mobs</th><th>NPCs</th><th>Inv</th><th>Items</th><th>Target</th><th>Tgt dist</th><th>Thought</th><th>State</th><th>Online</th><th>Up</th><th>PktAge</th></tr></thead><tbody>';
+  bots.forEach(b=>{
+    const hp=pct(b.hp,b.hpMax), mp=pct(b.mp,b.mpMax);
+    const items=(b.items||[]).map(i=>`<span class="th">${i.id}</span>×${i.count}`).join(' ');
+    h+=`<tr>
+      <td>${esc(b.account)}</td><td><b>${esc(b.name)}</b></td>
+      <td>${b.level==null?'-':b.level}</td>
+      <td class="xp">${FMT(b.exp)}</td>
+      <td class="hp">${b.hp}/${b.hpMax}<div class="bar"><div style="width:${hp}%;background:var(--gr)"></div></div></td>
+      <td class="mp">${b.mp}/${b.mpMax}<div class="bar"><div style="width:${mp}%;background:var(--cy)"></div></div></td>
+      <td>${b.cp}/${b.cpMax}</td>
+      <td>${b.x}, ${b.y}, ${b.z}</td>
+      <td>${b.load}/${b.maxLoad}</td>
+      <td>${b.weapon?'🗡️':'🦾'}</td>
+      <td>${FMT(b.adena)}</td><td>${FMT(b.sp)}</td>
+      <td>${b.mobs}</td><td>${b.npcs}</td>
+      <td>${b.invPct}% (${b.itemCount})</td>
+      <td>${items||'-'}</td>
+      <td>${b.target?esc(b.target.label):'-'}</td>
+      <td>${b.target&&b.target.d?Math.round(b.target.d):'-'}</td>
+      <td class="th">${esc(b.thought||b.action||'-')}</td>
+      <td class="st ${'st-'+esc(b.state)}">${esc(b.state)}</td>
+      <td class="${b.online?'online':'offline'}">${b.online?'ONLINE':'OFF'}</td>
+      <td>${b.uptimeSec?'~'+Math.floor(b.uptimeSec/60)+'m':'-'}</td>
+      <td>${b.lastAgeMs!=null?(b.lastAgeMs/1000).toFixed(1)+'s':'-'}</td>
+    </tr>`;
+  });
+  h+='</tbody></table>'; $('gridTbl').innerHTML=h;
+}
+
+function setView(v){
+  view=v;
+  $('btnMap').classList.toggle('on',v==='map');
+  $('btnGrid').classList.toggle('on',v==='grid');
+  $('mapPanel').style.display=v==='map'?'':'none';
+  $('gridPanel').style.display=v==='grid'?'':'none';
+  render();
+}
+setInterval(poll,2000);
+window._t0=Date.now();
+poll();
+</script>
+</body>
+</html>

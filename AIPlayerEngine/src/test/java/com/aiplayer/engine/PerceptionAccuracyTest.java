@@ -37,6 +37,8 @@ public class PerceptionAccuracyTest {
         assertEquals(11000, packetLogger.getPlayerX(), "Player X should be parsed correctly");
         assertEquals(22000, packetLogger.getPlayerY(), "Player Y should be parsed correctly");
         assertEquals(-50, packetLogger.getPlayerZ(), "Player Z should be parsed correctly");
+        // Heading is delivered by the self-move packet (ValidateLocation 0x61), not CharInfo start.
+        packetLogger.logPacket(createValidateLocationPacket(12345, 11000, 22000, -50, 32768));
         assertEquals(32768, packetLogger.getPlayerHeading(), "Player heading should be parsed correctly");
     }
 
@@ -225,28 +227,63 @@ public class PerceptionAccuracyTest {
     // ==========================================
 
     private byte[] createCharInfoPacket() {
-        // Packet: [size:2][opcode:1][objectId:4][x:4][y:4][z:4][heading:4]
-        return new byte[]{
-            (byte) 0x17, (byte) 0x00,  // size = 23
-            (byte) 0x03,  // opcode
-            0x39, 0x30, (byte) 0x00, (byte) 0x00,  // objectId = 12345
-            (byte) 0xF8, (byte) 0x2A, (byte) 0x00, (byte) 0x00,  // x = 11000
-            (byte) 0xF0, (byte) 0x55, (byte) 0x00, (byte) 0x00,  // y = 22000
-            (byte) 0xCE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,  // z = -50
-            (byte) 0x00, (byte) 0x80, (byte) 0x00, (byte) 0x00   // heading = 32768 (0x8000 LE)
-        };
+        // Real Interlude CharInfo (0x03) write order (CharInfo.java writeImpl):
+        //   [opcode][x][y][z][vehicle][objId][name UTF16LE+null][race][female][baseClass]
+        ByteBuffer payload = ByteBuffer.allocate(128).order(ByteOrder.LITTLE_ENDIAN);
+        payload.put((byte) 0x03);
+        payload.putInt(11000);
+        payload.putInt(22000);
+        payload.putInt(-50);
+        payload.putInt(0);            // vehicle objectId
+        payload.putInt(12345);        // objId
+        putStringLE(payload, "TestPlayer");
+        payload.putInt(0);            // race
+        payload.putInt(0);            // female
+        payload.putInt(0);            // baseClass
+        return wrap(payload);
     }
 
     private byte[] createCharInfoPacketWithPosition() {
-        return new byte[]{
-            (byte) 0x17, (byte) 0x00,  // size = 23
-            (byte) 0x03,  // opcode
-            0x39, 0x30, (byte) 0x00, (byte) 0x00,  // objectId = 12345
-            (byte) 0x10, (byte) 0x27, (byte) 0x00, (byte) 0x00,  // x = 10000 (0x2710 LE)
-            (byte) 0x20, (byte) 0x4E, (byte) 0x00, (byte) 0x00,  // y = 20000 (0x4E20 LE)
-            (byte) 0x9C, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,  // z = -100
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00   // heading = 0
-        };
+        ByteBuffer payload = ByteBuffer.allocate(128).order(ByteOrder.LITTLE_ENDIAN);
+        payload.put((byte) 0x03);
+        payload.putInt(10000);
+        payload.putInt(20000);
+        payload.putInt(-100);
+        payload.putInt(0);            // vehicle
+        payload.putInt(12345);        // objId
+        putStringLE(payload, "TestPlayer");
+        payload.putInt(0);
+        payload.putInt(0);
+        payload.putInt(0);
+        return wrap(payload);
+    }
+
+    /** ValidateLocation (0x61): [opcode][objId][x][y][z][heading] — authoritative self-move packet. */
+    private byte[] createValidateLocationPacket(int objId, int x, int y, int z, int heading) {
+        ByteBuffer payload = ByteBuffer.allocate(1 + 5 * 4).order(ByteOrder.LITTLE_ENDIAN);
+        payload.put((byte) 0x61);
+        payload.putInt(objId);
+        payload.putInt(x);
+        payload.putInt(y);
+        payload.putInt(z);
+        payload.putInt(heading);
+        return wrap(payload);
+    }
+
+    private static void putStringLE(ByteBuffer buf, String s) {
+        for (int i = 0; i < s.length(); i++) {
+            buf.putShort((short) s.charAt(i));
+        }
+        buf.putShort((short) 0); // null terminator
+    }
+
+    private static byte[] wrap(ByteBuffer payload) {
+        int len = payload.position();
+        ByteBuffer frame = ByteBuffer.allocate(len + 2).order(ByteOrder.LITTLE_ENDIAN);
+        frame.putShort((short) (len + 2)); // self-inclusive size
+        payload.flip();
+        frame.put(payload);
+        return frame.array();
     }
 
     private byte[] createStatusUpdatePacket() {

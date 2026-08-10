@@ -22,10 +22,12 @@ public class PacketLogger
 
    // Server packet opcodes (from SourceCode ServerPackets.java)
    public static final int OP_CHAR_INFO = 0x03;
+   public static final int OP_USER_INFO = 0x04;
    public static final int OP_STATUS_UPDATE = 0x0E;
    public static final int OP_DELETE_OBJECT = 0x12;
    public static final int OP_NPC_INFO = 0x16;
    public static final int OP_ITEM_LIST = 0x1B;
+   public static final int OP_VALIDATE_LOCATION = 0x61;
    public static final int OP_SYSTEM_MESSAGE = 0x64;
    public static final int OP_EX_PACKET = 0xFE;
    public static final int OP_EX_QUEST_INFO = 0x19;
@@ -37,10 +39,14 @@ public class PacketLogger
 
    // StatusUpdate attribute IDs (from StatusUpdate.java)
    public static final int STAT_LEVEL = 0x01;
+   public static final int STAT_EXP = 0x02;
    public static final int STAT_CUR_HP = 0x09;
    public static final int STAT_MAX_HP = 0x0A;
    public static final int STAT_CUR_MP = 0x0B;
    public static final int STAT_MAX_MP = 0x0C;
+   public static final int STAT_SP = 0x0D;
+   public static final int STAT_CUR_LOAD = 0x0E;
+   public static final int STAT_MAX_LOAD = 0x0F;
    public static final int STAT_CUR_CP = 0x21;
    public static final int STAT_MAX_CP = 0x22;
 
@@ -65,6 +71,16 @@ public class PacketLogger
    // Stream G (G-Live): level parsed from StatusUpdate (STAT_LEVEL 0x01), so the live loop can
    // detect level-ups and fire CombatAI.onLevelUp / long-term-goal progress (was never parsed).
    private int level = 0;
+   // Real self-state parsed from UserInfo (0x04) / StatusUpdate attrs / ValidateLocation (0x61).
+   private long exp = 0;
+   private int sp = 0;
+   private int curLoad = 0;
+   private int maxLoad = 0;
+   private boolean weaponEquipped = false;
+   private int baseClass = 0;
+   private String charName = null;
+   private int curCp = 100;
+   private int maxCp = 100;
 
 
    // Position tracking (Task 33, 34)
@@ -127,6 +143,12 @@ public class PacketLogger
                charInfoCount++;
                parseCharInfo(buf);
                break;
+            case OP_USER_INFO:
+               parseUserInfo(buf);
+               break;
+            case OP_VALIDATE_LOCATION:
+               parseValidateLocation(buf);
+               break;
             case OP_STATUS_UPDATE:
                statusUpdateCount++;
                parseStatusUpdate(buf);
@@ -169,17 +191,171 @@ public class PacketLogger
    {
       try
       {
-         int objectId = buf.getInt();
-         this.playerX = buf.getInt();
-         this.playerY = buf.getInt();
-         this.playerZ = buf.getInt();
-         this.playerHeading = buf.getInt();
-         LOGGER.info("[PACKET-LOG] [" + playerName + "] CHAR_INFO: objId=" + objectId + " pos=(" + playerX + "," + playerY + "," + playerZ + ")");
+         // Real Interlude CharInfo (0x03) write order (CharInfo.java writeImpl):
+         //   [x][y][z][vehicleObjId][objId][name UTF-16LE+null][race][female][baseClass][paperdolls]...
+         int x = buf.getInt();
+         int y = buf.getInt();
+         int z = buf.getInt();
+         buf.getInt();               // vehicle object id
+         int objId = buf.getInt();
+         String name = readUtf16Le(buf);
+         buf.getInt();               // race
+         buf.getInt();               // female
+         int baseClass = buf.getInt();
+         boolean isSelf = selfObjectId == 0 || objId == selfObjectId;
+         if (isSelf)
+         {
+            playerX = x;
+            playerY = y;
+            playerZ = z;
+            if (baseClass > 0)
+            {
+               this.baseClass = baseClass;
+            }
+         }
+         EntityInfo entity = new EntityInfo(objId, -1, x, y, z, 0, false);
+         entity.name = name;
+         entitiesById.put(objId, entity);
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] CHAR_INFO: objId=" + objId + " name=" + name
+            + " self=" + isSelf + " pos=(" + x + "," + y + "," + z + ")");
       }
       catch (Exception e)
       {
          LOGGER.fine("[" + playerName + "] CharInfo parse incomplete");
       }
+   }
+
+   /**
+    * Parse UserInfo packet (opcode 0x04) - the authoritative SELF state: position, objId,
+    * name, race/gender/baseClass, LEVEL, EXP, stats, HP/MP, SP, load, weapon flag.
+    * Layout mirrored from UserInfo.java writeImpl (Interlude).
+    */
+   private void parseUserInfo(ByteBuffer buf)
+   {
+      try
+      {
+         int x = buf.getInt();
+         int y = buf.getInt();
+         int z = buf.getInt();
+         buf.getInt();               // vehicle object id
+         int objId = buf.getInt();
+         String name = readUtf16Le(buf);
+         buf.getInt();               // race
+         buf.getInt();               // female
+         int baseClass = buf.getInt();
+         int lvl = buf.getInt();
+         long expValue = buf.getLong();
+         skip(buf, 6 * 4);           // str / dex / con / int / wit / men
+         int mxHp = buf.getInt();
+         int cHp = buf.getInt();
+         int mxMp = buf.getInt();
+         int cMp = buf.getInt();
+         int spValue = buf.getInt();
+         int cLoad = buf.getInt();
+         int mxLoad = buf.getInt();
+         int weaponFlag = buf.getInt(); // 20 = none, 40 = weapon equipped
+
+         boolean isSelf = selfObjectId == 0 || objId == selfObjectId;
+         if (isSelf)
+         {
+            playerX = x;
+            playerY = y;
+            playerZ = z;
+            if (selfObjectId == 0)
+            {
+               selfObjectId = objId;
+            }
+            if (lvl > 0)
+            {
+               level = lvl;
+            }
+            exp = expValue;
+            sp = spValue;
+            curLoad = cLoad;
+            maxLoad = mxLoad;
+            weaponEquipped = weaponFlag >= 40;
+            maxHp = mxHp;
+            curHp = cHp;
+            maxMp = mxMp;
+            curMp = cMp;
+            if (baseClass > 0)
+            {
+               this.baseClass = baseClass;
+            }
+            if (name != null && !name.isEmpty())
+            {
+               charName = name;
+            }
+         }
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] USER_INFO: objId=" + objId + " self=" + isSelf
+            + " lvl=" + lvl + " exp=" + expValue + " pos=(" + x + "," + y + "," + z
+            + ") load=" + cLoad + "/" + mxLoad + " weapon=" + weaponFlag);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] UserInfo parse incomplete");
+      }
+   }
+
+   /**
+    * Parse ValidateLocation packet (opcode 0x61) - high-frequency SELF position updates while
+    * moving. Layout from ValidateLocation.java writeImpl: [objId][x][y][z][heading].
+    */
+   private void parseValidateLocation(ByteBuffer buf)
+   {
+      try
+      {
+         int objId = buf.getInt();
+         int x = buf.getInt();
+         int y = buf.getInt();
+         int z = buf.getInt();
+         int heading = buf.remaining() >= 4 ? buf.getInt() : 0;
+         boolean isSelf = selfObjectId == 0 || objId == selfObjectId;
+         EntityInfo entity = entitiesById.get(objId);
+         if (entity != null)
+         {
+            entity.x = x;
+            entity.y = y;
+            entity.z = z;
+            entity.heading = heading;
+         }
+         if (isSelf)
+         {
+            playerX = x;
+            playerY = y;
+            playerZ = z;
+            playerHeading = heading;
+         }
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] ValidateLocation parse incomplete");
+      }
+   }
+
+   /** Read a server string: UTF-16LE chars until a 2-byte 0 terminator (WritableBuffer.writeString). */
+   private static String readUtf16Le(ByteBuffer buf)
+   {
+      StringBuilder sb = new StringBuilder();
+      for (int guard = 0; guard < 40; guard++)
+      {
+         if (buf.remaining() < 2)
+         {
+            break;
+         }
+         char c = (char) buf.getShort();
+         if (c == 0)
+         {
+            break;
+         }
+         sb.append(c);
+      }
+      return sb.toString();
+   }
+
+   private static void skip(ByteBuffer buf, int bytes)
+   {
+      buf.position(Math.min(buf.position() + bytes, buf.limit()));
    }
 
    /**
@@ -209,6 +385,13 @@ public class PacketLogger
             if (isSelf && attrId == STAT_MAX_MP) maxMp = value;
             // Stream G (G-Live): track level so the live loop can detect level-ups.
             if (isSelf && attrId == STAT_LEVEL) level = value;
+            // Dashboard data layer: also capture EXP / SP / loads / CP from self StatusUpdate attrs.
+            if (isSelf && attrId == STAT_EXP) exp = value & 0xFFFFFFFFL;
+            if (isSelf && attrId == STAT_SP) sp = value;
+            if (isSelf && attrId == STAT_CUR_LOAD) curLoad = value;
+            if (isSelf && attrId == STAT_MAX_LOAD) maxLoad = value;
+            if (isSelf && attrId == STAT_CUR_CP) curCp = value;
+            if (isSelf && attrId == STAT_MAX_CP) maxCp = value;
          }
          LOGGER.info("[PACKET-LOG] [" + playerName + "] STATUS_UPDATE: objId=" + objectId
             + " [self=" + isSelf + "] [" + attrs + "] hp=" + curHp + "/" + maxHp + " mp=" + curMp + "/" + maxMp);
@@ -501,10 +684,14 @@ public class PacketLogger
       switch (attrId)
       {
          case STAT_LEVEL: return "LEVEL";
+         case STAT_EXP: return "EXP";
          case STAT_CUR_HP: return "CUR_HP";
          case STAT_MAX_HP: return "MAX_HP";
          case STAT_CUR_MP: return "CUR_MP";
          case STAT_MAX_MP: return "MAX_MP";
+         case STAT_SP: return "SP";
+         case STAT_CUR_LOAD: return "CUR_LOAD";
+         case STAT_MAX_LOAD: return "MAX_LOAD";
          case STAT_CUR_CP: return "CUR_CP";
          case STAT_MAX_CP: return "MAX_CP";
          default: return "ATTR_" + Integer.toHexString(attrId);
@@ -553,6 +740,18 @@ public class PacketLogger
    public int getMaxMp() { return maxMp; }
    /** Stream G (G-Live): the bot's level parsed from StatusUpdate(0x0E) STAT_LEVEL(0x01); 0 if unseen. */
    public int getLevel() { return level; }
+   // Dashboard data layer getters (UserInfo 0x04 / StatusUpdate / ValidateLocation).
+   public long getExp() { return exp; }
+   public int getSp() { return sp; }
+   public int getCurrentLoad() { return curLoad; }
+   public int getMaxLoad() { return maxLoad; }
+   public boolean isWeaponEquipped() { return weaponEquipped; }
+   public int getBaseClass() { return baseClass; }
+   public String getCharName() { return charName; }
+   public int getCurCp() { return curCp; }
+   public int getMaxCp() { return maxCp; }
+   public java.util.Collection<EntityInfo> getEntities() { return entitiesById.values(); }
+   public int getEntityCountTotal() { return entitiesById.size(); }
    public double getHpPercentage() { return maxHp > 0 ? (double) curHp / maxHp * 100 : 0; }
    public double getMpPercentage() { return maxMp > 0 ? (double) curMp / maxMp * 100 : 0; }
 
@@ -677,6 +876,7 @@ public class PacketLogger
    public static class EntityInfo {
       public final int objectId;
       public final int npcId;
+      public volatile String name; // player name for CharInfo entities (null for NPCs)
       public int x, y, z, heading;
       public boolean isHostile;
 

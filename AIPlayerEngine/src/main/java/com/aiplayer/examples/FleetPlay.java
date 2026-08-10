@@ -46,12 +46,26 @@ public final class FleetPlay
     {
         public final String account;
         public final int charId;
+        public volatile String charName = "";
         public volatile int level;
-        public volatile int hp;
-        public volatile int hpMax;
-        public volatile int x;
-        public volatile int y;
-        public volatile int z;
+        public volatile long exp;
+        public volatile int sp;
+        public volatile int hp, hpMax, mp, mpMax, cp, cpMax;
+        public volatile int x, y, z, heading;
+        public volatile int load, maxLoad;
+        public volatile boolean weapon;
+        public volatile int adena, invPct, itemCount;
+        public volatile int[][] items;      // {itemId, count} top-5 by count
+        public volatile int mobs, npcs;
+        public volatile int[][] ents;       // {objId, kind(0 npc 1 hostile 2 player), x, y, z}
+        public volatile String action = "";
+        public volatile String thought = "";
+        public volatile int targetObjId;
+        public volatile String targetLabel = "";
+        public volatile int targetKind;
+        public volatile int targetX, targetY, targetZ;
+        public volatile double targetDist;
+        public volatile long sessionStartMs = System.currentTimeMillis();
         public volatile String state = "connecting";
         public volatile boolean connected;
         public volatile boolean loggedIn;
@@ -176,12 +190,32 @@ public final class FleetPlay
             while (true)
             {
                 BotSnapshot snapshot = BotSnapshot.from(account, logger);
-                info.level = snapshot.level;
-                info.hp = snapshot.hpCurrent;
-                info.hpMax = snapshot.hpMax;
-                info.x = snapshot.x;
-                info.y = snapshot.y;
-                info.z = snapshot.z;
+                // Dashboard data layer — feed BotInfo from the REAL PacketLogger state
+                // (UserInfo 0x04 / StatusUpdate 0x0E / ValidateLocation 0x61 / ItemList 0x1B).
+                info.level = logger.getLevel();
+                info.charName = logger.getCharName() != null ? logger.getCharName() : info.account;
+                info.exp = logger.getExp();
+                info.sp = logger.getSp();
+                info.hp = logger.getCurHp();
+                info.hpMax = logger.getMaxHp();
+                info.mp = logger.getCurMp();
+                info.mpMax = logger.getMaxMp();
+                info.cp = logger.getCurCp();
+                info.cpMax = logger.getMaxCp();
+                info.x = logger.getPlayerX();
+                info.y = logger.getPlayerY();
+                info.z = logger.getPlayerZ();
+                info.heading = logger.getPlayerHeading();
+                info.load = logger.getCurrentLoad();
+                info.maxLoad = logger.getMaxLoad();
+                info.weapon = logger.isWeaponEquipped();
+                info.adena = logger.getAdena();
+                info.invPct = logger.getInventoryUsagePercent();
+                info.itemCount = logger.getInventoryItems().size();
+                info.items = topItems(logger);
+                info.mobs = logger.getHostileEntityCount();
+                info.npcs = logger.getEntityCountTotal();
+                info.ents = entitySnapshot(logger);
                 info.lastSeenMs = System.currentTimeMillis();
                 AIMonitorDashboard.getInstance().updatePlayerStats(player);
 
@@ -194,6 +228,30 @@ public final class FleetPlay
 
                 CombatDecision decision = player.getCombatAI().makeDecision();
                 info.state = decision.getAction().toString();
+                info.action = decision.getAction().toString();
+                info.thought = decision.getReason();
+                // "thoughts / target": resolve the bot's current target into a label + distance.
+                int selTargetId = player.getCombatAI().getSelectedTargetObjId();
+                info.targetObjId = selTargetId;
+                if (selTargetId > 0)
+                {
+                    EntityInfo target = logger.getEntity(selTargetId);
+                    if (target != null)
+                    {
+                        info.targetX = target.x;
+                        info.targetY = target.y;
+                        info.targetZ = target.z;
+                        info.targetKind = target.isHostile ? 1 : (target.name != null ? 2 : 0);
+                        info.targetLabel = target.name != null ? target.name : ("npc#" + target.npcId);
+                        info.targetDist = Math.sqrt(Math.pow(target.x - info.x, 2)
+                            + Math.pow(target.y - info.y, 2) + Math.pow(target.z - info.z, 2));
+                    }
+                }
+                else
+                {
+                    info.targetLabel = "";
+                    info.targetDist = 0;
+                }
 
                 switch (decision.getAction())
                 {
@@ -274,12 +332,60 @@ public final class FleetPlay
     private static void startDashboard(int port) throws IOException
     {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-        server.createContext("/", exchange -> respond(exchange, 200, "text/html; charset=utf-8", htmlPage()));
-        server.createContext("/json", exchange -> respond(exchange, 200, "application/json", jsonStats()));
+        server.createContext("/", exchange -> respond(exchange, 200, "text/html; charset=utf-8", loadDashboard()));
+        server.createContext("/api/players", exchange -> respond(exchange, 200, "application/json; charset=utf-8", playersJson()));
+        server.createContext("/api/landmarks", exchange -> respond(exchange, 200, "application/json; charset=utf-8", landmarksJson()));
+        server.createContext("/json", exchange -> respond(exchange, 200, "application/json; charset=utf-8", playersJson()));
         server.createContext("/report", exchange -> respond(exchange, 200, "text/plain; charset=utf-8",
             AIMonitorDashboard.getInstance().generateReport().getBytes(StandardCharsets.UTF_8)));
         server.start();
         LOGGER.info("[FleetPlay] dashboard live on http://localhost:" + port);
+    }
+
+    /** Serve the map+grid SPA from the classpath resource (src/main/resources/dashboard/index.html). */
+    private static byte[] loadDashboard()
+    {
+        try (java.io.InputStream in = FleetPlay.class.getClassLoader().getResourceAsStream("dashboard/index.html"))
+        {
+            if (in != null)
+            {
+                return in.readAllBytes();
+            }
+        }
+        catch (IOException e)
+        {
+            LOGGER.warning("[FleetPlay] dashboard resource unreadable: " + e.getMessage());
+        }
+        return "<html><body><h1>dashboard resource missing</h1><p>rebuild after mvn resources</p></body></html>"
+            .getBytes(StandardCharsets.UTF_8);
+    }
+
+    // Real Interlude town landmarks (source: phase0/town/VendorDatabase.java centers + TI creation point).
+    private static final String[] TOWN_NAMES = { "TalkingIsland", "Gludio", "Dion", "Giran", "Oren", "HuntersVillage", "Aden" };
+    private static final int[][] TOWNS =
+    {
+        { -71338, 258271, -3104 },   // TalkingIsland (creation point)
+        { -14674, 123346, -3112 },   // Gludio
+        { 18574, 145346, -3096 },    // Dion
+        { 80874, 147346, -3464 },    // Giran
+        { 83074, 53246, -1568 },     // Oren
+        { 116974, 76246, -2728 },    // HuntersVillage
+        { 147446, 27046, -2208 }     // Aden
+    };
+
+    private static byte[] landmarksJson()
+    {
+        StringBuilder sb = new StringBuilder("{\"towns\":[");
+        for (int i = 0; i < TOWNS.length; i++)
+        {
+            if (i > 0) sb.append(',');
+            sb.append("{\"name\":\"").append(TOWN_NAMES[i])
+              .append("\",\"x\":").append(TOWNS[i][0])
+              .append(",\"y\":").append(TOWNS[i][1])
+              .append(",\"z\":").append(TOWNS[i][2]).append('}');
+        }
+        sb.append("]}");
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     private static void respond(HttpExchange exchange, int code, String contentType, byte[] body) throws IOException
@@ -293,49 +399,135 @@ public final class FleetPlay
         }
     }
 
-    private static byte[] htmlPage()
+    /** Top-5 inventory items by count: {itemId, count} pairs, from the real ItemList (0x1B) parse. */
+    private static int[][] topItems(PacketLogger logger)
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<!doctype html><html><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"2\"><title>AI Fleet Dashboard</title><style>")
-          .append("body{font-family:monospace;background:#111;color:#cfc;padding:20px}")
-          .append("h1{color:#8f8}.up{color:#6f6}.bad{color:#f66}.dim{color:#888}")
-          .append("table{border-collapse:collapse;margin-top:12px}td,th{border:1px solid #444;padding:4px 10px;text-align:left}")
-          .append("</style></head><body>")
-          .append("<h1>🤖 AI Fleet — Live</h1>")
-          .append("<p class=\"dim\">server 127.0.0.1:7777 · ").append(BOTS.size()).append(" bots · auto-refresh 2s · level '-' = Interlude StatusUpdate carries no LEVEL attr yet (known parse gap)</p>")
-          .append("<table><tr><th>Account</th><th>charId</th><th>Level</th><th>HP</th><th>State</th><th>Connected</th></tr>");
-        for (BotInfo b : BOTS.values())
+        java.util.List<java.util.Map.Entry<Integer, Long>> inv =
+            new java.util.ArrayList<>(logger.getInventoryItems().entrySet());
+        inv.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
+        int cap = Math.min(5, inv.size());
+        int[][] out = new int[cap][2];
+        for (int i = 0; i < cap; i++)
         {
-            String status = b.connected && b.loggedIn ? "<span class=\"up\">ONLINE</span>" : "<span class=\"bad\">OFFLINE</span>";
-            sb.append("<tr><td>").append(b.account).append("</td><td>").append(b.charId)
-              .append("</td><td>").append(b.level > 0 ? String.valueOf(b.level) : "-").append("</td><td>")
-              .append(b.hp).append('/').append(b.hpMax).append("</td><td>")
-              // self-coords omitted from the dashboard: PacketLogger's self-position parse is offset for Interlude (known gap, Audit/43).
-              .append("</td><td class=\"dim\">").append(b.state).append("</td><td>").append(status).append("</td></tr>");
+            out[i][0] = inv.get(i).getKey();
+            out[i][1] = inv.get(i).getValue().intValue();
         }
-        sb.append("</table></body></html>");
-        return sb.toString().getBytes(StandardCharsets.UTF_8);
+        return out;
     }
 
-    private static byte[] jsonStats()
+    /** Snapshot of nearby entities for the map: {objId, kind(0 npc 1 hostile 2 player), x, y, z}, bounded. */
+    private static int[][] entitySnapshot(PacketLogger logger)
+    {
+        int total = logger.getEntityCountTotal();
+        int cap = Math.min(120, total);
+        int[][] out = new int[cap][5];
+        int i = 0;
+        for (PacketLogger.EntityInfo e : logger.getEntities())
+        {
+            if (i >= cap) break;
+            out[i][0] = e.objectId;
+            out[i][1] = e.isHostile ? 1 : (e.name != null ? 2 : 0);
+            out[i][2] = e.x;
+            out[i][3] = e.y;
+            out[i][4] = e.z;
+            i++;
+        }
+        return cap == i ? out : java.util.Arrays.copyOf(out, i);
+    }
+
+    private static String jsonEscape(String s)
+    {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private static byte[] playersJson()
     {
         StringBuilder sb = new StringBuilder("{\"bots\":[");
         boolean first = true;
         for (BotInfo b : BOTS.values())
         {
-            if (!first)
-            {
-                sb.append(',');
-            }
+            if (!first) sb.append(',');
             first = false;
-            sb.append("{\"account\":\"").append(b.account)
+            sb.append("{\"account\":\"").append(jsonEscape(b.account))
               .append("\",\"charId\":").append(b.charId)
+              .append(",\"name\":\"").append(jsonEscape(b.charName)).append('"')
               .append(",\"level\":").append(b.level)
-              .append(",\"hp\":").append(b.hp)
-              .append(",\"hpMax\":").append(b.hpMax)
-              .append(",\"state\":\"").append(b.state).append('"')
+              .append(",\"exp\":").append(b.exp)
+              .append(",\"sp\":").append(b.sp)
+              .append(",\"hp\":").append(b.hp).append(",\"hpMax\":").append(b.hpMax)
+              .append(",\"mp\":").append(b.mp).append(",\"mpMax\":").append(b.mpMax)
+              .append(",\"cp\":").append(b.cp).append(",\"cpMax\":").append(b.cpMax)
+              .append(",\"x\":").append(b.x).append(",\"y\":").append(b.y).append(",\"z\":").append(b.z)
+              .append(",\"heading\":").append(b.heading)
+              .append(",\"load\":").append(b.load).append(",\"maxLoad\":").append(b.maxLoad)
+              .append(",\"weapon\":").append(b.weapon ? "true" : "false")
+              .append(",\"adena\":").append(b.adena)
+              .append(",\"invPct\":").append(b.invPct).append(",\"itemCount\":").append(b.itemCount)
+              .append(",\"mobs\":").append(b.mobs).append(",\"npcs\":").append(b.npcs);
+            sb.append(",\"items\":[");
+            int[][] it = b.items;
+            if (it != null)
+            {
+                for (int i = 0; i < it.length; i++)
+                {
+                    if (i > 0) sb.append(',');
+                    sb.append('[').append(it[i][0]).append(',').append(it[i][1]).append(']');
+                }
+            }
+            sb.append("],\"ents\":[");
+            int[][] en = b.ents;
+            if (en != null)
+            {
+                for (int i = 0; i < en.length; i++)
+                {
+                    if (i > 0) sb.append(',');
+                    sb.append('[').append(en[i][0]).append(',').append(en[i][1])
+                      .append(',').append(en[i][2]).append(',').append(en[i][3]).append(',').append(en[i][4]).append(']');
+                }
+            }
+            sb.append("],\"target\":");
+            if (b.targetObjId > 0 && b.targetDist > 0)
+            {
+                sb.append("{\"objId\":").append(b.targetObjId)
+                  .append(",\"kind\":").append(b.targetKind)
+                  .append(",\"label\":\"").append(jsonEscape(b.targetLabel)).append('"')
+                  .append(",\"x\":").append(b.targetX).append(",\"y\":").append(b.targetY)
+                  .append(",\"z\":").append(b.targetZ)
+                  .append(",\"d\":").append((int) b.targetDist).append('}');
+            }
+            else
+            {
+                sb.append("null");
+            }
+            sb.append(",\"action\":\"").append(jsonEscape(b.action))
+              .append("\",\"thought\":\"").append(jsonEscape(b.thought))
+              .append("\",\"state\":\"").append(jsonEscape(b.state)).append('"')
               .append(",\"online\":").append(b.connected && b.loggedIn ? "true" : "false")
+              .append(",\"uptimeSec\":").append((System.currentTimeMillis() - b.sessionStartMs) / 1000)
               .append('}');
+        }
+        sb.append("],\"entities\":[");
+        // Merge all bots' entity views, deduplicated by object id, so the map draws mobs/NPCs once.
+        java.util.LinkedHashMap<Integer, int[]> merged = new java.util.LinkedHashMap<>();
+        for (BotInfo b : BOTS.values())
+        {
+            int[][] en = b.ents;
+            if (en == null) continue;
+            for (int[] e : en)
+            {
+                merged.putIfAbsent(e[0], e);
+            }
+        }
+        boolean firstEntity = true;
+        for (int[] e : merged.values())
+        {
+            if (!firstEntity) sb.append(',');
+            firstEntity = false;
+            String label = e[1] == 1 ? "mob#" + e[0] : (e[1] == 2 ? "player#" + e[0] : "npc#" + e[0]);
+            sb.append("{\"objId\":").append(e[0]).append(",\"kind\":").append(e[1])
+              .append(",\"label\":\"").append(label).append('"')
+              .append(",\"x\":").append(e[2]).append(",\"y\":").append(e[3]).append(",\"z\":").append(e[4]).append('}');
         }
         sb.append("]}");
         return sb.toString().getBytes(StandardCharsets.UTF_8);
