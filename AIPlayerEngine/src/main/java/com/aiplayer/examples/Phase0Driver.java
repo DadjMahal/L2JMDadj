@@ -5,6 +5,8 @@ package com.aiplayer.examples;
 import com.aiplayer.engine.AIPlayer;
 import com.aiplayer.engine.CombatDecision;
 import com.aiplayer.engine.GameServerClient;
+import com.aiplayer.engine.Phase0Config;
+import com.aiplayer.engine.Phase0Integration;
 import com.aiplayer.phase0.BotSnapshot;
 import com.aiplayer.phase0.Phase0Wiring;
 import com.aiplayer.phase0.combat.TargetSelector;
@@ -32,6 +34,7 @@ import java.util.logging.Logger;
 public final class Phase0Driver {
     private static final Logger LOGGER = Logger.getLogger(Phase0Driver.class.getName());
     private static final long TICK_INTERVAL_MS = 300;
+    private static long lastAdviceLogMs = 0;
 
     public static void main(String[] args) throws Exception {
         if (args.length < 3) {
@@ -68,14 +71,24 @@ public final class Phase0Driver {
 
         Phase0Wiring wiring = new Phase0Wiring(gs, account);
         TargetSelector targetSelector = new TargetSelector(account, logger.getLevel());
+        Phase0Integration phase0 = player.getCombatAI().getPhase0Integration();
 
         LOGGER.info("[Phase0Driver] " + account + " entered world, starting decision loop");
 
         while (true) {
             BotSnapshot snapshot = BotSnapshot.from(account, logger);
 
+            String advice = phase0 != null ? phase0.inventoryAdvice(snapshot) : null;
+            if (advice != null && (System.currentTimeMillis() - lastAdviceLogMs) > 60_000) {
+                LOGGER.info("[Phase0Driver] " + account + " " + advice);
+                lastAdviceLogMs = System.currentTimeMillis();
+            }
+
             if (snapshot.hpCurrent <= 0) {
-                LOGGER.info("[Phase0Driver] " + account + " STATE dead, waiting for respawn handling (not yet wired — see INTEGRATION_GAPS.md)");
+                String deathNote = phase0 != null && Phase0Config.getInstance().isDeathRecoveryEnabled()
+                    ? phase0.deathRecoveryStatus() : null;
+                LOGGER.info("[Phase0Driver] " + account + " STATE dead, pausing actions"
+                    + (deathNote != null ? " — " + deathNote : ""));
                 Thread.sleep(TICK_INTERVAL_MS * 10);
                 continue;
             }
@@ -123,7 +136,8 @@ public final class Phase0Driver {
                     // No target yet — ask TargetSelector, matching Task 2's intended
                     // integration point, now reading from BotSnapshot instead of the
                     // old GameStateMirror.
-                    int newTarget = targetSelector.selectTarget();
+                    int newTarget = (phase0 != null && Phase0Config.getInstance().isTargetingEnabled())
+                        ? phase0.selectTarget() : targetSelector.selectTarget();
                     if (newTarget != 0) {
                         wiring.executeCombat(CombatDecision.attackTarget(String.valueOf(newTarget)),
                                               snapshot.x, snapshot.y, snapshot.z, newTarget);
@@ -131,7 +145,7 @@ public final class Phase0Driver {
                     break;
             }
 
-            Thread.sleep(TICK_INTERVAL_MS);
+            Thread.sleep(TICK_INTERVAL_MS + (phase0 != null ? phase0.reactionDelayMs() : 0));
         }
     }
 }
