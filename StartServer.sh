@@ -1,7 +1,7 @@
 #!/bin/bash
 # ~/L2JM/StartServer.sh - Start LoginServer and GameServer
 
-L2JM_HOME="$HOME/L2JM"
+L2JM_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # repo root (path-independent)
 LBREAK="============================================================"
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
 pass() { echo -e "  [ ${GREEN}OK${NC} ] $1"; }
@@ -74,7 +74,9 @@ stop_all() {
 check_status() {
 	echo ""; echo "  $LBREAK"; echo "  Server Status Overview"; echo "  $LBREAK"
 	local all_ok=true
-	if systemctl is-active --quiet mariadb 2>/dev/null || systemctl is-active --quiet mysql 2>/dev/null; then
+	if ss -tln 2>/dev/null | grep -q ':3306 '; then
+		pass "MariaDB/MySQL is listening on 3306."
+	elif systemctl is-active --quiet mariadb 2>/dev/null || systemctl is-active --quiet mysql 2>/dev/null; then
 		pass "MariaDB/MySQL is running."
 	else
 		warn "MariaDB/MySQL is not running."; all_ok=false
@@ -92,11 +94,11 @@ check_status() {
 		pass "GameServer process is running."
 		if ss -tlnp "sport = :7777" 2>/dev/null | grep -q ":7777 "; then pass "Port 7777 (client) is listening."
 		else fail "Port 7777 (client) is NOT listening."; all_ok=false; fi
-		if [ -f "$GAME_DIR/log/stdout.log" ] && grep -q "Registered on login" "$GAME_DIR/log/stdout.log" 2>/dev/null; then
+				if [ -f "$GAME_DIR/log/java0.log" ] && grep -q "Registered on login" "$GAME_DIR/log/java0.log" 2>/dev/null; then
 			local regline=$(grep "Registered on login" "$GAME_DIR/log/stdout.log" | tail -1)
 			pass "GameServer registration: $regline"
 		else fail "GameServer is NOT registered on LoginServer."; all_ok=false; fi
-		if [ -f "$GAME_DIR/log/stdout.log" ] && grep -q "Server loaded" "$GAME_DIR/log/stdout.log" 2>/dev/null; then
+				if [ -f "$GAME_DIR/log/java0.log" ] && grep -q "Server loaded" "$GAME_DIR/log/java0.log" 2>/dev/null; then
 			pass "GameServer loaded successfully."
 		else warn "Could not confirm GameServer load completion."; fi
 	else
@@ -116,13 +118,14 @@ fi
 
 echo ""; echo "  $LBREAK"; echo "  L2JM Server Startup"; echo "  $LBREAK"
 info "Checking MariaDB/MySQL..."
-if systemctl is-active --quiet mariadb 2>/dev/null; then pass "MariaDB is already running."
+if ss -tln 2>/dev/null | grep -q ':3306 '; then pass "MariaDB/MySQL already listening on 3306."
+elif systemctl is-active --quiet mariadb 2>/dev/null; then pass "MariaDB is already running."
 elif systemctl is-active --quiet mysql 2>/dev/null; then pass "MySQL is already running."
 else
 	info "Starting MariaDB..."
 	if systemctl start mariadb 2>/dev/null || systemctl start mysql 2>/dev/null; then
 		sleep 2; pass "MariaDB started."
-	else fail "Could not start MariaDB."; exit 1; fi
+	else fail "Could not start MariaDB (and none is listening on 3306)."; exit 1; fi
 fi
 info "Clearing Linux cache..."
 sync; echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
@@ -156,10 +159,10 @@ else
 fi
 
 info "Waiting for GameServer to load (this may take a while)..."
-if wait_for_log "$GAME_DIR/log/stdout.log" "Registered on login"; then
+	if wait_for_log "$GAME_DIR/log/java0.log" "Registered on login"; then
 	pass "GameServer registered on LoginServer."
 else fail "GameServer did not register within 120s."; stop_all || true; exit 1; fi
-if wait_for_log "$GAME_DIR/log/stdout.log" "Server loaded"; then pass "GameServer loaded successfully."
+	if wait_for_log "$GAME_DIR/log/java0.log" "Server loaded"; then pass "GameServer loaded successfully."
 else warn "Could not confirm 'Server loaded' in log, but proceeding."; fi
 
 echo ""; echo "  $LBREAK"; echo "  Final Verification"; echo "  $LBREAK"
