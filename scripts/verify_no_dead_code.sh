@@ -7,7 +7,9 @@ echo "  DEAD CODE VERIFICATION"
 echo "=========================================="
 echo ""
 
-CODEBASE="/home/volodro/L2JM/AIPlayerEngine/src/main/java"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"   # <repo>/scripts
+ENGINE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/AIPlayerEngine"       # <repo>/AIPlayerEngine
+CODEBASE="$ENGINE_DIR/src/main/java"
 
 # Count total Java files
 TOTAL_FILES=$(find "$CODEBASE" -name "*.java" | wc -l)
@@ -38,7 +40,7 @@ fi
 # Check build for errors
 echo ""
 echo "[4] Checking build..."
-cd /home/volodro/L2JM/AIPlayerEngine
+cd "$ENGINE_DIR"
 if mvn compile -q 2>/dev/null; then
     echo "  BUILD: SUCCESS"
 else

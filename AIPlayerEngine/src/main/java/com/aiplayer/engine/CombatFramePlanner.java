@@ -80,9 +80,39 @@ public class CombatFramePlanner
                     PacketCodec.encodeMoveToLocation(ex, ey, playerZ, playerX, playerY, playerZ, 0), 0));
                 break;
 
+            case USE_SKILL:
+                // REQUEST_MAGIC_SKILL_USE (0x2F) is LIVE-PROVEN on the H5 GameServer:
+                // the probe sent [0x2F][int skillId][int ctrl][byte shift] straight after
+                // an Action(0x04) and the server parsed it (no disconnect; it replied
+                // ACTION_FAIL/SystemMessage on game conditions, never on opcode/parse).
+                // Send order mirrors that proof: optional Action to (re)lock the target,
+                // then the skill frame. The skill's own weapon/range conditions decide
+                // whether the cast actually fires — same as a real client.
+                if (decision.getSkillId() != null)
+                {
+                    int skillIdForCast;
+                    try
+                    {
+                        skillIdForCast = Integer.parseInt(decision.getSkillId().trim());
+                    }
+                    catch (NumberFormatException nfe)
+                    {
+                        skillIdForCast = -1; // e.g. "HEAL"/"ATTACK" placeholder — not a real skill id
+                    }
+                    if (skillIdForCast > 0)
+                    {
+                        if (targetObjId > 0)
+                        {
+                            steps.add(new FrameStep(
+                                PacketCodec.encodeAction(targetObjId, playerX, playerY, playerZ), 0));
+                        }
+                        steps.add(new FrameStep(PacketCodec.encodeUseSkill(skillIdForCast, false, false), 0));
+                    }
+                }
+                break;
+
             default:
-                // IDLE / LEAVE_COMBAT / USE_SKILL (skill opcode not yet proven) / AUTO_PLAY / CAMPAIGN.
-                // USE_SKILL is deliberately not emitted until a real skill opcode is live-proven.
+                // IDLE / LEAVE_COMBAT / AUTO_PLAY / CAMPAIGN — nothing to send.
                 break;
         }
         return steps;

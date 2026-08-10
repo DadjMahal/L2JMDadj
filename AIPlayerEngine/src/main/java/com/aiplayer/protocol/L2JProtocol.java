@@ -366,6 +366,171 @@ public class L2JProtocol
         channel.write(ByteBuffer.wrap(PacketCodec.encodeChat(message)));
     }
 
+    /** Stub: send say (general chat). */
+    public void sendSay(String message) throws IOException
+    {
+        LOGGER.warning("[sendSay] Not implemented - stub");
+    }
+
+    /** Stub: send clan chat. */
+    public void sendClanChat(String message) throws IOException
+    {
+        LOGGER.warning("[sendClanChat] Not implemented - stub");
+    }
+
+    /** Stub: send party chat. */
+    public void sendPartyChat(String message) throws IOException
+    {
+        LOGGER.warning("[sendPartyChat] Not implemented - stub");
+    }
+
+    /** Stub: send trade chat. */
+    public void sendTradeChat(String message) throws IOException
+    {
+        LOGGER.warning("[sendTradeChat] Not implemented - stub");
+    }
+
+    /** Stub: send shout. */
+    public void sendShout(String message) throws IOException
+    {
+        LOGGER.warning("[sendShout] Not implemented - stub");
+    }
+
+    /** Stub: send clan notice. */
+    public void sendClanNotice(String message) throws IOException
+    {
+        LOGGER.warning("[sendClanNotice] Not implemented - stub");
+    }
+
+    /** Stub: send NPC action (interact/dlg). */
+    public void sendNpcAction(int npcId) throws IOException
+    {
+        LOGGER.warning("[sendNpcAction] Not implemented - stub");
+    }
+
+    /** Stub: talk to NPC. */
+    public void talkToNpc(int npcId, String bypass) throws IOException
+    {
+        LOGGER.warning("[talkToNpc] Not implemented - stub");
+    }
+
+    /** Stub: use item. */
+    public void sendUseItem(int itemId) throws IOException
+    {
+        LOGGER.warning("[sendUseItem] Not implemented - stub");
+    }
+
+
+    /** Stub: auto soul shot toggle. */
+    public void sendAutoSoulShot(int itemId, boolean enable) throws IOException
+    {
+        LOGGER.warning("[sendAutoSoulShot] Not implemented - stub");
+    }
+
+        /**
+     * Send REQUEST_MAGIC_SKILL_USE (0x2F) — cast a known skill at the player's current
+     * target (the target must be set first via {@link #sendAttack(int)} / an Action 0x04;
+     * the 0x2F frame itself carries no target field, see PacketCodec.encodeUseSkill).
+     *
+     * Wire-up mirrors {@link #sendAttack(int)} exactly: build the 12-byte LE frame
+     * [size=12][0x2F][int skillId][int ctrl][byte shift] and write it on the GS channel.
+     * Field widths match the server reader RequestMagicSkillUse.java:42-44.
+     */
+    public void sendUseSkill(int skillId, boolean ctrl, boolean shift) throws IOException
+    {
+        channel.write(ByteBuffer.wrap(PacketCodec.encodeUseSkill(skillId, ctrl, shift)));
+    }
+
+    /** Stub: pickup item. */
+    public void sendPickupItem(int itemObjectId) throws IOException
+    {
+        LOGGER.warning("[sendPickupItem] Not implemented - stub");
+    }
+
+    /** Stub: sell item to NPC. */
+    public void sendSellItem(int itemObjId, long count) throws IOException
+    {
+        LOGGER.warning("[sendSellItem] Not implemented - stub");
+    }
+
+    /** Stub: buy item from NPC. */
+    public void sendBuyItem(int itemId, int count) throws IOException
+    {
+        LOGGER.warning("[sendBuyItem] Not implemented - stub");
+    }
+
+    /** Stub: deposit item to warehouse. */
+    public void sendDepositItem(int itemObjId, long count) throws IOException
+    {
+        LOGGER.warning("[sendDepositItem] Not implemented - stub");
+    }
+
+    /** Stub: withdraw item from warehouse. */
+    public void sendWithdrawItem(int itemObjId, long count) throws IOException
+    {
+        LOGGER.warning("[sendWithdrawItem] Not implemented - stub");
+    }
+
+    /** Stub: answer party invite. */
+    public void sendAnswerJoinParty(int confirm) throws IOException
+    {
+        LOGGER.warning("[sendAnswerJoinParty] Not implemented - stub");
+    }
+
+    /** Stub: accept party invite. */
+    public void acceptPartyInvite() throws IOException
+    {
+        LOGGER.warning("[acceptPartyInvite] Not implemented - stub");
+    }
+
+    /** Stub: decline party invite. */
+    public void declinePartyInvite() throws IOException
+    {
+        LOGGER.warning("[declinePartyInvite] Not implemented - stub");
+    }
+
+    /** Stub: teleport request. */
+    public void sendTeleportRequest(String destination) throws IOException
+    {
+        LOGGER.warning("[sendTeleportRequest] Not implemented - stub");
+    }
+
+    /** Stub: teleport confirm. */
+    public void sendTeleportConfirm() throws IOException
+    {
+        LOGGER.warning("[sendTeleportConfirm] Not implemented - stub");
+    }
+
+    /** Stub: roll request (dice). */
+    public void sendRollRequest(int requestId, int result) throws IOException
+    {
+        LOGGER.warning("[sendRollRequest] Not implemented - stub");
+    }
+
+    /** Stub: request restart point. */
+    public void sendRequestRestartPoint(int restartPointType) throws IOException
+    {
+        LOGGER.warning("[sendRequestRestartPoint] Not implemented - stub");
+    }
+
+    /** Stub: request item list. */
+    public void sendRequestItemList() throws IOException
+    {
+        LOGGER.warning("[sendRequestItemList] Not implemented - stub");
+    }
+
+    /** Stub: send move backward to location (interact). */
+    public void sendMoveBackwardToLocation(int x, int y, int z, int tx, int ty, int tz) throws IOException
+    {
+        LOGGER.warning("[sendMoveBackwardToLocation] Not implemented - stub");
+    }
+
+    /** Stub: send camera delta. */
+    public void sendCameraDelta(int yaw, int pitch) throws IOException
+    {
+        LOGGER.warning("[sendCameraDelta] Not implemented - stub");
+    }
+
     public void disconnect()
     {
         try

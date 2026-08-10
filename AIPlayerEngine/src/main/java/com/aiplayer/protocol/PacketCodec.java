@@ -81,7 +81,40 @@ public class PacketCodec {
         buf.putInt(targetX);
         buf.putInt(targetY);
         buf.putInt(targetZ);
-        buf.put((byte) 0);         // attackId: 0 for simple click, 1 for shift-click
+                buf.put((byte) 0);         // attackId: 0 for simple click, 1 for shift-click
+        buf.flip();
+        return buf.array();
+    }
+
+    /**
+     * Encode REQUEST_MAGIC_SKILL_USE (client->server skill cast).
+     *
+     * OPCODE: 0x2F per SourceCode/java/.../ClientPackets.java (H5). This is the
+     * LIVE-verified opcode (the patch-upgrade tree's 0x39 is Interlude C4 and is WRONG;
+     * a real H5 GameServer parses 0x2F and replied ActionFailed to a correctly framed cast,
+     * proving the opcode + field layout below).
+     *
+     * Field widths are server-authoritative per RequestMagicSkillUse.java:42-44:
+     *   readInt()  _magicId   -> skillId   (4 bytes)
+     *   readInt()  _ctrlPressed -> ctrl     (4 bytes)  "True if ForceAttack : Ctrl pressed"
+     *   readByte() _shiftPressed -> shift   (1 byte)  "True if Shift pressed"
+     *
+     * Frame layout (little-endian, self-inclusive 2-byte size header):
+     *   [size=12][0x2F][int skillId][int ctrl][byte shift]  => 2+1+4+4+1 = 12 bytes total.
+     *
+     * NOTE: the server targets the player's CURRENT target (set via a prior Action 0x04),
+     * so the frame carries NO target object_id — contrary to the earlier wrong-width stub.
+     */
+    public static byte[] encodeUseSkill(int skillId, boolean ctrl, boolean shift)
+    {
+        // size = 2(header) + 1(opcode) + 4(skillId) + 4(ctrl) + 1(shift) = 12 (self-inclusive)
+        ByteBuffer buf = ByteBuffer.allocate(12);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) 12); // self-inclusive packet size
+        buf.put((byte) 0x2F);      // REQUEST_MAGIC_SKILL_USE (H5 opcode)
+        buf.putInt(skillId);        // skillId (readInt, 4B)
+        buf.putInt(ctrl ? 1 : 0);   // ctrl flag (readInt, 4B)
+        buf.put((byte) (shift ? 1 : 0)); // shift flag (readByte, 1B)
         buf.flip();
         return buf.array();
     }
