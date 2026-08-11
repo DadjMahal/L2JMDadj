@@ -3,6 +3,7 @@ package com.aiplayer.protocol;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 /**
@@ -36,6 +37,17 @@ public class PacketLogger
    // previously-sent NpcHtmlMessage (server validates via validateHtmlAction), so the engine
    // MUST parse these to know what bypass it is allowed to send next.
    public static final int OP_NPC_HTML = 0x0F;
+   // WPT-25/26: server combat + skill-cast packets (opcodes verified against
+   // SourceCode/java/org/l2jmobius/gameserver/network/ServerPackets.java).
+   public static final int OP_ATTACK = 0x05;               // melee hit feed (Attack.java)
+   public static final int OP_DIE = 0x06;                  // entity died (Die.java)
+   public static final int OP_REVIVE = 0x07;               // entity revived (Revive.java)
+   public static final int OP_MAGIC_SKILL_USE = 0x48;      // confirmed skill cast (MagicSkillUse.java)
+   public static final int OP_MAGIC_SKILL_LAUNCHED = 0x76; // cast projectile/hit (MagicSkillLaunched.java)
+   // WPT-26: client->server skill-cast REQUEST gate (Audit/42: REQUEST_MAGIC_SKILL_USE 0x2F,
+   // raw frame [skillId:int][ctrl:int][shift:byte]). The bot SENDS this; the server's
+   // MagicSkillUse(0x48) is the confirmed echo - see recordSkillRequest().
+   public static final int CLIENT_OP_REQUEST_MAGIC_SKILL_USE = 0x2F;
 
    // StatusUpdate attribute IDs (from StatusUpdate.java)
    public static final int STAT_LEVEL = 0x01;
@@ -106,6 +118,47 @@ public class PacketLogger
    // Entity tracking (Task 47)
    private final ConcurrentHashMap<Integer, EntityInfo> entitiesById = new ConcurrentHashMap<>();
 
+   // ============ WPT-23: per-objectId StatusUpdate attribute snapshots ============
+   // StatusUpdate packets are partial [objId][attrCount][(id,val)...], so every packet MERGES
+   // into the snapshot of that objectId (the player AND nearby NPCs) - see StatusSnapshot.apply().
+   private final ConcurrentHashMap<Integer, StatusSnapshot> statusSnapshots = new ConcurrentHashMap<>();
+
+   // ============ WPT-25: combat KPI collector (hits / damageIn-out / rolling DPS / kills) ============
+   private static final long ROLLING_KPI_WINDOW_MS = 60_000L;    // DPS "rolling minute"
+   private static final long KILL_ATTRIBUTION_WINDOW_MS = 60_000L;
+   private final Object combatLock = new Object();
+   private int hitsOut = 0;
+   private int missesOut = 0;
+   private int critsOut = 0;
+   private long damageOut = 0;
+   private int hitsIn = 0;
+   private long damageIn = 0;
+   private int kills = 0;
+   private int deaths = 0;
+   private final java.util.ArrayDeque<DamageEvent> damageWindow = new java.util.ArrayDeque<>();
+   // Entities this bot recently damaged (objId -> last damage millis) for kill attribution.
+   private final ConcurrentHashMap<Integer, Long> damagedTargets = new ConcurrentHashMap<>();
+
+   // ============ WPT-26: MagicSkillUse / skill-cast metering ============
+   private int magicSkillUseCount = 0;
+   private int magicSkillLaunchedCount = 0;
+   private int skillRequestCount = 0;
+   private int attackPacketCount = 0;
+   private int diePacketCount = 0;
+   private int reviveCount = 0;
+   private volatile int selfSkillCastTotal = 0;
+   private volatile long lastSkillLaunchedMillis = 0;
+   // Per-bot cast counters: skillId -> casts (confirmed), targetId -> casts (confirmed).
+   private final ConcurrentHashMap<Integer, AtomicInteger> skillCastCounts = new ConcurrentHashMap<>();
+   private final ConcurrentHashMap<Integer, AtomicInteger> skillCastCountsByTarget = new ConcurrentHashMap<>();
+   private final ConcurrentHashMap<Integer, Long> lastSkillCastMillisBySkill = new ConcurrentHashMap<>();
+   // Cooldown metering: skillId -> server-reported reuse delay + last confirmed cast time.
+   private final ConcurrentHashMap<Integer, SkillCooldown> skillCooldowns = new ConcurrentHashMap<>();
+   private final java.util.List<SkillCastEvent> skillCastEvents = new java.util.ArrayList<>(); // guarded by combatLock
+   private static final int MAX_CAST_EVENTS = 512;
+   private volatile SkillCastEvent lastSkillCast = null;
+   private volatile long lastSkillCastMillis = 0;
+
    /**
     * Create a packet logger for a specific AI player.
     * @param playerName the name of the AI player this logger tracks
@@ -173,6 +226,27 @@ public class PacketLogger
                break;
             case OP_SYSTEM_MESSAGE:
                parseSystemMessage(buf);
+               break;
+            // WPT-25/26: combat + skill-cast feed (ServerPackets.java opcodes).
+            case OP_ATTACK:
+               attackPacketCount++;
+               parseAttack(buf);
+               break;
+            case OP_DIE:
+               diePacketCount++;
+               parseDie(buf);
+               break;
+            case OP_REVIVE:
+               reviveCount++;
+               parseRevive(buf);
+               break;
+            case OP_MAGIC_SKILL_USE:
+               magicSkillUseCount++;
+               parseMagicSkillUse(buf);
+               break;
+            case OP_MAGIC_SKILL_LAUNCHED:
+               magicSkillLaunchedCount++;
+               parseMagicSkillLaunched(buf);
                break;
             default:
                LOGGER.fine("[" + playerName + "] Unknown packet: 0x" + Integer.toHexString(opcode) + " size=" + size);
@@ -377,6 +451,8 @@ public class PacketLogger
             int value = buf.getInt();
             attrs.append(getAttributeName(attrId)).append("=").append(value);
             if (i < attributeCount - 1) attrs.append(", ");
+            // WPT-23: merge into the per-objectId full attribute snapshot (ANY entity, not only self).
+            statusSnapshots.computeIfAbsent(objectId, StatusSnapshot::new).apply(attrId, value);
 
             // Track HP/MP values (self only; a target's StatusUpdate must not overwrite the bot's HP)
             if (isSelf && attrId == STAT_CUR_HP) curHp = value;
@@ -577,6 +653,278 @@ public class PacketLogger
       }
    }
 
+   // ================= WPT-25 / WPT-26 combat + skill-cast parsers =================
+   /**
+    * Parse Attack packet (opcode 0x05) - melee hit feed broadcast by the server.
+    * Interlude layout (SourceCode .../serverpackets/Attack.java writeImpl):
+    *    [attackerId:int][targetId:int][damage:int][flags:byte][ax:int][ay:int][az:int]
+    *    [hits-1:short][extra hits: (targetId,damage,flags)...][tx:int][ty:int][tz:int]
+    * Hit flags (SourceCode Hit.java): 0x80=miss, 0x20=crit, 0x40=shield.
+    * Feeds the WPT-25 combat KPIs: hits/damageOut when the bot attacks, hitsIn/damageIn when
+    * the bot is hit (the server broadcasts every visible melee combat to this client).
+    */
+   private void parseAttack(ByteBuffer buf)
+   {
+      try
+      {
+         if (buf.remaining() < 13) return;                  // attacker(4) + first hit(9)
+         int attackerId = buf.getInt();
+         int targetId = buf.getInt();
+         int damage = buf.getInt();
+         int flags = buf.get() & 0xFF;
+         recordHit(attackerId, targetId, damage, flags);
+         skip(buf, 12);                                     // attacker position
+         if (buf.remaining() < 2) return;
+         int extraHits = buf.getShort() & 0xFFFF;           // hits.size() - 1
+         for (int i = 0; i < extraHits && buf.remaining() >= 9; i++)
+         {
+            int tId = buf.getInt();
+            int dmg = buf.getInt();
+            int fl = buf.get() & 0xFF;
+            recordHit(attackerId, tId, dmg, fl);
+         }
+         skip(buf, 12);                                     // target position tail (optional)
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] Attack parse incomplete");
+      }
+   }
+
+   /** WPT-25: fold one hitting/receiving melee hit into the combat KPIs. */
+   private void recordHit(int attackerId, int targetId, int damage, int flags)
+   {
+      boolean miss = (flags & 0x80) != 0;
+      boolean crit = (flags & 0x20) != 0;
+      long now = System.currentTimeMillis();
+      if (selfObjectId != 0 && attackerId == selfObjectId)
+      {
+         synchronized (combatLock)
+         {
+            hitsOut++;
+            if (miss) missesOut++;
+            if (crit) critsOut++;
+            if (damage > 0)
+            {
+               damageOut += damage;
+               addDamageEventLocked(now, damage);
+            }
+         }
+         if (damage > 0) damagedTargets.put(targetId, now);
+      }
+      if (selfObjectId != 0 && targetId == selfObjectId)
+      {
+         synchronized (combatLock)
+         {
+            hitsIn++;
+            if (damage > 0) damageIn += damage;
+         }
+      }
+   }
+
+   /**
+    * Parse Die packet (opcode 0x06) - an entity died.
+    * Interlude layout (SourceCode .../serverpackets/Die.java writeImpl):
+    *    [objectId:int][canTeleport:int][hideAway/castle/hq ints][sweepable:int][fixedRes:int]
+    * WPT-25: a non-self entity this bot damaged in the last minute counts as a kill;
+    * the bot itself dying counts as a death.
+    */
+   private void parseDie(ByteBuffer buf)
+   {
+      try
+      {
+         if (buf.remaining() < 4) return;
+         int objectId = buf.getInt();
+         boolean selfDeath = selfObjectId != 0 && objectId == selfObjectId;
+         if (selfDeath)
+         {
+            synchronized (combatLock)
+            {
+               deaths++;
+            }
+         }
+         else
+         {
+            Long lastDamaged = damagedTargets.get(objectId);
+            if (lastDamaged != null && System.currentTimeMillis() - lastDamaged <= KILL_ATTRIBUTION_WINDOW_MS)
+            {
+               synchronized (combatLock)
+               {
+                  kills++;
+               }
+               damagedTargets.remove(objectId);
+            }
+         }
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] DIE: objId=" + objectId + " self=" + selfDeath
+            + " kills=" + kills + " deaths=" + deaths);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] Die parse incomplete");
+      }
+   }
+
+   /** Parse Revive packet (opcode 0x07) - [objectId:int] (Revive.java writeImpl). */
+   private void parseRevive(ByteBuffer buf)
+   {
+      try
+      {
+         if (buf.remaining() >= 4)
+         {
+            LOGGER.fine("[PACKET-LOG] [" + playerName + "] REVIVE: objId=" + buf.getInt());
+         }
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] Revive parse incomplete");
+      }
+   }
+
+   // --- WPT-26 skill parsers inserted below ---
+   /**
+    * Parse MagicSkillUse (opcode 0x48) - the server broadcast confirming a skill cast.
+    * Interlude layout (SourceCode .../serverpackets/MagicSkillUse.java writeImpl):
+    *    [casterId:int][targetId:int][skillId:int][skillLevel:int][hitTime:int][reuseDelay:int]
+    *    [px:int][py:int][pz:int][critical:int (+short 0 when critical)][tx:int][ty:int][tz:int]
+    * WPT-26: this is the DEFINITIVE "cast fired" confirmation (Audit/42 open item 6 targets
+    * exactly this opcode in the live histogram).
+    */
+   private void parseMagicSkillUse(ByteBuffer buf)
+   {
+      try
+      {
+         if (buf.remaining() < 24) return;                  // 6 leading ints
+         int casterId = buf.getInt();
+         int targetId = buf.getInt();
+         int skillId = buf.getInt();
+         int skillLevel = buf.getInt();
+         int hitTime = buf.getInt();
+         int reuseDelay = buf.getInt();
+         skip(buf, 12);                                     // caster position
+         if (buf.remaining() >= 4)
+         {
+            int critical = buf.getInt();
+            if (critical != 0 && buf.remaining() >= 2) skip(buf, 2); // short 0 after critical flag
+         }
+         skip(buf, 12);                                     // target position tail (optional)
+         recordSkillCast(casterId, targetId, skillId, skillLevel, hitTime, reuseDelay);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] MagicSkillUse parse incomplete");
+      }
+   }
+
+   /**
+    * Parse MagicSkillLaunched (opcode 0x76) - projectile/hit delivery of a cast skill.
+    * Interlude layout (SourceCode .../serverpackets/MagicSkillLaunched.java writeImpl):
+    *    [casterId:int][skillId:int][skillLevel:int][targetCount:int][(targetId:int)*count]
+    */
+   private void parseMagicSkillLaunched(ByteBuffer buf)
+   {
+      try
+      {
+         if (buf.remaining() < 16) return;
+         int casterId = buf.getInt();
+         int skillId = buf.getInt();
+         buf.getInt();                                      // skillLevel
+         int targetCount = buf.getInt();
+         for (int i = 0; i < targetCount && buf.remaining() >= 4; i++)
+         {
+            buf.getInt();                                   // targetId
+         }
+         lastSkillLaunchedMillis = System.currentTimeMillis();
+         LOGGER.fine("[PACKET-LOG] [" + playerName + "] SKILL_LAUNCHED: caster=" + casterId
+            + " skill=" + skillId + " targets=" + targetCount);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] MagicSkillLaunched parse incomplete");
+      }
+   }
+
+   // --- WPT-26 record/handler helpers ------------
+   /**
+    * WPT-26: fold one server-confirmed skill cast into the per-bot metering state
+    * (skillId/targetId counts, cast timeline, reuse-delay cooldown, kill attribution).
+    */
+   private void recordSkillCast(int casterId, int targetId, int skillId, int skillLevel,
+                                int hitTime, int reuseDelay)
+   {
+      long now = System.currentTimeMillis();
+      boolean selfCast = selfObjectId != 0 && casterId == selfObjectId;
+      if (selfCast && targetId != 0 && targetId != selfObjectId)
+      {
+         damagedTargets.put(targetId, now);                 // magic kills share melee attribution
+      }
+      skillCastCounts.computeIfAbsent(skillId, k -> new AtomicInteger()).incrementAndGet();
+      if (targetId != 0)
+      {
+         skillCastCountsByTarget.computeIfAbsent(targetId, k -> new AtomicInteger()).incrementAndGet();
+      }
+      lastSkillCastMillisBySkill.put(skillId, now);
+      SkillCastEvent event = new SkillCastEvent(skillId, targetId, casterId, skillLevel,
+         hitTime, reuseDelay, now, true, selfCast);
+      synchronized (combatLock)
+      {
+         if (selfCast) selfSkillCastTotal++;
+         skillCastEvents.add(event);
+         while (skillCastEvents.size() > MAX_CAST_EVENTS) skillCastEvents.remove(0);
+         lastSkillCast = event;
+         lastSkillCastMillis = now;
+         if (reuseDelay > 0)
+         {
+            SkillCooldown cd = skillCooldowns.get(skillId);
+            if (cd == null)
+            {
+               cd = new SkillCooldown(skillId, reuseDelay);
+               skillCooldowns.put(skillId, cd);
+            }
+            cd.lastCastMillis = now;
+         }
+      }
+      LOGGER.info("[PACKET-LOG] [" + playerName + "] SKILL_CAST: caster=" + casterId
+         + (selfCast ? "(SELF)" : "") + " skill=" + skillId + " lvl=" + skillLevel
+         + " target=" + targetId + " hitTime=" + hitTime + " reuse=" + reuseDelay + " castMs=" + now);
+   }
+
+   /**
+    * WPT-26: record the client-&gt;server skill-cast REQUEST gate (0x2F REQUEST_MAGIC_SKILL_USE,
+    * 12-byte frame [skillId:int][ctrl:int][shift:byte], live-proven in Audit/42). The send side
+    * (PacketCodec.encodeUseSkill / L2JProtocol.sendUseSkill) should call this right before writing
+    * the frame so the engine can meter requested casts against server confirmations.
+    */
+   public void recordSkillRequest(int skillId, int ctrlPressed, int shiftPressed)
+   {
+      long now = System.currentTimeMillis();
+      synchronized (combatLock)
+      {
+         skillRequestCount++;
+         SkillCastEvent event = new SkillCastEvent(skillId, 0, selfObjectId, 0, 0, 0, now, false, true);
+         skillCastEvents.add(event);
+         while (skillCastEvents.size() > MAX_CAST_EVENTS) skillCastEvents.remove(0);
+      }
+      LOGGER.info("[PACKET-LOG] [" + playerName + "] SKILL_REQUEST(0x2F): skill=" + skillId
+         + " ctrl=" + ctrlPressed + " shift=" + shiftPressed);
+   }
+
+   /** WPT-25: append one out-going damage point to the rolling-minute DPS window (lock held). */
+   private void addDamageEventLocked(long now, int amount)
+   {
+      purgeDamageWindowLocked(now);
+      damageWindow.addLast(new DamageEvent(now, amount));
+   }
+
+   /** WPT-25: drop damage events older than the rolling minute (lock held). */
+   private long purgeDamageWindowLocked(long now)
+   {
+      while (!damageWindow.isEmpty() && now - damageWindow.peekFirst().millis > ROLLING_KPI_WINDOW_MS)
+      {
+         damageWindow.removeFirst();
+      }
+      return damageWindow.isEmpty() ? 0 : damageWindow.peekFirst().millis;
+   }
+
    /**
     * Parse NpcHtmlMessage (opcode 0x0F): the dialog the server shows the player.
     * Wire layout (L2JMobius NpcHtmlMessage.writeImpl):
@@ -773,6 +1121,126 @@ public class PacketLogger
    public int getActiveQuestCount() { return activeQuestCount; }
    public int getQuestInfoCount() { return questInfoCount; }
 
+   // ============ WPT-23: per-objectId StatusUpdate attribute snapshots ============
+   /** WPT-23: full last-seen StatusUpdate attribute snapshot for an objectId (null if unseen). */
+   public StatusSnapshot getStatusSnapshot(int objectId) { return statusSnapshots.get(objectId); }
+   /** WPT-23: all currently-observed entity attribute snapshots. */
+   public java.util.Collection<StatusSnapshot> getStatusSnapshots() { return statusSnapshots.values(); }
+   /** WPT-23: snapshot for the bot itself (selfObjectId), null until a self StatusUpdate arrives. */
+   public StatusSnapshot getSelfStatusSnapshot() { return selfObjectId != 0 ? statusSnapshots.get(selfObjectId) : null; }
+   public int getStatusSnapshotCount() { return statusSnapshots.size(); }
+
+   // ============ WPT-25: combat KPI read-only view ============
+   public int getHitsOut() { synchronized (combatLock) { return hitsOut; } }
+   public int getMissesOut() { synchronized (combatLock) { return missesOut; } }
+   public int getCritsOut() { synchronized (combatLock) { return critsOut; } }
+   public long getDamageOut() { synchronized (combatLock) { return damageOut; } }
+   public int getHitsIn() { synchronized (combatLock) { return hitsIn; } }
+   public long getDamageIn() { synchronized (combatLock) { return damageIn; } }
+   public int getKills() { synchronized (combatLock) { return kills; } }
+   public int getDeaths() { synchronized (combatLock) { return deaths; } }
+   public int getAttackPacketCount() { return attackPacketCount; }
+   public int getDiePacketCount() { return diePacketCount; }
+   public int getReviveCount() { return reviveCount; }
+
+   /** WPT-25: damage-out per second over the rolling 60 second window. */
+   public double getDps()
+   {
+      synchronized (combatLock)
+      {
+         long now = System.currentTimeMillis();
+         long oldest = purgeDamageWindowLocked(now);
+         if (damageWindow.isEmpty()) return 0.0;
+         long total = 0;
+         for (DamageEvent e : damageWindow) total += e.amount;
+         long span = Math.max(1L, now - oldest);
+         return (double) total * 1000.0 / span;
+      }
+   }
+
+   /** WPT-25: point-in-time snapshot of all combat KPIs. */
+   public CombatKpis getCombatKpis()
+   {
+      synchronized (combatLock)
+      {
+         long now = System.currentTimeMillis();
+         long oldest = purgeDamageWindowLocked(now);
+         double dps = 0.0;
+         if (!damageWindow.isEmpty())
+         {
+            long total = 0;
+            for (DamageEvent e : damageWindow) total += e.amount;
+            dps = (double) total * 1000.0 / Math.max(1L, now - oldest);
+         }
+         return new CombatKpis(hitsOut, missesOut, critsOut, damageOut, hitsIn, damageIn,
+            kills, deaths, dps);
+      }
+   }
+
+   /** Test/telemetry hook: clear all combat KPI counters and the DPS window. */
+   public void resetCombatKpis()
+   {
+      synchronized (combatLock)
+      {
+         hitsOut = 0; missesOut = 0; critsOut = 0; damageOut = 0;
+         hitsIn = 0; damageIn = 0; kills = 0; deaths = 0;
+         damageWindow.clear();
+      }
+      damagedTargets.clear();
+   }
+
+   // ============ WPT-26: skill-cast metering read-only view ============
+   public int getMagicSkillUseCount() { return magicSkillUseCount; }
+   public int getMagicSkillLaunchedCount() { return magicSkillLaunchedCount; }
+   public int getSkillRequestCount() { return skillRequestCount; }
+   public int getSelfSkillCastTotal() { return selfSkillCastTotal; }
+   /** WPT-26: total confirmed casts across all skills (server 0x48 confirmations). */
+   public int getSkillCastTotal()
+   {
+      return (int) skillCastCounts.values().stream().mapToInt(AtomicInteger::get).sum();
+   }
+   public int getSkillCastCount(int skillId)
+   {
+      AtomicInteger c = skillCastCounts.get(skillId);
+      return c == null ? 0 : c.get();
+   }
+   public int getSkillCastCountByTarget(int targetId)
+   {
+      AtomicInteger c = skillCastCountsByTarget.get(targetId);
+      return c == null ? 0 : c.get();
+   }
+   /** WPT-26: last confirmed cast millis for one skill (0 if never cast). */
+   public long getLastSkillCastMillis(int skillId)
+   {
+      Long t = lastSkillCastMillisBySkill.get(skillId);
+      return t == null ? 0 : t;
+   }
+   public long getLastSkillCastMillis() { return lastSkillCastMillis; }
+   public long getLastSkillLaunchedMillis() { return lastSkillLaunchedMillis; }
+   public SkillCastEvent getLastSkillCast() { return lastSkillCast; }
+   /** WPT-26: recent cast timeline (oldest-first; confirmed server 0x48 casts + 0x2F requests). */
+   public java.util.List<SkillCastEvent> getSkillCastEvents()
+   {
+      synchronized (combatLock)
+      {
+         return new java.util.ArrayList<>(skillCastEvents);
+      }
+   }
+   /** WPT-26: reuse delay (ms) the server reported for a skill (0 if never seen). */
+   public int getSkillReuseDelayMs(int skillId)
+   {
+      SkillCooldown cd = skillCooldowns.get(skillId);
+      return cd == null ? 0 : cd.reuseDelayMs;
+   }
+   /** WPT-26: remaining cooldown for a skill, 0 when the next cast is allowed. */
+   public long getSkillReuseRemainingMs(int skillId)
+   {
+      SkillCooldown cd = skillCooldowns.get(skillId);
+      if (cd == null || cd.reuseDelayMs <= 0) return 0;
+      long elapsed = System.currentTimeMillis() - cd.lastCastMillis;
+      return elapsed >= cd.reuseDelayMs ? 0 : cd.reuseDelayMs - elapsed;
+   }
+
    // Entity tracking getters (Task 47)
    public int getEntityCount() { return entitiesById.size(); }
    public EntityInfo getEntity(int objectId) { return entitiesById.get(objectId); }
@@ -872,7 +1340,184 @@ public class PacketLogger
         return (int) entitiesById.values().stream().filter(e -> e.isHostile).count();
     }
 
-    // Inner class for tracked entity info
+    // ============ WPT-23: per-objectId StatusUpdate attribute snapshot ============
+   /**
+    * WPT-23: volatile snapshot of the full StatusUpdate attribute set for ONE objectId.
+    * Fields are volatile so the live reader thread and the dashboard/decision threads
+    * never see torn values. Packets are partial (only changed attrs), so apply() merges.
+    */
+   public static class StatusSnapshot
+   {
+      public static final int MASK_EXP = 1 << 0;
+      public static final int MASK_SP = 1 << 1;
+      public static final int MASK_LEVEL = 1 << 2;
+      public static final int MASK_CUR_HP = 1 << 3;
+      public static final int MASK_MAX_HP = 1 << 4;
+      public static final int MASK_CUR_MP = 1 << 5;
+      public static final int MASK_MAX_MP = 1 << 6;
+      public static final int MASK_CUR_CP = 1 << 7;
+      public static final int MASK_MAX_CP = 1 << 8;
+
+      public final int objectId;
+      private volatile long exp;
+      private volatile int sp;
+      private volatile int level;
+      private volatile int curHp;
+      private volatile int maxHp;
+      private volatile int curMp;
+      private volatile int maxMp;
+      private volatile int curCp;
+      private volatile int maxCp;
+      private volatile int seenMask;
+      private volatile long lastUpdateMillis;
+
+      public StatusSnapshot(int objectId)
+      {
+         this.objectId = objectId;
+      }
+
+      /** Merge one StatusUpdate attribute pair into this snapshot. */
+      void apply(int attrId, int value)
+      {
+         switch (attrId)
+         {
+            case STAT_EXP:      exp = value & 0xFFFFFFFFL; seenMask |= MASK_EXP; break;
+            case STAT_SP:       sp = value; seenMask |= MASK_SP; break;
+            case STAT_LEVEL:    level = value; seenMask |= MASK_LEVEL; break;
+            case STAT_CUR_HP:   curHp = value; seenMask |= MASK_CUR_HP; break;
+            case STAT_MAX_HP:   maxHp = value; seenMask |= MASK_MAX_HP; break;
+            case STAT_CUR_MP:   curMp = value; seenMask |= MASK_CUR_MP; break;
+            case STAT_MAX_MP:   maxMp = value; seenMask |= MASK_MAX_MP; break;
+            case STAT_CUR_CP:   curCp = value; seenMask |= MASK_CUR_CP; break;
+            case STAT_MAX_CP:   maxCp = value; seenMask |= MASK_MAX_CP; break;
+            default: return; // attr not in the tracked set: don't bump the update stamp
+         }
+         lastUpdateMillis = System.currentTimeMillis();
+      }
+
+      public long getExp() { return exp; }
+      public int getSp() { return sp; }
+      public int getLevel() { return level; }
+      public int getCurHp() { return curHp; }
+      public int getMaxHp() { return maxHp; }
+      public int getCurMp() { return curMp; }
+      public int getMaxMp() { return maxMp; }
+      public int getCurCp() { return curCp; }
+      public int getMaxCp() { return maxCp; }
+      /** Bitmask of which of the 9 tracked attrs have been seen so far. */
+      public int getSeenMask() { return seenMask; }
+      public long getLastUpdateMillis() { return lastUpdateMillis; }
+
+      @Override
+      public String toString()
+      {
+         return "StatusSnapshot[objId=" + objectId + " lvl=" + level + " exp=" + exp + " sp=" + sp
+            + " hp=" + curHp + "/" + maxHp + " mp=" + curMp + "/" + maxMp
+            + " cp=" + curCp + "/" + maxCp + "]";
+      }
+   }
+
+   // ============ WPT-26: skill-cast metering helpers ============
+   /** One recorded skill cast: a server confirmation (0x48) or a client request (0x2F). */
+   public static class SkillCastEvent
+   {
+      public final int skillId;
+      public final int targetId;
+      public final int casterId;
+      public final int skillLevel;
+      public final int hitTimeMs;
+      public final int reuseDelayMs;
+      public final long castMillis;
+      public final boolean confirmed; // true = server MagicSkillUse(0x48); false = client 0x2F request
+      public final boolean selfCast;
+
+      public SkillCastEvent(int skillId, int targetId, int casterId, int skillLevel,
+                            int hitTimeMs, int reuseDelayMs, long castMillis,
+                            boolean confirmed, boolean selfCast)
+      {
+         this.skillId = skillId;
+         this.targetId = targetId;
+         this.casterId = casterId;
+         this.skillLevel = skillLevel;
+         this.hitTimeMs = hitTimeMs;
+         this.reuseDelayMs = reuseDelayMs;
+         this.castMillis = castMillis;
+         this.confirmed = confirmed;
+         this.selfCast = selfCast;
+      }
+
+      @Override
+      public String toString()
+      {
+         return "SkillCastEvent[skill=" + skillId + " target=" + targetId + " caster=" + casterId
+            + (confirmed ? " confirmed" : " requested") + (selfCast ? " SELF" : "") + "]";
+      }
+   }
+
+   // --- WPT-25/26 collector classes ---
+   /** Server-reported cooldown state for one skill (learned from MagicSkillUse 0x48 reuseDelay). */
+   private static final class SkillCooldown
+   {
+      final int skillId;
+      final int reuseDelayMs;
+      volatile long lastCastMillis;
+
+      SkillCooldown(int skillId, int reuseDelayMs)
+      {
+         this.skillId = skillId;
+         this.reuseDelayMs = reuseDelayMs;
+      }
+   }
+
+   /** One out-going damage point inside the rolling-minute DPS window. */
+   private static final class DamageEvent
+   {
+      final long millis;
+      final int amount;
+
+      DamageEvent(long millis, int amount)
+      {
+         this.millis = millis;
+         this.amount = amount;
+      }
+   }
+
+   /** WPT-25: read-only point-in-time combat KPI snapshot. */
+   public static class CombatKpis
+   {
+      public final int hitsOut;
+      public final int missesOut;
+      public final int critsOut;
+      public final long damageOut;
+      public final int hitsIn;
+      public final long damageIn;
+      public final int kills;
+      public final int deaths;
+      public final double dps; // damage-out/sec over the rolling 60 s window
+
+      public CombatKpis(int hitsOut, int missesOut, int critsOut, long damageOut,
+                        int hitsIn, long damageIn, int kills, int deaths, double dps)
+      {
+         this.hitsOut = hitsOut;
+         this.missesOut = missesOut;
+         this.critsOut = critsOut;
+         this.damageOut = damageOut;
+         this.hitsIn = hitsIn;
+         this.damageIn = damageIn;
+         this.kills = kills;
+         this.deaths = deaths;
+         this.dps = dps;
+      }
+
+      @Override
+      public String toString()
+      {
+         return "CombatKpis[hitsOut=" + hitsOut + " damageOut=" + damageOut + " dps=" + dps
+            + " hitsIn=" + hitsIn + " damageIn=" + damageIn + " kills=" + kills + " deaths=" + deaths + "]";
+      }
+   }
+
+   // Inner class for tracked entity info
    public static class EntityInfo {
       public final int objectId;
       public final int npcId;
