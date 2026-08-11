@@ -67,7 +67,7 @@
   - [ ] H2: wander destinations degenerate (stale/zero coords) or masked by map auto-zoom?
   - [ ] H3: bots only ever chase nearby hostiles (auto-follow), never "travel"?
   - [ ] H4: DB spawn pos vs live pos mismatch (chars inserted at (-82759,250149))? — *partial baseline captured 2026-08-11 (all 5 bots currently at B4 zone, none at seed); live teleport test still open*
-  - [ ] H5: organic XP/level-up confirm (XP gained over time, not just seeded 1.4M)? — *baseline captured (all exp exactly 1400000); live fleet run pending*
+  - [ ] H5: organic XP/level-up confirm (XP gained over time, not just seeded 1.4M)? — *partial live data 2026-08-11 (Cline#4): 45s CombatLoop window = real server-confirmed damage (wolf HP 90→70) + 3 DELETE_OBJECTs, but exp stayed 1,400,000 — kill credit unproven yet; a longer fleet run / L1 char still needed. Log §8.*
 
 ---
 

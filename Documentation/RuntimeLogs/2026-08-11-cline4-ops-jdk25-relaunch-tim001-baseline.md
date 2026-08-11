@@ -66,7 +66,23 @@ Ran `MoveProbe` against the live server (CombatBot_03, origin = its current DB p
 - Proof log: `/tmp/h1_moveprobe.out` (this box). The bot remained at the B4 zone after the walk
   (CombatBot_01/02 untouched for Cline#1's testing; CombatBot_03 now at -81404,251196,-3600).
 
-## 7. What would close TIM-001 for the operator (recommendation, not yet done)
+## 8. H5 partial live evidence — combat works, XP attribution unconfirmed in short window (2026-08-11 23:5x→00:0x)
+
+Ran `CombatLoop` (engine's real decision loop) for 45s vs `CombatBot_01` (charId 100000, L22, exp 1,400,000) at the B4 zone:
+- **Real combat confirmed live:** 40 `ENGAGED` decisions, Action(0x04)/AttackRequest(0x0A) sent to real hostiles
+  (server objIds 268461948/268461955, i.e. `0x10000000+` frame — parsing correct, bot self objId 100000 matched).
+- **Server-confirmed damage:** `STATUS_UPDATE` for target wolf MAX_HP/CUR_HP `90→75→70`, `[self=false]` correctly ignored
+  (slice-6 objId-aware HP); bot took damage itself (`self=true` 562→547).
+- **Targets died/despawned nearby:** 3 `DELETE_OBJECT` events incl. the bot's own target 268461948.
+- **BUT `characters.exp` stayed exactly 1400000** and no server XP-award line was logged → **no kill credit / XP gain
+  observed in this 45s window.** Causes to check (not asserted): (a) short window + spread 40 hits over 17 hostiles vs ~90 HP
+  wolves → no reliable killing blow; (b) L22 bot vs L2 wolf → tiny XP per kill; (c) NPC despawn/respawn removing credit.
+- **H5 verdict: NOT PROVEN yet.** Needs a longer fleet run (5–10 min, multiple bots) or a fresh L1 char to see
+  `exp > 1400000`. The engine path itself is demonstrably live (damage + engagement), which matters for the operator:
+  bots are NOT inert, they engage — they just don't *appear* to (short travel, seeded levels, map zoom).
+- Proof log: `/tmp/h5_combatloop.out`. Bot CyberHP restored on next login; CombatBot_01 remains at B4 zone.
+- Note: existing proof scripts (`b8_move_prove.sh`, `c5_live_combat_proof.sh`) still point at `/home/volodro/L2JM`
+  + `sudo mysql -u root` — stale paths; Cline#4 used direct `java -cp` + `l2j` DB creds instead (see §3).
 1. Move the fleet's wander into a **named travel loop** (e.g., walk to TI village center `-71338,258271`
    then back), instead of ±900u around spawn — H2/H3.
 2. Wire organic EXPLORATION that spends the seeded exp pool earning **new** exp (H5) — the engine's
