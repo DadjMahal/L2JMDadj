@@ -209,6 +209,9 @@ public final class FleetPlay
 
             long lastWander = 0;
             long lastRoute = 0;
+            ZoneRouter.RouteGoal activeRoute = null;
+            int[] pendingHop = null;
+            long hopSentAtMs = 0;
             while (true)
             {
                 BotSnapshot snapshot = BotSnapshot.from(account, logger);
@@ -314,26 +317,67 @@ public final class FleetPlay
                         }
                         else if (phase0.isMovementEnabled())
                         {
-                            // TIM-001 fix (flag OFF by default): proactive FAR travel when idle —
-                            // route to a real farm-zone center / far point instead of a ±900 hop.
+                            // TIM-001 fix (flag OFF by default): proactive FAR travel when idle.
+                            // The server rejects single moves > 9900u (MoveToLocation.java:156-163),
+                            // so a route is sent as a sequence of <=4800u hops; a new hop is sent
+                            // only after the server acked us near the previous one (ValidateLocation).
                             long now = System.currentTimeMillis();
-                            if (now - lastRoute > phase0.getMovementIdleRouteMs())
+                            if (activeRoute == null && now - lastRoute > phase0.getMovementIdleRouteMs())
                             {
                                 lastRoute = now;
-                                RouteGoal goal = zoneRouter.pick(snapshot.level,
+                                activeRoute = zoneRouter.plan(snapshot.level,
                                     snapshot.x, snapshot.y, snapshot.z,
                                     phase0.getMovementMinRadius(), phase0.getMovementMaxRadius());
-                                if (goal != null)
+                                if (activeRoute != null)
                                 {
+                                    info.state = "travel:" + activeRoute.label;
+                                    info.thought = activeRoute.reason;
+                                }
+                            }
+
+                            // Pull the next hop whenever nothing is in flight.
+                            if (activeRoute != null && pendingHop == null && activeRoute.hasMoreHops())
+                            {
+                                pendingHop = activeRoute.nextHop();
+                                hopSentAtMs = 0; // "not sent yet" trigger below
+                            }
+
+                            final int arriveDist = 150;
+                            if (pendingHop != null)
+                            {
+                                boolean nearHop = Math.hypot(pendingHop[0] - snapshot.x,
+                                    pendingHop[1] - snapshot.y) <= arriveDist;
+                                boolean neverSent = hopSentAtMs == 0;
+                                boolean timedOut = !neverSent && (now - hopSentAtMs) > 45_000;
+
+                                if (nearHop)
+                                {
+                                    // Arrived at this hop: complete the route, or advance to the next one.
+                                    if (activeRoute.hasMoreHops())
+                                    {
+                                        pendingHop = activeRoute.nextHop();
+                                        hopSentAtMs = 0;
+                                    }
+                                    else
+                                    {
+                                        activeRoute = null;
+                                        pendingHop = null;
+                                        info.state = "idle";
+                                    }
+                                }
+                                else if (neverSent || timedOut)
+                                {
+                                    hopSentAtMs = now;
                                     telemetry.recordMove(account, snapshot.x, snapshot.y, snapshot.z,
-                                        goal.x, goal.y, goal.z, goal.label, goal.reason);
+                                        pendingHop[0], pendingHop[1], pendingHop[2],
+                                        activeRoute.label, activeRoute.reason);
                                     wiring.moveTo(snapshot.x, snapshot.y, snapshot.z,
-                                        goal.x, goal.y, goal.z);
-                                    info.state = "travel:" + goal.label;
-                                    info.thought = goal.reason;
-                                    LOGGER.info("[FleetPlay] " + account + " ROUTE -> " + goal.label
-                                        + " (" + goal.x + "," + goal.y + "," + goal.z + ") "
-                                        + goal.reason);
+                                        pendingHop[0], pendingHop[1], pendingHop[2]);
+                                    info.state = "travel:" + activeRoute.label;
+                                    info.thought = activeRoute.reason;
+                                    LOGGER.info("[FleetPlay] " + account + " HOP -> " + activeRoute.label
+                                        + " (" + pendingHop[0] + "," + pendingHop[1] + "," + pendingHop[2] + ") "
+                                        + activeRoute.reason);
                                 }
                             }
                         }

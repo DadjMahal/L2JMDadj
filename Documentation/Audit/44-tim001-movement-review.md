@@ -15,11 +15,18 @@ default-OFF `phase0.movement` flag.
 
 | Hypothesis | Verdict | Evidence in code |
 |---|---|---|
-| **H1 — MoveToLocation(0x01) moves the char server-side** | **PROVEN PATH EXISTS** (`encodeMoveToLocation`, B8), but the fleet's only proactivity was a ±900-unit 8s wander | `PacketCodec.encodeMoveToLocation` (31B, 4-int test), `Phase0Wiring.moveTo`, `FleetPlay` IDLE branch |
-| **H2 — destinations degenerate / stale coords** | **Root cause found:** `phase0.movement` module is dead — reads the never-populated `GameStateMirror` (`self==null` → silent no-op) and frames through `L2JProtocol.sendMove` = **login socket**, old 21-byte frame | `MovementController`/`StuckDetector`/`KiteController` all read `GameStateMirror`; `L2JProtocol.sendMove` line 350 |
-| **H3 — bots only chase nearby hostiles, never travel** | **TRUE**: the only idle action was `targetSelector`-or-wander; combat frames rely on the server's auto-follow into melee | `FleetPlay` `case IDLE` |
-| **H4 — DB spawn vs live position mismatch** | **Not caused by the engine loop**; chars inserted at TI, server spawns there. Live-position vs DB check automated in the proof script (`tim001_move_probe.sh` diff) | proof script §1/§4 |
-| **H5 — organic XP vs seeded 1.4M** | **Not provable from level alone.** XP-delta evidence added to the harness (`expGained`), visible per run | `MoveTelemetry.expGained` |
+| **H1 — MoveToLocation(0x01) moves the char server-side** | **PROVEN** (short hops). Cline#4 live-proved +400u persistence BEFORE this branch. BUT far single-moves are REJECTED by a server cap | `MoveToLocation.java:156-163` (`9900*9900` distance check) |
+| **H2 — destinations degenerate / stale coords** | **Root causes found:** (a) the `phase0.movement` module is dead — reads the never-populated `GameStateMirror`, frames through `L2JProtocol.sendMove` = **login socket**, old 21-byte frame; (b) HOP-CAP unknown — the fleet sent single moves up to 30,000u that the server silently rejects (`ActionFailed`) | `MovementController`/`StuckDetector`/`KiteController`; `L2JProtocol.sendMove` line 350; `MoveToLocation.java:156-163` |
+| **H3 — bots only chase nearby hostiles, never travel** | **TRUE**: the only idle action was `targetSelector`-or-±900-u wander; combat frames rely on server auto-follow into melee | `FleetPlay` `case IDLE` |
+| **H4 — DB spawn vs live position mismatch** | **Not caused by the engine loop**; chars inserted at TI, server spawns there; live test automated (`tim001_move_probe.sh` before/after diff) | proof script §1/§4 |
+| **H5 — organic XP vs seeded 1.4M** | **Not provable from level alone.** XP-delta evidence added (`expGained`) | `MoveTelemetry.expGained` |
+
+**Key live finding (this audit, 2026-08-11):** running the fleet with movement ON showed
+`EVIDENCE-H1 serverMoved=0` for all 5 bots despite 3–4 far moves each — the chars logged in, got
+~190 server position samples, but never changed position. Reading the server handler explained it:
+`MoveToLocation.java:156-163` refuses any single move with `(dx²+dy²) > 98010000` (i.e. > 9900u).
+Our far routes (farm zones up to 130,000u away) were one giant frame → `ActionFailed`. The fix is
+to walk far routes in ≤4800u hops (`ZoneRouter.RouteGoal.nextHop()`).
 
 **The real fix is architectural:** the brain (`CombatAI`) emits attack/target decisions — it never
 issued movement goals. The `phase0.movement` package *almost* did this but was (a) un-wired (no
@@ -32,7 +39,7 @@ and (c) pointed at the wrong transport/frame. This pass keeps that package as-is
 | New file | Role |
 |---|---|
 | `phase0/movement/MoveTelemetry.java` | Evidence harness: records every MoveToLocation frame + every server-acked position/exp; `report()` emits paste-able `EVIDENCE-H1/H2/H5` lines |
-| `phase0/movement/ZoneRouter.java` | Pure decision-maker: real FAR destination when idle — nearest level-appropriate farm zone (real Interlude zone DB) or a bounded random far point |
+| `phase0/movement/ZoneRouter.java` | Pure decision-maker: real FAR destination when idle — nearest level-appropriate farm zone (real Interlude zone DB) or a bounded random far point, **split into ≤4800u hops** (`nextHop()`) because the server rejects single moves >9900u |
 | `scripts/tim001_move_probe.sh` | Live runbook: forces `phase0.movement` on (6th CLI arg), runs the fleet, curls `/telemetry` + `/json`, diffs `gameserver.characters` before/after, prints an H1–H5 verdict block |
 
 | Touched file | Gated hook |

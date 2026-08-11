@@ -3,9 +3,16 @@ package com.aiplayer.phase0.movement;
 /** MODE: COMPLETE. Pure decision-maker: when a bot is idle with no target, pick a real FAR
  *  destination so it demonstrably "travels" (TIM-001 H3). Uses level-appropriate farm-zone
  *  centers from the real Interlude zone database (ZoneRecommender); falls back to a bounded
- *  random far point. No IO, no packet sending — returns a goal for the fleet loop to send
- *  through the proven Phase0Wiring.moveTo() path. Seeded Random per bot for determinism. */
+ *  random far point. No IO, no packet sending — returns a planned {@link RouteGoal} whose
+ *  {@link RouteGoal#nextHop()} yields waypoints the fleet loop sends through the proven
+ *  Phase0Wiring.moveTo() path.
+ *
+ *  <p>SERVER CAP (live-verified finding, 2026-08-11): the Interlude {@code MoveToLocation}
+ *  handler rejects any single move whose target is &gt; 9900 units away
+ *  (SourceCode/.../clientpackets/MoveToLocation.java:156-163). A far goal must be walked as a
+ *  <b>sequence of hops</b>, each &le; {@link #MAX_HOP_DIST}. */
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -14,27 +21,56 @@ import com.aiplayer.phase0.quest.ZoneRecommender.ZoneInfo;
 
 public final class ZoneRouter
 {
-    /** A chosen far-travel destination. */
-    public static final class RouteGoal
-    {
-        public final int x;
-        public final int y;
-        public final int z;
-        public final String label;   // e.g. "farm:Gludio Plains" or "far-point"
-        public final String reason;  // human-readable why
-
-        RouteGoal(int x, int y, int z, String label, String reason)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.label = label;
-            this.reason = reason;
-        }
-    }
+    /** Largest single MoveToLocation hop the server accepts (server cap 9900, safe margin). */
+    public static final double MAX_HOP_DIST = 4800.0;
 
     /** Prefer a zone-center route when it is at least this far away (otherwise it's not "travel"). */
     private static final double MIN_ZONE_TRAVEL_DIST = 1500.0;
+
+    /** A planned far-travel route = ordered waypoints (hops) ending at the chosen destination. */
+    public static final class RouteGoal
+    {
+        public final int destX;
+        public final int destY;
+        public final int destZ;
+        public final String label;   // e.g. "farm:Ruins of Agony" or "far-point"
+        public final String reason;  // human-readable why
+
+        private final List<int[]> hops; // {x,y,z} per hop; each <= MAX_HOP_DIST; last == dest
+        private int hopIndex = 0;
+
+        RouteGoal(int destX, int destY, int destZ, String label, String reason, List<int[]> hops)
+        {
+            this.destX = destX;
+            this.destY = destY;
+            this.destZ = destZ;
+            this.label = label;
+            this.reason = reason;
+            this.hops = hops;
+        }
+
+        /** True while there are still waypoints left to send. */
+        public boolean hasMoreHops()
+        {
+            return hopIndex < hops.size();
+        }
+
+        /** Next waypoint {x,y,z}, or null when the route is complete. */
+        public int[] nextHop()
+        {
+            if (hopIndex >= hops.size())
+            {
+                return null;
+            }
+            return hops.get(hopIndex++);
+        }
+
+        /** Total number of hops in this route (>= 1). */
+        public int totalHops()
+        {
+            return hops.size();
+        }
+    }
 
     private final String accountName;
     private final Random random;
@@ -47,15 +83,15 @@ public final class ZoneRouter
     }
 
     /**
-     * Pick the next far destination for a bot that is idle (no hostile target in range).
+     * Plan a far-travel route for a bot that is idle (no hostile target in range).
      *
      * @param level      current bot level (seeded chars come in at 20/22; organic later)
      * @param fromX/Y/Z  current live position (must be real server-acked coords, never 0/0/0)
-     * @param minRadius  smallest acceptable travel distance
-     * @param maxRadius  largest acceptable travel distance
-     * @return a RouteGoal, or {@code null} if the caller should stay put (degenerate input)
+     * @param minRadius  smallest acceptable total travel distance
+     * @param maxRadius  largest acceptable total travel distance
+     * @return a RouteGoal with per-hop waypoints, or {@code null} if the caller should stay put
      */
-    public RouteGoal pick(int level, int fromX, int fromY, int fromZ,
+    public RouteGoal plan(int level, int fromX, int fromY, int fromZ,
                           double minRadius, double maxRadius)
     {
         if (fromX == 0 && fromY == 0)
@@ -65,10 +101,10 @@ public final class ZoneRouter
 
         // 1) Nearest level-appropriate farm zone center that is far enough to count as travel.
         List<ZoneInfo> zones = ZoneRecommender.getZonesForLevel(level);
+        ZoneInfo best = null;
+        double bestDist = Double.MAX_VALUE;
         if (!zones.isEmpty())
         {
-            ZoneInfo best = null;
-            double bestDist = Double.MAX_VALUE;
             for (ZoneInfo z : zones)
             {
                 double d = hypot(z.centerX - fromX, z.centerY - fromY);
@@ -78,22 +114,49 @@ public final class ZoneRouter
                     bestDist = d;
                 }
             }
-            if (best != null && bestDist <= maxRadius)
-            {
-                return new RouteGoal(best.centerX, best.centerY, best.centerZ,
-                    "farm:" + best.name,
-                    String.format("L%d farm zone %s at %.0f u", level, best.name, bestDist));
-            }
         }
 
-        // 2) Bounded random far point (validator-friendly: server accepts MoveToLocation for
-        //    arbitrary distance; position samples will confirm actual travel).
-        double r = minRadius + random.nextDouble() * Math.max(0.0, maxRadius - minRadius);
-        double a = random.nextDouble() * 2.0 * Math.PI;
-        int tx = fromX + (int) Math.round(Math.cos(a) * r);
-        int ty = fromY + (int) Math.round(Math.sin(a) * r);
-        return new RouteGoal(tx, ty, fromZ, "far-point",
-            String.format("%s random far point ~%.0f u", accountName, r));
+        final int destX;
+        final int destY;
+        final int destZ;
+        final String label;
+        final String reason;
+        if (best != null && bestDist <= maxRadius)
+        {
+            destX = best.centerX;
+            destY = best.centerY;
+            destZ = best.centerZ;
+            label = "farm:" + best.name;
+            reason = String.format("L%d farm zone %s at %.0f u", level, best.name, bestDist);
+        }
+        else
+        {
+            // 2) Bounded random far point (walked in hops below).
+            double r = minRadius + random.nextDouble() * Math.max(0.0, maxRadius - minRadius);
+            double a = random.nextDouble() * 2.0 * Math.PI;
+            destX = fromX + (int) Math.round(Math.cos(a) * r);
+            destY = fromY + (int) Math.round(Math.sin(a) * r);
+            destZ = fromZ;
+            label = "far-point";
+            reason = String.format("%s random far point ~%.0f u", accountName, r);
+        }
+
+        // Build hop list: interpolate from origin to dest with <= MAX_HOP_DIST spacing.
+        double dx = destX - fromX;
+        double dy = destY - fromY;
+        double total = hypot(dx, dy);
+        int n = Math.max(1, (int) Math.ceil(total / MAX_HOP_DIST));
+        List<int[]> hops = new ArrayList<>(n);
+        for (int i = 1; i <= n; i++)
+        {
+            double t = (double) i / n;
+            hops.add(new int[]{
+                fromX + (int) Math.round(dx * t),
+                fromY + (int) Math.round(dy * t),
+                destZ
+            });
+        }
+        return new RouteGoal(destX, destY, destZ, label, reason, hops);
     }
 
     private static double hypot(double dx, double dy)

@@ -15,6 +15,10 @@
 > - Root cause of "static": bots only chased nearby hostiles ±900-u wander; the capable
 >   `phase0.movement` module was dead code reading the never-populated `GameStateMirror` and framing
 >   through the LOGIN socket (`L2JProtocol.sendMove`, old 21-byte frame).
+> - **Cross-checked root cause (LIVE run this audit):** the Interlude server rejects any single
+>   `MoveToLocation` farther than **9900u** (`MoveToLocation.java:156-163`) — far routes must be
+>   walked in hops; `ZoneRouter.RouteGoal.nextHop()` now does that (≤4800u hops, send next only
+>   after the server acks us near the previous).
 > - **Remaining:** run `scripts/tim001_move_probe.sh` on `/home/volodro/L2JM` (3+ min live run) and
 >   paste the EVIDENCE-lines + DB diff into the task's Done notes. Do NOT mark resolved before that.
 

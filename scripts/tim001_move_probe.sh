@@ -37,7 +37,11 @@ echo "[tim001] ENGINE=$ENGINE  DASH=http://localhost:$DASH_PORT/telemetry"
 
 # 0) Preflight: engine built + server listen
 cd "$ENGINE" || { echo "FAIL: engine dir not found: $ENGINE"; exit 2; }
-[ -d target/classes ] || { echo "WARN: target/classes missing -> building"; mvn -o -q compile || exit 2; }
+ENGINE_POM="$ENGINE/AIPlayerEngine"
+if [ ! -d "$ENGINE_POM/target/classes" ]; then
+  echo "WARN: target/classes missing -> building"
+  (cd "$ENGINE_POM" && mvn -o -q compile) || exit 2
+fi
 
 for p in 2106 7777; do
   if ! ss -tlnp 2>/dev/null | grep -q ":$p "; then
@@ -54,9 +58,8 @@ $MYSQL_ARGS -e "SELECT char_name,level,exp,x,y,z FROM characters WHERE char_name
 # 2) Run the fleet with movement forced ON
 echo "[tim001] launching FleetPlay (phase0.movement forced ON) for $RUN_MIN min..."
 RUNLOG=/tmp/tim001_fleet_$(date +%s).out
-setsid nohup mvn -o -q exec:java \
-  -Dexec.mainClass=com.aiplayer.examples.FleetPlay \
-  -Dexec.args="5 127.0.0.1 7777 2106 $DASH_PORT movement" \
+setsid nohup java -cp "$ENGINE_POM/target/classes" com.aiplayer.examples.FleetPlay \
+  5 127.0.0.1 7777 2106 $DASH_PORT movement \
   >"$RUNLOG" 2>&1 &
 FPID=$!
 echo "[tim001] fleet pid=$FPID log=$RUNLOG"
