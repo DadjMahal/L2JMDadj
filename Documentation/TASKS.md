@@ -145,7 +145,7 @@
 |---|---|---|---|
 | **WPT-32** | Server-side observability view — own file `dashboard/ops.html` polling `/api/v1/health` + DB/port checks | P2 | TODO |
 | **WPT-33** | Final polish & docs — README "Web Panel" section, favicon asset, i18n stub `en.json`, `scripts/e2e_dashboard.sh` | P2 | TODO |
-| **WPT-34** | Ops tooling — `scripts/server_health.sh` (ports 2106/7777/8080 + `gameserver.characters` ping + LN counts) | P2 | **IN_PROGRESS (Cline#4)** |
+| **WPT-34** | Ops tooling — `scripts/server_health.sh` (ports 2106/7777/8080 + `gameserver.characters` ping + LN counts) | P2 | **DONE-PUSHED (Cline#4)** — live-verified 2026-08-11: server UP (2106/9014/7777), DB pings OK, 5 ai_% chars at B4 zone, EXIT=0. JDK25 discovered at `~/.jdk/jdk-25.0.4+7` (JARs are class 69; system JDK21 can't run them). |
 
 ### Spec notes
 - Cline#4 touches ONLY `Documentation/**`, `scripts/**`, and NEW dashboard asset files (`ops.html`,
