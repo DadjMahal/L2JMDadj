@@ -62,6 +62,11 @@ public class CombatProbe
     private static final int OP_C_ACTION = 0x04;
     private static final int OP_C_ATTACK_REQUEST = 0x0A;
     private static final int OP_C_ENTER_WORLD = 0x03;
+    /** LIVE-PROBE (throwaway): REQUEST_MAGIC_SKILL_USE, client->server.
+     *  Server-authoritative opcode per SourceCode/.../ClientPackets.java (0x2F on THIS Interlude server),
+     *  NOT the patch-upgrade tree's 0x39 (Interlude C4) - verified live before wiring sendUseSkill.
+     */
+    private static final int OP_C_MAGIC_SKILL_USE = 0x2F;
 
     // Target candidate (first attackable NPC_INFO seen)
     private static int targetObjId = -1;
@@ -70,6 +75,9 @@ public class CombatProbe
 
     // Combat opcode tally (after we start attacking)
     private static int attackCount, dieCount, statusCount, deleteCount, stopMoveCount, validateCount, sysMsgCount, npcInfoCount;
+
+    // LIVE-PROBE (throwaway): full opcode histogram so any skill-cast server response is visible.
+    private static final int[] opcodeHist = new int[256];
 
     public static void main(String[] args) throws Exception
     {
@@ -235,6 +243,17 @@ public class CombatProbe
                 sendAction(out, crypt, useEnc, targetObjId, px, py, pz);
                 System.out.println("[CombatProbe] sent Action(0x04) target=" + targetObjId);
                 Thread.sleep(1000); // respect flood protector canPerformPlayerAction()
+
+                // LIVE-PROBE (throwaway; only when args[7] = skillId given): send REQUEST_MAGIC_SKILL_USE
+                // (0x2F) to confirm the server accepts the skill-cast opcode. Real skillId -> a cast
+                // fires; unknown skillId -> the server replies ActionFailed/SystemMessage; a WRONG
+                // opcode would be dropped or disconnect. That is our discriminator. c5 path unchanged.
+                if (args.length > 7) {
+                    int probeSkillId = Integer.parseInt(args[7]);
+                    sendMagicSkillUse(out, crypt, useEnc, probeSkillId, false, false);
+                    System.out.println("[CombatProbe] sent MagicSkillUse(0x2F) skillId=" + probeSkillId
+                        + " target=" + targetObjId);
+                }
                 // AttackRequest(0x0A): force attack on the now-selected target.
                 sendAttackRequest(out, crypt, useEnc, targetObjId);
                 System.out.println("[CombatProbe] sent AttackRequest(0x0A) target=" + targetObjId);
@@ -279,6 +298,16 @@ public class CombatProbe
             System.out.println("  VALIDATE_LOCATION(0x61)=" + validateCount);
             System.out.println("  SYSTEM_MESSAGE(0x64)=" + sysMsgCount);
             System.out.println("  NPC_INFO(0x16)=" + npcInfoCount);
+
+            // LIVE-PROBE: full opcode histogram (catches skill-cast server responses the named tallies miss).
+            System.out.println("[CombatProbe] === LIVE-PROBE SKILL-CAST OPCODE HISTOGRAM ===");
+            for (int h = 0; h < opcodeHist.length; h++)
+            {
+                if (opcodeHist[h] > 0)
+                {
+                    System.out.println(String.format("  [0x%02X]=%d", h, opcodeHist[h]));
+                }
+            }
             // Combat is proven only by a server ATTACK(0x05) packet (real hit) or a DIE(0x06).
             // StatusUpdate(0x0E) is NOT proof (idle online players receive it) — earlier that caused a
             // false "PROVEN" when the player was dead and the server sent its death StatusUpdate/DIE.
@@ -293,6 +322,21 @@ public class CombatProbe
     // ------------------------------------------------------------------
     // Combat packet builders (plaintext; game crypt disabled on this server)
     // ------------------------------------------------------------------
+
+    /** REQUEST_MAGIC_SKILL_USE (0x2F): [0x2F][int skillId][int ctrlPressed][byte shiftPressed].
+     *  Read order per SourceCode/.../RequestMagicSkillUse.java
+     *  (readInt(magicId) -> readInt(ctrl) -> readByte(shift)): 12 bytes incl. the 2-byte LE size header.
+     */
+    private static void sendMagicSkillUse(OutputStream out, GameCrypt crypt, boolean useEnc,
+            int skillId, boolean ctrl, boolean shift) throws Exception
+    {
+        ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 4 + 1).order(ByteOrder.LITTLE_ENDIAN);
+        bb.put((byte) OP_C_MAGIC_SKILL_USE);
+        bb.putInt(skillId);
+        bb.putInt(ctrl ? 1 : 0);
+        bb.put((byte) (shift ? 1 : 0));
+        sendPayload(out, crypt, useEnc, bb);
+    }
 
     /** Action (0x04): [0x04][targetObjId][originX][originY][originZ][actionId]. */
     private static void sendAction(OutputStream out, GameCrypt crypt, boolean useEnc, int targetObjId, int ox, int oy, int oz) throws Exception
@@ -334,6 +378,12 @@ public class CombatProbe
 
     private static void tally(int op)
     {
+
+        // LIVE-PROBE: record every opcode for the histogram printout.
+        if (op >= 0 && op < opcodeHist.length)
+        {
+            opcodeHist[op]++;
+        }
         switch (op)
         {
             case OP_ATTACK:
