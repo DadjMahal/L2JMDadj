@@ -62,21 +62,50 @@ public final class DashboardApi
     /** TIM-001 movement-evidence source for the legacy /json + /api/players payloads; null in tests/standalone. */
     private final MoveTelemetry telemetry;
 
+    /** WPT-03 event feed ring (kill/level-up/skill-cast/damage/move/connect/disconnect); null in tests. */
+    private final EventRing events;
+
+    /** WPT-04 state-history ring -> /api/v1/history trails + CSV; null in tests. */
+    private final HistoryRing history;
+
+    /** WPT-08 aggregate fleet metrics -> /api/v1/health extended fields; created on demand. */
+    private final FleetMetrics metrics;
+
     private final AtomicLong requests = new AtomicLong();
 
     /** Full wiring: legacy combined payloads also carry the live movedLast60/movesSent counters. */
-    public DashboardApi(Map<String, BotInfo> bots, long startedAtMs, Config config, MoveTelemetry telemetry)
+    public DashboardApi(Map<String, BotInfo> bots, long startedAtMs, Config config, MoveTelemetry telemetry,
+                        EventRing events, HistoryRing history, FleetMetrics metrics)
     {
         this.bots = bots;
         this.startedAtMs = startedAtMs;
         this.config = config;
         this.telemetry = telemetry;
+        this.events = events;
+        this.history = history;
+        this.metrics = metrics;
+    }
+
+    /** Convenience: telemetry only, rings/metrics born on demand. */
+    public DashboardApi(Map<String, BotInfo> bots, long startedAtMs, Config config, MoveTelemetry telemetry)
+    {
+        this(bots, startedAtMs, config, telemetry, null, null, null);
     }
 
     /** Tests / embedded use: legacy routes simply omit the movement counters. */
     public DashboardApi(Map<String, BotInfo> bots, long startedAtMs, Config config)
     {
-        this(bots, startedAtMs, config, null);
+        this(bots, startedAtMs, config, null, null, null, null);
+    }
+
+    /** WPT-08: get-or-create the shared metrics aggregate (lazily, so plain-constructor tests stay happy). */
+    public synchronized FleetMetrics metrics()
+    {
+        if (metrics != null)
+        {
+            return metrics;
+        }
+        return new FleetMetrics(startedAtMs);
     }
 
     /** Registers every /api/v1/* context plus the pre-v1 SPA aliases (com.sun uses longest-prefix matching). */
@@ -86,6 +115,7 @@ public final class DashboardApi
         server.createContext("/api/v1/entities", this::handle);
         server.createContext("/api/v1/landmarks", this::handle);
         server.createContext("/api/v1/events", this::handle);
+        server.createContext("/api/v1/history", this::handle);
         server.createContext("/api/v1/health", this::handle);
         server.createContext("/api/v1/config", this::handle);
         server.createContext("/api/v1", this::handle);
@@ -113,7 +143,11 @@ public final class DashboardApi
         }
         else if (path.equals("/api/v1/events"))
         {
-            respond(exchange, 200, eventsJson());
+            respond(exchange, 200, eventsJson(exchange));
+        }
+        else if (path.equals("/api/v1/history"))
+        {
+            respond(exchange, 200, historyJson(exchange));
         }
         else if (path.equals("/api/v1/health"))
         {
@@ -171,13 +205,78 @@ public final class DashboardApi
         return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    /** GET /api/v1/events -> event feed; WPT-03 fills the ring buffer, empty now. */
-    public byte[] eventsJson()
+    /** GET /api/v1/events -> event feed (WPT-03 ring). Optional ?since=<seq> for idempotent replay. */
+    public byte[] eventsJson(HttpExchange exchange)
     {
+        long since = 0;
+        String q = exchange != null && exchange.getRequestURI() != null ? exchange.getRequestURI().getRawQuery() : null;
+        if (q != null)
+        {
+            for (String kv : q.split("&"))
+            {
+                if (kv.startsWith("since="))
+                {
+                    try
+                    {
+                        since = Long.parseLong(kv.substring(6));
+                    }
+                    catch (NumberFormatException ignored)
+                    {
+                        // malformed -> replay from start
+                    }
+                }
+            }
+        }
+        if (events != null)
+        {
+            return events.eventsJsonSince(since).getBytes(StandardCharsets.UTF_8);
+        }
         return "{\"events\":[]}".getBytes(StandardCharsets.UTF_8);
     }
 
-    /** GET /api/v1/health -> process + fleet health (WPT-08 expands metrics). */
+    /** GET /api/v1/history -> per-bot state trail (WPT-04 ring). Query: ?bot=<name>&from=<epochMs>&to=<epochMs>[&csv=1]. */
+    public byte[] historyJson(HttpExchange exchange) throws IOException
+    {
+        if (history == null)
+        {
+            return "{\"bot\":\"\",\"history\":[]}".getBytes(StandardCharsets.UTF_8);
+        }
+        String bot = null;
+        long from = 0;
+        long to = Long.MAX_VALUE;
+        boolean csv = false;
+        String q = exchange != null && exchange.getRequestURI() != null ? exchange.getRequestURI().getRawQuery() : null;
+        if (q != null)
+        {
+            for (String kv : q.split("&"))
+            {
+                if (kv.startsWith("bot="))
+                {
+                    bot = kv.substring(4);
+                }
+                else if (kv.startsWith("from="))
+                {
+                    from = parseLongSafe(kv.substring(5), 0L);
+                }
+                else if (kv.startsWith("to="))
+                {
+                    to = parseLongSafe(kv.substring(3), Long.MAX_VALUE);
+                }
+                else if (kv.equals("csv=1") || kv.equals("csv=true"))
+                {
+                    csv = true;
+                }
+            }
+        }
+        if (csv)
+        {
+            exchange.getResponseHeaders().set("Content-Type", "text/csv; charset=utf-8");
+            return history.toCsv(bot, from, to).getBytes(StandardCharsets.UTF_8);
+        }
+        return history.toJson(bot, from, to).getBytes(StandardCharsets.UTF_8);
+    }
+
+    /** GET /api/v1/health -> process + fleet health (WPT-08 metrics + WPT-03 event counts). */
     public byte[] healthJson()
     {
         int online = 0;
@@ -185,14 +284,35 @@ public final class DashboardApi
         {
             if (b.connected && b.loggedIn) online++;
         }
-        return ("{\"status\":\"ok\",\"uptimeSec\":" + (System.currentTimeMillis() - startedAtMs) / 1000
-            + ",\"startedAtEpochMs\":" + startedAtMs
-            + ",\"botCount\":" + bots.size()
-            + ",\"onlineCount\":" + online
-            + ",\"requestCount\":" + requests.get()
-            + ",\"routes\":[\"/api/v1/bots\",\"/api/v1/entities\",\"/api/v1/landmarks\","
-            + "\"/api/v1/events\",\"/api/v1/health\",\"/api/v1/config\",\"/json\",\"/report\"]}")
-            .getBytes(StandardCharsets.UTF_8);
+        FleetMetrics m = metrics();
+        StringBuilder sb = new StringBuilder(256);
+        sb.append("{\"status\":\"ok\"")
+          .append(",\"uptimeSec\":").append((System.currentTimeMillis() - startedAtMs) / 1000)
+          .append(",\"startedAtEpochMs\":").append(startedAtMs)
+          .append(",\"botCount\":").append(bots.size())
+          .append(",\"onlineCount\":").append(online)
+          .append(",\"requestCount\":").append(m.requestCount())
+          .append(",\"reconnectCount\":").append(m.reconnectCount())
+          .append(",\"pktAgeLastMs\":").append(EventRing.Json.value(m.pktAgeLastMs()))
+          .append(",\"pktAgeMaxMs\":").append(EventRing.Json.value(m.pktAgeMaxMs()))
+          .append(",\"latencyAvgMs\":").append(EventRing.Json.value(m.latencyAvgMs()))
+          .append(",\"events\":").append(events != null ? events.size() : 0)
+          .append(",\"routes\":[\"/api/v1/bots\",\"/api/v1/entities\",\"/api/v1/landmarks\",")
+          .append("\"/api/v1/events\",\"/api/v1/history\",\"/api/v1/health\",\"/api/v1/config\",")
+          .append("\"/json\",\"/report\"]}");
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static long parseLongSafe(String s, long dflt)
+    {
+        try
+        {
+            return Long.parseLong(s);
+        }
+        catch (NumberFormatException ignored)
+        {
+            return dflt;
+        }
     }
 
     /** GET /api/v1/config -> live tunables (WPT-05 makes them settable). */
@@ -367,7 +487,10 @@ public final class DashboardApi
     private void respond(HttpExchange exchange, int code, byte[] body) throws IOException
     {
         byte[] bytes = body != null ? body : new byte[0];
-        exchange.getResponseHeaders().set("Content-Type", JSON);
+        if (exchange.getResponseHeaders().getFirst("Content-Type") == null)
+        {
+            exchange.getResponseHeaders().set("Content-Type", JSON);
+        }
         exchange.sendResponseHeaders(code, bytes.length);
         try (OutputStream out = exchange.getResponseBody())
         {

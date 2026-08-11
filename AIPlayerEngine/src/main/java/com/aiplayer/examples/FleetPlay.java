@@ -27,8 +27,10 @@ import com.aiplayer.phase0.movement.ZoneRouter.RouteGoal;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.protocol.PacketLogger.EntityInfo;
-import com.aiplayer.protocol.PacketLogger.EntityInfo;
 import com.aiplayer.web.DashboardApi;
+import com.aiplayer.web.EventRing;
+import com.aiplayer.web.FleetMetrics;
+import com.aiplayer.web.HistoryRing;
 
 /**
  * Launches a fleet of real AI Players against the live Interlude stack and exposes a light
@@ -53,6 +55,11 @@ public final class FleetPlay
 
     private static final java.util.concurrent.ConcurrentHashMap<String, BotInfo> BOTS =
         new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** WPT-03/04/08 live evidence structures shared by every bot loop + DashboardApi (single writer = bot threads). */
+    private static final EventRing EVENTS = new EventRing();
+    private static final HistoryRing HISTORY = new HistoryRing();
+    private static final FleetMetrics METRICS = new FleetMetrics(System.currentTimeMillis());
 
     public static void main(String[] args) throws Exception
     {
@@ -130,6 +137,8 @@ public final class FleetPlay
                     info.connected = false;
                     info.loggedIn = false;
                     info.state = "disconnected";
+                    emit(EventRing.TYPE_DISCONNECT, "reason", e.getClass().getSimpleName());
+                    METRICS.noteReconnect();
                     LOGGER.warning("[FleetPlay] " + account + " session ended: " + e.getMessage());
                     try
                     {
@@ -170,6 +179,7 @@ public final class FleetPlay
             MoveTelemetry telemetry = MoveTelemetry.getInstance();
             info.connected = true;
             info.loggedIn = true;
+            emit(EventRing.TYPE_CONNECT, "level", info.level);
             LOGGER.info("[FleetPlay] " + account + " ENTERED WORLD"
                 + (phase0.isMovementEnabled() ? " [phase0.movement ON]" : ""));
 
@@ -178,6 +188,10 @@ public final class FleetPlay
             ZoneRouter.RouteGoal activeRoute = null;
             int[] pendingHop = null;
             long hopSentAtMs = 0;
+            int prevLevel = info.level;
+            int prevHp = info.hp;
+            boolean firstTick = true;
+            long lastHistoryMs = 0;
             while (true)
             {
                 BotSnapshot snapshot = BotSnapshot.from(account, logger);
@@ -213,6 +227,38 @@ public final class FleetPlay
                 // TIM-001: feed the movement-evidence harness every tick with the real server-acked
                 // position + exp (ValidateLocation 0x61 / CharInfo 0x03 parse in PacketLogger).
                 telemetry.recordPosition(account, snapshot.x, snapshot.y, snapshot.z, info.exp);
+
+                // WPT-03/04/08: live evidence emission from the SAME tick data (no fake packets).
+                int tickLevel = logger.getLevel();
+                if (prevLevel > 0 && tickLevel > prevLevel)
+                {
+                    emit(EventRing.TYPE_LEVEL_UP, "from", prevLevel, "to", tickLevel);
+                }
+                prevLevel = tickLevel;
+                if (!firstTick && info.hp < prevHp)
+                {
+                    emit(EventRing.TYPE_DAMAGE, "dmg", prevHp - info.hp, "hp", info.hp);
+                }
+                firstTick = false;
+                prevHp = info.hp;
+                long nowTick = System.currentTimeMillis();
+                if (nowTick - lastHistoryMs >= 2000)
+                {
+                    HISTORY.register(account, snapshot.x, snapshot.y, snapshot.z,
+                        info.level, info.exp, info.hp, info.hpMax);
+                    lastHistoryMs = nowTick;
+                }
+                METRICS.setBotCount(BOTS.size());
+                int onlineCount = 0;
+                for (BotInfo b : BOTS.values())
+                {
+                    if (b.connected && b.loggedIn) onlineCount++;
+                }
+                METRICS.setOnlineCount(onlineCount);
+                if (info.getPktAgeMs() >= 0)
+                {
+                    METRICS.notePktAgeMs(info.getPktAgeMs());
+                }
 
                 if (snapshot.hpCurrent <= 0)
                 {
@@ -337,6 +383,8 @@ public final class FleetPlay
                                         activeRoute.label, activeRoute.reason);
                                     wiring.moveTo(snapshot.x, snapshot.y, snapshot.z,
                                         pendingHop[0], pendingHop[1], pendingHop[2]);
+                                    emit(EventRing.TYPE_MOVE, "to", pendingHop[0] + "," + pendingHop[1],
+                                        "route", activeRoute.label);
                                     info.state = "travel:" + activeRoute.label;
                                     info.thought = activeRoute.reason;
                                     LOGGER.info("[FleetPlay] " + account + " HOP -> " + activeRoute.label
@@ -351,6 +399,7 @@ public final class FleetPlay
                             int nx = snapshot.x + span(WANDER_RADIUS);
                             int ny = snapshot.y + span(WANDER_RADIUS);
                             info.state = "wander";
+                            emit(EventRing.TYPE_MOVE, "to", nx + "," + ny, "route", "wander");
                             wiring.moveTo(snapshot.x, snapshot.y, snapshot.z, nx, ny, snapshot.z);
                         }
                         break;
@@ -363,6 +412,17 @@ public final class FleetPlay
         private int span(int radius)
         {
             return rng.nextInt(radius * 2 + 1) - radius;
+        }
+
+        /** WPT-03: push a typed event into the shared ring (thread-safe write from the bot thread). */
+        private void emit(String type, Object... kv)
+        {
+            java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
+            for (int i = 0; i + 1 < kv.length; i += 2)
+            {
+                data.put(String.valueOf(kv[i]), kv[i + 1]);
+            }
+            EVENTS.add(type, account, data);
         }
 
         private int parseObjId(String targetId)
@@ -397,7 +457,8 @@ public final class FleetPlay
     {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         DashboardApi.Config cfg = new DashboardApi.Config(fleetSize);
-        DashboardApi api = new DashboardApi(BOTS, System.currentTimeMillis(), cfg, MoveTelemetry.getInstance());
+        DashboardApi api = new DashboardApi(BOTS, System.currentTimeMillis(), cfg, MoveTelemetry.getInstance(),
+            EVENTS, HISTORY, METRICS);
         server.createContext("/", exchange -> respond(exchange, 200, "text/html; charset=utf-8", loadDashboard()));
         server.createContext("/json", exchange -> respond(exchange, 200, DashboardApi.JSON, api.legacyJson()));
         server.createContext("/report", exchange -> respond(exchange, 200, "text/plain; charset=utf-8",

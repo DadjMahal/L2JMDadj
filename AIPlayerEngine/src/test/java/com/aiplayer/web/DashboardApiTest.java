@@ -191,6 +191,95 @@ public class DashboardApiTest
         assertEquals(0L, health.get("botCount"));
     }
 
+    @Test
+    void wiredRingsExposeEventsAndHistoryViaV1Routes() throws IOException
+    {
+        server.stop(0);
+        Map<String, BotInfo> bots2 = new LinkedHashMap<>(bots());
+        EventRing rings = new EventRing();
+        rings.add(EventRing.TYPE_CONNECT, "ai_dash_01", java.util.Map.of("level", 21));
+        rings.add(EventRing.TYPE_MOVE, "ai_dash_01", java.util.Map.of("to", "-70000,258000"));
+        HistoryRing historyRing = new HistoryRing();
+        historyRing.register("ai_dash_01", -71300, 258200, -3104, 21, 1_400_000, 500, 1000);
+        historyRing.register("ai_dash_01", -71200, 258100, -3104, 21, 1_400_000, 490, 1000);
+        FleetMetrics m = new FleetMetrics(System.currentTimeMillis());
+        api = new DashboardApi(bots2, System.currentTimeMillis(), new DashboardApi.Config(2),
+            null, rings, historyRing, m);
+        server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        api.register(server);
+        server.start();
+
+        Map<String, Object> events = assertJsonRoute("/api/v1/events", "events");
+        List<?> ev = (List<?>) events.get("events");
+        assertEquals(2, ev.size(), "ring events appear on the v1 feed");
+        Map<?, ?> first = (Map<?, ?>) ev.get(0);
+        assertTrue(first.containsKey("seq"));
+        assertTrue(first.containsKey("t"));
+        assertTrue(first.containsKey("type"));
+        assertTrue(first.containsKey("bot"));
+        assertTrue(first.containsKey("data"));
+        assertEquals("connect", first.get("type"));
+
+        // ?since=<lastSeq> replay returns only newer events (none), still well-formed JSON.
+        long lastSeq = (Long) ((Map<?, ?>) ev.get(ev.size() - 1)).get("seq");
+        Map<String, Object> replay = assertJsonRoute("/api/v1/events?since=" + lastSeq, "events");
+        assertTrue(((List<?>) replay.get("events")).isEmpty(), "replay since last seq is empty");
+
+        Map<String, Object> history = assertJsonRoute("/api/v1/history?bot=ai_dash_01", "history");
+        assertEquals(2, ((List<?>) history.get("history")).size());
+        Map<String, Object> trail = assertJsonRoute("/api/v1/history?bot=ai_dash_01&from=0&to=9999999999999", "history");
+        assertEquals("ai_dash_01", trail.get("bot"));
+        assertTrue(trail.containsKey("from"));
+        assertTrue(trail.containsKey("to"));
+
+        // CSV export: text/csv content type + header row.
+        Resp csv = get("/api/v1/history?bot=ai_dash_01&csv=1");
+        assertEquals(200, csv.status);
+        assertNotNull(csv.contentType);
+        assertTrue(csv.contentType.startsWith("text/csv"), "CSV route content type was '" + csv.contentType + "'");
+        assertTrue(csv.body.startsWith("t,bot,x,y,z,level,exp,hp,hpMax"), "CSV header row present in: " + csv.body.substring(0, Math.min(60, csv.body.length())));
+
+        // Metrics visible on /api/v1/health once samples exist.
+        m.notePktAgeMs(42);
+        Map<String, Object> health = assertJsonRoute("/api/v1/health", "status");
+        assertEquals(42L, health.get("pktAgeLastMs"));
+        assertTrue(health.containsKey("reconnectCount"));
+    }
+
+    private Map<String, BotInfo> bots()
+    {
+        Map<String, BotInfo> out = new LinkedHashMap<>();
+        BotInfo b1 = new BotInfo("ai_dash_01", 100001);
+        b1.charName = "DashBot1";
+        b1.level = 21;
+        b1.exp = 1_400_000;
+        b1.hp = 500; b1.hpMax = 1000;
+        b1.mp = 90; b1.mpMax = 200;
+        b1.cp = 700; b1.cpMax = 1000;
+        b1.x = -71338; b1.y = 258271; b1.z = -3104; b1.heading = 500;
+        b1.load = 1000; b1.maxLoad = 50_000;
+        b1.weapon = true;
+        b1.adena = 12_345; b1.invPct = 12; b1.itemCount = 8;
+        b1.items = new int[][] { { 57, 12345 }, { 4720, 50 } };
+        b1.mobs = 3; b1.npcs = 5;
+        b1.ents = new int[][] { { 900, 1, -71300, 258200, -3104 }, { 901, 0, -71400, 258300, -3104 } };
+        b1.targetObjId = 900;
+        b1.targetKind = 1;
+        b1.targetLabel = "mob#900";
+        b1.targetX = -71300; b1.targetY = 258200; b1.targetZ = -3104; b1.targetDist = 120.0;
+        b1.action = "attack";
+        b1.thought = "kill it";
+        b1.state = "ATTACK";
+        b1.connected = true;
+        b1.loggedIn = true;
+        out.put(b1.account, b1);
+
+        BotInfo b2 = new BotInfo("ai_dash_02", 100002);
+        b2.charName = "DashBot2";
+        out.put(b2.account, b2);
+        return out;
+    }
+
     // ================================ helpers ================================
 
     private static final class Resp
