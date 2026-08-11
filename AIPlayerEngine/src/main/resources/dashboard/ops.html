@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ops — AI Fleet — Interlude</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#131a22; --line:#22303f; --txt:#cfe3d6;
+    --dim:#6e8791; --accent:#39d98a; --red:#ff5d5d; --or:#ffb454;
+    --cy:#4fd6ff; --lm:#b6ff3c; --gr:#7ee787; --pu:#c792ea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',Roboto,system-ui,sans-serif;padding:14px 18px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+  h1{margin:0;font-size:18px;color:var(--accent);letter-spacing:1px}
+  .meta{color:var(--dim);font-size:12px}
+  .spacer{flex:1}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px}
+  h2{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin:0 0 10px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card .k{font-size:11px;color:var(--dim);text-transform:uppercase}
+  .card .v{font-size:20px;font-weight:700;margin-top:4px}
+  .ok{color:var(--gr)} .bad{color:var(--red)} .warn{color:var(--or)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
+  tr:hover{background:#17202b}
+  .stagnant{color:var(--red);font-weight:700}
+  .moving{color:var(--gr);font-weight:700}
+  .online{color:var(--gr);font-weight:700}
+  .offline{color:var(--red);font-weight:700}
+  #events{height:180px;overflow:auto;font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.7}
+  .ev-seq{color:var(--dim)} .ev-kill{color:var(--red)} .ev-level{color:var(--lm)}
+  .ev-move{color:var(--cy)} .ev-skill{color:var(--pu)} .ev-connect{color:var(--gr)} .ev-disconnect{color:var(--or)}
+  .hint{color:var(--dim);font-size:11px;margin-top:8px;line-height:1.6}
+  code{background:#0d141b;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🛠️ OPS — AI FLEET / INTERLUDE</h1>
+  <span class="meta" id="meta">connecting…</span>
+  <div class="spacer"></div>
+  <span class="meta">base: <code id="baseText"></code></span>
+</header>
+
+<div class="panel">
+  <h2>Health <span class="meta">(GET /api/v1/health)</span></h2>
+  <div class="cards" id="healthCards"></div>
+  <div class="hint">Last poll: <span id="pollAt">-</span> · page auto-refresh every 2s.</div>
+</div>
+
+<div class="panel">
+  <h2>Bots &amp; movement <span class="meta">(GET /api/v1/bots · TIM-001 stagnant detector)</span></h2>
+  <div id="gridWrap" style="height:52vh;overflow:auto"></div>
+  <div class="hint">
+    Movement = live API coordinate delta between polls. <b>STAGNANT</b> = no real movement over consecutive
+    polls. Note: the dashboard map auto-fits bounds, so short-range wander can look static on the map while
+    this table still shows movement. For the authoritative <i>server-side</i> position, run
+    <code>./scripts/server_health.sh</code> on the host (gameserver DB).
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Events <span class="meta">(GET /api/v1/events)</span></h2>
+  <div id="events">(empty — WPT-03 ring buffer fills this when the fleet runs)</div>
+</div>
+
+<div class="panel">
+  <h2>Config <span class="meta">(GET /api/v1/config)</span></h2>
+  <div class="hint" id="configText">-</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let base=new URL(location.href).origin;   // same-origin default: served next to index.html
+
+const POS={};        // account -> last {x,y,poll,real}
+const STAGNANT={};   // account -> consecutive "no real movement" count
+const seenEvents=new Set();
+let pollSeq=0;
+
+function esc(s){return String(s===null||s===undefined?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function j(path){return fetch(base+path,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(String(r.status));return r.json();});}
+
+async function pollHealth()
+{
+  const hc=$('healthCards'); const meta=$('meta');
+  try
+  {
+    const h=await j('/api/v1/health');
+    const up=fmtUp(h.uptimeSec);
+    hc.innerHTML=
+      '<div class="card"><div class="k">status</div><div class="v '+(h.status==='ok'?'ok':'bad')+'">'+esc(h.status)+'</div></div>'+
+      '<div class="card"><div class="k">uptime</div><div class="v">'+esc(up)+'</div></div>'+
+      '<div class="card"><div class="k">bots</div><div class="v">'+esc(h.botCount)+'</div></div>'+
+      '<div class="card"><div class="k">online</div><div class="v '+(h.onlineCount>0?'ok':'warn')+'">'+esc(h.onlineCount)+'</div></div>'+
+      '<div class="card"><div class="k">requests</div><div class="v">'+esc(h.requestCount)+'</div></div>';
+    meta.textContent='live · '+base;
+  }
+  catch(e)
+  {
+    hc.innerHTML='<div class="card"><div class="k">health API</div><div class="v bad">unreachable</div></div>';
+    meta.textContent='api unreachable';
+  }
+  $('pollAt').textContent=new Date().toLocaleTimeString();
+}
+
+function fmtUp(s)
+{
+  if(s===null||s===undefined)return '-';
+  const m=Math.floor(s/60), r=s%60;
+  return m+'m '+r+'s';
+}
+
+async function pollBots()
+{
+  const wrap=$('gridWrap');
+  try
+  {
+    const data=await j('/api/v1/bots');
+    const bots=Array.isArray(data)?data:(data.bots||[]);
+    pollSeq++;
+    const rows=[]; const seen=new Set();
+    for(const b of bots)
+    {
+      const key=b.account||b.name||('char'+b.charId);
+      seen.add(key);
+      if(b.x===undefined||b.y===undefined) continue;
+      const p=POS[key];
+      if(!p){ POS[key]={x:b.x,y:b.y,poll:pollSeq}; STAGNANT[key]=0; continue; }
+      const dx=Math.abs(b.x-p.x), dy=Math.abs(b.y-p.y);
+      const realMovement=(dx+dy)>=10;
+      if(realMovement){ POS[key]={x:b.x,y:b.y,poll:pollSeq}; STAGNANT[key]=0; }
+      else { STAGNANT[key]=(STAGNANT[key]||0)+1; }
+      rows.push({key,b,stagnant:STAGNANT[key]});
+    }
+    // prune vanished bots
+    for(const k of Object.keys(POS)) if(!seen.has(k)){ delete POS[k]; delete STAGNANT[k]; }
+    if(!rows.length){ wrap.innerHTML='<div class="hint">no bots reported (fleet not running or no coordinates).</div>'; return; }
+    rows.sort((a,b)=>(a.stagnant-b.stagnant)||a.key.localeCompare(b.key));
+    let h='<table><thead><tr><th>Bot</th><th>Lvl</th><th>Pos (x,y,z)</th><th>State</th><th>Thought/Action</th><th>Stagnant polls</th><th>Online</th></tr></thead><tbody>';
+    for(const r of rows)
+    {
+      const b=r.b;
+      const st=r.stagnant>=6
+        ? '<span class="stagnant">STAGNANT ≥30s</span>'
+        : (r.stagnant>=3 ? '<span style="color:var(--or)">'+r.stagnant+' polls no-move</span>' : '<span class="moving">moving</span>');
+      h+='<tr><td><b>'+esc(b.name||b.account)+'</b><br><span class="meta">'+esc(b.account)+'</span></td>'
+        +'<td>'+esc(b.level)+'</td>'
+        +'<td>'+esc(b.x)+', '+esc(b.y)+', '+esc(b.z)+'</td>'
+        +'<td>'+esc(b.state)+'</td>'
+        +'<td>'+esc(b.thought||b.action||'-')+'</td>'
+        +'<td>'+st+'</td>'
+        +'<td class="'+(b.online?'online':'offline')+'">'+(b.online?'ONLINE':'OFF')+'</td></tr>';
+    }
+    h+='</tbody></table>';
+    wrap.innerHTML=h;
+  }
+  catch(e)
+  {
+    wrap.innerHTML='<div class="hint">bots API unreachable: '+esc(String(e))+'</div>';
+  }
+}
+
+async function pollEvents()
+{
+  try
+  {
+    const data=await j('/api/v1/events');
+    const evs=Array.isArray(data)?data:(data.events||[]);
+    const el=$('events');
+    let added='';
+    for(const e of evs)
+    {
+      const sig=e.seq+'|'+e.t+'|'+e.type;
+      if(seenEvents.has(sig)) continue;
+      seenEvents.add(sig);
+      added+='<div><span class="ev-seq">#'+esc(e.seq)+'</span> '
+        +'<span class="ev-'+esc(e.type)+'">['+esc(e.type)+']</span> '
+        +'<span>'+esc(e.bot||'-')+'</span> '
+        +'<span class="meta">'+esc(JSON.stringify(e.data||{}))+'</span></div>';
+    }
+    if(added) el.innerHTML=added+el.innerHTML;
+    if(el.children.length>200)
+    {
+      while(el.children.length>200) el.removeChild(el.lastChild);
+    }
+  }
+  catch(e){ /* events may be empty until WPT-03 */ }
+}
+
+async function pollConfig()
+{
+  try{ $('configText').textContent=JSON.stringify(await j('/api/v1/config')); }
+  catch(e){ $('configText').textContent='config API unreachable'; }
+}
+
+$('baseText').textContent=base;
+setInterval(pollHealth,2000);
+setInterval(pollBots,2000);
+setInterval(pollEvents,3000);
+setInterval(pollConfig,10000);
+pollHealth(); pollBots(); pollEvents(); pollConfig();
+</script>
+</body>
+</html>
