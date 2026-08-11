@@ -2,6 +2,7 @@ package com.aiplayer.web;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -280,6 +281,79 @@ public class DashboardApiTest
         return out;
     }
 
+    @Test
+    void postConfigAppliesLiveAndTokenGateProtectsMutations() throws IOException
+    {
+        server.stop(0);
+        Map<String, BotInfo> bots2 = new LinkedHashMap<>(bots());
+        DashboardApi.Config cfg = new DashboardApi.Config(2);
+        cfg.token = "opz-token-1"; // WPT-07: token configured -> mutating POST requires it
+        cfg.tokenAuth = true;
+        api = new DashboardApi(bots2, System.currentTimeMillis(), cfg);
+        server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        api.register(server);
+        server.start();
+
+        // Without token -> 401 on mutating POST.
+        Resp unauth = post("/api/v1/config", "{\"wanderRadius\":1500}", null);
+        assertEquals(401, unauth.status, "mutating POST without token must be rejected");
+        Map<String, Object> err = MiniJson.parse(unauth.body);
+        assertTrue(err.containsKey("error"));
+
+        // With wrong token -> 401.
+        Resp wrongToken = post("/api/v1/config", "{\"wanderRadius\":1500}", "Bearer wrong");
+        assertEquals(401, wrongToken.status);
+
+        // With correct token -> 200 + live-applied value.
+        Resp ok = post("/api/v1/config", "{\"wanderRadius\":1500,\"pollMs\":1000}", "Bearer opz-token-1");
+        assertEquals(200, ok.status);
+        Map<String, Object> cfgAfter = MiniJson.parse(ok.body);
+        assertEquals(1500L, cfgAfter.get("wanderRadius"));
+        assertEquals(1000L, cfgAfter.get("pollMs"));
+        assertEquals(1500, cfg.wanderRadius);
+        assertEquals(1000L, cfg.pollMs);
+    }
+
+    @Test
+    void sseStreamYieldsEventSourceFrames() throws IOException
+    {
+        server.stop(0);
+        Map<String, BotInfo> bots2 = new LinkedHashMap<>(bots());
+        EventRing rings = new EventRing();
+        rings.add(EventRing.TYPE_CONNECT, "ai_dash_01", java.util.Map.of("level", 21));
+        api = new DashboardApi(bots2, System.currentTimeMillis(), new DashboardApi.Config(2),
+            null, rings, null, null);
+        server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        api.register(server);
+        server.start();
+
+        URL url = new URL("http://127.0.0.1:" + server.getAddress().getPort() + "/api/v1/stream");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(5000);
+        conn.setReadTimeout(10_000);
+        assertEquals(200, conn.getResponseCode());
+        String ct = conn.getContentType();
+        assertNotNull(ct);
+        assertTrue(ct.startsWith("text/event-stream"), "SSE content type was '" + ct + "'");
+
+        StringBuilder buf = new StringBuilder();
+        try (InputStream in = conn.getInputStream())
+        {
+            byte[] chunk = new byte[2048];
+            long deadline = System.currentTimeMillis() + 6000;
+            while (System.currentTimeMillis() < deadline && buf.length() < 512)
+            {
+                int n = in.read(chunk);
+                if (n < 0) break;
+                buf.append(new String(chunk, 0, n, StandardCharsets.UTF_8));
+            }
+        }
+        String body = buf.toString();
+        assertTrue(body.contains("data:"), "SSE frames carry data lines, got: " + body.substring(0, Math.min(120, body.length())));
+        assertTrue(body.contains("\"type\":\"delta\""), "SSE sends bot deltas");
+        assertTrue(body.contains("\"type\":\"connect\""), "SSE replays ring events after bot deltas if present");
+    }
+
     // ================================ helpers ================================
 
     private static final class Resp
@@ -291,12 +365,35 @@ public class DashboardApiTest
 
     private Resp get(String path)
     {
+        return request("GET", path, null, null);
+    }
+
+    private Resp post(String path, String body, String auth)
+    {
+        return request("POST", path, body, auth);
+    }
+
+    private Resp request(String method, String path, String body, String auth)
+    {
         try
         {
             URL url = new URL("http://127.0.0.1:" + server.getAddress().getPort() + path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod(method);
             conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
+            conn.setReadTimeout(8000);
+            if (auth != null)
+            {
+                conn.setRequestProperty("Authorization", auth);
+            }
+            if (body != null)
+            {
+                conn.setDoOutput(true);
+                try (OutputStream os = conn.getOutputStream())
+                {
+                    os.write(body.getBytes(StandardCharsets.UTF_8));
+                }
+            }
             Resp r = new Resp();
             r.status = conn.getResponseCode();
             r.contentType = conn.getContentType();
@@ -309,7 +406,7 @@ public class DashboardApiTest
         }
         catch (IOException e)
         {
-            throw new AssertionError("HTTP GET " + path + " failed: " + e.getMessage(), e);
+            throw new AssertionError("HTTP " + method + " " + path + " failed: " + e.getMessage(), e);
         }
     }
 

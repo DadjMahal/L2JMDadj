@@ -26,15 +26,17 @@ public final class DashboardApi
 {
     public static final String JSON = "application/json; charset=utf-8";
 
-    /** Tunables exposed via /api/v1/config (WPT-05 extends into a live editor). */
+    /** Tunables exposed via /api/v1/config (WPT-05: POST applies live to these volatile fields). */
     public static final class Config
     {
         public final int fleetSize;
-        public int wanderRadius = 900;
-        public long wanderIntervalMs = 8000;
-        public long pollMs = 2000;
-        public String bind = "127.0.0.1";
-        public boolean tokenAuth = false;
+        public volatile int wanderRadius = 900;
+        public volatile long wanderIntervalMs = 8000;
+        public volatile long pollMs = 2000;
+        public volatile String bind = "127.0.0.1";
+        public volatile boolean tokenAuth = false;
+        /** WPT-07: bearer token; when set, every mutating POST requires Authorization: Bearer <token>. */
+        public volatile String token = null;
 
         public Config(int fleetSize)
         {
@@ -118,6 +120,7 @@ public final class DashboardApi
         server.createContext("/api/v1/history", this::handle);
         server.createContext("/api/v1/health", this::handle);
         server.createContext("/api/v1/config", this::handle);
+        server.createContext("/api/v1/stream", this::handle);
         server.createContext("/api/v1", this::handle);
         // pre-v1 SPA aliases — src/main/resources/dashboard/index.html still polls these until Cline#2
         // migrates to /api/v1/*:
@@ -129,6 +132,23 @@ public final class DashboardApi
     {
         requests.incrementAndGet();
         String path = exchange.getRequestURI().getPath();
+        String method = exchange.getRequestMethod();
+        if (path.equals("/api/v1/stream"))
+        {
+            stream(exchange);
+            return;
+        }
+        if (method.equals("POST") && path.equals("/api/v1/config"))
+        {
+            // WPT-07: mutating endpoints require the bearer token when configured (default off).
+            if (!authorized(exchange))
+            {
+                respond(exchange, 401, "{\"error\":\"unauthorized\"}".getBytes(StandardCharsets.UTF_8));
+                return;
+            }
+            respond(exchange, 200, applyConfig(exchange));
+            return;
+        }
         if (path.equals("/api/v1/bots"))
         {
             respond(exchange, 200, botsJson());
@@ -232,6 +252,133 @@ public final class DashboardApi
             return events.eventsJsonSince(since).getBytes(StandardCharsets.UTF_8);
         }
         return "{\"events\":[]}".getBytes(StandardCharsets.UTF_8);
+    }
+
+    /** GET /api/v1/stream -> Server-Sent Events push: field-delta JSON per bot + new ring events (WPT-02). */
+    private void stream(HttpExchange exchange) throws IOException
+    {
+        exchange.getResponseHeaders().set("Content-Type", "text/event-stream; charset=utf-8");
+        exchange.getResponseHeaders().set("Cache-Control", "no-cache");
+        exchange.getResponseHeaders().set("Connection", "keep-alive");
+        exchange.sendResponseHeaders(200, 0);
+        java.util.Map<String, String> last = new java.util.HashMap<>();
+        long lastSeq = 0;
+        OutputStream out = exchange.getResponseBody();
+        try
+        {
+            long deadline = System.currentTimeMillis() + 100_000; // server-side max window; client reconnects
+            while (System.currentTimeMillis() < deadline)
+            {
+                StringBuilder frame = new StringBuilder();
+                // 1) per-bot field deltas (changed fields only)
+                for (BotInfo b : bots.values())
+                {
+                    String sig = b.level + "|" + b.exp + "|" + b.hp + "|" + b.mp + "|"
+                        + b.x + "|" + b.y + "|" + b.z + "|" + b.state + "|" + (b.connected && b.loggedIn);
+                    String prev = last.put(b.account, sig);
+                    if (prev != null && prev.equals(sig))
+                    {
+                        continue;
+                    }
+                    frame.append("data: {\"type\":\"delta\",\"bot\":\"").append(jsonEscape(b.account))
+                        .append("\",\"level\":").append(b.level)
+                        .append(",\"exp\":").append(b.exp)
+                        .append(",\"hp\":").append(b.hp)
+                        .append(",\"mp\":").append(b.mp)
+                        .append(",\"x\":").append(b.x)
+                        .append(",\"y\":").append(b.y)
+                        .append(",\"z\":").append(b.z)
+                        .append(",\"state\":\"").append(jsonEscape(b.state)).append('"')
+                        .append(",\"online\":").append(b.connected && b.loggedIn ? "true" : "false")
+                        .append("}\n\n");
+                }
+                // 2) fresh ring events (sequential replay, idempotent)
+                if (events != null)
+                {
+                    long nowMax = events.lastSeq();
+                    if (nowMax > lastSeq)
+                    {
+                        String sinceBody = events.eventsJsonSince(lastSeq);
+                        frame.append("data: ").append(sinceBody).append("\n\n");
+                        lastSeq = nowMax;
+                    }
+                }
+                if (frame.length() > 0)
+                {
+                    out.write(frame.toString().getBytes(StandardCharsets.UTF_8));
+                }
+                out.write(": ping\n\n".getBytes(StandardCharsets.UTF_8));
+                out.flush();
+                Thread.sleep(1500);
+            }
+        }
+        catch (InterruptedException ignored)
+        {
+            // stream socket closed
+        }
+        catch (IOException ignored)
+        {
+            // client disconnected
+        }
+        finally
+        {
+            try
+            {
+                out.close();
+            }
+            catch (IOException ignored)
+            {
+            }
+        }
+    }
+
+    /** WPT-05: POST /api/v1/config body {"wanderRadius":..,"wanderIntervalMs":..,"pollMs":..} applied live. */
+    private byte[] applyConfig(HttpExchange exchange) throws IOException
+    {
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        Long wr = longValue(body, "wanderRadius");
+        Long wi = longValue(body, "wanderIntervalMs");
+        Long pm = longValue(body, "pollMs");
+        if (wr != null && wr.longValue() >= 0) config.wanderRadius = wr.intValue();
+        if (wi != null && wi.longValue() >= 0) config.wanderIntervalMs = wi.longValue();
+        if (pm != null && pm.longValue() >= 0) config.pollMs = pm.longValue();
+        return configJson();
+    }
+
+    /** WPT-07: mutating endpoints require Authorization: Bearer <token> when config.token is set. */
+    private boolean authorized(HttpExchange exchange)
+    {
+        String token = config != null ? config.token : null;
+        if (token == null || token.isEmpty())
+        {
+            return true;
+        }
+        String auth = exchange.getRequestHeaders().getFirst("Authorization");
+        return auth != null && auth.equals("Bearer " + token);
+    }
+
+    private static Long longValue(String body, String key)
+    {
+        int idx = body.indexOf("\"" + key + "\"");
+        if (idx < 0)
+        {
+            return null;
+        }
+        int colon = body.indexOf(':', idx);
+        if (colon < 0)
+        {
+            return null;
+        }
+        int end = colon + 1;
+        while (end < body.length() && (Character.isDigit(body.charAt(end)) || body.charAt(end) == '-')) end++;
+        try
+        {
+            return Long.parseLong(body.substring(colon + 1, end).trim());
+        }
+        catch (NumberFormatException e)
+        {
+            return null;
+        }
     }
 
     /** GET /api/v1/history -> per-bot state trail (WPT-04 ring). Query: ?bot=<name>&from=<epochMs>&to=<epochMs>[&csv=1]. */
