@@ -171,6 +171,13 @@
   `Documentation/PRIORITY_TASKS.md`); registered the 33 WPT tasks (WPT-16 folded into WPT-15) + froze
   the v1 contract (§11).
 - 2026-08-10 · Cline#1: WPT-01 → IN_PROGRESS (this session).
+- 2026-08-11 · Cline#4: ops corner done — WPT-34 `scripts/server_health.sh` (live EXIT=0, `4ed840e1`),
+  WPT-32 `dashboard/ops.html` + TIM-001 STAGNANT detector (`bf2ce3db`), WPT-33 README/favicon/i18n/e2e
+  (`fd9581d2`). **Server relaunched on JDK25** (`~/.jdk/jdk-25.0.4+7`, PATH wrapper) — was DOWN at start;
+  evidence baseline in `Documentation/RuntimeLogs/2026-08-11-cline4-ops-jdk25-relaunch-tim001-baseline.md`.
+- ⚠️ Coord note: `dashboard/ops.html` exists as a resource but needs a server route (`/ops.html`) — Cline#1
+  to add when wiring the v1 API (WPT-01/02). DB creds for ops tooling: `l2j`/`StrongPasswordHere`
+  (`ServerBuild/*/config/Database.ini`) — `real_status.sh` still assumes sudo-root (Cline#4 flagged, didn't touch).
 - **WPT-07**: `--bind 127.0.0.1` default; token via `--token`; 401 on unauth POST.
 - **WPT-08**: counters in `DashboardApi`; `/api/v1/health` extended; feed alert (WPT-18) hooks here.
 ## 5. Right-now kickoff (start here, in order)
