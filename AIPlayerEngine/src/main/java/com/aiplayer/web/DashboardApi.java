@@ -11,6 +11,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import com.aiplayer.examples.BotInfo;
+import com.aiplayer.phase0.movement.MoveTelemetry;
 
 /**
  * WPT-01 — versioned REST API (/api/v1/*) plus every dashboard JSON serializer,
@@ -57,16 +58,28 @@ public final class DashboardApi
     private final Map<String, BotInfo> bots;
     private final long startedAtMs;
     private final Config config;
+
+    /** TIM-001 movement-evidence source for the legacy /json + /api/players payloads; null in tests/standalone. */
+    private final MoveTelemetry telemetry;
+
     private final AtomicLong requests = new AtomicLong();
 
-    public DashboardApi(Map<String, BotInfo> bots, long startedAtMs, Config config)
+    /** Full wiring: legacy combined payloads also carry the live movedLast60/movesSent counters. */
+    public DashboardApi(Map<String, BotInfo> bots, long startedAtMs, Config config, MoveTelemetry telemetry)
     {
         this.bots = bots;
         this.startedAtMs = startedAtMs;
         this.config = config;
+        this.telemetry = telemetry;
     }
 
-    /** Registers every /api/v1/* context (com.sun HttpServer uses longest-prefix matching). */
+    /** Tests / embedded use: legacy routes simply omit the movement counters. */
+    public DashboardApi(Map<String, BotInfo> bots, long startedAtMs, Config config)
+    {
+        this(bots, startedAtMs, config, null);
+    }
+
+    /** Registers every /api/v1/* context plus the pre-v1 SPA aliases (com.sun uses longest-prefix matching). */
     public void register(HttpServer server)
     {
         server.createContext("/api/v1/bots", this::handle);
@@ -76,6 +89,10 @@ public final class DashboardApi
         server.createContext("/api/v1/health", this::handle);
         server.createContext("/api/v1/config", this::handle);
         server.createContext("/api/v1", this::handle);
+        // pre-v1 SPA aliases — src/main/resources/dashboard/index.html still polls these until Cline#2
+        // migrates to /api/v1/*:
+        server.createContext("/api/players", this::handle);
+        server.createContext("/api/landmarks", this::handle);
     }
 
     private void handle(HttpExchange exchange) throws IOException
@@ -109,6 +126,14 @@ public final class DashboardApi
         else if (path.equals("/api/v1"))
         {
             respond(exchange, 200, indexJson());
+        }
+        else if (path.equals("/api/players"))
+        {
+            respond(exchange, 200, legacyJson());
+        }
+        else if (path.equals("/api/landmarks"))
+        {
+            respond(exchange, 200, landmarksJson());
         }
         else
         {
@@ -196,7 +221,7 @@ public final class DashboardApi
     /** Old combined shape used by /json and /api/players: {"bots":[...],"entities":[...]}. */
     public byte[] legacyJson()
     {
-        return wrapArray("bots", botsBody() + ",\"entities\":[" + entitiesBody() + "]");
+        return ("{\"bots\":[" + legacyBotsBody() + "],\"entities\":[" + entitiesBody() + "]}").getBytes(StandardCharsets.UTF_8);
     }
 
     // ============================ builders ============================
@@ -206,7 +231,7 @@ public final class DashboardApi
         return ("{\"" + key + "\":[" + body + "]}").getBytes(StandardCharsets.UTF_8);
     }
 
-    /** Comma-separated bot objects (no outer array). */
+    /** Comma-separated bot objects (no outer array) - the frozen section 11 /api/v1/bots shape. */
     private String botsBody()
     {
         StringBuilder sb = new StringBuilder();
@@ -215,66 +240,94 @@ public final class DashboardApi
         {
             if (!first) sb.append(',');
             first = false;
-            sb.append("{\"account\":\"").append(jsonEscape(b.account))
-              .append("\",\"charId\":").append(b.charId)
-              .append(",\"name\":\"").append(jsonEscape(b.charName)).append('"')
-              .append(",\"level\":").append(b.level)
-              .append(",\"exp\":").append(b.exp)
-              .append(",\"sp\":").append(b.sp)
-              .append(",\"hp\":").append(b.hp).append(",\"hpMax\":").append(b.hpMax)
-              .append(",\"mp\":").append(b.mp).append(",\"mpMax\":").append(b.mpMax)
-              .append(",\"cp\":").append(b.cp).append(",\"cpMax\":").append(b.cpMax)
-              .append(",\"x\":").append(b.x).append(",\"y\":").append(b.y).append(",\"z\":").append(b.z)
-              .append(",\"heading\":").append(b.heading)
-              .append(",\"load\":").append(b.load).append(",\"maxLoad\":").append(b.maxLoad)
-              .append(",\"weapon\":").append(b.weapon ? "true" : "false")
-              .append(",\"adena\":").append(b.adena)
-              .append(",\"invPct\":").append(b.invPct).append(",\"itemCount\":").append(b.itemCount)
-              .append(",\"mobs\":").append(b.mobs).append(",\"npcs\":").append(b.npcs);
-            sb.append(",\"items\":[");
-            int[][] it = b.items;
-            if (it != null)
-            {
-                for (int i = 0; i < it.length; i++)
-                {
-                    if (i > 0) sb.append(',');
-                    sb.append('[').append(it[i][0]).append(',').append(it[i][1]).append(']');
-                }
-            }
-            sb.append("],\"ents\":[");
-            int[][] en = b.ents;
-            if (en != null)
-            {
-                for (int i = 0; i < en.length; i++)
-                {
-                    if (i > 0) sb.append(',');
-                    sb.append('[').append(en[i][0]).append(',').append(en[i][1])
-                      .append(',').append(en[i][2]).append(',').append(en[i][3]).append(',').append(en[i][4]).append(']');
-                }
-            }
-            sb.append("],\"target\":");
-            if (b.targetObjId > 0 && b.targetDist > 0)
-            {
-                sb.append("{\"objId\":").append(b.targetObjId)
-                  .append(",\"kind\":").append(b.targetKind)
-                  .append(",\"label\":\"").append(jsonEscape(b.targetLabel)).append('"')
-                  .append(",\"x\":").append(b.targetX).append(",\"y\":").append(b.targetY)
-                  .append(",\"z\":").append(b.targetZ)
-                  .append(",\"d\":").append((int) b.targetDist).append('}');
-            }
-            else
-            {
-                sb.append("null");
-            }
-            sb.append(",\"action\":\"").append(jsonEscape(b.action))
-              .append("\",\"thought\":\"").append(jsonEscape(b.thought))
-              .append("\",\"state\":\"").append(jsonEscape(b.state)).append('"')
-              .append(",\"online\":").append(b.connected && b.loggedIn ? "true" : "false")
-              .append(",\"uptimeSec\":").append((System.currentTimeMillis() - b.sessionStartMs) / 1000)
-              .append(",\"pktAgeMs\":").append(b.getPktAgeMs())
-              .append(",\"lastSeenMs\":").append(b.lastSeenMs)
-              .append('}');
+            sb.append(botObject(b));
         }
+        return sb.toString();
+    }
+
+    /** Comma-separated bot objects for the legacy combined payload (/json, /api/players): the same
+     *  v1 bot object plus the TIM-001 movement-evidence counters when a MoveTelemetry is wired. */
+    private String legacyBotsBody()
+    {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (BotInfo b : bots.values())
+        {
+            if (!first) sb.append(',');
+            first = false;
+            sb.append(botObject(b));
+            if (telemetry != null)
+            {
+                sb.append(",\"movedLast60\":").append(Math.round(telemetry.movedLast(60_000, b.account)))
+                  .append(",\"movesSent\":").append(telemetry.moveCount(b.account));
+            }
+        }
+        return sb.toString();
+    }
+
+    /** Single bot object, exact frozen section 11 /api/v1/bots shape. */
+    private String botObject(BotInfo b)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"account\":\"").append(jsonEscape(b.account))
+          .append("\",\"charId\":").append(b.charId)
+          .append(",\"name\":\"").append(jsonEscape(b.charName)).append('"')
+          .append(",\"level\":").append(b.level)
+          .append(",\"exp\":").append(b.exp)
+          .append(",\"sp\":").append(b.sp)
+          .append(",\"hp\":").append(b.hp).append(",\"hpMax\":").append(b.hpMax)
+          .append(",\"mp\":").append(b.mp).append(",\"mpMax\":").append(b.mpMax)
+          .append(",\"cp\":").append(b.cp).append(",\"cpMax\":").append(b.cpMax)
+          .append(",\"x\":").append(b.x).append(",\"y\":").append(b.y).append(",\"z\":").append(b.z)
+          .append(",\"heading\":").append(b.heading)
+          .append(",\"load\":").append(b.load).append(",\"maxLoad\":").append(b.maxLoad)
+          .append(",\"weapon\":").append(b.weapon ? "true" : "false")
+          .append(",\"adena\":").append(b.adena)
+          .append(",\"invPct\":").append(b.invPct).append(",\"itemCount\":").append(b.itemCount)
+          .append(",\"mobs\":").append(b.mobs).append(",\"npcs\":").append(b.npcs);
+        sb.append(",\"items\":[");
+        int[][] it = b.items;
+        if (it != null)
+        {
+            for (int i = 0; i < it.length; i++)
+            {
+                if (i > 0) sb.append(',');
+                sb.append('[').append(it[i][0]).append(',').append(it[i][1]).append(']');
+            }
+        }
+        sb.append("],\"ents\":[");
+        int[][] en = b.ents;
+        if (en != null)
+        {
+            for (int i = 0; i < en.length; i++)
+            {
+                if (i > 0) sb.append(',');
+                sb.append('[').append(en[i][0]).append(',').append(en[i][1])
+                  .append(',').append(en[i][2]).append(',').append(en[i][3]).append(',').append(en[i][4]).append(']');
+            }
+        }
+        sb.append("],\"target\":");
+        if (b.targetObjId > 0 && b.targetDist > 0)
+        {
+            sb.append("{\"objId\":").append(b.targetObjId)
+              .append(",\"kind\":").append(b.targetKind)
+              .append(",\"label\":\"").append(jsonEscape(b.targetLabel)).append('"')
+              .append(",\"x\":").append(b.targetX).append(",\"y\":").append(b.targetY)
+              .append(",\"z\":").append(b.targetZ)
+              .append(",\"d\":").append((int) b.targetDist).append('}');
+        }
+        else
+        {
+            sb.append("null");
+        }
+        sb.append(",\"action\":\"").append(jsonEscape(b.action))
+          .append("\",\"thought\":\"").append(jsonEscape(b.thought))
+          .append("\",\"state\":\"").append(jsonEscape(b.state)).append('"')
+          .append(",\"online\":").append(b.connected && b.loggedIn ? "true" : "false")
+          .append(",\"uptimeSec\":").append((System.currentTimeMillis() - b.sessionStartMs) / 1000)
+          .append(",\"pktAgeMs\":").append(b.getPktAgeMs())
+          .append(",\"lastSeenMs\":").append(b.lastSeenMs)
+          .append('}');
         return sb.toString();
     }
 
