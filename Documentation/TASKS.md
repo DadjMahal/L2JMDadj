@@ -63,12 +63,11 @@
      (workstream W5) is not implemented**; the brain issues attacks, not movement goals.
   4. Map view **auto-fits** bounds → small/local motion can look static on screen.
 - **Evidence checklist (verify in order, paste output into `Done notes`):**
-  - [ ] H1: do `MoveToLocation(0x01)` frames actually move the char server-side? (before/after
-        `ValidateLocation`/`CharInfo` over 60s)
+  - [x] H1: do `MoveToLocation(0x01)` frames actually move the char server-side? — **PROVEN live 2026-08-11 by Cline#4** (`MoveProbe` vs live server): CombatBot_03 DB `x` `-81804 → -81404` (exactly +400u, persisted); server confirms `CHAR_MOVE_TO_LOCATION=8`, `VALIDATE_LOCATION=1`. Opportunity: short wander + map auto-zoom makes motion look static; movement frames themselves WORK. Log: `Documentation/RuntimeLogs/2026-08-11-cline4-ops-jdk25-relaunch-tim001-baseline.md` §6.
   - [ ] H2: wander destinations degenerate (stale/zero coords) or masked by map auto-zoom?
   - [ ] H3: bots only ever chase nearby hostiles (auto-follow), never "travel"?
-  - [ ] H4: DB spawn pos vs live pos mismatch (chars inserted at (-82759,250149))?
-  - [ ] H5: organic XP/level-up confirm (XP gained over time, not just seeded 1.4M)?
+  - [ ] H4: DB spawn pos vs live pos mismatch (chars inserted at (-82759,250149))? — *partial baseline captured 2026-08-11 (all 5 bots currently at B4 zone, none at seed); live teleport test still open*
+  - [ ] H5: organic XP/level-up confirm (XP gained over time, not just seeded 1.4M)? — *baseline captured (all exp exactly 1400000); live fleet run pending*
 
 ---
 

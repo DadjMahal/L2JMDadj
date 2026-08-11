@@ -55,7 +55,25 @@
 2. Watch `gameserver.characters.exp` over time (must rise above 1,400,000) → **H5 PROVEN**.
 3. Watch live coords drift (or not) → H1/H2/H3 verdicts; ops.html = zero-edit viewer for this.
 
-## 5. Deliverables shipped this session (branch `fix/tim-001-movement-review`)
+## 6. H1 live evidence — MoveToLocation DOES move the char server-side (2026-08-11, 23:5x)
+
+Ran `MoveProbe` against the live server (CombatBot_03, origin = its current DB position, dest = +400u on X):
+- BEFORE: `-81804,251196,-3600` → AFTER: `-81404,251196,-3600` (exactly +400 on X, persisted to `characters.x/y/z`).
+- Server confirms: `CHAR_MOVE_TO_LOCATION(0x01)=8`, `VALIDATE_LOCATION(0x61)=1`.
+- **H1 = PROVEN: real MoveToLocation frames move the char server-side and persist.** The "bots look
+  static" issue is therefore NOT a broken movement frame; it is the operator-facing visibility +
+  gameplay-loop side (H2/H3/H5): short wander, auto-follow only, seeded levels, map auto-zoom.
+- Proof log: `/tmp/h1_moveprobe.out` (this box). The bot remained at the B4 zone after the walk
+  (CombatBot_01/02 untouched for Cline#1's testing; CombatBot_03 now at -81404,251196,-3600).
+
+## 7. What would close TIM-001 for the operator (recommendation, not yet done)
+1. Move the fleet's wander into a **named travel loop** (e.g., walk to TI village center `-71338,258271`
+   then back), instead of ±900u around spawn — H2/H3.
+2. Wire organic EXPLORATION that spends the seeded exp pool earning **new** exp (H5) — the engine's
+   `CombatLoop` already kills live wolves; run the fleet long enough to observe `exp > 1400000`.
+3. Dashboard map: add pan/zoom + world view so local motion reads visibly (WPT-10).
+Items 1–2 are engine/examples territory (Cline#1/#3); item 3 is Cline#2. Ops monitoring ready via
+`server_health.sh` + `ops.html`.
 - WPT-34: `scripts/server_health.sh` (ports+DB+chars+accounts; live EXIT=0) — commit `4ed840e1`.
 - WPT-32: `AIPlayerEngine/src/main/resources/dashboard/ops.html` (health/events/config + STAGNANT detector) — commit `bf2ce3db`.
 - WPT-33: README Web-Panel section, `dashboard/favicon.png` (16×16 RGBA), `dashboard/i18n/en.json`, `scripts/e2e_dashboard.sh` (E2E_EXIT=0 live) — commit `fd9581d2`.
