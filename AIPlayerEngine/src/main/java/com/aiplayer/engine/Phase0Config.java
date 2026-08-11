@@ -80,6 +80,30 @@ public final class Phase0Config
         return isEnabled() && aiConfig.getBooleanProperty("phase0.quest_farm", false);
     }
 
+    /** TIM-001 — proactive far-travel goal (ZoneRouter) inside the fleet loop (W6 movement wiring). */
+    public boolean isMovementEnabled()
+    {
+        return isEnabled() && aiConfig.getBooleanProperty("phase0.movement", false);
+    }
+
+    /** TIM-001 — how long a bot must be idle with no target before it routes to a far destination. */
+    public int getMovementIdleRouteMs()
+    {
+        return aiConfig.getIntProperty("phase0.movement.idle_route_ms", 20_000);
+    }
+
+    /** TIM-001 — smallest acceptable "travel" distance for the zone router (units). */
+    public int getMovementMinRadius()
+    {
+        return aiConfig.getIntProperty("phase0.movement.min_radius", 4_000);
+    }
+
+    /** TIM-001 — largest acceptable route distance for the zone router (units). */
+    public int getMovementMaxRadius()
+    {
+        return aiConfig.getIntProperty("phase0.movement.max_radius", 30_000);
+    }
+
     // Humanize parameters used by Phase0Integration.reactionDelayMs().
     public int getReactionBaseMs()
     {

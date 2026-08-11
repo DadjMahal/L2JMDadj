@@ -12,13 +12,18 @@ import java.util.logging.Logger;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import com.aiplayer.engine.AIConfiguration;
 import com.aiplayer.engine.AIPlayer;
 import com.aiplayer.engine.CombatDecision;
 import com.aiplayer.engine.GameServerClient;
+import com.aiplayer.engine.Phase0Config;
 import com.aiplayer.monitor.AIMonitorDashboard;
 import com.aiplayer.phase0.BotSnapshot;
 import com.aiplayer.phase0.Phase0Wiring;
 import com.aiplayer.phase0.combat.TargetSelector;
+import com.aiplayer.phase0.movement.MoveTelemetry;
+import com.aiplayer.phase0.movement.ZoneRouter;
+import com.aiplayer.phase0.movement.ZoneRouter.RouteGoal;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.protocol.PacketLogger.EntityInfo;
@@ -52,6 +57,8 @@ public final class FleetPlay
         public volatile int sp;
         public volatile int hp, hpMax, mp, mpMax, cp, cpMax;
         public volatile int x, y, z, heading;
+        public volatile double movedLast60;   // server-acked movement (u) in last 60s — TIM-001 truth metric
+        public volatile int movesSent;        // MoveToLocation frames sent this session
         public volatile int load, maxLoad;
         public volatile boolean weapon;
         public volatile int adena, invPct, itemCount;
@@ -88,6 +95,16 @@ public final class FleetPlay
         int gamePort = args.length > 2 ? Integer.parseInt(args[2]) : 7777;
         int loginPort = args.length > 3 ? Integer.parseInt(args[3]) : 2106;
         int dashPort = args.length > 4 ? Integer.parseInt(args[4]) : 8080;
+        // TIM-001 proof hook: optional 6th arg "movement" force-enables phase0.movement at runtime
+        // (never edits config/ai-player.properties; the default remains OFF).
+        boolean forceMovement = args.length > 5 && "movement".equalsIgnoreCase(args[5]);
+        if (forceMovement)
+        {
+            AIConfiguration cfg = AIConfiguration.getInstance();
+            cfg.setProperty("phase0.enabled", "true");
+            cfg.setProperty("phase0.movement", "true");
+            System.out.println("[FleetPlay] phase0.movement FORCED ON for this run (6th arg 'movement')");
+        }
 
         System.out.println("[FleetPlay] launching " + count + " bots vs " + host + ":" + gamePort
             + " dashboard=http://localhost:" + dashPort);
@@ -182,11 +199,16 @@ public final class FleetPlay
 
             Phase0Wiring wiring = new Phase0Wiring(gs, account);
             TargetSelector targetSelector = new TargetSelector(account, logger.getLevel());
+            Phase0Config phase0 = Phase0Config.getInstance();
+            ZoneRouter zoneRouter = new ZoneRouter(account);
+            MoveTelemetry telemetry = MoveTelemetry.getInstance();
             info.connected = true;
             info.loggedIn = true;
-            LOGGER.info("[FleetPlay] " + account + " ENTERED WORLD");
+            LOGGER.info("[FleetPlay] " + account + " ENTERED WORLD"
+                + (phase0.isMovementEnabled() ? " [phase0.movement ON]" : ""));
 
             long lastWander = 0;
+            long lastRoute = 0;
             while (true)
             {
                 BotSnapshot snapshot = BotSnapshot.from(account, logger);
@@ -206,6 +228,8 @@ public final class FleetPlay
                 info.y = logger.getPlayerY();
                 info.z = logger.getPlayerZ();
                 info.heading = logger.getPlayerHeading();
+                info.movedLast60 = telemetry.movedLast(60_000, account);
+                info.movesSent = telemetry.moveCount(account);
                 info.load = logger.getCurrentLoad();
                 info.maxLoad = logger.getMaxLoad();
                 info.weapon = logger.isWeaponEquipped();
@@ -218,6 +242,10 @@ public final class FleetPlay
                 info.ents = entitySnapshot(logger);
                 info.lastSeenMs = System.currentTimeMillis();
                 AIMonitorDashboard.getInstance().updatePlayerStats(player);
+
+                // TIM-001: feed the movement-evidence harness every tick with the real server-acked
+                // position + exp (ValidateLocation 0x61 / CharInfo 0x03 parse in PacketLogger).
+                telemetry.recordPosition(account, snapshot.x, snapshot.y, snapshot.z, info.exp);
 
                 if (snapshot.hpCurrent <= 0)
                 {
@@ -284,6 +312,31 @@ public final class FleetPlay
                             wiring.executeCombat(CombatDecision.attackTarget(String.valueOf(newTarget)),
                                 snapshot.x, snapshot.y, snapshot.z, newTarget);
                         }
+                        else if (phase0.isMovementEnabled())
+                        {
+                            // TIM-001 fix (flag OFF by default): proactive FAR travel when idle —
+                            // route to a real farm-zone center / far point instead of a ±900 hop.
+                            long now = System.currentTimeMillis();
+                            if (now - lastRoute > phase0.getMovementIdleRouteMs())
+                            {
+                                lastRoute = now;
+                                RouteGoal goal = zoneRouter.pick(snapshot.level,
+                                    snapshot.x, snapshot.y, snapshot.z,
+                                    phase0.getMovementMinRadius(), phase0.getMovementMaxRadius());
+                                if (goal != null)
+                                {
+                                    telemetry.recordMove(account, snapshot.x, snapshot.y, snapshot.z,
+                                        goal.x, goal.y, goal.z, goal.label, goal.reason);
+                                    wiring.moveTo(snapshot.x, snapshot.y, snapshot.z,
+                                        goal.x, goal.y, goal.z);
+                                    info.state = "travel:" + goal.label;
+                                    info.thought = goal.reason;
+                                    LOGGER.info("[FleetPlay] " + account + " ROUTE -> " + goal.label
+                                        + " (" + goal.x + "," + goal.y + "," + goal.z + ") "
+                                        + goal.reason);
+                                }
+                            }
+                        }
                         else if (System.currentTimeMillis() - lastWander > WANDER_INTERVAL_MS)
                         {
                             lastWander = System.currentTimeMillis();
@@ -335,6 +388,8 @@ public final class FleetPlay
         server.createContext("/", exchange -> respond(exchange, 200, "text/html; charset=utf-8", loadDashboard()));
         server.createContext("/api/players", exchange -> respond(exchange, 200, "application/json; charset=utf-8", playersJson()));
         server.createContext("/api/landmarks", exchange -> respond(exchange, 200, "application/json; charset=utf-8", landmarksJson()));
+        server.createContext("/telemetry", exchange -> respond(exchange, 200, "text/plain; charset=utf-8",
+            MoveTelemetry.getInstance().report().getBytes(StandardCharsets.UTF_8)));
         server.createContext("/json", exchange -> respond(exchange, 200, "application/json; charset=utf-8", playersJson()));
         server.createContext("/report", exchange -> respond(exchange, 200, "text/plain; charset=utf-8",
             AIMonitorDashboard.getInstance().generateReport().getBytes(StandardCharsets.UTF_8)));
@@ -459,6 +514,8 @@ public final class FleetPlay
               .append(",\"mp\":").append(b.mp).append(",\"mpMax\":").append(b.mpMax)
               .append(",\"cp\":").append(b.cp).append(",\"cpMax\":").append(b.cpMax)
               .append(",\"x\":").append(b.x).append(",\"y\":").append(b.y).append(",\"z\":").append(b.z)
+              .append(",\"movedLast60\":").append(Math.round(b.movedLast60))
+              .append(",\"movesSent\":").append(b.movesSent)
               .append(",\"heading\":").append(b.heading)
               .append(",\"load\":").append(b.load).append(",\"maxLoad\":").append(b.maxLoad)
               .append(",\"weapon\":").append(b.weapon ? "true" : "false")

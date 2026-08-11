@@ -1,7 +1,22 @@
 # ⚠️ PRIORITY TASK — Bots appear static: no real movement / quest / combat loop (DEEP REVIEW REQUIRED)
 
-**Priority: HIGH** · **Status: OPEN — investigation deferred, do NOT resolve today**
+**Priority: HIGH** · **Status: IN PROGRESS — deep review shipped (2026-08-11); LIVE proof pending**
 **Created:** 2026-08-10 · **Reported by:** operator (suspicion after watching the fleet dashboard)
+
+> **UPDATE 2026-08-11 (branch `fix/tim-001-movement-review`, see `Audit/44-tim001-movement-review.md`):**
+> Evidence instrument + proactive far-travel loop are now SHIPPED behind a default-OFF
+> `phase0.movement` flag:
+> - `MoveTelemetry` records every `MoveToLocation(0x01)` frame + every server-acked position/exp;
+>   `GET /telemetry` on the fleet dashboard returns paste-able `EVIDENCE-H1/H2/H5` lines.
+> - `ZoneRouter` gives idle bots real FAR destinations (nearest level-appropriate farm zone from the
+>   real Interlude zone DB, else a bounded random far point) via the proven
+>   `Phase0Wiring.moveTo` path — the fleet finally "travels" instead of ±900-unit hops.
+> - Dashboard grid gained **Δ1m** (server-acked movement per minute) + **Moves** columns.
+> - Root cause of "static": bots only chased nearby hostiles ±900-u wander; the capable
+>   `phase0.movement` module was dead code reading the never-populated `GameStateMirror` and framing
+>   through the LOGIN socket (`L2JProtocol.sendMove`, old 21-byte frame).
+> - **Remaining:** run `scripts/tim001_move_probe.sh` on `/home/volodro/L2JM` (3+ min live run) and
+>   paste the EVIDENCE-lines + DB diff into the task's Done notes. Do NOT mark resolved before that.
 
 ---
 

@@ -154,7 +154,7 @@ function renderMap(){
   svg.innerHTML=out;
 }
 function renderGrid(){
-  let h='<table><thead><tr><th>Account</th><th>Char</th><th>Lvl</th><th>EXP</th><th>HP</th><th>MP</th><th>CP</th><th>Pos (x,y,z)</th><th>Load</th><th>Weapon</th><th>Adena</th><th>SP</th><th>Mobs</th><th>NPCs</th><th>Inv</th><th>Items</th><th>Target</th><th>Tgt dist</th><th>Thought</th><th>State</th><th>Online</th><th>Up</th><th>PktAge</th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>Account</th><th>Char</th><th>Lvl</th><th>EXP</th><th>HP</th><th>MP</th><th>CP</th><th>Pos (x,y,z)</th><th>Δ1m</th><th>Moves</th><th>Load</th><th>Weapon</th><th>Adena</th><th>SP</th><th>Mobs</th><th>NPCs</th><th>Inv</th><th>Items</th><th>Target</th><th>Tgt dist</th><th>Thought</th><th>State</th><th>Online</th><th>Up</th><th>PktAge</th></tr></thead><tbody>';
   bots.forEach(b=>{
     const hp=pct(b.hp,b.hpMax), mp=pct(b.mp,b.mpMax);
     const items=(b.items||[]).map(i=>`<span class="th">${i.id}</span>×${i.count}`).join(' ');
@@ -166,6 +166,8 @@ function renderGrid(){
       <td class="mp">${b.mp}/${b.mpMax}<div class="bar"><div style="width:${mp}%;background:var(--cy)"></div></div></td>
       <td>${b.cp}/${b.cpMax}</td>
       <td>${b.x}, ${b.y}, ${b.z}</td>
+      <td>${b.movedLast60!=null?b.movedLast60+'u':'-'}</td>
+      <td>${b.movesSent!=null?b.movesSent:'-'}</td>
       <td>${b.load}/${b.maxLoad}</td>
       <td>${b.weapon?'🗡️':'🦾'}</td>
       <td>${FMT(b.adena)}</td><td>${FMT(b.sp)}</td>
