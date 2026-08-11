@@ -1,0 +1,52 @@
+{
+  "app": {
+    "title": "AI Fleet Dashboard — Interlude",
+    "opsTitle": "Ops — AI Fleet — Interlude"
+  },
+  "nav": {
+    "map": "Map",
+    "grid": "Grid",
+    "ops": "Ops"
+  },
+  "state": {
+    "loading": "loading…",
+    "offline": "OFF",
+    "online": "ONLINE",
+    "stagnant": "STAGNANT",
+    "moving": "moving",
+    "noBots": "no bots reported (fleet not running or no coordinates).",
+    "apiUnreachable": "API unreachable"
+  },
+  "columns": {
+    "account": "Account",
+    "char": "Char",
+    "lvl": "Lvl",
+    "exp": "EXP",
+    "hp": "HP",
+    "mp": "MP",
+    "cp": "CP",
+    "pos": "Pos (x,y,z)",
+    "load": "Load",
+    "weapon": "Weapon",
+    "adena": "Adena",
+    "sp": "SP",
+    "mobs": "Mobs",
+    "npcs": "NPCs",
+    "inv": "Inv",
+    "items": "Items",
+    "target": "Target",
+    "tgtDist": "Tgt dist",
+    "thought": "Thought",
+    "state": "State",
+    "online": "Online",
+    "up": "Up",
+    "pktAge": "PktAge"
+  },
+  "health": {
+    "status": "status",
+    "uptime": "uptime",
+    "bots": "bots",
+    "online": "online",
+    "requests": "requests"
+  }
+}
