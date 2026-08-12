@@ -47,6 +47,7 @@
   var pointers = new Map();                     // pointerId -> {x,y}
   var pinchDist = 0;
   var lastDyn = null;                          // WPT-11: last dynamic overlay, kept across pan/zoom re-renders
+  var dragMoved = false;                       // WPT-15: suppress marker-click right after a pan drag
 
   function dataFromInline() {
     if (window.__MAP_DATA__ && window.__MAP_DATA__.regions && window.__MAP_DATA__.landmarks) {
@@ -259,6 +260,15 @@
         '\n(' + b.x + ',' + b.y + ',' + b.z + ') · ' + esc(b.state) + '\n' + esc(b.thought || '');
       var c = svgEl('circle', { cx: cx, cy: cy, r: 8 / s, fill: col, stroke: 'var(--stroke)', 'stroke-width': 1.5 / s }, g);
       c.appendChild(svgEl('title', {}, c)).textContent = tip;
+      // WPT-15 — clicking a bot marker opens the detail drawer (guard: not after a pan drag).
+      c.style.cursor = 'pointer';
+      c.addEventListener('click', function (bk) {
+        return function () {
+          if (dragMoved) return;
+          var w = window.__openDrawer || window.openDrawer;
+          if (w) w(bk);
+        };
+      }(b.account || b.name || ''));
       svgEl('circle', { cx: cx, cy: cy, r: 8 / s, fill: col, opacity: '0.3', class: 'plr2' }, g);
       svgEl('text', { x: cx, y: cy - 13 / s, 'text-anchor': 'middle', 'font-size': 11 / s, class: 'mlabel' }, g)
         .textContent = esc(b.name) + ' L' + b.level;
@@ -284,6 +294,7 @@
   }
   function onDown(e) {
     var p = evXY(e);
+    dragMoved = false;
     pointers.set(e.pointerId, p);
     if (wrap.setPointerCapture) wrap.setPointerCapture(e.pointerId);
     pinchDist = pointers.size === 2 ? pointerDist() : 0;
@@ -293,6 +304,7 @@
     var p = evXY(e);
     var prev = pointers.get(e.pointerId);
     if (pointers.size === 1) {
+      dragMoved = true;
       tx += p.x - prev.x;
       ty += p.y - prev.y;
       pointers.set(e.pointerId, p);

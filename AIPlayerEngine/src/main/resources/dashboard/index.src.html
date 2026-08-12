@@ -37,6 +37,8 @@
     <button id="btnPlayback" onclick="pbToggle()" title="replay recorded bot state from /api/v1/history">▶ Playback</button>
     <button id="btnTheme" onclick="toggleTheme()" title="toggle dark/light theme">🌗 Theme</button>
   </div>
+  <button id="btnSound" onclick="toggleSound()" title="toggle alert sound (WPT-18)">🔇</button>
+  <button id="btnAlerts" onclick="setView('alerts')" title="alerts &amp; notifications (WPT-18)">🔔 <span id="alertCount" class="alert-count">0</span></button>
 </header>
 
 <div class="panel" id="mapPanel">
@@ -85,6 +87,34 @@
 <div class="panel" id="detailPanel" style="display:none">
   <div class="detail" id="detailBody"></div>
 </div>
+
+<!-- WPT-18 — alerts & notifications: death / disconnect / level-up / server-down
+     surfaced from REAL /api/v1/bots + /api/v1/events + /api/v1/health. -->
+<div class="panel" id="alertsPanel" style="display:none">
+  <div class="gridbar">
+    <span class="meta" id="alertsNote">Alert log — newest first · capped at 100 · auto-detected from LIVE v1 data</span>
+    <div class="spacer"></div>
+    <button onclick="clearAlerts()">Clear</button>
+  </div>
+  <div id="alertsTbl"></div>
+</div>
+
+<!-- WPT-18 — transient toast notifications (top-right, auto-dismiss). -->
+<div class="toast-stack" id="toastStack"></div>
+
+<!-- WPT-15 — bot detail drawer (right-hand slide-in): click a grid row or map
+     marker to open gear/items/stats + real XP/HP/Level sparklines from
+     /api/v1/history. Close via the ✕ button or the Esc key. -->
+<div class="drawer-mask" id="drawerMask" style="display:none"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="drawer-head">
+    <h2 id="drawerTitle">—</h2>
+    <span class="meta" id="drawerSub"></span>
+    <div class="spacer"></div>
+    <button onclick="closeDrawer()" title="close (Esc)">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
 
 <!-- WPT-12 — state playback / replay control bar (reads real /api/v1/history). -->
 <div class="playbar" id="playbar" style="display:none">

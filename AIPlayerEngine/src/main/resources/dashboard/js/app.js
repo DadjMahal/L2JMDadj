@@ -39,25 +39,34 @@ function esc(s) {
 // ---- v1 polling (frozen contract) ----
 async function poll() {
   try {
-    var p, l, e, ev;
+    var p, l, e, ev, h;
     var res = await Promise.all([
       fetch('/api/v1/bots').then(function (r) { return r.json(); }),
       fetch('/api/v1/landmarks').then(function (r) { return r.json(); }),
       fetch('/api/v1/entities').then(function (r) { return r.json(); }).catch(function () { return { entities: [] }; }),
-      fetch('/api/v1/events').then(function (r) { return r.json(); }).catch(function () { return { events: [] }; })
+      fetch('/api/v1/events').then(function (r) { return r.json(); }).catch(function () { return { events: [] }; }),
+      fetch('/api/v1/health').then(function (r) { return r.json(); }).catch(function () { return null; })
     ]);
-    p = res[0]; l = res[1]; e = res[2]; ev = res[3];
+    p = res[0]; l = res[1]; e = res[2]; ev = res[3]; h = res[4];
     bots = p.bots || [];
     towns = l.towns || [];
     ent = e.entities || [];
     mergeEvents(ev.events || []);
     updateTrails();
+    // WPT-18 — surface real death / disconnect / level-up transitions + server-down.
+    checkAlertTransitions(bots);
+    alertFromEvents(ev.events || []);
+    checkHealth(h);
+    updateAlertsUI();
     $('meta').textContent = bots.length + ' bots · ' + events.length + ' evts · ' +
       new Date().toLocaleTimeString() + ' · up ' +
       Math.round((Date.now() - (window._t0 || Date.now())) / 1000) + 's · poll OK';
     render();
   } catch (err) {
     $('meta').textContent = 'poll error — fleet may be restarting (' + err + ')';
+    // WPT-18 — whole API unreachable => server-down notification (fires once per outage).
+    checkHealth(null);
+    updateAlertsUI();
   }
 }
 function mergeEvents(list) {
@@ -66,6 +75,140 @@ function mergeEvents(list) {
   });
   events.sort(function (a, b) { return (b.seq || 0) - (a.seq || 0); });
   if (events.length > 200) events = events.slice(0, 200);
+}
+// ---- WPT-18 — alerts & notifications (death / disconnect / level-up / server-down) ----
+// Detections read REAL v1 data: /api/v1/bots (online/level/state/hp), /api/v1/events
+// (level-up/disconnect) and /api/v1/health (status). No fabricated values.
+var alerts = [];          // alert log, newest first, capped at 100
+var alertedSeqs = {};     // event seqs already surfaced as alerts (dedupe)
+var prevBots = {};        // botKey -> last {online,level,hp,state} for transition detection
+var baseline = false;     // first poll seeds prevBots without alerting
+var serverDown = false;   // sticky outage state (alert once per outage)
+var soundOn = false;      // WebAudio beep toggle (persisted)
+var ALERT_ICON = { death: '💀', disconnect: '📴', 'level-up': '⬆️', 'server-down': '🛑' };
+var ALERT_LABEL = { death: 'DEATH', disconnect: 'DISCONNECT', 'level-up': 'LEVEL-UP', 'server-down': 'SERVER-DOWN' };
+function botKeyL(acc, name) { return acc || name || ''; }
+function pushAlert(type, bot, msg) {
+  var last = alerts[0];
+  // Throttle exact-duplicate burst (same type+bot within 500ms) so both the poll-derived
+  // transition and the matching event feed row surface as a single toast.
+  if (last && last.type === type && last.bot === bot && (Date.now() - last.t) < 500) return;
+  alerts.unshift({ t: Date.now(), type: type, bot: bot || '', msg: msg || '' });
+  if (alerts.length > 100) alerts.length = 100;
+  renderToast({ type: type, bot: bot || '', msg: msg || '' });
+  if (soundOn) playAlertSound();
+  updateAlertsUI();
+}
+function checkAlertTransitions(list) {
+  if (!list) return;
+  if (!baseline) {
+    list.forEach(function (b) {
+      var k = botKeyL(b.account, b.name);
+      prevBots[k] = { online: !!b.online, level: b.level, hp: b.hp, state: String(b.state || '').toUpperCase() };
+    });
+    baseline = true;
+    return;
+  }
+  var seen = {};
+  list.forEach(function (b) {
+    var k = botKeyL(b.account, b.name);
+    seen[k] = true;
+    var prev = prevBots[k];
+    var nowOnline = !!b.online;
+    var nowLvl = b.level;
+    var nowHp = b.hp;
+    var nowState = String(b.state || '').toUpperCase();
+    if (!prev) { prevBots[k] = { online: nowOnline, level: nowLvl, hp: nowHp, state: nowState }; return; }
+    if (prev.online && !nowOnline) pushAlert('disconnect', k, 'connection lost');
+    if (prev.level != null && nowLvl != null && nowLvl > prev.level) pushAlert('level-up', k, 'now level ' + nowLvl);
+    var isDead = /DEAD/.test(nowState) || nowHp === 0;
+    if (!/DEAD/.test(prev.state) && isDead) pushAlert('death', k, 'hp ' + nowHp + '/' + b.hpMax);
+    prevBots[k] = { online: nowOnline, level: nowLvl, hp: nowHp, state: nowState };
+  });
+  Object.keys(prevBots).forEach(function (k) { if (!seen[k]) delete prevBots[k]; });
+}
+function alertFromEvents(evList) {
+  (evList || []).forEach(function (e) {
+    if (!e || e.seq == null || alertedSeqs[e.seq]) return;
+    alertedSeqs[e.seq] = true;
+    if (e.type === 'level-up') pushAlert('level-up', e.bot || '', '');
+    else if (e.type === 'disconnect') pushAlert('disconnect', e.bot || '', '');
+  });
+}
+function checkHealth(h) {
+  var down = !h || h.status !== 'ok';
+  if (down && !serverDown) {
+    serverDown = true;
+    pushAlert('server-down', '', h && h.status ? 'status "' + h.status + '"' : 'API unreachable');
+  }
+  if (!down && serverDown) serverDown = false;
+}
+function updateAlertsUI() {
+  var b = $('alertCount');
+  if (b) b.textContent = alerts.length;
+  var bell = $('btnAlerts');
+  if (bell) { bell.classList.toggle('has-alerts', alerts.length > 0); bell.classList.toggle('on', view === 'alerts'); }
+  renderAlerts();
+}
+function renderAlerts(list) {
+  var t = $('alertsTbl');
+  if (!t) return;
+  list = list || alerts;
+  var h = '';
+  if (!list.length) {
+    h = '<div class="alertrow"><span class="a-msg">No alerts yet — death / disconnect / level-up / server-down appear here as the fleet runs.</span></div>';
+  }
+  list.forEach(function (a) {
+    h += '<div class="alertrow at-' + a.type + '"><span class="a-t">' + new Date(a.t).toLocaleTimeString() + '</span>' +
+      '<span class="a-ic">' + (ALERT_ICON[a.type] || '⚠️') + '</span>' +
+      '<span class="a-type">' + (ALERT_LABEL[a.type] || a.type) + '</span>' +
+      (a.bot ? '<span class="a-bot">' + esc(a.bot) + '</span>' : '') +
+      (a.msg ? '<span class="a-msg">— ' + esc(a.msg) + '</span>' : '') + '</div>';
+  });
+  t.innerHTML = h;
+}
+function clearAlerts() { alerts = []; updateAlertsUI(); }
+function renderToast(a) {
+  var stack = $('toastStack');
+  if (!stack) return;
+  var el = document.createElement('div');
+  el.className = 'toast toast-' + a.type;
+  var txt = (ALERT_LABEL[a.type] || a.type) +
+    (a.bot ? ' · ' + esc(a.bot) : '') +
+    (a.msg ? ' — ' + esc(a.msg) : '');
+  el.innerHTML = '<span class="t-ic">' + (ALERT_ICON[a.type] || '⚠️') + '</span>' +
+    '<span class="t-txt">' + txt + '</span>' +
+    '<button class="t-x" title="dismiss">✕</button>';
+  el.querySelector('.t-x').addEventListener('click', function () { if (el.parentNode) el.parentNode.removeChild(el); });
+  stack.appendChild(el);
+  while (stack.children.length > 6) stack.removeChild(stack.firstChild);
+  setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 7000);
+}
+function toggleSound() {
+  soundOn = !soundOn;
+  try { localStorage.setItem('fleetSound', soundOn ? '1' : '0'); } catch (e) {}
+  var b = $('btnSound');
+  if (b) b.textContent = soundOn ? '🔊' : '🔇';
+}
+function initSound() {
+  try { soundOn = localStorage.getItem('fleetSound') === '1'; } catch (e) { soundOn = false; }
+  var b = $('btnSound');
+  if (b) b.textContent = soundOn ? '🔊' : '🔇';
+}
+function playAlertSound() {
+  try {
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    var ctx = window.__actx || (window.__actx = new Ctx());
+    if (ctx.state === 'suspended') ctx.resume();
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 880;
+    g.gain.setValueAtTime(0.001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + 0.4);
+  } catch (e) { /* audio unavailable — ignore */ }
 }
 // WPT-11 — append each bot's current /api/v1 position to its trail (last-N distinct
 // points, so static bots grow no polyline = movement is visible). Prune vanished bots.
@@ -97,6 +240,7 @@ function render() {
   if (view === 'map') { if (window.MapRenderer) window.MapRenderer.render(bots, ent, towns, trails, trailsOn); }
   else if (view === 'grid') renderGrid();
   else if (view === 'events') renderEvents();
+  else if (view === 'alerts') renderAlerts();
   else renderDetail();
 }
 
@@ -105,7 +249,8 @@ function setView(v) {
   $('btnMap').classList.toggle('on', v === 'map');
   $('btnGrid').classList.toggle('on', v === 'grid');
   $('btnEvents').classList.toggle('on', v === 'events');
-  var panels = { map: 'mapPanel', grid: 'gridPanel', events: 'eventsPanel', detail: 'detailPanel' };
+  $('btnAlerts').classList.toggle('on', v === 'alerts');
+  var panels = { map: 'mapPanel', grid: 'gridPanel', events: 'eventsPanel', detail: 'detailPanel', alerts: 'alertsPanel' };
   Object.keys(panels).forEach(function (k) {
     $(panels[k]).style.display = (k === v) ? '' : 'none';
   });
@@ -191,7 +336,9 @@ function renderGrid() {
   });
   h += '</tr></thead><tbody>';
   rows.forEach(function (b) {
-    h += '<tr>' + COLS.map(function (c) { return '<td>' + c.h(b) + '</td>'; }).join('') + '</tr>';
+    var key = botKey(b).replace(/['"\\]/g, '');
+    h += '<tr onclick="openDrawer(\'' + key + '\')" title="open detail drawer" style="cursor:pointer">' +
+      COLS.map(function (c) { return '<td>' + c.h(b) + '</td>'; }).join('') + '</tr>';
   });
   h += '</tbody></table>';
   $('gridTbl').innerHTML = h;
@@ -456,7 +603,150 @@ document.addEventListener('keydown', function (e) {
 });
 
 initTheme();
+initSound();
 setInterval(poll, 2000);
 window._t0 = Date.now();
 poll();
+
+// ============================================================================
+// WPT-15 (+WPT-16 folded) — bot detail drawer + per-metric sparklines
+// ----------------------------------------------------------------------------
+// Clicking a bot grid row or map marker opens a right-hand drawer showing the
+// frozen §11 /api/v1/bots state (gear/items/stats) plus REAL XP / HP% / Level
+// timelines rendered as SVGs from /api/v1/history?bot=<account> (HistoryRing
+// snapshots: {t,bot,x,y,z,level,exp,hp,hpMax}). No fake data. Esc closes.
+// ============================================================================
+var SPARK_COLORS = { hp: 'var(--gr)', exp: 'var(--pu)', lvl: 'var(--lm)' };
+var drawerBot = null;     // account currently shown in the drawer
+var drawerHist = null;    // last /api/v1/history payload {bot,from,to,history}
+var histFetchSeq = 0;     // guards against out-of-order history responses
+
+function botKey(b) { return b.account || b.name || ''; }
+function findBotByKey(key) {
+  for (var i = 0; i < bots.length; i++) {
+    if (botKey(bots[i]) === key) return bots[i];
+  }
+  return null;
+}
+function openDrawer(key) {
+  var b = findBotByKey(String(key));
+  if (!b) return;
+  drawerBot = botKey(b);
+  var mask = $('drawerMask'), d = $('drawer');
+  if (mask) mask.style.display = '';
+  if (d) { d.classList.add('open'); d.setAttribute('aria-hidden', 'false'); }
+  renderDrawer(b);
+  loadBotHistory();
+}
+function closeDrawer() {
+  drawerBot = null;
+  drawerHist = null;
+  histFetchSeq++;
+  var mask = $('drawerMask'), d = $('drawer');
+  if (mask) mask.style.display = 'none';
+  if (d) { d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); }
+}
+// Esc closes the drawer (own listener so we don't disturb the WPT-20 hotkeys).
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && drawerBot != null) closeDrawer();
+});
+
+function drawerCard(k, v) { return '<div class="dcard"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>'; }
+function renderDrawer(b) {
+  if (!b) return;
+  var hpP = pct(b.hp, b.hpMax), mpP = pct(b.mp, b.mpMax);
+  var it = itemList(b.items).map(function (i) { return '<span class="th">' + i.id + '</span>×' + i.count; }).join(' ') || '-';
+  var t = $('drawerTitle'), sub = $('drawerSub');
+  if (t) t.textContent = b.name || b.account || '-';
+  if (sub) sub.textContent = (b.account || '') + ' · L' + b.level + (b.online ? ' · ONLINE' : ' · OFF');
+  var h = '<div class="dstats">';
+  h += drawerCard('State', '<span class="st st-' + esc(b.state) + '">' + esc(b.state) + '</span>');
+  h += drawerCard('Class', esc(b.charClass || b.cls || '-'));
+  h += drawerCard('Position', b.x + ', ' + b.y + ', ' + b.z);
+  h += drawerCard('HP', b.hp + '/' + b.hpMax + '<div class="bar"><div style="width:' + hpP + '%;background:var(--gr)"></div></div>');
+  h += drawerCard('MP', b.mp + '/' + b.mpMax + '<div class="bar"><div style="width:' + mpP + '%;background:var(--cy)"></div></div>');
+  h += drawerCard('CP', b.cp + '/' + b.cpMax);
+  h += drawerCard('EXP', FMT(b.exp)); h += drawerCard('SP', FMT(b.sp));
+
+
+  h += drawerCard('Adena', FMT(b.adena));
+  h += drawerCard('Load', b.load + '/' + b.maxLoad);
+  h += drawerCard('Weapon', b.weapon ? '🗡️' : '🦾');
+  h += drawerCard('Inventory', b.invPct + '% · ' + b.itemCount + ' items');
+  h += drawerCard('Items', it);
+  h += drawerCard('Mobs / NPCs', b.mobs + ' / ' + b.npcs);
+  h += drawerCard('Target', b.target ? esc(b.target.label) + ' (' + Math.round(b.target.d) + 'u)' : '-');
+  h += drawerCard('Uptime', b.uptimeSec ? '~' + Math.floor(b.uptimeSec / 60) + 'm' : '-');
+  h += drawerCard('Thought', '<span class="th">' + esc(b.thought || b.action || '-') + '</span>');
+  h += '</div>';
+  h += '<h3 class="spark-head">XP · HP · Level history <span class="meta">from /api/v1/history</span>' +
+    '<button class="btn" onclick="loadBotHistory(true)" title="reload history">⟳</button></h3>';
+  h += '<div id="drawerSparks" class="sparks">' + sparkStatus('loading history…') + '</div>';
+  var body = $('drawerBody');
+  if (body) body.innerHTML = h;
+}
+function loadBotHistory(force) {
+  if (!drawerBot) return;
+  var seq = ++histFetchSeq;
+  var sp = $('drawerSparks');
+  if (sp) sp.innerHTML = sparkStatus('loading history…');
+  fetch('/api/v1/history?bot=' + encodeURIComponent(drawerBot))
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (seq !== histFetchSeq || !drawerBot) return;   // drawer closed / superseded
+      drawerHist = data;
+      if (sp) sp.innerHTML = renderSparks((data && data.history) || []);
+    })
+    .catch(function (err) {
+      if (seq !== histFetchSeq || !drawerBot) return;
+      if (sp) sp.innerHTML = sparkStatus('history error: ' + err);
+    });
+}
+function renderSparks(hist) {
+  if (!hist || !hist.length) return sparkStatus('no history recorded for this bot yet — this series fills as the fleet runs.');
+  var hp = hist.map(function (s) { return s.hpMax > 0 ? (s.hp / s.hpMax * 100) : 0; });
+  var exp = hist.map(function (s) { return s.exp; }).filter(function (v) { return v != null; });
+  var lvl = hist.map(function (s) { return s.level; }).filter(function (v) { return v != null; });
+  var t0 = hist[0].t, t1 = hist[hist.length - 1].t, span = (t1 - t0) / 1000;
+  var out = '';
+  out += sparkBlock('HP %', hp, SPARK_COLORS.hp);
+  out += sparkBlock('XP', exp, SPARK_COLORS.exp);
+  out += sparkBlock('Level', lvl, SPARK_COLORS.lvl);
+  out += '<div class="meta spark-empty">' + hist.length + ' snapshots · ' +
+    (span >= 60 ? (span / 60).toFixed(1) + 'm' : span + 's') + ' window · ' +
+    new Date(t0).toLocaleTimeString() + ' → ' + new Date(t1).toLocaleTimeString() + '</div>';
+  return out;
+}
+function sparkStatus(msg) { return '<div class="meta spark-empty">' + esc(msg) + '</div>'; }
+function sparkSeriesXY(values, W, H, pad) {
+  var n = values.length;
+  if (!n) return [];
+  var min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+  var range = (max - min) || 1, pts = [];
+  for (var i = 0; i < n; i++) {
+    var x = n === 1 ? W / 2 : pad + i * (W - 2 * pad) / (n - 1);
+    var y = H - pad - (values[i] - min) / range * (H - 2 * pad);
+    pts.push({ x: x, y: y });
+  }
+  return pts;
+}
+function sparkBlock(label, values, color) {
+  if (!values || !values.length) return '<div class="spark-block"><div class="spark-label">' + label + '</div><div class="meta spark-empty">no recorded data</div></div>';
+  var cur = values[values.length - 1];
+  var min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+  var W = 460, H = 42, pad = 3;
+  var xy = sparkSeriesXY(values, W, H, pad);
+  var pts = xy.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
+  var last = xy[xy.length - 1];
+  return '<div class="spark-block"><div class="spark-label">' + label + ' <span class="meta">now ' +
+    FMT(cur) + ' · min ' + FMT(min) + ' · max ' + FMT(max) + '</span></div>' +
+    '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+    '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.6" vector-effect="non-scaling-stroke"/>' +
+    '<circle cx="' + last.x.toFixed(1) + '" cy="' + last.y.toFixed(1) + '" r="2.6" fill="' + color + '"/>' +
+    '</svg></div>';
+}
+// Expose openDrawer so the self-contained map renderer (map.js) can open the
+// drawer when a bot marker is clicked (see js/map.js render()).
+window.openDrawer = openDrawer;
+window.__openDrawer = openDrawer;
 
