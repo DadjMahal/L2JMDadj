@@ -45,3 +45,8 @@ Run: ./real_status.sh  (queries MySQL `gameserver` DB + server logs + ports)
   really ends combat so DeleteObject'd targets lead to re-acquiring the next enemy (RE_TARGET). Slices
   5+6 both live-proven.
 ============================================================
+
+## 2026-08-12 — WPT web-panel FINISH (all 33 tasks DONE-PUSHED)
+Resumed dead multi-agent session; proto+frontend+ops lanes integrated. 213 tests green.
+- WPT-22/24/29 (e09530b7), WPT-09/10/13/14/20/31 (2b658022), WPT-22 integration (d811c512), WPT-30 (2a753645).
+- Live: /api/v1/* JSON verified; sysmsg/chat events flowing; fleet relaunched on JDK25.

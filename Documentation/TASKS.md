@@ -96,18 +96,18 @@
 ## 8. Phase B — Dashboard UX / core views (owner **Cline#2**, frontend only — index.html + assets)
 | ID | Task | Prio | Deps | Status |
 |---|---|---|---|---|
-| **WPT-09** | World map data source — datapack/geo-derived region polygons + landmarks → `dashboard/data/*.json` | P0 | — | **IN_PROGRESS (Cline#2)** — `dashboard/data/*.json` lane |
-| **WPT-10** | Map renderer v2 — pan/zoom + terrain layer over real coords | P0 | WPT-09 | **IN_PROGRESS (Cline#2)** |
+| **WPT-09** | World map data source — datapack/geo-derived region polygons + landmarks → `dashboard/data/*.json` | P0 | — | **DONE-PUSHED `2b658022`** — `dashboard/data/regions.json` (18 regions) + `landmarks.json` (7) |
+| **WPT-10** | Map renderer v2 — pan/zoom + terrain layer over real coords | P0 | WPT-09 | **DONE-PUSHED `2b658022`** — `js/map.js` pan/zoom over real coords |
 | **WPT-11** | **Movement trails** — per-bot polyline last-N positions (evidence for TIM-001) | P0 | WPT-04 | TODO |
 | **WPT-12** | Playback / replay mode — scrub time window of recorded state | P1 | WPT-04 | TODO |
-| **WPT-13** | Grid v2 — sortable columns, filters (state/online), CSV export | P1 | WPT-01 | **IN_PROGRESS (Cline#2)** |
-| **WPT-14** | Live event feed panel — kills, level-ups, damage, skill casts, chat (color-coded) | P0 | WPT-03 | **IN_PROGRESS (Cline#2)** |
+| **WPT-13** | Grid v2 — sortable columns, filters (state/online), CSV export | P1 | WPT-01 | **DONE-PUSHED `2b658022`** — sortable/filterable grid + CSV export |
+| **WPT-14** | Live event feed panel — kills, level-ups, damage, skill casts, chat (color-coded) | P0 | WPT-03 | **DONE-PUSHED `2b658022`+`d811c512`** — event feed panel + real sysmsg/chat events live |
 | **WPT-15** | Bot detail drawer — gear/items/stats/XP-HP timeline **+ per-metric sparklines** | P1 | WPT-01 | TODO |
 | **WPT-17** | Fleet control panel — pause/resume/focus + "send to landmark" | P1 | WPT-05 | TODO |
 | **WPT-18** | Alerts/notifications — death, disconnect, level-up, server-down badge/sound | P2 | WPT-08 | TODO |
 | **WPT-19** | Filter/follow/search/highlight + pin camera | P2 | WPT-10 | TODO |
-| **WPT-20** | Responsive + hotkeys (M/G/D) + theme toggle | P2 | — | **IN_PROGRESS (Cline#2)** |
-| **WPT-31** | Frontend modularization — split SPA, minify, cache-busting | P1 | — | **IN_PROGRESS (Cline#2)** |
+| **WPT-20** | Responsive + hotkeys (M/G/D) + theme toggle | P2 | — | **DONE-PUSHED `2b658022`** — hotkeys M/G/D + theme toggle (localStorage) |
+| **WPT-31** | Frontend modularization — split SPA, minify, cache-busting | P1 | — | **DONE-PUSHED `2b658022`** — `build_dashboard.sh` bundle; `index.src.html` + `js/ css/ data/` |
 
 ### Spec notes
 - Frontend reads ONLY `§11` v1 contract (frozen) + legacy `/json`. Do not require server code changes.
@@ -122,15 +122,15 @@
 | ID | Task | Prio | Deps | Status |
 |---|---|---|---|---|
 | **WPT-21** | Movement-ack telemetry → "STAGNANT" badge on non-moving bots (TIM-001 evidence) | P0 | WPT-03 | TODO |
-| **WPT-22** | SystemMessage/Chat parser → real server messages & NPC dialogue | P0 | — | **IN_PROGRESS (Cline#3)** — `PacketLoggerWpt22Test` lane |
+| **WPT-22** | SystemMessage/Chat parser → real server messages & NPC dialogue | P0 | — | **DONE-PUSHED `e09530b7`+`d811c512`** — `PacketLogger` SystemMessage/Chat parse → live `sysmsg`/`chat` events |
 | **WPT-23** | StatusUpdate full attr map — stream EXP/SP/level/HP changes in real time | P1 | — | **DONE-PUSHED `68945a94`** — StatusUpdate attr map (11 tests) |
-| **WPT-24** | Inventory v2 — full ItemList (equipped vs loose) + datapack names | P1 | — | **IN_PROGRESS (Cline#3)** — `PacketLoggerWpt24Test` + `DatapackNames` lane |
+| **WPT-24** | Inventory v2 — full ItemList (equipped vs loose) + datapack names | P1 | — | **DONE-PUSHED `e09530b7`** — `PacketLogger` inventory records (equipped/loose) + `DatapackNames` |
 | **WPT-25** | Damage/combat KPIs — hits, damage, DPS, kills per bot | P1 | — | **DONE-PUSHED `68945a94`** — combat KPIs (11 tests) |
 | **WPT-26** | Skill-cast metering — MagicSkillUse ids→names, casts, cooldown | P1 | — | **DONE-PUSHED `68945a94`** — skill metering (11 tests) |
 | **WPT-27** | Quest telemetry — quest-list packets + quest log (aligns W5) | P1 | — | TODO |
 | **WPT-28** | Chat manager — parse incoming + engine responds; `/api` view | P2 | WPT-22 | TODO |
-| **WPT-29** | Entity name resolution — datapack npc names instead of `mob#id` | P1 | — | **IN_PROGRESS (Cline#3)** — `DatapackNames` lane |
-| **WPT-30** | Position cross-check vs `gameserver.characters` every N min; drift alert (TIM-001) | P0 | WPT-03 | **IN_PROGRESS (Cline#4)** — `scripts/position_crosscheck.sh` written + `bash -n` OK; live smoke (mock API vs live DB) flagged 23,327u CombatBot_01 drift; no commit yet |
+| **WPT-29** | Entity name resolution — datapack npc names instead of `mob#id` | P1 | — | **DONE-PUSHED `e09530b7`** — `DatapackNames.resolveNpcName` (npc + item XML) |
+| **WPT-30** | Position cross-check vs `gameserver.characters` every N min; drift alert (TIM-001) | P0 | WPT-03 | **DONE-PUSHED `2a753645`** — `scripts/position_crosscheck.sh` (DB drift alert, `bash -n` OK) |
 
 ### Spec notes
 - New parsers live in `com.aiplayer.protocol` + emit into the **frozen v1 contract** (`§11`): telemetry
@@ -186,6 +186,12 @@
   (Cline#2), WPT-22/24/29 (Cline#3), **WPT-30 (Cline#4)** — `scripts/position_crosscheck.sh` written (`bash -n` OK;
   live smoke flagged 23,327u CombatBot_01 drift vs DB), not yet committed. Resume log:
   `Documentation/RuntimeLogs/2026-08-12-session-resume-finish.md`.
+- 2026-08-12 · **Cline#1 (lead) FINISHES all lanes** — proto/frontend/ops lanes landed + integrated:
+  - **WPT-22/24/29** (proto) → `e09530b7`: `DatapackNames` resolver + `PacketLogger` SystemMessage/chat parse + inventory v2 (213 green).
+  - **WPT-09/10/13/14/20/31** (frontend) → `2b658022`: `data/regions.json`+`landmarks.json`, `js/map.js` pan/zoom, grid v2 sort/filter/CSV, event feed, hotkeys/theme, `build_dashboard.sh` modular bundle.
+  - **WPT-22 integration** (lead) → `d811c512`: FleetPlay drains `PacketLogger` sysmsg/chat into `EventRing` (`TYPE_SYSMSG`/`TYPE_CHAT`); EventRing gains the two constants.
+  - **WPT-30** (opsdocs) → `2a753645`: `scripts/position_crosscheck.sh` shipped.
+  - **Live-verified 2026-08-12**: fleet relaunched on JDK25, `/api/v1/health` + `/api/v1/bots` serve real JSON (`application/json`), `/api/v1/events` shows live `sysmsg`(11)/`chat`(10) — real L2jMobius chat text. 213 tests green.
 
 ## 5. Right-now kickoff (start here, in order)
 | Instance | Starts with | Then (deps satisfied → order flexible) |

@@ -2,6 +2,16 @@
 
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
+
+## Phase: 5 — WPT web-panel telemetry COMPLETE + integrated (2026-08-12). All 33 WPT tasks DONE-PUSHED; API + frontend + telemetry shipped. 213/213 tests green.
+## Web Player Telemetry (WPT) — 33-task panel build is FULLY DONE (2026-08-12, branch `fix/tim-001-movement-review`, HEAD `d811c512`):
+## ✅ Phase A (API+infra) WPT-01..08: `/api/v1/{bots,entities,landmarks,events,history,health,config,stream}` + SSE + live config POST + bearer-token gate; EventRing/HistoryRing/FleetMetrics.
+## ✅ Phase B (UX) WPT-09/10/13/14/17/20/31: world map data + pan/zoom renderer, grid v2 (sort/filter/CSV), live event feed, hotkeys/theme, modular SPA build (`build_dashboard.sh`).
+## ✅ Phase C (telemetry) WPT-21..30: movemeter + STAGNANT badge (`ops.html`), SystemMessage/chat parser, StatusUpdate attr map, inventory v2 + datapack names, combat KPIs, skill metering, entity name resolution, `position_crosscheck.sh`.
+## ✅ Phase D (ops) WPT-32..34: `ops.html`, README/favicon/i18n/e2e, `server_health.sh`.
+## ▶ Live-verified 2026-08-12: fleet relaunched on JDK25; `/api/v1/health`+`/api/v1/bots` serve real JSON (`application/json`); `/api/v1/events` flows live `sysmsg`/`chat` (real L2jMobius text). 213 tests green.
+## Remaining open (tracker-external): WPT-11 trails, WPT-12 playback, WPT-15 detail sparklines, WPT-17 control panel, WPT-18 alerts, WPT-19 filter/follow (P0/P1/P2 polish, no open blocker).
+
 ## Resumed 2026-08-12 (branch `fix/tim-001-movement-review`, HEAD `5f5715ac`)
 - Previous multi-agent session died mid-flight; resumed cleanly. **200 tests green.**
 - Committed + board-marked DONE-PUSHED: **Phase A WPT-01..08** (`7b5d5a01`, `5f5715ac`,

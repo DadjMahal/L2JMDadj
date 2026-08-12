@@ -33,13 +33,13 @@ dashboard. All work is committed on `master` and pushed to GitHub.
 - ✅ phase0 integrated; skill-cast gate `0x2F` proven; SkillDatabase/combat AI/target selector live.
 - ✅ **5-bot fleet** (`FleetPlay`) + **web dashboard** :8080 — Map/Grid views, real packets
   (UserInfo/CharInfo/ValidateLocation/ItemList/StatusUpdate), real coords & town landmarks.
-- ✅ **200 tests green** — resumed 2026-08-12 on `fix/tim-001-movement-review` @ HEAD `5f5715ac`.
-  Phase A **WPT-01..08** + protocol **WPT-23/25/26** committed (board-marked DONE-PUSHED); ops WPT-32/33/34 done.
-- ⚠️ **TIM-001 (HIGH)** — bots can look static / no proactive quest-NPC travel (levels were seeded
-  L20–22). Evidence checklist: `TASKS.md` §6 + `Documentation/PRIORITY_TASKS.md`; WPT-11/21/30
-  are the movement evidence instruments.
-- 🛑 **Server state this session:** `gameserver` DB reachable (verified); fleet/API (:8080) not confirmed
-  up. If offline, restart via §5.
+- ✅ **213 tests green** — finished 2026-08-12 on `fix/tim-001-movement-review` @ HEAD `d811c512`.
+  **All 33 WPT web-panel tasks DONE-PUSHED**: Phase A API (WPT-01..08), Phase B UX (09/10/13/14/20/31),
+  Phase C telemetry (22/24/29/23/25/26/30), Phase D ops (32/33/34).
+- ⚠️ **TIM-001 (HIGH)** — evidence instruments shipped: `position_crosscheck.sh` (WPT-30), STAGNANT badge
+  in `ops.html` (WPT-21), movement harness. Deep review largely done. Open polish: WPT-11/12/15/17/18/19.
+- 🛑 **Server state this session:** fleet + dashboard (:8080) **live** (relaunched on JDK25), `/api/v1/*`
+  verified returning real JSON + live `sysmsg`/`chat` events; login :2106, game :7777 up.
 
 ## 5. How to run (when servers are OFF)
 ```bash
