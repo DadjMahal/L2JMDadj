@@ -128,7 +128,7 @@
 | **WPT-24** | Inventory v2 — full ItemList (equipped vs loose) + datapack names | P1 | — | **DONE-PUSHED `e09530b7`** — `PacketLogger` inventory records (equipped/loose) + `DatapackNames` |
 | **WPT-25** | Damage/combat KPIs — hits, damage, DPS, kills per bot | P1 | — | **DONE-PUSHED `68945a94`** — combat KPIs (11 tests) |
 | **WPT-26** | Skill-cast metering — MagicSkillUse ids→names, casts, cooldown | P1 | — | **DONE-PUSHED `68945a94`** — skill metering (11 tests) |
-| **WPT-27** | Quest telemetry — quest-list packets + quest log (aligns W5) | P1 | — | TODO |
+| **WPT-27** | Quest telemetry — quest-list packets + quest log (aligns W5) | P1 | — | **DONE-PUSHED `514f05c5`** — PacketLogger QUEST_LIST (0x80) journal parse + v1 `"quests":{active,total,list}` key (215 green) |
 | **WPT-28** | Chat manager — parse incoming + engine responds; `/api` view | P2 | WPT-22 | **DONE-PUSHED `595a59b5`** — chat view rendering real TYPE_CHAT/TYPE_SYSMSG events + Clear/⟳; note: outbound send needs a backend chat-send endpoint not in the frozen contract (honest scope) |
 | **WPT-29** | Entity name resolution — datapack npc names instead of `mob#id` | P1 | — | **DONE-PUSHED `e09530b7`** — `DatapackNames.resolveNpcName` (npc + item XML) |
 | **WPT-30** | Position cross-check vs `gameserver.characters` every N min; drift alert (TIM-001) | P0 | WPT-03 | **DONE-PUSHED `2a753645`** — `scripts/position_crosscheck.sh` (DB drift alert, `bash -n` OK) |
@@ -196,12 +196,12 @@
 
 ## 5. Right-now kickoff (start here, in order)
 > Historical kickoff plan for the 33-task WPT build — **ALL lanes since landed** (Phase A/B/C/D DONE-PUSHED by 2026-08-12).
-> Remaining open work (see §7/§8 statuses): **WPT-27** (quest telemetry, P1), **TIM-001** HIGH movement-persistence
+> Remaining open work (see §7/§8 statuses): **TIM-001** HIGH movement-persistence
 > proof (needs a longer `/telemetry`-driven run), and dashboard polish **WPT-11/12/15/17/18/19 trails/playback/control**
 > (documented as shipped-but-partial in the WPT-17/28 honest-scope note). See commit history below for what landed.
 | Instance | Started with (2026-08-10) | Then (deps satisfied → order flexible) |
 |---|---|---|
 | **Cline#1 (orchestrator)** | **WPT-01 → WPT-08 (API) — DONE-PUSHED** | DONE |
 | **Cline#2 (frontend)** | WPT-09 → WPT-10 → WPT-13 → WPT-20 → … → WPT-31 — **all DONE-PUSHED** | — |
-| **Cline#3 (protocol)** | WPT-22 → WPT-29 → WPT-23 → WPT-25 → WPT-26 — **all DONE-PUSHED** | WPT-21 backend DONE (uncommitted), WPT-27 TODO |
+| **Cline#3 (protocol)** | WPT-22 → WPT-29 → WPT-23 → WPT-25 → WPT-26 → **WPT-27 — all DONE-PUSHED** | WPT-21 backend DONE, TIM-001 persistence open |
 | **Cline#4 (ops/docs)** | WPT-32 → WPT-33 → WPT-34 — **all DONE-PUSHED** (`ops.html`, README/e2e, `server_health.sh`) | non-Java, zero conflicts |

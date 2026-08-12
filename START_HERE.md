@@ -40,8 +40,9 @@ dashboard. All work is committed on `master` and pushed to GitHub.
   in `ops.html` (WPT-21), movement harness + `/telemetry` route **ADDED** to `FleetPlay` (serves
   `MoveTelemetry.report()`; probe defaults fixed). **VERIFIED LIVE 2026-08-12** on a fresh 2-min run —
   returned per-bot movesSent/H2/H1/H5 for all 5 bots. **Movement persistence still UNPROVEN** (H1 ✗/H5 ✗;
-  far HOP ~21391u not persisted; `ZoneRouter.nextHop()` short multi-hop is the open fix). WPT-27 quest
-  telemetry TODO.
+  far HOP ~21391u not persisted; `ZoneRouter.nextHop()` short multi-hop is the open fix). **WPT-27 quest
+  telemetry DONE-PUSHED `514f05c5`** (PacketLogger parses QUEST_LIST 0x80 journal; v1 `/api/v1/bots`
+  gains optional `"quests":{active,total,list:[...]}`).
 - 🛑 **Server state this session:** fleet + dashboard (:8080) **live** (relaunched on JDK25), `/api/v1/*`
   verified returning real JSON + live `sysmsg`/`chat` events; login :2106, game :7777 up.
 
