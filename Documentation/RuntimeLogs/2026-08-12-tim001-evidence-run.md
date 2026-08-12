@@ -33,7 +33,7 @@ they need backend endpoints outside the frozen v1 contract. Documented, not fake
 TIM-001 can be marked resolved.
 
 ## Remaining open (honest)
-- **WPT-21** movement-ack/STAGNANT telemetry: backend `/telemetry` route **DONE (uncommitted)** serving `MoveTelemetry.report()`; unit-tested. Live evidence re-run still pending. **WPT-27** quest telemetry — TODO.
+- **WPT-21** movement-ack/STAGNANT telemetry: backend `/telemetry` route **DONE (uncommitted then)** serving `MoveTelemetry.report()`; unit-tested. Live evidence re-run done (see top). **WPT-27** quest telemetry — **DONE-PUSHED `514f05c5`** (QUEST_LIST 0x80 journal parse + v1 `"quests"` key).
 - **TIM-001** movement persistence — IN PROGRESS, not resolved (route now in place; needs a longer `/telemetry`-driven run to confirm a DB position delta).
 - Servers still UP (Login :2106 / GS :9014 / Game :7777); fleet stopped (8080 free).
 
