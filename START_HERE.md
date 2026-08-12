@@ -37,7 +37,10 @@ dashboard. All work is committed on `master` and pushed to GitHub.
   **All 33 WPT web-panel tasks DONE-PUSHED**: Phase A API (WPT-01..08), Phase B UX (09/10/13/14/20/31),
   Phase C telemetry (22/24/29/23/25/26/30), Phase D ops (32/33/34).
 - ⚠️ **TIM-001 (HIGH)** — evidence instruments shipped: `position_crosscheck.sh` (WPT-30), STAGNANT badge
-  in `ops.html` (WPT-21), movement harness. Deep review largely done. Open polish: WPT-11/12/15/17/18/19.
+  in `ops.html` (WPT-21), movement harness + missing `/telemetry` route **ADDED** to `FleetPlay` (serves
+  `MoveTelemetry.report()` for `tim001_move_probe.sh`); probe defaults fixed. Live re-run of the evidence
+  chain still pending (movement-persistence unproven). Dashboard polish WPT-11/12/15/18 landed; WPT-17/19
+  partial (honest-scope note); WPT-27 quest telemetry TODO.
 - 🛑 **Server state this session:** fleet + dashboard (:8080) **live** (relaunched on JDK25), `/api/v1/*`
   verified returning real JSON + live `sysmsg`/`chat` events; login :2106, game :7777 up.
 

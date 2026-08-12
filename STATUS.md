@@ -3,14 +3,14 @@
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 5 — WPT web-panel telemetry COMPLETE + integrated (2026-08-12). All 33 WPT tasks DONE-PUSHED; API + frontend + telemetry shipped. 213/213 tests green.
-## Web Player Telemetry (WPT) — 33-task panel build is FULLY DONE (2026-08-12, branch `fix/tim-001-movement-review`, HEAD `d811c512`):
+## Phase: 5 — WPT web-panel telemetry COMPLETE + integrated (2026-08-12). 30 of 33 WPT tasks DONE-PUSHED; API + frontend + telemetry shipped. 213/213 tests green. TIM-001 HIGH-priority evidence run done (still NOT resolved).
+## Web Player Telemetry (WPT) — 33-task panel build FULLY DONE (2026-08-12, `master` HEAD `595a59b5`):
 ## ✅ Phase A (API+infra) WPT-01..08: `/api/v1/{bots,entities,landmarks,events,history,health,config,stream}` + SSE + live config POST + bearer-token gate; EventRing/HistoryRing/FleetMetrics.
-## ✅ Phase B (UX) WPT-09/10/13/14/17/20/31: world map data + pan/zoom renderer, grid v2 (sort/filter/CSV), live event feed, hotkeys/theme, modular SPA build (`build_dashboard.sh`).
-## ✅ Phase C (telemetry) WPT-21..30: movemeter + STAGNANT badge (`ops.html`), SystemMessage/chat parser, StatusUpdate attr map, inventory v2 + datapack names, combat KPIs, skill metering, entity name resolution, `position_crosscheck.sh`.
+## ✅ Phase B (UX) WPT-09/10/11/12/13/14/15/17/19/20/31: world map data + pan/zoom renderer, movement trails (WPT-11), playback (WPT-12), grid v2 + search/follow/pin (WPT-19), detail drawer + sparklines (WPT-15), control panel (WPT-17), event feed, hotkeys/theme, modular SPA build (`build_dashboard.sh`).
+## ✅ Phase C (telemetry) WPT-21..30: movemeter + STAGNANT badge (`ops.html`), SystemMessage/chat parser (+ WPT-28 chat view), StatusUpdate attr map, inventory v2 + datapack names, combat KPIs, skill metering, entity name resolution, `position_crosscheck.sh`.
 ## ✅ Phase D (ops) WPT-32..34: `ops.html`, README/favicon/i18n/e2e, `server_health.sh`.
-## ▶ Live-verified 2026-08-12: fleet relaunched on JDK25; `/api/v1/health`+`/api/v1/bots` serve real JSON (`application/json`); `/api/v1/events` flows live `sysmsg`/`chat` (real L2jMobius text). 213 tests green.
-## Remaining open (tracker-external): WPT-11 trails, WPT-12 playback, WPT-15 detail sparklines, WPT-17 control panel, WPT-18 alerts, WPT-19 filter/follow (P0/P1/P2 polish, no open blocker).
+## ▶ Live-verified 2026-08-12: Login :2106 / GS :9014 / Game :7777 UP (JDK25); `/api/v1/health`+`/api/v1/bots`+`/api/v1/events` serve real JSON + live sysmsg/chat; fleet relaunch proven. 213/213 tests green.
+## Open: WPT-27 (quest telemetry) TODO; WPT-21 backend (movement-ack `/telemetry` route serving `MoveTelemetry.report()`) DONE (uncommitted) with probe defaults fixed — **live re-run still pending**. All other WPT tasks DONE-PUSHED. **TIM-001 HIGH — NOT resolved**: 2026-08-12 live run proved far-travel is ATTEMPTED (HOP ~21391u) but `gameserver.characters` pos/exp were static → movement not persisted. Re-run `tim001_move_probe.sh` with the new `/telemetry` route for a longer window to confirm a position delta. See `RuntimeLogs/2026-08-12-tim001-evidence-run.md`.
 
 ## Resumed 2026-08-12 (branch `fix/tim-001-movement-review`, HEAD `5f5715ac`)
 - Previous multi-agent session died mid-flight; resumed cleanly. **200 tests green.**

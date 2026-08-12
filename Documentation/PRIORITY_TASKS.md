@@ -21,6 +21,17 @@
 >   after the server acks us near the previous).
 > - **Remaining:** run `scripts/tim001_move_probe.sh` on `/home/volodro/L2JM` (3+ min live run) and
 >   paste the EVIDENCE-lines + DB diff into the task's Done notes. Do NOT mark resolved before that.
+>
+> **UPDATE 2026-08-12 (branch `master`, live run, movement FORCED ON):** evidence run completed.
+> - H2 (destinations degenerate?) **NO** — `[FleetPlay] ai_combat_04 HOP -> far-point (-87613,255465,-3600) ~21391u`.
+> - H3 (never travel?) **travel attempted** — bots issue far HOPs + real NPC_INFO/DELETE_OBJECT (kills).
+> - **H1 movement-persistence & H5 organic XP NOT shown** — `gameserver.characters` x/y/z + exp were
+>   **IDENTICAL before/after** the 2-min run; far moves are sent but not persisted server-side.
+> - **Probe gap RESOLVED 2026-08-12:** `/telemetry` route **ADDED** to `FleetPlay.startDashboard()` serving
+>   `MoveTelemetry.report()` (was missing — only `/`,`/json`,`/report`); probe defaults fixed
+>   (ENGINE→`/home/dadj/Projects/l24lude`, MYSQL_ARGS→`mysql -u l2j -pStrongPasswordHere gameserver`).
+>   Re-run `tim001_move_probe.sh` for a longer window and confirm a position delta before marking resolved.
+> - **Verdict: TIM-001 still IN PROGRESS — NOT resolved.** Evidence log: `Documentation/RuntimeLogs/2026-08-12-tim001-evidence-run.md`.
 
 ---
 

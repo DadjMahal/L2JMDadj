@@ -27,3 +27,8 @@ __pycache__/
 # Scratch / experiment artifacts (never commit)
 /tmp/
 *.zip
+
+# Exported conversation dumps (not project data, never commit)
+/1786483419643_3h6x4.json
+*.conversation*.json
+*.export*.json

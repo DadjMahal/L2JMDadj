@@ -501,6 +501,10 @@ public final class FleetPlay
         server.createContext("/json", exchange -> respond(exchange, 200, DashboardApi.JSON, api.legacyJson()));
         server.createContext("/report", exchange -> respond(exchange, 200, "text/plain; charset=utf-8",
             AIMonitorDashboard.getInstance().generateReport().getBytes(StandardCharsets.UTF_8)));
+        /* WPT-21 (TIM-001 evidence instrument): serve MoveTelemetry.report() so scripts/tim001_move_probe.sh
+           can curl EVIDENCE-H1/H2/H5 lines (far-travel + movement-persistence + organic-XP proof). */
+        server.createContext("/telemetry", exchange -> respond(exchange, 200, "text/plain; charset=utf-8",
+            MoveTelemetry.getInstance().report().getBytes(StandardCharsets.UTF_8)));
         api.register(server);
         server.start();
         LOGGER.info("[FleetPlay] dashboard live on http://localhost:" + port);

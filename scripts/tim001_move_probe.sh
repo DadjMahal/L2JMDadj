@@ -23,10 +23,10 @@
 # ============================================================================
 set -uo pipefail
 
-ENGINE="${ENGINE:-${1:-/home/volodro/L2JM/AIPlayerEngine}}"
+ENGINE="${ENGINE:-${1:-/home/dadj/Projects/l24lude}}"
 RUN_MIN="${2:-3}"
 RUN_SEC=$((RUN_MIN * 60))
-MYSQL_ARGS="${MYSQL_ARGS:-sudo mysql -u root gameserver}"
+MYSQL_ARGS="${MYSQL_ARGS:-mysql -u l2j -pStrongPasswordHere gameserver}"
 CHARS="CombatBot_01 CombatBot_02 CombatBot_03 CombatBot_04 CombatBot_05"
 DASH_PORT=8080
 
