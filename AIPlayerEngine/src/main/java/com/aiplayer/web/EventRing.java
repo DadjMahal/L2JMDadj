@@ -38,6 +38,10 @@ public final class EventRing
     public static final String TYPE_MOVE = "move";
     public static final String TYPE_CONNECT = "connect";
     public static final String TYPE_DISCONNECT = "disconnect";
+    /** WPT-22: real server SystemMessage (0x64) text surfaced into the feed. */
+    public static final String TYPE_SYSMSG = "sysmsg";
+    /** WPT-22: server SAY/Chat broadcast (NPC or player) surfaced into the feed. */
+    public static final String TYPE_CHAT = "chat";
 
     /**
      * Immutable record for one event feed row. Field names and JSON key order are frozen by the

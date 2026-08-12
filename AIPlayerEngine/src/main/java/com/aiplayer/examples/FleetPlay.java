@@ -192,6 +192,10 @@ public final class FleetPlay
             int prevHp = info.hp;
             boolean firstTick = true;
             long lastHistoryMs = 0;
+            // WPT-22: drain newly-parsed SystemMessage / chat broadcasts into the shared event ring
+            // (only the count delta is emitted once per tick; message bodies are read back from logger).
+            long lastSysCount = logger.getSystemMessageCount();
+            long lastChatCount = logger.getChatCount();
             while (true)
             {
                 BotSnapshot snapshot = BotSnapshot.from(account, logger);
@@ -241,6 +245,40 @@ public final class FleetPlay
                 }
                 firstTick = false;
                 prevHp = info.hp;
+                // WPT-22: emit newly-parsed SystemMessage / chat broadcasts (real server text).
+                long sysNow = logger.getSystemMessageCount();
+                long chatNow = logger.getChatCount();
+                if (sysNow > lastSysCount)
+                {
+                    java.util.List<PacketLogger.SystemMessageEvent> sysmsgs = logger.getSystemMessageEvents();
+                    for (int i = 0; i < sysmsgs.size() && lastSysCount < sysNow; i++)
+                    {
+                        PacketLogger.SystemMessageEvent sm = sysmsgs.get(i);
+                        if (sm == null) continue;
+                        java.util.Map<String, Object> d = new java.util.LinkedHashMap<>();
+                        d.put("msgId", sm.msgId);
+                        d.put("text", sm.text);
+                        EVENTS.add(EventRing.TYPE_SYSMSG, account, d);
+                        lastSysCount++;
+                    }
+                }
+                lastSysCount = sysNow;
+                if (chatNow > lastChatCount)
+                {
+                    java.util.List<PacketLogger.ChatEvent> chats = logger.getChatEvents();
+                    for (int i = 0; i < chats.size() && lastChatCount < chatNow; i++)
+                    {
+                        PacketLogger.ChatEvent c = chats.get(i);
+                        if (c == null) continue;
+                        java.util.Map<String, Object> d = new java.util.LinkedHashMap<>();
+                        d.put("kind", c.kind);
+                        d.put("speaker", c.speaker);
+                        d.put("text", c.text);
+                        EVENTS.add(EventRing.TYPE_CHAT, account, d);
+                        lastChatCount++;
+                    }
+                }
+                lastChatCount = chatNow;
                 long nowTick = System.currentTimeMillis();
                 if (nowTick - lastHistoryMs >= 2000)
                 {
