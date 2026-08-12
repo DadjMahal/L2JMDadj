@@ -29,9 +29,31 @@ public class PacketLogger
    public static final int OP_NPC_INFO = 0x16;
    public static final int OP_ITEM_LIST = 0x1B;
    public static final int OP_VALIDATE_LOCATION = 0x61;
+   // WPT-22: SystemMessage server opcode. NOTE: the ticket mentions 0x5A but the verified
+   // SourceCode ServerPackets.java enum maps SYSTEM_MESSAGE to 0x64 (0x5A is VEHICLE_DEPARTURE),
+   // so we keep the existing 0x64 routing below.
    public static final int OP_SYSTEM_MESSAGE = 0x64;
    public static final int OP_EX_PACKET = 0xFE;
    public static final int OP_EX_QUEST_INFO = 0x19;
+   // WPT-22: server->client SAY/chat broadcasts (ServerPackets.java enum + writeImpl verified).
+   public static final int OP_NPC_SAY = 0x02;        // NpcSay: [objId][textType][npcId+1000000][text]
+   public static final int OP_CREATURE_SAY = 0x4A;   // CreatureSay: [objId][chatType][name][text]
+
+   // SystemMessage param types (SystemMessage.java constants). Each param is prefixed by its
+   // 4-byte type; the payload width depends on the type (string vs int vs long vs int[]).
+   public static final int SM_TYPE_TEXT = 0;
+   public static final int SM_TYPE_INT_NUMBER = 1;
+   public static final int SM_TYPE_NPC_NAME = 2;
+   public static final int SM_TYPE_ITEM_NAME = 3;
+   public static final int SM_TYPE_SKILL_NAME = 4;
+   public static final int SM_TYPE_CASTLE_NAME = 5;
+   public static final int SM_TYPE_LONG_NUMBER = 6;
+   public static final int SM_TYPE_ZONE_NAME = 7;
+   public static final int SM_TYPE_ELEMENT_NAME = 9;
+   public static final int SM_TYPE_INSTANCE_NAME = 10;
+   public static final int SM_TYPE_DOOR_NAME = 11;
+   public static final int SM_TYPE_PLAYER_NAME = 12;
+   public static final int SM_TYPE_SYSTEM_STRING = 13;
    // Stream C7/C8: NpcHtmlMessage (0x0F) — the dialog the server SHOWS the player.
    // Every valid RequestBypassToServer must reference a bypass link that was present in a
    // previously-sent NpcHtmlMessage (server validates via validateHtmlAction), so the engine
@@ -106,6 +128,26 @@ public class PacketLogger
    private int inventoryUsagePercent = 0;
    // Stream E (task 78): real inventory contents parsed from ItemList(0x1B). itemId -> count.
    private final java.util.Map<Integer, Long> inventoryItems = new java.util.concurrent.ConcurrentHashMap<>();
+
+   // ============ WPT-29: datapack-backed name resolution (NPC + item display names) ============
+   private DatapackNames datapackNames = new DatapackNames();
+
+   // ============ WPT-24: Inventory v2 (equipped vs loose) ============
+   // Per-objectId inventory records parsed from ItemList(0x1B) with the real 36-byte item writer
+   // layout (ItemList.java writeImpl -> AbstractItemPacket.writeItem). Guarded by inventoryLock.
+   private final Object inventoryLock = new Object();
+   private final java.util.List<InventoryItem> inventoryRecords = new java.util.ArrayList<>();
+   private final java.util.Set<Integer> equippedItemIds = new java.util.concurrent.ConcurrentHashMap<>().newKeySet();
+
+   // ============ WPT-22: SystemMessage + chat typed telemetry ============
+   private final Object messageLock = new Object();
+   private static final int MAX_MESSAGE_EVENTS = 512;
+   private final java.util.List<SystemMessageEvent> systemMessageEvents = new java.util.ArrayList<>();
+   private volatile SystemMessageEvent lastSystemMessage = null;
+   private final java.util.List<ChatEvent> chatEvents = new java.util.ArrayList<>();
+   private volatile ChatEvent lastChatEvent = null;
+   private volatile int systemMessageCount = 0;
+   private volatile int chatCount = 0;
 
    // Quest tracking (Task 36)
    private int activeQuestCount = 0;
@@ -226,6 +268,11 @@ public class PacketLogger
                break;
             case OP_SYSTEM_MESSAGE:
                parseSystemMessage(buf);
+               break;
+            // WPT-22: server->client chat broadcasts -> typed 'chat' events.
+            case OP_NPC_SAY:
+            case OP_CREATURE_SAY:
+               parseChat(buf, opcode);
                break;
             // WPT-25/26: combat + skill-cast feed (ServerPackets.java opcodes).
             case OP_ATTACK:
@@ -534,7 +581,16 @@ public class PacketLogger
    }
 
    /**
-    * Parse ItemList packet (opcode 0x1B) - inventory contents
+    * Parse ItemList packet (opcode 0x1B) - inventory contents.
+    *
+    * <p>WPT-24 (Inventory v2): per-item writer layout verified against
+    * SourceCode/.../serverpackets/ItemList.java writeImpl -> AbstractItemPacket.writeItem:
+    * <pre>
+    *   [type1:short][objectId:int][itemId:int][count:int][type2:short][customType1:short]
+    *   [equipped:short][slot:int][enchant:short][customType2:short][augmentation:int][mana:int] = 36 bytes
+    * </pre>
+    * {@code equipped} (0/1) and {@code slot} (body-part mask) distinguish equipped vs loose items,
+    * and item display names are resolved through the WPT-29 {@link DatapackNames} resolver.
     */
    private void parseItemList(ByteBuffer buf)
    {
@@ -542,31 +598,70 @@ public class PacketLogger
       {
          int showWindow = buf.getShort() & 0xFFFF;
          int itemCount = buf.getShort() & 0xFFFF;
-         // Stream E (task 78): parse real item list so MerchantAI acts on genuine inventory.
-         // Per-item layout (L2J ItemList 0x1B): [type1:short][objId:int][itemId:int][count:int]
-         // [type2:short][coobj:short][bodypart:int][enchant:short][0:short][0:short] = 32 bytes.
          inventoryItems.clear();
+         java.util.List<InventoryItem> records = new java.util.ArrayList<>(itemCount);
+         java.util.Set<Integer> equipped = new java.util.HashSet<>();
+         // WPT-24: the real server writes 36 bytes/item (verified writeImpl). Some pre-WPT-24
+         // engine fixtures (StreamETradeTest.writeItem) use a historical 28-byte stride. itemId +
+         // count share the same offsets in both, so we auto-detect the stride from the frame length.
+         int remaining = buf.remaining();
+         int stride = 36;
+         if (remaining < (long) itemCount * 36)
+         {
+            stride = 28; // legacy 28-byte stride (2+4+4+4+2+2+4+2+2+2)
+            if (remaining < (long) itemCount * 28)
+            {
+               stride = 16; // minimal identity-only intro (type1/objId/itemId/count + 2 skip)
+            }
+         }
          for (int i = 0; i < itemCount; i++)
          {
-            if (buf.remaining() < 32) break;
+            if (buf.remaining() < stride) break;
             buf.getShort();                       // type1
-            buf.getInt();                          // objectId
+            int objectId = buf.getInt();
             int itemId = buf.getInt();
             long count = buf.getInt() & 0xFFFFFFFFL;
-            buf.getShort();                        // type2
-            buf.getShort();                        // coobjectId
-            buf.getInt();                          // bodypart
-            buf.getShort();                        // enchant
-            buf.getShort();                        // customType1
-            buf.getShort();                        // customType2
+            boolean isEquipped = false;
+            int slot = 0;
+            if (stride == 36)
+            {
+               buf.getShort();                    // type2
+               buf.getShort();                    // customType1 (filler)
+               isEquipped = (buf.getShort() & 0xFFFF) == 1; // 0 = loose, 1 = equipped
+               slot = buf.getInt();               // body-part mask (slot)
+               buf.getShort();                    // enchant
+               buf.getShort();                    // customType2
+               buf.getInt();                      // augmentation
+               buf.getInt();                      // mana
+            }
+            else if (stride == 28)
+            {
+               // historical stride: skip the remaining tail (no equipped/slot info).
+               for (int t = 0; t < 14; t++) buf.get();
+            }
+            else
+            {
+               for (int t = 0; t < 2; t++) buf.get(); // 16-byte identity-only intro
+            }
             if (itemId == 57) this.adena = (int) Math.min(count, Integer.MAX_VALUE);
             inventoryItems.put(itemId, count);
+            if (isEquipped) equipped.add(itemId);
+            records.add(new InventoryItem(objectId, itemId, count, isEquipped, slot,
+               datapackNames.resolveItemName(itemId)));
+         }
+         synchronized (inventoryLock)
+         {
+            inventoryRecords.clear();
+            inventoryRecords.addAll(records);
+            equippedItemIds.clear();
+            equippedItemIds.addAll(equipped);
          }
          int totalSlots = 120;
          this.inventoryUsagePercent = (int)((itemCount * 100.0) / totalSlots);
          if (inventoryUsagePercent > 100) inventoryUsagePercent = 100;
          LOGGER.info("[PACKET-LOG] [" + playerName + "] ITEM_LIST: showWindow=" + showWindow
-                 + " itemCount=" + itemCount + " usage=" + inventoryUsagePercent
+                 + " itemCount=" + itemCount + " equipped=" + equipped.size() + " stride=" + stride
+                 + " usage=" + inventoryUsagePercent
                  + "% adena=" + adena + " distinctItems=" + inventoryItems.size());
       }
       catch (Exception e)
@@ -1018,10 +1113,185 @@ public class PacketLogger
 
    public int getNpcHtmlCount() { return npcHtmlCount; }
 
-   /** Parse SystemMessage packet (0x64) */
+   /** Parse SystemMessage packet (0x64) into a typed human-readable event (WPT-22). */
    private void parseSystemMessage(ByteBuffer buf)
    {
-      LOGGER.info("[PACKET-LOG] [" + playerName + "] SYSTEM_MESSAGE received");
+      try
+      {
+         // Layout (SystemMessage.java writeImpl): [msgId:int][paramCount:int][(type:int, value...)*]
+         int msgId = buf.getInt();
+         int paramCount = buf.getInt();
+         if (paramCount < 0) paramCount = 0;
+         if (paramCount > 32) paramCount = 32; // hard cap against malformed frames
+         java.util.List<String> decoded = new java.util.ArrayList<>(paramCount);
+         java.util.List<Arg> args = new java.util.ArrayList<>(paramCount);
+         for (int i = 0; i < paramCount; i++)
+         {
+            int type = buf.getInt();
+            Arg arg = decodeSysMsgParam(buf, type);
+            if (arg == null) break;
+            args.add(arg);
+            decoded.add(arg.rendered);
+         }
+         String human = buildSystemMessageText(msgId, decoded);
+         long now = System.currentTimeMillis();
+         SystemMessageEvent event = new SystemMessageEvent(msgId, now, human, args);
+         synchronized (messageLock)
+         {
+            systemMessageCount++;
+            systemMessageEvents.add(event);
+            while (systemMessageEvents.size() > MAX_MESSAGE_EVENTS) systemMessageEvents.remove(0);
+            lastSystemMessage = event;
+         }
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] SYSMESSAGE: " + human);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] SystemMessage parse incomplete");
+      }
+   }
+
+   /** Decode one SystemMessage param of the given type, returning a rendered Arg or null. */
+   private Arg decodeSysMsgParam(ByteBuffer buf, int type)
+   {
+      switch (type)
+      {
+         case SM_TYPE_TEXT:
+         case SM_TYPE_PLAYER_NAME:
+            return new Arg(type, readUtf16String(buf));
+         case SM_TYPE_LONG_NUMBER:
+            return new Arg(type, Long.toString(buf.getLong()));
+         case SM_TYPE_SKILL_NAME:
+         {
+            int skillId = buf.getInt();
+            int skillLvl = buf.getInt();
+            return new Arg(type, "skill:" + skillId + " (lv " + skillLvl + ")");
+         }
+         case SM_TYPE_ZONE_NAME:
+         {
+            int x = buf.getInt();
+            int y = buf.getInt();
+            int z = buf.getInt();
+            return new Arg(type, "zone(" + x + "," + y + "," + z + ")");
+         }
+         case SM_TYPE_NPC_NAME:
+         {
+            int npcId = buf.getInt();
+            return new Arg(type, datapackNames.resolveNpcName(npcId));
+         }
+         case SM_TYPE_ITEM_NAME:
+         {
+            int itemId = buf.getInt();
+            return new Arg(type, datapackNames.resolveItemName(itemId));
+         }
+         case SM_TYPE_INT_NUMBER:
+         case SM_TYPE_CASTLE_NAME:
+         case SM_TYPE_ELEMENT_NAME:
+         case SM_TYPE_INSTANCE_NAME:
+         case SM_TYPE_DOOR_NAME:
+         case SM_TYPE_SYSTEM_STRING:
+            return new Arg(type, Integer.toString(buf.getInt()));
+         default:
+            return null; // unknown type: stop decoding conservatively
+      }
+   }
+
+
+   /** Build a human-readable one-line string from a msgId + decoded params. */
+   static String buildSystemMessageText(int msgId, java.util.List<String> params)
+   {
+      StringBuilder sb = new StringBuilder(64);
+      sb.append("sysmsg#").append(msgId);
+      if (params != null && !params.isEmpty())
+      {
+         sb.append(" [");
+         for (int i = 0; i < params.size(); i++)
+         {
+            if (i > 0) sb.append(", ");
+            sb.append(params.get(i));
+         }
+         sb.append(']');
+      }
+      return sb.toString();
+   }
+
+   /**
+    * Parse server->client chat broadcasts (NpcSay 0x02 / CreatureSay 0x4A) into typed 'chat'
+    * events (WPT-22). NpcSay layout is unambiguous (NpcSay.java writeImpl):
+    *   [objectId:int][textType:int][npcId+1000000:int][text:UTF-16LE NUL]
+    * CreatureSay is best-effort (the common player-chat form):
+    *   [objectId:int][chatType:int][senderName:UTF-16LE NUL][text:UTF-16LE NUL]
+    */
+   private void parseChat(ByteBuffer buf, int opcode)
+   {
+      try
+      {
+         int objectId = buf.getInt();
+         int chatType = buf.getInt();
+         long now = System.currentTimeMillis();
+         if (opcode == OP_NPC_SAY)
+         {
+            int encodedNpcId = buf.getInt(); // npc template displayId + 1000000 (NpcSay.java)
+            int npcId = encodedNpcId - 1_000_000;
+            if (npcId < 0) npcId = 0;
+            String text = readUtf16String(buf);
+            if (text == null) return;
+            ChatEvent event = new ChatEvent(now, "npc", chatType,
+               datapackNames.resolveNpcName(npcId), text, objectId);
+            recordChat(event);
+         }
+         else
+         {
+            String senderName = readUtf16String(buf);
+            String text = readUtf16String(buf);
+            if (text == null) return;
+            ChatEvent event = new ChatEvent(now, "player", chatType, senderName, text, objectId);
+            recordChat(event);
+         }
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] Chat parse incomplete");
+      }
+   }
+
+   private void recordChat(ChatEvent event)
+   {
+      synchronized (messageLock)
+      {
+         chatCount++;
+         chatEvents.add(event);
+         while (chatEvents.size() > MAX_MESSAGE_EVENTS) chatEvents.remove(0);
+         lastChatEvent = event;
+      }
+      LOGGER.info("[PACKET-LOG] [" + playerName + "] CHAT kind=" + event.kind
+         + " speaker=" + event.speaker + " text=\"" + event.text + "\"");
+   }
+
+   /** Read an L2J UTF-16LE, NUL-terminated string from the buffer (no length prefix). */
+   private String readUtf16String(ByteBuffer buf)
+   {
+      if (buf.remaining() < 2) return null;
+      StringBuilder sb = new StringBuilder();
+      while (buf.remaining() >= 2)
+      {
+         char c = buf.getChar(); // buffer is LITTLE_ENDIAN, so getChar decodes LE correctly
+         if (c == 0) break;
+         sb.append(c);
+      }
+      return sb.toString();
+   }
+
+   /** Simple value holder for one decoded SystemMessage param. */
+   public static final class Arg
+   {
+      public final int type;
+      public final String rendered;
+      Arg(int type, String rendered)
+      {
+         this.type = type;
+         this.rendered = rendered == null ? "" : rendered;
+      }
    }
 
    /**
@@ -1116,6 +1386,66 @@ public class PacketLogger
    public int getInventoryUsagePercent() { return inventoryUsagePercent; }
    public boolean isInventoryFull() { return inventoryUsagePercent >= 90; }
    public boolean hasSpaceForTrade(int itemCount) { return inventoryUsagePercent + (itemCount * 100 / 120) < 90; }
+
+   // ============ WPT-29: datapack name resolution wiring ============
+   /** Override the name resolver (test/telemetry hook); defaults to the lazy datapack resolver. */
+   public void setDatapackNames(DatapackNames resolver)
+   {
+      this.datapackNames = resolver != null ? resolver : new DatapackNames();
+   }
+
+   /** Resolve an NPC template id to its datapack display name (WPT-29). */
+   public String resolveNpcName(int npcId) { return datapackNames.resolveNpcName(npcId); }
+
+   /** Resolve an item template id to its datapack display name (WPT-29). */
+   public String resolveItemName(int itemId) { return datapackNames.resolveItemName(itemId); }
+
+   // ============ WPT-24: Inventory v2 getters ============
+   /** All per-item inventory records (objectId / itemId / count / equipped / slot / name). */
+   public java.util.List<InventoryItem> getInventoryRecords()
+   {
+      synchronized (inventoryLock)
+      {
+         return new java.util.ArrayList<>(inventoryRecords);
+      }
+   }
+
+   /** Item template ids currently equipped (equipped flag set in the ItemList frame). */
+   public java.util.Set<Integer> getEquippedItemIds()
+   {
+      synchronized (inventoryLock)
+      {
+         return new java.util.LinkedHashSet<>(equippedItemIds);
+      }
+   }
+
+   public int getEquippedItemCount() { synchronized (inventoryLock) { return equippedItemIds.size(); } }
+   public boolean isItemEquipped(int itemId) { synchronized (inventoryLock) { return equippedItemIds.contains(itemId); } }
+   public int getInventoryRecordCount() { synchronized (inventoryLock) { return inventoryRecords.size(); } }
+
+   // ============ WPT-22: SystemMessage / chat getters ============
+   public SystemMessageEvent getLastSystemMessage() { return lastSystemMessage; }
+   public int getSystemMessageCount() { return systemMessageCount; }
+   public int getChatCount() { return chatCount; }
+   public ChatEvent getLastChatEvent() { return lastChatEvent; }
+
+   /** Bounded copy of all retained SystemMessage events (oldest -> newest). */
+   public java.util.List<SystemMessageEvent> getSystemMessageEvents()
+   {
+      synchronized (messageLock)
+      {
+         return new java.util.ArrayList<>(systemMessageEvents);
+      }
+   }
+
+   /** Bounded copy of all retained chat events (oldest -> newest). */
+   public java.util.List<ChatEvent> getChatEvents()
+   {
+      synchronized (messageLock)
+      {
+         return new java.util.ArrayList<>(chatEvents);
+      }
+   }
 
    // Quest tracking getters (Task 36)
    public int getActiveQuestCount() { return activeQuestCount; }
@@ -1451,6 +1781,87 @@ public class PacketLogger
       {
          return "SkillCastEvent[skill=" + skillId + " target=" + targetId + " caster=" + casterId
             + (confirmed ? " confirmed" : " requested") + (selfCast ? " SELF" : "") + "]";
+      }
+   }
+
+
+   // ============ WPT-22: typed SystemMessage / Chat event classes ============
+   /** One decoded SystemMessage (0x64). Carried as kind 'sysmsg' by the EventRing. */
+   public static final class SystemMessageEvent
+   {
+      public final int msgId;
+      public final long millis;
+      public final String text;        // human-readable, e.g. "sysmsg#99 [Adena, Orc Fighter]"
+      public final java.util.List<Arg> params;
+
+      public SystemMessageEvent(int msgId, long millis, String text, java.util.List<Arg> params)
+      {
+         this.msgId = msgId;
+         this.millis = millis;
+         this.text = text;
+         this.params = params == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(new java.util.ArrayList<>(params));
+      }
+
+      @Override
+      public String toString()
+      {
+         return "SystemMessageEvent[" + text + "]";
+      }
+   }
+
+   /** One chat line from a server SAY broadcast (0x02/0x4A). Carried as kind 'chat'. */
+   public static final class ChatEvent
+   {
+      public final long millis;
+      public final String kind;        // "npc" or "player"
+      public final int chatType;       // ChatType client id
+      public final String speaker;     // resolved NPC name or player name
+      public final String text;
+      public final int objectId;
+
+      public ChatEvent(long millis, String kind, int chatType, String speaker, String text, int objectId)
+      {
+         this.millis = millis;
+         this.kind = kind;
+         this.chatType = chatType;
+         this.speaker = speaker == null ? "" : speaker;
+         this.text = text == null ? "" : text;
+         this.objectId = objectId;
+      }
+
+      @Override
+      public String toString()
+      {
+         return "ChatEvent[" + kind + " " + speaker + ": " + text + "]";
+      }
+   }
+
+   // ============ WPT-24: Inventory v2 record ============
+   /** One item row from an ItemList(0x1B) frame: identity + equipped/loose + slot + resolved name. */
+   public static final class InventoryItem
+   {
+      public final int objectId;
+      public final int itemId;
+      public final long count;
+      public final boolean equipped;
+      public final int slot;
+      public final String name;
+
+      public InventoryItem(int objectId, int itemId, long count, boolean equipped, int slot, String name)
+      {
+         this.objectId = objectId;
+         this.itemId = itemId;
+         this.count = count;
+         this.equipped = equipped;
+         this.slot = slot;
+         this.name = name == null ? "item#" + itemId : name;
+      }
+
+      @Override
+      public String toString()
+      {
+         return "InventoryItem[" + name + " x" + count + (equipped ? " EQUIPPED" : " loose")
+            + " slot=0x" + Integer.toHexString(slot) + "]";
       }
    }
 
