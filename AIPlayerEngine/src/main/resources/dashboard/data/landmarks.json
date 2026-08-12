@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "units": "meters",
+  "source": "DashboardApi.java TOWN_NAMES/TOWNS",
+  "landmarks": [
+    {
+      "name": "TalkingIsland",
+      "kind": "town",
+      "x": -71338,
+      "y": 258271,
+      "z": -3104
+    },
+    {
+      "name": "Gludio",
+      "kind": "town",
+      "x": -14674,
+      "y": 123346,
+      "z": -3112
+    },
+    {
+      "name": "Dion",
+      "kind": "town",
+      "x": 18574,
+      "y": 145346,
+      "z": -3096
+    },
+    {
+      "name": "Giran",
+      "kind": "town",
+      "x": 80874,
+      "y": 147346,
+      "z": -3464
+    },
+    {
+      "name": "Oren",
+      "kind": "town",
+      "x": 83074,
+      "y": 53246,
+      "z": -1568
+    },
+    {
+      "name": "HuntersVillage",
+      "kind": "town",
+      "x": 116974,
+      "y": 76246,
+      "z": -2728
+    },
+    {
+      "name": "Aden",
+      "kind": "town",
+      "x": 147446,
+      "y": 27046,
+      "z": -2208
+    }
+  ]
+}

@@ -1,202 +1,682 @@
 <!doctype html>
+<!-- AI Fleet Dashboard GENERATED bundle — version 2a753645-20260812042219.
+     Source: index.src.html + js/map.js + js/app.js + css/style.css + data/*.json.
+     Regenerate with: scripts/build_dashboard.sh  (do not hand-edit) -->
+<!--
+  AI Fleet Dashboard — DEV / modular source shell (index.src.html).
+  This file is the maintainable modular source: it references the external
+  css/style.css, js/map.js, js/app.js and fetches data/*.json at runtime.
+
+  The SERVED file (dashboard/index.html) is a self-contained minified bundle
+  GENERATED from this file by:  scripts/build_dashboard.sh
+  Do not hand-edit index.html (it is overwritten on every build).
+
+  STRUCTURAL EDIT POINTS (kept stable for merge coordination):
+    * <div id="mapPanel">      — WPT-10 pan/zoom map (map.js renders into #map)
+    * <div id="gridPanel">     — bot grid (app.js renderGrid)
+    * <div id="eventsPanel">   — live event feed (app.js renderEvents)
+    * <div id="detailPanel">   — bot detail view (app.js renderDetail)
+    * header buttons + fOnline/fState filters + #meta — wired in app.js
+  The DOM ids above form the contract shared with frontend-spa.
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Fleet Dashboard — Interlude</title>
-<style>
-  :root{
-    --bg:#0b0f14; --panel:#131a22; --line:#22303f; --txt:#cfe3d6;
-    --dim:#6e8791; --accent:#39d98a; --red:#ff5d5d; --or:#ffb454;
-    --cy:#4fd6ff; --lm:#b6ff3c; --gr:#7ee787; --pu:#c792ea;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',Roboto,system-ui,sans-serif;padding:14px 18px}
-  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
-  h1{margin:0;font-size:18px;color:var(--accent);letter-spacing:1px}
-  .meta{color:var(--dim);font-size:12px}
-  .spacer{flex:1}
-  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-  .seg button{background:transparent;color:var(--txt);border:0;padding:7px 16px;cursor:pointer;font-size:13px}
-  .seg button.on{background:var(--accent);color:#04130b;font-weight:700}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px}
-  #mapWrap{position:relative;height:72vh;overflow:hidden}
-  #map{width:100%;height:100%}
-  #mapLegend{position:absolute;top:10px;left:10px;background:rgba(11,15,20,.85);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.7}
-  .lg{display:inline-flex;align-items:center;gap:6px;margin-right:12px}
-  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-  .pl{pulse base}
-  @keyframes pulse{0%{r:7;opacity:1}70%{opacity:.35}100%{r:15;opacity:0}}
-  .plr2{animation:pulse2 1.6s ease-out infinite}
-  @keyframes pulse2{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.6);opacity:0}}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
-  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
-  tr:hover{background:#17202b}
-  .bar{height:7px;border-radius:4px;background:#1d2833;overflow:hidden;min-width:70px}
-  .bar>div{height:100%;transition:width .6s ease}
-  .st{font-weight:700}
-  .st-ATTACK,.st-ENGAGE_TARGET,.st-USE_SKILL,.st-engage{color:var(--red)}
-  .st-FLEE,.st-RETREAT{color:var(--or)}
-  .st-wander{color:var(--cy)}
-  .st-IDLE,.st-idle{color:var(--lm)}
-  .st-dead{color:var(--dim)}
-  .online{color:var(--gr);font-weight:700}
-  .offline{color:var(--red);font-weight:700}
-  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
-  #gridTbl{height:72vh;overflow:auto}
-  .th{color:var(--pu)}
-  .tooltip{pointer-events:none;position:absolute;background:rgba(11,15,20,.95);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.55;display:none;z-index:9;box-shadow:0 4px 16px rgba(0,0,0,.5)}
-  .tick{color:var(--dim);font-size:11px}
-  .xp,.hp,.mp{text-align:left;font-size:11px}
-  .float{position:absolute;font-size:10px;color:#cfeeff;text-shadow:0 0 4px #000;pointer-events:none}
-</style>
+
+<style>:root{
+--bg:#0b0f14; --panel:#131a22; --line:#22303f; --txt:#cfe3d6;
+--dim:#6e8791; --accent:#39d98a; --red:#ff5d5d; --or:#ffb454;
+--cy:#4fd6ff; --lm:#b6ff3c; --gr:#7ee787; --pu:#c792ea; --bl:#6eb7ff;
+--mapbg:#0d131b; --gridline:#14202b; --stroke:#04130b; --hover:#17202b;
+--bar:#1d2833; --chipbg:rgba(11,15,20,.85); --txthi:#eafff2; --txsub:#bfe8ff; --tagtxt:#04130b;
+}
+body[data-theme="light"]{
+--bg:#eef2f5; --panel:#ffffff; --line:#c6d1db; --txt:#1b2733; --dim:#5b6b79;
+--red:#d8345a; --or:#c96a15; --cy:#1376a8; --lm:#4d7c13; --gr:#1d8a3e; --pu:#7b3fb8; --bl:#2f6fce;
+--mapbg:#dfe7ee; --gridline:#c3ced8; --stroke:#0b0f14; --hover:#e7edf3;
+--bar:#dbe4ec; --chipbg:rgba(238,242,245,.9); --txthi:#14212e; --txsub:#2c4a60; --tagtxt:#0b0f14;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',Roboto,system-ui,sans-serif;padding:14px 18px;transition:background .3s,color .3s}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+h1{margin:0;font-size:18px;color:var(--accent);letter-spacing:1px}
+.meta{color:var(--dim);font-size:12px}
+.keys{font-size:11px;letter-spacing:.3px}
+.spacer{flex:1}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;color:var(--txt);border:0;padding:7px 14px;cursor:pointer;font-size:13px}
+.seg button:hover{background:rgba(255,255,255,.06)}
+.seg button.on{background:var(--accent);color:var(--tagtxt);font-weight:700}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px}
+#mapWrap{position:relative;height:72vh;overflow:hidden}
+#map{width:100%;height:100%}
+#mapLegend{position:absolute;top:10px;left:10px;background:var(--chipbg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.7}
+.lg{display:inline-flex;align-items:center;gap:6px;margin-right:12px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.plr2{animation:pulse2 1.6s ease-out infinite}
+@keyframes pulse2{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+.mlabel{fill:var(--txthi);font-weight:700}
+.sublabel{fill:var(--txsub);font-size:9px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
+th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--accent)}
+th .arr{margin-left:4px;color:var(--accent)}
+tr:hover{background:var(--hover)}
+.bar{height:7px;border-radius:4px;background:var(--bar);overflow:hidden;min-width:70px}
+.bar>div{height:100%;transition:width .6s ease}
+.st{font-weight:700}
+.st-ATTACK,.st-ENGAGE_TARGET,.st-USE_SKILL,.st-engage{color:var(--red)}
+.st-FLEE,.st-RETREAT{color:var(--or)}
+.st-wander{color:var(--cy)}
+.st-IDLE,.st-idle{color:var(--lm)}
+.st-dead{color:var(--dim)}
+.online{color:var(--gr);font-weight:700}
+.offline{color:var(--red);font-weight:700}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+#gridTbl{height:65vh;overflow:auto}
+.th{color:var(--pu)}
+.gridbar{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.gridbar select,.gridbar button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:5px 9px;font-size:12px;cursor:pointer}
+.gridbar select:hover,.gridbar button:hover{border-color:var(--accent)}
+.gridbar button.primary{background:var(--accent);color:var(--tagtxt);border-color:var(--accent);font-weight:700}
+#eventsTbl{height:65vh;overflow:auto}
+.ev{display:flex;gap:9px;align-items:baseline;padding:5px 8px;border-bottom:1px solid var(--line);font-size:12px}
+.ev .t{color:var(--dim);font-size:11px;white-space:nowrap}
+.ev .bot{font-weight:600;white-space:nowrap}
+.ev .body{word-break:break-word;white-space:pre-wrap}
+.tag{display:inline-block;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;color:var(--tagtxt);white-space:nowrap;flex-shrink:0}
+.ev-kill .tag{background:var(--red)} .ev-kill .bot{color:var(--red)}
+.ev-level .tag{background:var(--gr)} .ev-level .bot{color:var(--gr)}
+.ev-skill .tag{background:var(--pu)} .ev-skill .bot{color:var(--pu)}
+.ev-dmg .tag{background:var(--or)} .ev-dmg .bot{color:var(--or)}
+.ev-chat .tag{background:var(--bl)} .ev-chat .bot{color:var(--bl)}
+.ev-sys .tag{background:var(--pu)} .ev-sys .bot{color:var(--pu)}
+.ev-conn .tag,.ev-disc .tag{background:var(--dim)} .ev-conn .bot,.ev-disc .bot{color:var(--dim)}
+.ev-move .tag{background:var(--cy)} .ev-move .bot{color:var(--cy)}
+.ev-other .tag{background:var(--line)} .ev-other .bot{color:var(--dim)}
+.detail{font-size:13px;line-height:1.7}
+.detail h2{margin:0 0 6px;color:var(--accent)}
+.dstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:12px}
+.dcard{background:var(--hover);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.dcard .k{color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.dcard .v{font-size:13px;margin-top:2px}
+.dnav{display:flex;gap:8px;margin-top:10px}
+.dnav button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px}
+.dnav button:hover{border-color:var(--accent)}
+.tooltip{pointer-events:none;position:absolute;background:var(--chipbg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.55;display:none;z-index:9;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.tick{color:var(--dim);font-size:11px}
+.xp,.hp,.mp{text-align:left;font-size:11px}
+.float{position:absolute;font-size:10px;color:var(--txsub);text-shadow:0 0 4px #000;pointer-events:none}
+#mapControls{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+#mapControls button{width:28px;height:28px;background:var(--chipbg);border:1px solid var(--line);color:var(--txt);border-radius:6px;font-size:15px;cursor:pointer;line-height:1}
+#mapControls button:hover{border-color:var(--accent);color:var(--accent)}
+@media(max-width:820px){
+body{padding:8px 10px}
+h1{font-size:15px}
+.seg button{padding:6px 9px;font-size:12px}
+#mapWrap{height:55vh}
+#gridTbl,#eventsTbl{height:58vh}
+}</style>
 </head>
 <body>
 <header>
   <h1>🤖 AI FLEET — INTERLUDE :7777</h1>
   <span class="meta" id="meta">loading…</span>
+  <span class="meta keys">M map · G grid · E events · D detail</span>
   <div class="spacer"></div>
   <div class="seg">
     <button id="btnMap" class="on" onclick="setView('map')">🗺️ Map</button>
     <button id="btnGrid" onclick="setView('grid')">📋 Grid</button>
+    <button id="btnEvents" onclick="setView('events')">📡 Events</button>
+    <button id="btnTheme" onclick="toggleTheme()" title="toggle dark/light theme">🌗 Theme</button>
   </div>
 </header>
 
 <div class="panel" id="mapPanel">
   <div id="mapWrap">
-    <svg id="map" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="#ff5d5d"></path>
-        </marker>
-      </defs>
-    </svg>
+    <svg id="map"></svg>
     <div id="mapLegend">
       <span class="lg"><span class="dot" style="background:var(--accent)"></span>Players</span>
       <span class="lg"><span class="dot" style="background:var(--red)"></span>Hostiles</span>
       <span class="lg"><span class="dot" style="background:var(--gr)"></span>NPCs</span>
       <span class="lg"><span class="dot" style="background:var(--pu)"></span>Towns</span>
       <span class="lg"><span class="dot" style="background:var(--or)"></span>Target line</span>
+      <span class="lg"><span class="dot" style="background:var(--cy)"></span>Regions</span>
+    </div>
+    <div id="mapControls">
+      <button onclick="window.MapRenderer.zoomIn()" title="zoom in">＋</button>
+      <button onclick="window.MapRenderer.zoomOut()" title="zoom out">－</button>
+      <button onclick="window.MapRenderer.fit()" title="fit map to world">⤢</button>
     </div>
     <div class="tooltip" id="tip"></div>
   </div>
 </div>
 
 <div class="panel" id="gridPanel" style="display:none">
+  <div class="gridbar">
+    <select id="fOnline" onchange="renderGrid()">
+      <option value="">Online: all</option>
+      <option value="1">Online only</option>
+      <option value="0">Offline only</option>
+    </select>
+    <select id="fState" onchange="renderGrid()"></select>
+    <button onclick="exportCsv()" title="download current grid rows as CSV">⬇ CSV</button>
+    <span class="meta" id="gridCount"></span>
+  </div>
   <div id="gridTbl"></div>
 </div>
 
-<script>
-let bots=[], ent=[], towns=[], view='map';
-const $=id=>document.getElementById(id);
-const FMT=n=>n==null?'-':Number(n).toLocaleString('en-US');
-const pct=(a,b)=>b>0?Math.min(100,a/b*100):0;
-const stateColor=s=>{s=(s||'').toUpperCase();
-  if(['ATTACK','ENGAGE_TARGET','USE_SKILL','ENGAGE'].includes(s))return 'var(--red)';
-  if(['FLEE','RETREAT'].includes(s))return 'var(--or)';
-  if(s==='WANDER')return 'var(--cy)';
-  if(s==='DEAD')return 'var(--dim)';
-  return 'var(--lm)';};
-const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+<div class="panel" id="eventsPanel" style="display:none">
+  <div class="gridbar">
+    <span class="meta">Live event feed — newest first · capped at 200</span>
+    <div class="spacer"></div>
+    <button onclick="clearEvents()">Clear</button>
+  </div>
+  <div id="eventsTbl"></div>
+</div>
 
-async function poll(){
-  try{
-    const p=await fetch('/api/players').then(r=>r.json());
-    const l=await fetch('/api/landmarks').then(r=>r.json());
-    bots=p.bots||[]; ent=p.entities||[]; towns=l.towns||[];
-    $('meta').textContent=`${bots.length} bots · ${new Date().toLocaleTimeString()} · up ${Math.round((Date.now()-(window._t0||Date.now()))/1000)}s · poll OK`;
-    render();
-  }catch(e){ $('meta').textContent='poll error — fleet may be restarting'; }
-}
-function render(){ view==='map'?renderMap():renderGrid(); }
+<div class="panel" id="detailPanel" style="display:none">
+  <div class="detail" id="detailBody"></div>
+</div>
 
-function renderMap(){
-  const svg=$('map'); let out='';
-  let pts=[];
-  bots.forEach(b=>{ if(b.x||b.y)pts.push([b.x,b.y]); (b.ents||[]).forEach(e=>pts.push([e.x,e.y])); });
-  towns.forEach(t=>pts.push([t.x,t.y]));
-  let x0=-83000,x1=-83000,y0=250000,y1=250000;
-  if(pts.length>2){ const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]); x0=Math.min(...xs);x1=Math.max(...xs);y0=Math.min(...ys);y1=Math.max(...ys); }
-  const pad=1500; x0-=pad;x1+=pad;y0-=pad;y1+=pad;
-  const W=1000,H=700; const S=Math.min(W/(x1-x0||1),H/(y1-y0||1));
-  const ox=(W-S*(x1-x0))/2, oy=(H-S*(y1-y0))/2;
-  const px=v=>ox+(v-x0)*S, py=v=>oy+(y1-v)*S;
-  out+='<rect x="0" y="0" width="100%" height="100%" fill="#0d131b"/>';
-  for(let g=Math.ceil(x0/5000)*5000;g<=x1;g+=5000) out+=`<line x1="${px(g)}" y1="0" x2="${px(g)}" y2="700" stroke="#14202b" stroke-width="1"/>`;
-  for(let g=Math.ceil(y0/5000)*5000;g<=y1;g+=5000) out+=`<line x1="0" y1="${py(g)}" x2="1000" y2="${py(g)}" stroke="#14202b" stroke-width="1"/>`;
-  towns.forEach(t=>{
-    if(t.x<x0||t.x>x1||t.y<y0||t.y>y1)return;
-    out+=`<circle cx="${px(t.x)}" cy="${py(t.y)}" r="9" fill="var(--pu)" opacity=".85"><title>Town: ${esc(t.name)} (${t.x}, ${t.y})</title></circle>`+
-         `<text x="${px(t.x)}" y="${py(t.y)+26}" text-anchor="middle" font-size="12" fill="var(--pu)">${esc(t.name)}</text>`;
-  });
-  ent.forEach(e=>{
-    if(e.x<x0||e.x>x1||e.y<y0||e.y>y1)return;
-    const col=e.kind===1?'var(--red)':(e.kind===2?'var(--cy)':'var(--gr)');
-    out+=`<circle cx="${px(e.x)}" cy="${py(e.y)}" r="${e.kind===2?5:3}" fill="${col}" opacity=".8"><title>${esc(e.label)} · (${e.x},${e.y})</title></circle>`;
-  });
-  bots.forEach(b=>{
-    if(b.x==null)return;
-    if(b.target&&b.target.x!=null){
-      const dx=px(b.target.x)-px(b.x),dy=py(b.target.y)-py(b.y); const len=Math.hypot(dx,dy)||1;
-      out+=`<line x1="${px(b.x)}" y1="${py(b.y)}" x2="${px(b.target.x)-dx/len*6}" y2="${py(b.target.y)-dy/len*6}" stroke="var(--or)" stroke-width="1.5" marker-end="url(#arr)" opacity=".8"/>`;
-    }
-  });
-  bots.forEach(b=>{
-    if(b.x==null)return;
-    const col=stateColor(b.state), cx=px(b.x), cy=py(b.y);
-    const tip=`${esc(b.name)} (${b.account})\nL${b.level} · ${FMT(b.exp)}xp · HP ${b.hp}/${b.hpMax}\n(${b.x},${b.y},${b.z}) · ${b.state}\n${esc(b.thought||'')}`;
-    out+=`<circle cx="${cx}" cy="${cy}" r="8" fill="${col}" stroke="#04130b" stroke-width="1.5"><title>${tip}</title></circle>`+
-         `<circle cx="${cx}" cy="${cy}" r="8" fill="${col}" opacity=".3"><animate attributeName="r" values="8;26" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values=".4;0" dur="1.6s" repeatCount="indefinite"/></circle>`+
-         `<text x="${cx}" y="${cy-13}" text-anchor="middle" font-size="11" font-weight="700" fill="#eafff2">${esc(b.name)} L${b.level}</text>`+
-         `<text x="${cx}" y="${cy+22}" text-anchor="middle" font-size="9" fill="#bfe8ff">${esc((b.thought||b.action||'').slice(0,26))}</text>`;
-  });
-  svg.innerHTML=out;
-}
-function renderGrid(){
-  let h='<table><thead><tr><th>Account</th><th>Char</th><th>Lvl</th><th>EXP</th><th>HP</th><th>MP</th><th>CP</th><th>Pos (x,y,z)</th><th>Δ1m</th><th>Moves</th><th>Load</th><th>Weapon</th><th>Adena</th><th>SP</th><th>Mobs</th><th>NPCs</th><th>Inv</th><th>Items</th><th>Target</th><th>Tgt dist</th><th>Thought</th><th>State</th><th>Online</th><th>Up</th><th>PktAge</th></tr></thead><tbody>';
-  bots.forEach(b=>{
-    const hp=pct(b.hp,b.hpMax), mp=pct(b.mp,b.mpMax);
-    const items=(b.items||[]).map(i=>`<span class="th">${i.id}</span>×${i.count}`).join(' ');
-    h+=`<tr>
-      <td>${esc(b.account)}</td><td><b>${esc(b.name)}</b></td>
-      <td>${b.level==null?'-':b.level}</td>
-      <td class="xp">${FMT(b.exp)}</td>
-      <td class="hp">${b.hp}/${b.hpMax}<div class="bar"><div style="width:${hp}%;background:var(--gr)"></div></div></td>
-      <td class="mp">${b.mp}/${b.mpMax}<div class="bar"><div style="width:${mp}%;background:var(--cy)"></div></div></td>
-      <td>${b.cp}/${b.cpMax}</td>
-      <td>${b.x}, ${b.y}, ${b.z}</td>
-      <td>${b.movedLast60!=null?b.movedLast60+'u':'-'}</td>
-      <td>${b.movesSent!=null?b.movesSent:'-'}</td>
-      <td>${b.load}/${b.maxLoad}</td>
-      <td>${b.weapon?'🗡️':'🦾'}</td>
-      <td>${FMT(b.adena)}</td><td>${FMT(b.sp)}</td>
-      <td>${b.mobs}</td><td>${b.npcs}</td>
-      <td>${b.invPct}% (${b.itemCount})</td>
-      <td>${items||'-'}</td>
-      <td>${b.target?esc(b.target.label):'-'}</td>
-      <td>${b.target&&b.target.d?Math.round(b.target.d):'-'}</td>
-      <td class="th">${esc(b.thought||b.action||'-')}</td>
-      <td class="st ${'st-'+esc(b.state)}">${esc(b.state)}</td>
-      <td class="${b.online?'online':'offline'}">${b.online?'ONLINE':'OFF'}</td>
-      <td>${b.uptimeSec?'~'+Math.floor(b.uptimeSec/60)+'m':'-'}</td>
-      <td>${b.lastAgeMs!=null?(b.lastAgeMs/1000).toFixed(1)+'s':'-'}</td>
-    </tr>`;
-  });
-  h+='</tbody></table>'; $('gridTbl').innerHTML=h;
-}
 
-function setView(v){
-  view=v;
-  $('btnMap').classList.toggle('on',v==='map');
-  $('btnGrid').classList.toggle('on',v==='grid');
-  $('mapPanel').style.display=v==='map'?'':'none';
-  $('gridPanel').style.display=v==='grid'?'':'none';
-  render();
+<script>/* build:2a753645-20260812042219 */window.__BUILD__="2a753645-20260812042219";window.__MAP_DATA__={regions:{"version":1,"units":"meters","source":"zones/custom_town.xml (TownZone NPoly/Cuboid)","regions":[{"name":"Giran Castle Town","id":"11020","category":"town","shape":"NPoly","minZ":-3800,"maxZ":-3300,"center":{"x":84273,"y":148288},"polygon":[[77170,147420],[79200,147420],[79200,144780],[80310,144780],[80310,143630],[83120,143630],[83120,143505],[83700,143505],[83700,141500],[84070,141500],[84070,143505],[85040,143505],[85040,145760],[86115,145760],[86115,146910],[88425,146910],[88425,147175],[90430,147175],[90430,147540],[88425,147540],[88425,150050],[86495,150050],[86495,150250],[85995,150250],[85995,152250],[86780,152250],[86780,153600],[84850,153600],[84850,152250],[85625,152250],[85265,150250],[85085,150250],[85085,149875],[83680,149875],[83680,149920],[83500,149920],[83500,151270],[82705,151270],[82705,152820],[79195,152820],[79195,149805],[77170,149805]]},{"name":"Dark Elven Village","id":"11021","category":"town","shape":"NPoly","minZ":-4700,"maxZ":-3600,"center":{"x":11247,"y":17086},"polygon":[[15704,15397],[15765,15878],[15801,16332],[14098,19672],[10278,20689],[8852,20421],[7484,18628],[7236,18042],[7141,17507],[7045,16819],[7382,14486],[13891,13025],[15542,15230]]},{"name":"Talking Island","id":"11022","category":"town","shape":"NPoly","minZ":-3800,"maxZ":-3700,"center":{"x":-84327,"y":242833},"polygon":[[-83739,245733],[-84049,246087],[-84289,246258],[-84556,246243],[-84984,245820],[-85336,245426],[-85684,245099],[-85969,244770],[-86400,244292],[-86664,243997],[-86940,243631],[-87517,243034],[-87650,242799],[-87613,242572],[-87348,242246],[-86956,241942],[-86656,241684],[-86343,241365],[-85829,240966],[-85544,240765],[-85193,240440],[-84865,240185],[-84594,239866],[-84284,239666],[-84002,239734],[-83822,239922],[-83640,240190],[-83295,240492],[-82990,240878],[-82635,241208],[-82234,241698],[-82027,241985],[-81684,242328],[-81421,242741],[-81113,243073],[-81011,243228],[-81029,243496],[-81340,243797],[-81691,244028],[-82292,244585],[-82787,244999],[-83726,245721]]},{"name":"Elven Village","id":"11023","category":"town","shape":"NPoly","minZ":-3600,"maxZ":-2750,"center":{"x":45365,"y":50045},"polygon":[[45364,46535],[45895,46578],[46388,46713],[46861,46934],[47290,47232],[47659,47598],[47959,48024],[48182,48499],[48318,49006],[48364,49523],[48319,50048],[48186,50548],[47963,51022],[47661,51450],[47286,51836],[46864,52126],[46398,52345],[46313,52598],[45768,52597],[45735,52665],[45651,52791],[45520,52878],[45363,52912],[45210,52882],[45077,52794],[44993,52667],[44961,52600],[44422,52600],[44342,52347],[43867,52131],[43438,51827],[43075,51458],[42766,51019],[42546,50557],[42412,50051],[42367,49530],[42410,49012],[42547,48509],[42769,48034],[43065,47602],[43437,47232],[43859,46937],[44336,46713],[44843,46575],[45395,46530]]},{"name":"Orc Village","id":"11024","category":"town","shape":"NPoly","minZ":-400,"maxZ":-200,"center":{"x":-45586,"y":-113739},"polygon":[[-45528,-110079],[-45711,-110075],[-45704,-110164],[-46633,-110080],[-46625,-109992],[-46803,-109993],[-47345,-109973],[-47388,-110012],[-47388,-113001],[-47351,-113039],[-47102,-113038],[-47107,-113382],[-47326,-113379],[-47326,-113829],[-47114,-113826],[-47102,-114171],[-47350,-114170],[-47388,-114199],[-47391,-117182],[-47339,-117239],[-46791,-117240],[-46607,-117240],[-46619,-117151],[-45701,-117000],[-45705,-117085],[-45523,-117088],[-44169,-116722],[-44147,-116804],[-43838,-116717],[-43855,-116638],[-43779,-116620],[-42581,-115424],[-42472,-115258],[-42051,-113671],[-42050,-113502],[-42474,-111925],[-42554,-111775],[-43843,-110456],[-44147,-110375],[-45529,-110078]]},{"name":"Gludin Village","id":"11025","category":"town","shape":"NPoly","minZ":-3300,"maxZ":-3000,"center":{"x":-80417,"y":151635},"polygon":[[-84867,149371],[-82581,149364],[-82499,149139],[-81593,149177],[-81551,149410],[-79270,149392],[-79275,150365],[-79055,150368],[-78820,150429],[-78644,150595],[-78558,150837],[-78567,152410],[-78796,152420],[-78803,154319],[-77131,155437],[-78190,156459],[-79978,156104],[-84876,156106],[-84875,149371]]},{"name":"Dwarven Village","id":"11026","category":"town","shape":"NPoly","minZ":-1600,"maxZ":-800,"center":{"x":116440,"y":-180511},"polygon":[[115499,-176771],[115301,-176769],[114877,-176811],[113385,-177602],[112934,-178507],[113954,-183578],[115493,-183698],[115748,-184078],[115936,-184197],[116268,-184243],[116716,-184246],[117023,-184162],[117211,-184022],[117325,-183825],[117490,-183411],[117629,-182930],[117762,-182686],[117762,-182260],[117734,-182090],[117531,-181747],[117452,-180534],[117492,-180010],[117466,-179559],[117327,-179170],[117328,-178966],[117303,-178695],[116860,-177230],[116806,-177131],[116650,-176975],[116418,-176887],[115929,-176804],[115490,-176767]]},{"name":"Gludio Castle Town","id":"11027","category":"town","shape":"NPoly","minZ":-3200,"maxZ":-2900,"center":{"x":-14522,"y":123414},"polygon":[[-14960,121148],[-14875,121120],[-14717,121106],[-14394,121109],[-14242,121104],[-12659,121098],[-12025,121767],[-12024,123944],[-12277,124668],[-12648,125573],[-12879,126199],[-13855,126470],[-14484,126463],[-15236,126178],[-16126,125356],[-16531,124493],[-16537,123850],[-16492,123330],[-16194,123160],[-16057,123101],[-15327,122741],[-14958,121150]]},{"name":"Dion Castle Town","id":"11028","category":"town","shape":"NPoly","minZ":-3250,"maxZ":-2600,"center":{"x":18112,"y":144278},"polygon":[[15264,141764],[15434,143574],[15760,144707],[15846,145302],[16134,146850],[16715,147153],[17844,147640],[18139,147138],[18541,146758],[18782,146598],[19069,146521],[19430,146485],[20363,146421],[20722,146319],[21415,146319],[21402,145011],[21381,143675],[20696,142841],[20380,142492],[19060,142463],[18821,142512],[17885,143046],[17447,143348],[17019,144028],[16780,142908],[17344,142847],[17327,142650],[17483,142634],[17396,141776],[17238,141792],[17218,141574],[15265,141765]]},{"name":"Town of Oren","id":"11029","category":"town","shape":"NPoly","minZ":-2250,"maxZ":-1400,"center":{"x":80896,"y":54436},"polygon":[[84014,52245],[84138,54683],[84143,55029],[84001,57029],[81773,57023],[81795,56237],[81239,56236],[81282,56892],[81187,56904],[81105,57179],[79195,57167],[78986,57076],[78844,55218],[78843,54882],[79148,54560],[79660,54556],[79662,53994],[79002,53990],[78963,53359],[78959,53070],[79027,52125],[79628,52070],[80547,52068],[80835,52116],[80733,53068],[81306,53070],[81369,52310],[82605,52244],[84010,52250]]},{"name":"Hunter Village","id":"11030","category":"town","shape":"NPoly","minZ":-2800,"maxZ":-1500,"center":{"x":117113,"y":76299},"polygon":[[115318,74260],[115019,74495],[113919,75365],[114386,77505],[114653,78197],[115063,80068],[117015,81804],[120527,81006],[121485,79049],[121631,74718],[119999,74209],[118499,74097],[117946,74068],[117404,73671],[115622,74026],[115328,74252]]},{"name":"Town of Aden","id":"11031","category":"town","shape":"NPoly","minZ":-2700,"maxZ":-1900,"center":{"x":147229,"y":26073},"polygon":[[143209,25727],[143209,26975],[143463,27286],[143473,30074],[144386,30947],[146209,30946],[146649,31179],[146830,31508],[148081,31511],[148275,31176],[148696,30937],[150367,30942],[151289,30008],[151233,25914],[151399,25719],[151403,24470],[151205,24271],[151198,21168],[150233,20225],[148287,20227],[148086,19992],[146836,19992],[146642,20199],[144429,20204],[143459,21124],[143446,25542],[143198,25731]]},{"name":"Town of Goddard","id":"11032","category":"town","shape":"NPoly","minZ":-3550,"maxZ":-2600,"center":{"x":147728,"y":-56548},"polygon":[[144345,-53353],[145283,-52411],[146840,-51665],[148575,-51659],[150128,-52405],[151075,-53362],[152091,-54735],[151974,-55898],[151852,-56567],[151737,-57217],[151608,-57387],[151239,-57131],[150447,-58201],[150832,-58488],[150551,-58851],[148717,-59764],[148590,-59759],[148590,-59291],[146839,-59291],[146842,-59768],[146700,-59766],[144860,-58848],[144589,-58489],[144967,-58193],[144179,-57141],[143807,-57392],[143685,-57210],[143335,-55225],[143679,-53917],[143887,-53081]]},{"name":"Rune Castle Town","id":"11033","category":"town","shape":"Cuboid","minZ":-1200,"maxZ":3000,"center":{"x":39840,"y":-48430},"polygon":[[32531,-52045],[47150,-52045],[47150,-44815],[32531,-44815]]},{"name":"Heine","id":"11034","category":"town","shape":"NPoly","minZ":-3800,"maxZ":-3400,"center":{"x":112094,"y":221381},"polygon":[[111391,216329],[106872,216579],[106693,217371],[106612,217923],[106612,218409],[106435,221617],[106435,222250],[106563,222851],[108183,223150],[108916,223150],[110264,222975],[110253,223651],[110185,223669],[110095,223756],[110056,223864],[109790,223883],[109703,223966],[109705,224197],[109882,224363],[109884,225522],[110764,225507],[110767,225985],[112002,225992],[112005,225510],[112891,225520],[112886,224389],[113068,224198],[113072,223967],[112983,223887],[112704,223864],[112676,223758],[112592,223669],[112520,223654],[112506,222975],[113745,223440],[115249,223440],[115249,223653],[115356,223653],[115356,223322],[115392,222838],[115393,221433],[115980,220372],[116055,219529],[116055,219029],[116220,218649],[116219,218388],[116041,218380],[116043,217586],[115310,217610],[114755,217086],[114434,217051],[114417,216838],[114182,216838],[114161,216957],[113280,216962],[111885,216801],[111808,216566],[111631,216386],[111393,216322]]},{"name":"Town of Schuttgart","id":"11035","category":"town","shape":"NPoly","minZ":-2350,"maxZ":-1200,"center":{"x":87626,"y":-141761},"polygon":[[91098,-144458],[91477,-143218],[91170,-141327],[90797,-140803],[90404,-141058],[90077,-140615],[90424,-140324],[89997,-139845],[88300,-138977],[87659,-138913],[87656,-139375],[87044,-139383],[87039,-138938],[86427,-138981],[84717,-139826],[84295,-140324],[84648,-140602],[84286,-141095],[83959,-140825],[83562,-141356],[83229,-143217],[83821,-145580],[84373,-148184],[89454,-148688],[91280,-145403],[91084,-144472]]},{"name":"Floran Village","id":"11036","category":"town","shape":"NPoly","minZ":-3600,"maxZ":-3400,"center":{"x":17629,"y":170150},"polygon":[[16529,170516],[16645,170141],[16747,169833],[16770,169677],[16822,169464],[16858,169431],[17457,169398],[17939,169475],[18109,169528],[18435,169666],[18628,169781],[18641,169828],[18531,170204],[18473,170530],[18452,170686],[18394,170900],[18361,170937],[17771,170962],[17220,170888],[16897,170757],[16543,170561]]},{"name":"Primeval Isle (Town Zone)","id":"40001","category":"town","shape":"Cuboid","minZ":-4300,"maxZ":2700,"center":{"x":16339,"y":-16384},"polygon":[[0,-32768],[32678,-32768],[32678,0],[0,0]]}]},landmarks:{"version":1,"units":"meters","source":"DashboardApi.java TOWN_NAMES/TOWNS","landmarks":[{"name":"TalkingIsland","kind":"town","x":-71338,"y":258271,"z":-3104},{"name":"Gludio","kind":"town","x":-14674,"y":123346,"z":-3112},{"name":"Dion","kind":"town","x":18574,"y":145346,"z":-3096},{"name":"Giran","kind":"town","x":80874,"y":147346,"z":-3464},{"name":"Oren","kind":"town","x":83074,"y":53246,"z":-1568},{"name":"HuntersVillage","kind":"town","x":116974,"y":76246,"z":-2728},{"name":"Aden","kind":"town","x":147446,"y":27046,"z":-2208}]}};(function () {
+'use strict';
+function $e(id) { return document.getElementById(id); }
+function esc(s) {
+s = String(s == null ? '' : s).replace(/[<>&]/g,
+function (c) { return ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]; });
+return s.split('"').join('&quot;');
 }
-setInterval(poll,2000);
-window._t0=Date.now();
-poll();
-</script>
+function stateColor(s) {
+s = String(s || '').toUpperCase();
+if (['ATTACK', 'ENGAGE_TARGET', 'USE_SKILL', 'ENGAGE'].indexOf(s) >= 0) return 'var(--red)';
+if (['FLEE', 'RETREAT'].indexOf(s) >= 0) return 'var(--or)';
+if (s === 'WANDER') return 'var(--cy)';
+if (s === 'DEAD') return 'var(--dim)';
+return 'var(--lm)';
+}
+var svg = null, wrap = null;
+var regions = [], landmarks = [];
+var minX = 0, maxX = 0, minY = 0, maxY = 0;
+var s = 1, tx = 0, ty = 0;
+var baseBuilt = false;
+var pointers = new Map();
+var pinchDist = 0;
+function dataFromInline() {
+if (window.__MAP_DATA__ && window.__MAP_DATA__.regions && window.__MAP_DATA__.landmarks) {
+return Promise.resolve(window.__MAP_DATA__);
+}
+return Promise.all([
+fetch('data/regions.json').then(function (r) { return r.json(); }),
+fetch('data/landmarks.json').then(function (r) { return r.json(); })
+]).then(function (arr) {
+return { regions: arr[0].regions || [], landmarks: arr[1].landmarks || [] };
+});
+}
+function computeBounds() {
+var xs = [], ys = [];
+regions.forEach(function (r) {
+(r.polygon || []).forEach(function (p) { xs.push(p[0]); ys.push(p[1]); });
+if (r.center) { xs.push(r.center.x); ys.push(r.center.y); }
+});
+landmarks.forEach(function (l) { xs.push(l.x); ys.push(l.y); });
+if (xs.length === 0) { xs = [-100000, 160000]; ys = [-180000, 260000]; }
+minX = Math.min.apply(null, xs); maxX = Math.max.apply(null, xs);
+minY = Math.min.apply(null, ys); maxY = Math.max.apply(null, ys);
+var dx = (maxX - minX) * 0.06, dy = (maxY - minY) * 0.06;
+minX -= dx; maxX += dx; minY -= dy; maxY += dy;
+}
+function viewW() { return wrap ? wrap.clientWidth : 800; }
+function viewH() { return wrap ? wrap.clientHeight : 600; }
+function nx(wx) { return wx - minX; }
+function ny(wy) { return maxY - wy; }
+function fit() {
+var w = viewW(), h = viewH();
+var bw = (maxX - minX) || 1, bh = (maxY - minY) || 1;
+s = Math.max(0.00001, Math.min(w / bw, h / bh));
+tx = (w - bw * s) / 2;
+ty = (h - bh * s) / 2;
+}
+function zoomAt(cx, cy, factor) {
+var ns = s * factor;
+if (ns < 0.00002 || ns > 2000) return;
+var wxs = (cx - tx) / s, wys = (cy - ty) / s;
+tx = cx - wxs * ns;
+ty = cy - wys * ns;
+s = ns;
+render();
+}
+function zoomBy(factor) { zoomAt(viewW() / 2, viewH() / 2, factor); }
+function svgEl(tag, attrs, parent) {
+var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+for (var k in attrs) el.setAttribute(k, attrs[k]);
+if (parent) parent.appendChild(el);
+return el;
+}
+function buildDefs() {
+var defs = svgEl('defs', {}, svg);
+var grad = svgEl('linearGradient', { id: 'terrainGrad', x1: 0, y1: 0, x2: 1, y2: 1 }, defs);
+grad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#1c3a2a' }));
+grad.appendChild(svgEl('stop', { offset: '55%', 'stop-color': '#27493a' }));
+grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#3a4f36' }));
+var mk = svgEl('marker', { id: 'arr', markerWidth: '8', markerHeight: '8', refX: '6', refY: '3', orient: 'auto' }, defs);
+mk.appendChild(svgEl('path', { d: 'M0,0 L6,3 L0,6 Z', fill: '#ff5d5d' }));
+}
+function buildBase() {
+if (!svg) return;
+while (svg.firstChild) svg.removeChild(svg.firstChild);
+buildDefs();
+var g = svgEl('g', { id: 'baseLayer', transform: 'translate(' + tx + ',' + ty + ') scale(' + s + ')' }, svg);
+var bw = (maxX - minX), bh = (maxY - minY);
+var M = Math.max(bw, bh) * 4;
+svgEl('rect', {
+x: -M, y: -M, width: bw + M * 2, height: bh + M * 2,
+fill: '#0a1e33', stroke: 'none'
+}, g);
+svgEl('rect', {
+x: 0, y: 0, width: bw, height: bh,
+rx: Math.min(bw, bh) * 0.02, ry: Math.min(bw, bh) * 0.02,
+fill: 'url(#terrainGrad)', stroke: 'var(--gridline)', 'stroke-width': 2 / s
+}, g);
+var STEP = 30000;
+var gx;
+for (gx = Math.ceil(minX / STEP) * STEP; gx <= maxX; gx += STEP) {
+svgEl('line', { x1: nx(gx), y1: 0, x2: nx(gx), y2: bh, stroke: 'var(--gridline)', 'stroke-width': 1 / s }, g);
+}
+for (gx = Math.ceil(minY / STEP) * STEP; gx <= maxY; gx += STEP) {
+svgEl('line', { x1: 0, y1: ny(gx), x2: bw, y2: ny(gx), stroke: 'var(--gridline)', 'stroke-width': 1 / s }, g);
+}
+regions.forEach(function (r) {
+var poly = r.polygon || [];
+if (poly.length < 3) return;
+var pts = poly.map(function (p) { return nx(p[0]) + ',' + ny(p[1]); }).join(' ');
+var p = svgEl('polygon', {
+points: pts,
+fill: 'var(--pu)', 'fill-opacity': '0.14',
+stroke: 'var(--pu)', 'stroke-opacity': '0.6', 'stroke-width': 1.5 / s
+}, g);
+p.appendChild(svgEl('title', {}, p)).textContent = r.name + ' (' + poly.length + '-pt polygon)';
+var cx = r.center ? r.center.x : centroidX(poly);
+var cy = r.center ? r.center.y : centroidY(poly);
+svgEl('text', {
+x: nx(cx), y: ny(cy), 'text-anchor': 'middle', class: 'mlabel',
+'font-size': 11 / s, fill: 'var(--txthi)'
+}, g).textContent = r.name;
+});
+landmarks.forEach(function (l) {
+var cx = nx(l.x), cy = ny(l.y);
+var pin = svgEl('circle', { cx: cx, cy: cy, r: 9 / s, fill: 'var(--accent)', opacity: '0.9' }, g);
+pin.appendChild(svgEl('title', {}, pin)).textContent = l.name + ' (' + l.x + ', ' + l.y + ', ' + (l.z || 0) + ')';
+svgEl('text', {
+x: cx, y: cy + 26 / s, 'text-anchor': 'middle', class: 'mlabel',
+'font-size': 12 / s, fill: 'var(--accent)'
+}, g).textContent = l.name;
+});
+}
+function centroidX(poly) { return poly.reduce(function (a, p) { return a + p[0]; }, 0) / poly.length; }
+function centroidY(poly) { return poly.reduce(function (a, p) { return a + p[1]; }, 0) / poly.length; }
+function render(bots, ent, towns) {
+if (!svg) return;
+bots = bots || []; ent = ent || []; towns = towns || [];
+var old = $e('overlay');
+if (old) svg.removeChild(old);
+var g = svgEl('g', {
+id: 'overlay', transform: 'translate(' + tx + ',' + ty + ') scale(' + s + ')'
+}, svg);
+towns.forEach(function (t) {
+if (t.x == null) return;
+svgEl('circle', { cx: nx(t.x), cy: ny(t.y), r: 9 / s, fill: 'var(--pu)', opacity: '0.85' }, g);
+});
+ent.forEach(function (e) {
+if (e.x == null) return;
+var col = e.kind === 1 ? 'var(--red)' : (e.kind === 2 ? 'var(--cy)' : 'var(--gr)');
+svgEl('circle', { cx: nx(e.x), cy: ny(e.y), r: (e.kind === 2 ? 5 : 3) / s, fill: col, opacity: '0.8' }, g);
+});
+bots.forEach(function (b) {
+if (b.x == null || !b.target || b.target.x == null) return;
+var x1 = nx(b.x), y1 = ny(b.y), x2 = nx(b.target.x), y2 = ny(b.target.y);
+var len = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) || 1;
+svgEl('line', {
+x1: x1, y1: y1, x2: x2 - (x2 - x1) / len * 6 / s, y2: y2 - (y2 - y1) / len * 6 / s,
+stroke: 'var(--or)', 'stroke-width': 1.5 / s, 'marker-end': 'url(#arr)', opacity: '0.8'
+}, g);
+});
+bots.forEach(function (b) {
+if (b.x == null) return;
+var col = stateColor(b.state), cx = nx(b.x), cy = ny(b.y);
+var tip = esc(b.name) + ' (' + esc(b.account || '') + ')\nL' + b.level + ' · ' +
+(b.exp != null ? Number(b.exp).toLocaleString('en-US') : '-') +
+'xp · HP ' + b.hp + '/' + b.hpMax +
+'\n(' + b.x + ',' + b.y + ',' + b.z + ') · ' + esc(b.state) + '\n' + esc(b.thought || '');
+var c = svgEl('circle', { cx: cx, cy: cy, r: 8 / s, fill: col, stroke: 'var(--stroke)', 'stroke-width': 1.5 / s }, g);
+c.appendChild(svgEl('title', {}, c)).textContent = tip;
+svgEl('circle', { cx: cx, cy: cy, r: 8 / s, fill: col, opacity: '0.3', class: 'plr2' }, g);
+svgEl('text', { x: cx, y: cy - 13 / s, 'text-anchor': 'middle', 'font-size': 11 / s, class: 'mlabel' }, g)
+.textContent = esc(b.name) + ' L' + b.level;
+svgEl('text', { x: cx, y: cy + 22 / s, 'text-anchor': 'middle', class: 'sublabel', 'font-size': 9 / s }, g)
+.textContent = esc((b.thought || b.action || '').slice(0, 26));
+});
+}
+function evXY(e) {
+var r = wrap.getBoundingClientRect();
+return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+function pointerDist() {
+var a = Array.from(pointers.values());
+if (a.length < 2) return 0;
+return Math.sqrt((a[0].x - a[1].x) * (a[0].x - a[1].x) + (a[0].y - a[1].y) * (a[0].y - a[1].y));
+}
+function pointerMid() {
+var a = Array.from(pointers.values());
+return { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2 };
+}
+function onDown(e) {
+var p = evXY(e);
+pointers.set(e.pointerId, p);
+if (wrap.setPointerCapture) wrap.setPointerCapture(e.pointerId);
+pinchDist = pointers.size === 2 ? pointerDist() : 0;
+}
+function onMove(e) {
+if (!pointers.has(e.pointerId)) return;
+var p = evXY(e);
+var prev = pointers.get(e.pointerId);
+if (pointers.size === 1) {
+tx += p.x - prev.x;
+ty += p.y - prev.y;
+pointers.set(e.pointerId, p);
+render();
+} else if (pointers.size === 2) {
+pointers.set(e.pointerId, p);
+var d = pointerDist();
+if (pinchDist > 0) {
+var mid = pointerMid();
+zoomAt(mid.x, mid.y, d / pinchDist);
+}
+pinchDist = d;
+}
+}
+function onUp(e) {
+pointers.delete(e.pointerId);
+if (pointers.size < 2) pinchDist = 0;
+}
+function onWheel(e) {
+e.preventDefault();
+var p = evXY(e);
+zoomAt(p.x, p.y, Math.exp(-e.deltaY * 0.0015));
+}
+function init() {
+svg = $e('map');
+wrap = $e('mapWrap');
+if (!svg || !wrap) return;
+svg.removeAttribute('viewBox');
+svg.removeAttribute('preserveAspectRatio');
+svg.style.overflow = 'hidden';
+svg.addEventListener('pointerdown', onDown);
+svg.addEventListener('pointermove', onMove);
+svg.addEventListener('pointerup', onUp);
+svg.addEventListener('pointercancel', onUp);
+svg.addEventListener('wheel', onWheel, { passive: false });
+svg.addEventListener('dblclick', function () { fit(); render(); });
+dataFromInline().then(function (data) {
+regions = data.regions || [];
+landmarks = data.landmarks || [];
+computeBounds();
+fit();
+buildBase();
+baseBuilt = true;
+render();
+if (window.__onMapReady) window.__onMapReady(regions, landmarks);
+}).catch(function () {
+computeBounds(); fit(); buildBase(); baseBuilt = true; render();
+});
+window.addEventListener('resize', function () { render(); });
+}
+window.MapRenderer = {
+init: init,
+render: function (bots, ent, towns) { render(bots, ent, towns); },
+zoomIn: function () { zoomBy(1.3); },
+zoomOut: function () { zoomBy(1 / 1.3); },
+fit: function () { fit(); render(); },
+zoomAt: zoomAt,
+getRegions: function () { return regions; },
+getLandmarks: function () { return landmarks; }
+};
+if (document.readyState === 'loading') {
+document.addEventListener('DOMContentLoaded', init);
+} else {
+init();
+}
+})();
+'use strict';
+var bots = [], ent = [], towns = [], events = [], view = 'map';
+var gridSort = { key: 'account', dir: 1 }, detailIndex = 0;
+var seenSeqs = new Set();
+function $(id) { return document.getElementById(id); }
+function FMT(n) { return n == null ? '-' : Number(n).toLocaleString('en-US'); }
+function pct(a, b) { return b > 0 ? Math.min(100, a / b * 100) : 0; }
+function esc(s) {
+s = String(s == null ? '' : s).replace(/[<>&]/g, function (c) {
+return ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c];
+});
+return s.split('"').join('&quot;');
+}
+async function poll() {
+try {
+var p, l, e, ev;
+var res = await Promise.all([
+fetch('/api/v1/bots').then(function (r) { return r.json(); }),
+fetch('/api/v1/landmarks').then(function (r) { return r.json(); }),
+fetch('/api/v1/entities').then(function (r) { return r.json(); }).catch(function () { return { entities: [] }; }),
+fetch('/api/v1/events').then(function (r) { return r.json(); }).catch(function () { return { events: [] }; })
+]);
+p = res[0]; l = res[1]; e = res[2]; ev = res[3];
+bots = p.bots || [];
+towns = l.towns || [];
+ent = e.entities || [];
+mergeEvents(ev.events || []);
+$('meta').textContent = bots.length + ' bots · ' + events.length + ' evts · ' +
+new Date().toLocaleTimeString() + ' · up ' +
+Math.round((Date.now() - (window._t0 || Date.now())) / 1000) + 's · poll OK';
+render();
+} catch (err) {
+$('meta').textContent = 'poll error — fleet may be restarting (' + err + ')';
+}
+}
+function mergeEvents(list) {
+list.forEach(function (e) {
+if (e && e.seq != null && !seenSeqs.has(e.seq)) { seenSeqs.add(e.seq); events.push(e); }
+});
+events.sort(function (a, b) { return (b.seq || 0) - (a.seq || 0); });
+if (events.length > 200) events = events.slice(0, 200);
+}
+function render() {
+if (view === 'map') { if (window.MapRenderer) window.MapRenderer.render(bots, ent, towns); }
+else if (view === 'grid') renderGrid();
+else if (view === 'events') renderEvents();
+else renderDetail();
+}
+function setView(v) {
+view = v;
+$('btnMap').classList.toggle('on', v === 'map');
+$('btnGrid').classList.toggle('on', v === 'grid');
+$('btnEvents').classList.toggle('on', v === 'events');
+var panels = { map: 'mapPanel', grid: 'gridPanel', events: 'eventsPanel', detail: 'detailPanel' };
+Object.keys(panels).forEach(function (k) {
+$(panels[k]).style.display = (k === v) ? '' : 'none';
+});
+render();
+}
+function itemList(it) {
+if (!Array.isArray(it)) return [];
+return it.filter(function (i) { return Array.isArray(i); })
+.map(function (i) { return { id: i[0], count: i[1] }; });
+}
+function itemMarkup(b) {
+var it = itemList(b.items);
+return it.length ? it.map(function (i) { return '<span class="th">' + i.id + '</span>×' + i.count; }).join(' ') : '-';
+}
+var COLS = [
+{ k: 'account', t: 'Account', num: false, v: function (b) { return b.account || ''; }, h: function (b) { return esc(b.account || '-'); } },
+{ k: 'name', t: 'Char', num: false, v: function (b) { return b.name || ''; }, h: function (b) { return '<b>' + esc(b.name || '-') + '</b>'; } },
+{ k: 'level', t: 'Lvl', num: true, v: function (b) { return b.level || 0; }, h: function (b) { return b.level; } },
+{ k: 'class', t: 'Class', num: false, v: function (b) { return b.charClass || b.cls || ''; }, h: function (b) { return esc(b.charClass || b.cls || '-'); } },
+{ k: 'exp', t: 'EXP', num: true, v: function (b) { return b.exp == null ? -1 : b.exp; }, h: function (b) { return FMT(b.exp); } },
+{ k: 'hp', t: 'HP', num: true, v: function (b) { return b.hp || 0; }, h: function (b) { var p = pct(b.hp, b.hpMax); return b.hp + '/' + b.hpMax + '<div class="bar"><div style="width:' + p + '%;background:var(--gr)"></div></div>'; } },
+{ k: 'mp', t: 'MP', num: true, v: function (b) { return b.mp || 0; }, h: function (b) { var p = pct(b.mp, b.mpMax); return b.mp + '/' + b.mpMax + '<div class="bar"><div style="width:' + p + '%;background:var(--cy)"></div></div>'; } },
+{ k: 'cp', t: 'CP', num: true, v: function (b) { return b.cp || 0; }, h: function (b) { return b.cp + '/' + b.cpMax; } },
+{ k: 'pos', t: 'Pos (x,y,z)', num: false, v: function (b) { return b.x + ',' + b.y + ',' + b.z; }, h: function (b) { return b.x + ', ' + b.y + ', ' + b.z; } },
+{ k: 'moved', t: 'Δ1m', num: true, v: function (b) { return b.movedLast60 != null ? b.movedLast60 : -1; }, h: function (b) { return b.movedLast60 != null ? b.movedLast60 + 'u' : '-'; } },
+{ k: 'moves', t: 'Moves', num: true, v: function (b) { return b.movesSent != null ? b.movesSent : -1; }, h: function (b) { return b.movesSent != null ? b.movesSent : '-'; } },
+{ k: 'load', t: 'Load', num: true, v: function (b) { return b.load || 0; }, h: function (b) { return b.load + '/' + b.maxLoad; } },
+{ k: 'weapon', t: 'Weapon', num: true, v: function (b) { return b.weapon ? 1 : 0; }, h: function (b) { return b.weapon ? '🗡️' : '🦾'; } },
+{ k: 'adena', t: 'Adena', num: true, v: function (b) { return b.adena || 0; }, h: function (b) { return FMT(b.adena); } },
+{ k: 'sp', t: 'SP', num: true, v: function (b) { return b.sp || 0; }, h: function (b) { return FMT(b.sp); } },
+{ k: 'mobs', t: 'Mobs', num: true, v: function (b) { return b.mobs || 0; }, h: function (b) { return b.mobs; } },
+{ k: 'npcs', t: 'NPCs', num: true, v: function (b) { return b.npcs || 0; }, h: function (b) { return b.npcs; } },
+{ k: 'inv', t: 'Inv', num: true, v: function (b) { return b.invPct || 0; }, h: function (b) { return b.invPct + '% (' + b.itemCount + ')'; } },
+{ k: 'items', t: 'Items', num: false, v: function (b) { return itemList(b.items).length; }, h: function (b) { return itemMarkup(b); } },
+{ k: 'target', t: 'Target', num: false, v: function (b) { return b.target ? b.target.label : ''; }, h: function (b) { return b.target ? esc(b.target.label) : '-'; } },
+{ k: 'tgtd', t: 'Tgt dist', num: true, v: function (b) { return b.target && b.target.d ? b.target.d : -1; }, h: function (b) { return b.target && b.target.d ? Math.round(b.target.d) : '-'; } },
+{ k: 'thought', t: 'Thought', num: false, v: function (b) { return b.thought || b.action || ''; }, h: function (b) { return '<span class="th">' + esc(b.thought || b.action || '-') + '</span>'; } },
+{ k: 'state', t: 'State', num: false, v: function (b) { return b.state || ''; }, h: function (b) { return '<span class="st st-' + esc(b.state) + '">' + esc(b.state) + '</span>'; } },
+{ k: 'online', t: 'Online', num: true, v: function (b) { return b.online ? 1 : 0; }, h: function (b) { return '<span class="' + (b.online ? 'online' : 'offline') + '">' + (b.online ? 'ONLINE' : 'OFF') + '</span>'; } },
+{ k: 'up', t: 'Up', num: true, v: function (b) { return b.uptimeSec || 0; }, h: function (b) { return b.uptimeSec ? '~' + Math.floor(b.uptimeSec / 60) + 'm' : '-'; } },
+{ k: 'age', t: 'PktAge', num: true, v: function (b) { return b.pktAgeMs != null ? b.pktAgeMs : -1; }, h: function (b) { return b.pktAgeMs != null ? (b.pktAgeMs / 1000).toFixed(1) + 's' : '-'; } }
+];
+function filteredBots() {
+var fo = $('fOnline').value, fs = $('fState').value;
+return bots.filter(function (b) {
+if (fo === '1' && !b.online) return false;
+if (fo === '0' && b.online) return false;
+if (fs && (b.state || '') !== fs) return false;
+return true;
+});
+}
+function cmpRows(a, b) {
+var c = COLS.filter(function (x) { return x.k === gridSort.key; })[0] || COLS[0];
+var av = c.v(a), bv = c.v(b), r;
+if (c.num) { av = av || 0; bv = bv || 0; r = av - bv; }
+else { av = String(av); bv = String(bv); r = av.localeCompare(bv); }
+return r * gridSort.dir;
+}
+function buildStateFilter() {
+var sel = $('fState'), cur = sel.value;
+var states = Array.from(new Set(bots.map(function (b) { return b.state; }).filter(Boolean))).sort();
+sel.innerHTML = '<option value="">State: all</option>' +
+states.map(function (s) { return '<option value="' + esc(s) + '">' + esc(s) + '</option>'; }).join('');
+sel.value = cur;
+}
+function sortGrid(k) {
+if (gridSort.key === k) gridSort.dir *= -1;
+else { gridSort.key = k; gridSort.dir = 1; }
+renderGrid();
+}
+function renderGrid() {
+buildStateFilter();
+var rows = filteredBots().slice().sort(cmpRows);
+var h = '<table><thead><tr>';
+COLS.forEach(function (c) {
+var act = c.k === gridSort.key;
+var arr = act ? (gridSort.dir === 1 ? '▲' : '▼') : '';
+h += '<th class="sortable" onclick="sortGrid(\'' + c.k + '\')" title="sort by ' + c.t + '">' + c.t + '<span class="arr">' + arr + '</span></th>';
+});
+h += '</tr></thead><tbody>';
+rows.forEach(function (b) {
+h += '<tr>' + COLS.map(function (c) { return '<td>' + c.h(b) + '</td>'; }).join('') + '</tr>';
+});
+h += '</tbody></table>';
+$('gridTbl').innerHTML = h;
+$('gridCount').textContent = rows.length + ' / ' + bots.length + ' bots';
+}
+function csvCell(v) {
+var s2 = String(v == null ? '' : v);
+return (s2.indexOf(',') >= 0 || s2.indexOf('"') >= 0 || s2.indexOf('\n') >= 0)
+? '"' + s2.split('"').join('""') + '"' : s2;
+}
+function exportCsv() {
+var rows = filteredBots().slice().sort(cmpRows);
+var lines = [COLS.map(function (c) { return csvCell(c.t); }).join(',')];
+rows.forEach(function (b) { lines.push(COLS.map(function (c) { return csvCell(c.v(b)); }).join(',')); });
+var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+var a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = 'fleet_grid_' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.csv';
+document.body.appendChild(a); a.click(); a.remove();
+URL.revokeObjectURL(a.href);
+}
+var EVCLASS = { kill: 'ev-kill', 'level-up': 'ev-level', 'skill-cast': 'ev-skill', damage: 'ev-dmg', chat: 'ev-chat', sysmsg: 'ev-sys', connect: 'ev-conn', disconnect: 'ev-disc', move: 'ev-move' };
+var EVLABEL = { kill: 'KILL', 'level-up': 'LEVEL', 'skill-cast': 'SKILL', damage: 'DMG', chat: 'CHAT', sysmsg: 'SYS', connect: 'CONN', disconnect: 'DISC', move: 'MOVE' };
+function fmtEventData(d) {
+if (!d || typeof d !== 'object') return '';
+var parts = [];
+for (var k in d) {
+var val = d[k];
+if (Array.isArray(val)) val = val.join('x');
+else if (val && typeof val === 'object') val = JSON.stringify(val);
+parts.push(k + ': ' + val);
+}
+return parts.join(' · ');
+}
+function renderEvents() {
+var h = '';
+if (!events.length) {
+h = '<div class="ev ev-other"><span class="tag">···</span><span class="body">No events yet — the feed fills when the fleet runs.</span></div>';
+}
+events.forEach(function (ev) {
+var type = ev.type || 'other';
+var cls = EVCLASS[type] || 'ev-other';
+var lab = EVLABEL[type] || String(type).toUpperCase();
+var t = new Date(ev.t).toLocaleTimeString();
+var body = fmtEventData(ev.data) || '-';
+h += '<div class="ev ' + cls + '"><span class="t">' + t + '</span><span class="tag">' + lab + '</span><span class="bot">' + esc(ev.bot || '-') + '</span><span class="body">' + esc(body) + '</span></div>';
+});
+$('eventsTbl').innerHTML = h;
+}
+function clearEvents() { events = []; seenSeqs.clear(); renderEvents(); }
+function cycleDetail(d) { detailIndex = (detailIndex + d + bots.length) % bots.length; renderDetail(); }
+function renderDetail() {
+if (!bots.length) { $('detailBody').innerHTML = '<div class="meta">No bots to inspect.</div>'; return; }
+var b = bots[detailIndex % bots.length];
+var hpP = pct(b.hp, b.hpMax), mpP = pct(b.mp, b.mpMax);
+var it = itemList(b.items).map(function (i) { return '<span class="th">' + i.id + '</span>×' + i.count; }).join(' ') || '-';
+function card(k, v) { return '<div class="dcard"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>'; }
+var h = '<h2>' + esc(b.name || b.account) + ' <span class="meta">' + esc(b.account || '') + ' · L' + b.level + '</span></h2>';
+h += '<div class="dstats">';
+h += card('State', '<span class="st st-' + esc(b.state) + '">' + esc(b.state) + '</span> ' + (b.online ? '<span class="online">ONLINE</span>' : '<span class="offline">OFF</span>'));
+h += card('Position', b.x + ', ' + b.y + ', ' + b.z);
+h += card('HP', b.hp + '/' + b.hpMax + '<div class="bar"><div style="width:' + hpP + '%;background:var(--gr)"></div></div>');
+h += card('MP', b.mp + '/' + b.mpMax + '<div class="bar"><div style="width:' + mpP + '%;background:var(--cy)"></div></div>');
+h += card('CP', b.cp + '/' + b.cpMax);
+h += card('EXP', FMT(b.exp)); h += card('SP', FMT(b.sp));
+h += card('Load', b.load + '/' + b.maxLoad); h += card('Weapon', b.weapon ? '🗡️' : '🦾'); h += card('Adena', FMT(b.adena));
+h += card('Mobs / NPCs', b.mobs + ' / ' + b.npcs); h += card('Inventory', b.invPct + '% · ' + b.itemCount + ' items'); h += card('Items', it);
+h += card('Target', b.target ? esc(b.target.label) + ' (' + Math.round(b.target.d) + 'u)' : '-');
+h += card('Uptime', b.uptimeSec ? '~' + Math.floor(b.uptimeSec / 60) + 'm' : '-'); h += card('PktAge', b.pktAgeMs != null ? (b.pktAgeMs / 1000).toFixed(1) + 's' : '-');
+h += card('Thought', '<span class="th">' + esc(b.thought || b.action || '-') + '</span>');
+h += '</div>';
+h += '<div class="dnav"><button onclick="cycleDetail(-1)">◀ prev</button><button onclick="cycleDetail(1)">next ▶</button></div>';
+$('detailBody').innerHTML = h;
+}
+function applyTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('fleetTheme', t); }
+function initTheme() { applyTheme(localStorage.getItem('fleetTheme') || 'dark'); }
+function toggleTheme() { applyTheme(document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
+document.addEventListener('keydown', function (e) {
+var tag = (e.target && e.target.tagName) || '';
+if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+var k = e.key.toLowerCase();
+if (k === 'm') setView('map');
+else if (k === 'g') setView('grid');
+else if (k === 'e') setView('events');
+else if (k === 'd') { detailIndex = 0; setView('detail'); }
+});
+initTheme();
+setInterval(poll, 2000);
+window._t0 = Date.now();
+poll();</script>
 </body>
 </html>

@@ -1,0 +1,101 @@
+/* AI Fleet Dashboard — modular stylesheet.
+   Source of truth for dashboard/index.html (bundled by scripts/build_dashboard.sh).
+   split from index.html by frontend-data (WPT-31 frontend modularization). */
+:root{
+  --bg:#0b0f14; --panel:#131a22; --line:#22303f; --txt:#cfe3d6;
+  --dim:#6e8791; --accent:#39d98a; --red:#ff5d5d; --or:#ffb454;
+  --cy:#4fd6ff; --lm:#b6ff3c; --gr:#7ee787; --pu:#c792ea; --bl:#6eb7ff;
+  --mapbg:#0d131b; --gridline:#14202b; --stroke:#04130b; --hover:#17202b;
+  --bar:#1d2833; --chipbg:rgba(11,15,20,.85); --txthi:#eafff2; --txsub:#bfe8ff; --tagtxt:#04130b;
+}
+body[data-theme="light"]{
+  --bg:#eef2f5; --panel:#ffffff; --line:#c6d1db; --txt:#1b2733; --dim:#5b6b79;
+  --red:#d8345a; --or:#c96a15; --cy:#1376a8; --lm:#4d7c13; --gr:#1d8a3e; --pu:#7b3fb8; --bl:#2f6fce;
+  --mapbg:#dfe7ee; --gridline:#c3ced8; --stroke:#0b0f14; --hover:#e7edf3;
+  --bar:#dbe4ec; --chipbg:rgba(238,242,245,.9); --txthi:#14212e; --txsub:#2c4a60; --tagtxt:#0b0f14;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',Roboto,system-ui,sans-serif;padding:14px 18px;transition:background .3s,color .3s}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+h1{margin:0;font-size:18px;color:var(--accent);letter-spacing:1px}
+.meta{color:var(--dim);font-size:12px}
+.keys{font-size:11px;letter-spacing:.3px}
+.spacer{flex:1}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;color:var(--txt);border:0;padding:7px 14px;cursor:pointer;font-size:13px}
+.seg button:hover{background:rgba(255,255,255,.06)}
+.seg button.on{background:var(--accent);color:var(--tagtxt);font-weight:700}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px}
+#mapWrap{position:relative;height:72vh;overflow:hidden}
+#map{width:100%;height:100%}
+#mapLegend{position:absolute;top:10px;left:10px;background:var(--chipbg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.7}
+.lg{display:inline-flex;align-items:center;gap:6px;margin-right:12px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.plr2{animation:pulse2 1.6s ease-out infinite}
+@keyframes pulse2{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+.mlabel{fill:var(--txthi);font-weight:700}
+.sublabel{fill:var(--txsub);font-size:9px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
+th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--accent)}
+th .arr{margin-left:4px;color:var(--accent)}
+tr:hover{background:var(--hover)}
+.bar{height:7px;border-radius:4px;background:var(--bar);overflow:hidden;min-width:70px}
+.bar>div{height:100%;transition:width .6s ease}
+.st{font-weight:700}
+.st-ATTACK,.st-ENGAGE_TARGET,.st-USE_SKILL,.st-engage{color:var(--red)}
+.st-FLEE,.st-RETREAT{color:var(--or)}
+.st-wander{color:var(--cy)}
+.st-IDLE,.st-idle{color:var(--lm)}
+.st-dead{color:var(--dim)}
+.online{color:var(--gr);font-weight:700}
+.offline{color:var(--red);font-weight:700}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+#gridTbl{height:65vh;overflow:auto}
+.th{color:var(--pu)}
+.gridbar{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.gridbar select,.gridbar button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:5px 9px;font-size:12px;cursor:pointer}
+.gridbar select:hover,.gridbar button:hover{border-color:var(--accent)}
+.gridbar button.primary{background:var(--accent);color:var(--tagtxt);border-color:var(--accent);font-weight:700}
+#eventsTbl{height:65vh;overflow:auto}
+.ev{display:flex;gap:9px;align-items:baseline;padding:5px 8px;border-bottom:1px solid var(--line);font-size:12px}
+.ev .t{color:var(--dim);font-size:11px;white-space:nowrap}
+.ev .bot{font-weight:600;white-space:nowrap}
+.ev .body{word-break:break-word;white-space:pre-wrap}
+.tag{display:inline-block;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;color:var(--tagtxt);white-space:nowrap;flex-shrink:0}
+.ev-kill .tag{background:var(--red)} .ev-kill .bot{color:var(--red)}
+.ev-level .tag{background:var(--gr)} .ev-level .bot{color:var(--gr)}
+.ev-skill .tag{background:var(--pu)} .ev-skill .bot{color:var(--pu)}
+.ev-dmg .tag{background:var(--or)} .ev-dmg .bot{color:var(--or)}
+.ev-chat .tag{background:var(--bl)} .ev-chat .bot{color:var(--bl)}
+.ev-sys .tag{background:var(--pu)} .ev-sys .bot{color:var(--pu)}
+.ev-conn .tag,.ev-disc .tag{background:var(--dim)} .ev-conn .bot,.ev-disc .bot{color:var(--dim)}
+.ev-move .tag{background:var(--cy)} .ev-move .bot{color:var(--cy)}
+.ev-other .tag{background:var(--line)} .ev-other .bot{color:var(--dim)}
+.detail{font-size:13px;line-height:1.7}
+.detail h2{margin:0 0 6px;color:var(--accent)}
+.dstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:12px}
+.dcard{background:var(--hover);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.dcard .k{color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.dcard .v{font-size:13px;margin-top:2px}
+.dnav{display:flex;gap:8px;margin-top:10px}
+.dnav button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px}
+.dnav button:hover{border-color:var(--accent)}
+.tooltip{pointer-events:none;position:absolute;background:var(--chipbg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:11px;line-height:1.55;display:none;z-index:9;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.tick{color:var(--dim);font-size:11px}
+.xp,.hp,.mp{text-align:left;font-size:11px}
+.float{position:absolute;font-size:10px;color:var(--txsub);text-shadow:0 0 4px #000;pointer-events:none}
+#mapControls{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+#mapControls button{width:28px;height:28px;background:var(--chipbg);border:1px solid var(--line);color:var(--txt);border-radius:6px;font-size:15px;cursor:pointer;line-height:1}
+#mapControls button:hover{border-color:var(--accent);color:var(--accent)}
+
+@media(max-width:820px){
+  body{padding:8px 10px}
+  h1{font-size:15px}
+  .seg button{padding:6px 9px;font-size:12px}
+  #mapWrap{height:55vh}
+  #gridTbl,#eventsTbl{height:58vh}
+}
+
