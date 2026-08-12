@@ -33,10 +33,13 @@ dashboard. All work is committed on `master` and pushed to GitHub.
 - ✅ phase0 integrated; skill-cast gate `0x2F` proven; SkillDatabase/combat AI/target selector live.
 - ✅ **5-bot fleet** (`FleetPlay`) + **web dashboard** :8080 — Map/Grid views, real packets
   (UserInfo/CharInfo/ValidateLocation/ItemList/StatusUpdate), real coords & town landmarks.
-- ✅ 145 tests green on `master`.
+- ✅ **200 tests green** — resumed 2026-08-12 on `fix/tim-001-movement-review` @ HEAD `5f5715ac`.
+  Phase A **WPT-01..08** + protocol **WPT-23/25/26** committed (board-marked DONE-PUSHED); ops WPT-32/33/34 done.
 - ⚠️ **TIM-001 (HIGH)** — bots can look static / no proactive quest-NPC travel (levels were seeded
-  L20–22). Deep review: `TASKS.md` §6 + `Documentation/PRIORITY_TASKS.md`.
-- 🛑 **All servers + fleet currently OFF** (end of previous session). Restart: see §5.
+  L20–22). Evidence checklist: `TASKS.md` §6 + `Documentation/PRIORITY_TASKS.md`; WPT-11/21/30
+  are the movement evidence instruments.
+- 🛑 **Server state this session:** `gameserver` DB reachable (verified); fleet/API (:8080) not confirmed
+  up. If offline, restart via §5.
 
 ## 5. How to run (when servers are OFF)
 ```bash
@@ -81,8 +84,8 @@ curl -s http://localhost:8080/api/v1/health ; echo
 7. Milestone doc-sync — update this file / `STATUS.md` / `SESSION_HANDOFF.md` / **`TASKS.md`** /
    `ai_progress_report.txt` + commit after EVERY milestone.
 ## 4. Current phase / next task
-- Board: **`Documentation/TASKS.md`**. Cline#1 is mid-**WPT-01** (REST `/api/v1` redesign — see §11
-  contract there).
-- Roadmap on the board: 33 web-panel tasks (WPT-01..34; WPT-16 folded into WPT-15) in Phases A–D,
-  plus TIM-001 HIGH. Cline#2/#3/#4 kickoff lanes: frontend (WPT-09/10/13/20), protocol
-  (WPT-22/29/23/25/26), ops+docs (WPT-32/33/34).
+- Board: **`Documentation/TASKS.md`**.
+- **Phase A (WPT-01..08) DONE-PUSHED**; protocol WPT-23/25/26 DONE-PUSHED. In-flight now:
+  frontend **WPT-09/10/13/14/20/31** (Cline#2), protocol **WPT-22/24/29** (Cline#3), ops
+  **WPT-30** (Cline#4 — `scripts/position_crosscheck.sh` written); **TIM-001** evidence work active.
+- Ops+docs lanes done: WPT-32/33/34 (`dashboard/ops.html`, README/e2e, `server_health.sh`).

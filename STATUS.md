@@ -2,6 +2,16 @@
 
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
+## Resumed 2026-08-12 (branch `fix/tim-001-movement-review`, HEAD `5f5715ac`)
+- Previous multi-agent session died mid-flight; resumed cleanly. **200 tests green.**
+- Committed + board-marked DONE-PUSHED: **Phase A WPT-01..08** (`7b5d5a01`, `5f5715ac`,
+  `87eb6510`, `00f92e24`) and protocol **WPT-23/25/26** (`68945a94`); plus ops WPT-32/33/34
+  (`bf2ce3db`, `fd9581d2`, `4ed840e1`).
+- In-flight (IN_PROGRESS on `TASKS.md`): frontend WPT-09/10/13/14/20/31, protocol
+  WPT-22/24/29, and ops **WPT-30** (`scripts/position_crosscheck.sh` — written, `bash -n` OK,
+  not yet committed). TIM-001 movement review is the active focus.
+- Task board = source of truth: `Documentation/TASKS.md`. Resume log:
+  `Documentation/RuntimeLogs/2026-08-12-session-resume-finish.md`.
 
 ## Phase: 4 — Streams A–G COMPLETE + audit-ready; ALL 110 roadmap tasks DONE (117/117 tests; check_style PASSED 0; verify_no_dead_code SUCCESS).
 ## Task 109 DONE (2026-08-05): relocated + healed the 23 void `ai_%` bots via the live gameserver DB (server UP). all 25 `ai_%` accounts now at the B4 combat zone (-82759,250149,-3600) with HP; CombatBot_01/02 left at tested positions. `still_stuck=0`.

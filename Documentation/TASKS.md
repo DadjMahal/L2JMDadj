@@ -74,14 +74,14 @@
 ## 7. Phase A — API & infra (owner **Cline#1**)
 | ID | Task | Prio | Deps | Status |
 |---|---|---|---|---|
-| **WPT-01** | REST API redesign — `/api/v1/*` (bots/entities/landmarks/events/health/config) + `DashboardApi.java` extracted from `FleetPlay` | P0 | — | **IN_PROGRESS (Cline#1)** |
-| **WPT-02** | SSE push deltas per bot (replaces index.html 2s poll; changed fields only) | P1 | WPT-01 | TODO |
-| **WPT-03** | Event ring buffer + `/api/v1/events` typed events (kill, level-up, skill-cast, damage, move, connect/disconnect) | P0 | WPT-01 | TODO |
-| **WPT-04** | State history ring (snapshot every few s; optional CSV export) → trails/playback/review | P0 | WPT-01 | TODO |
-| **WPT-05** | `/api/v1/config` — tunable fleet size, wander radius, poll interval, per-bot overrides | P1 | WPT-01 | TODO |
-| **WPT-06** | Dashboard API test suite (endpoint smoke, JSON schema, SSE framing) | P1 | WPT-01 | TODO |
-| **WPT-07** | Access hardening — loopback default, `--bind` flag, token auth on mutating endpoints | P2 | WPT-01 | TODO |
-| **WPT-08** | Health/metrics — uptime, reconnect counts, pktAge history, request latency | P1 | WPT-01 | TODO |
+| **WPT-01** | REST API redesign — `/api/v1/*` (bots/entities/landmarks/events/health/config) + `DashboardApi.java` extracted from `FleetPlay` | P0 | — | **DONE-PUSHED `7b5d5a01`** — v1 routes + FleetPlay extraction + legacy aliases (5 tests) |
+| **WPT-02** | SSE push deltas per bot (replaces index.html 2s poll; changed fields only) | P1 | WPT-01 | **DONE-PUSHED `5f5715ac`** — `/api/v1/stream` SSE (200 green) |
+| **WPT-03** | Event ring buffer + `/api/v1/events` typed events (kill, level-up, skill-cast, damage, move, connect/disconnect) | P0 | WPT-01 | **DONE-PUSHED `00f92e24`+`87eb6510`** — EventRing + wiring (26 tests→198 green) |
+| **WPT-04** | State history ring (snapshot every few s; optional CSV export) → trails/playback/review | P0 | WPT-01 | **DONE-PUSHED `87eb6510`** — HistoryRing wired (198 green) |
+| **WPT-05** | `/api/v1/config` — tunable fleet size, wander radius, poll interval, per-bot overrides | P1 | WPT-01 | **DONE-PUSHED `5f5715ac`** — live config POST (200 green) |
+| **WPT-06** | Dashboard API test suite (endpoint smoke, JSON schema, SSE framing) | P1 | WPT-01 | **DONE-PUSHED `87eb6510`** — route tests (198 green) |
+| **WPT-07** | Access hardening — loopback default, `--bind` flag, token auth on mutating endpoints | P2 | WPT-01 | **DONE-PUSHED `5f5715ac`** — bearer token gate (200 green) |
+| **WPT-08** | Health/metrics — uptime, reconnect counts, pktAge history, request latency | P1 | WPT-01 | **DONE-PUSHED `00f92e24`+`87eb6510`** — FleetMetrics + wiring (198 green) |
 
 ### Spec notes (acceptance)
 - **WPT-01**: new `com.aiplayer.web.DashboardApi` owns serialize+routing; `FleetPlay.startDashboard`
@@ -96,18 +96,18 @@
 ## 8. Phase B — Dashboard UX / core views (owner **Cline#2**, frontend only — index.html + assets)
 | ID | Task | Prio | Deps | Status |
 |---|---|---|---|---|
-| **WPT-09** | World map data source — datapack/geo-derived region polygons + landmarks → `dashboard/data/*.json` | P0 | — | TODO |
-| **WPT-10** | Map renderer v2 — pan/zoom + terrain layer over real coords | P0 | WPT-09 | TODO |
+| **WPT-09** | World map data source — datapack/geo-derived region polygons + landmarks → `dashboard/data/*.json` | P0 | — | **IN_PROGRESS (Cline#2)** — `dashboard/data/*.json` lane |
+| **WPT-10** | Map renderer v2 — pan/zoom + terrain layer over real coords | P0 | WPT-09 | **IN_PROGRESS (Cline#2)** |
 | **WPT-11** | **Movement trails** — per-bot polyline last-N positions (evidence for TIM-001) | P0 | WPT-04 | TODO |
 | **WPT-12** | Playback / replay mode — scrub time window of recorded state | P1 | WPT-04 | TODO |
-| **WPT-13** | Grid v2 — sortable columns, filters (state/online), CSV export | P1 | WPT-01 | TODO |
-| **WPT-14** | Live event feed panel — kills, level-ups, damage, skill casts, chat (color-coded) | P0 | WPT-03 | TODO |
+| **WPT-13** | Grid v2 — sortable columns, filters (state/online), CSV export | P1 | WPT-01 | **IN_PROGRESS (Cline#2)** |
+| **WPT-14** | Live event feed panel — kills, level-ups, damage, skill casts, chat (color-coded) | P0 | WPT-03 | **IN_PROGRESS (Cline#2)** |
 | **WPT-15** | Bot detail drawer — gear/items/stats/XP-HP timeline **+ per-metric sparklines** | P1 | WPT-01 | TODO |
 | **WPT-17** | Fleet control panel — pause/resume/focus + "send to landmark" | P1 | WPT-05 | TODO |
 | **WPT-18** | Alerts/notifications — death, disconnect, level-up, server-down badge/sound | P2 | WPT-08 | TODO |
 | **WPT-19** | Filter/follow/search/highlight + pin camera | P2 | WPT-10 | TODO |
-| **WPT-20** | Responsive + hotkeys (M/G/D) + theme toggle | P2 | — | TODO |
-| **WPT-31** | Frontend modularization — split SPA, minify, cache-busting | P1 | — | TODO |
+| **WPT-20** | Responsive + hotkeys (M/G/D) + theme toggle | P2 | — | **IN_PROGRESS (Cline#2)** |
+| **WPT-31** | Frontend modularization — split SPA, minify, cache-busting | P1 | — | **IN_PROGRESS (Cline#2)** |
 
 ### Spec notes
 - Frontend reads ONLY `§11` v1 contract (frozen) + legacy `/json`. Do not require server code changes.
@@ -122,15 +122,15 @@
 | ID | Task | Prio | Deps | Status |
 |---|---|---|---|---|
 | **WPT-21** | Movement-ack telemetry → "STAGNANT" badge on non-moving bots (TIM-001 evidence) | P0 | WPT-03 | TODO |
-| **WPT-22** | SystemMessage/Chat parser → real server messages & NPC dialogue | P0 | — | TODO |
-| **WPT-23** | StatusUpdate full attr map — stream EXP/SP/level/HP changes in real time | P1 | — | TODO |
-| **WPT-24** | Inventory v2 — full ItemList (equipped vs loose) + datapack names | P1 | — | TODO |
-| **WPT-25** | Damage/combat KPIs — hits, damage, DPS, kills per bot | P1 | — | TODO |
-| **WPT-26** | Skill-cast metering — MagicSkillUse ids→names, casts, cooldown | P1 | — | TODO |
+| **WPT-22** | SystemMessage/Chat parser → real server messages & NPC dialogue | P0 | — | **IN_PROGRESS (Cline#3)** — `PacketLoggerWpt22Test` lane |
+| **WPT-23** | StatusUpdate full attr map — stream EXP/SP/level/HP changes in real time | P1 | — | **DONE-PUSHED `68945a94`** — StatusUpdate attr map (11 tests) |
+| **WPT-24** | Inventory v2 — full ItemList (equipped vs loose) + datapack names | P1 | — | **IN_PROGRESS (Cline#3)** — `PacketLoggerWpt24Test` + `DatapackNames` lane |
+| **WPT-25** | Damage/combat KPIs — hits, damage, DPS, kills per bot | P1 | — | **DONE-PUSHED `68945a94`** — combat KPIs (11 tests) |
+| **WPT-26** | Skill-cast metering — MagicSkillUse ids→names, casts, cooldown | P1 | — | **DONE-PUSHED `68945a94`** — skill metering (11 tests) |
 | **WPT-27** | Quest telemetry — quest-list packets + quest log (aligns W5) | P1 | — | TODO |
 | **WPT-28** | Chat manager — parse incoming + engine responds; `/api` view | P2 | WPT-22 | TODO |
-| **WPT-29** | Entity name resolution — datapack npc names instead of `mob#id` | P1 | — | TODO |
-| **WPT-30** | Position cross-check vs `gameserver.characters` every N min; drift alert (TIM-001) | P0 | WPT-03 | TODO |
+| **WPT-29** | Entity name resolution — datapack npc names instead of `mob#id` | P1 | — | **IN_PROGRESS (Cline#3)** — `DatapackNames` lane |
+| **WPT-30** | Position cross-check vs `gameserver.characters` every N min; drift alert (TIM-001) | P0 | WPT-03 | **IN_PROGRESS (Cline#4)** — `scripts/position_crosscheck.sh` written + `bash -n` OK; live smoke (mock API vs live DB) flagged 23,327u CombatBot_01 drift; no commit yet |
 
 ### Spec notes
 - New parsers live in `com.aiplayer.protocol` + emit into the **frozen v1 contract** (`§11`): telemetry
@@ -179,6 +179,14 @@
   (`ServerBuild/*/config/Database.ini`) — `real_status.sh` still assumes sudo-root (Cline#4 flagged, didn't touch).
 - **WPT-07**: `--bind 127.0.0.1` default; token via `--token`; 401 on unauth POST.
 - **WPT-08**: counters in `DashboardApi`; `/api/v1/health` extended; feed alert (WPT-18) hooks here.
+- 2026-08-12 · Cline#4: **session resume + finish** — previous multi-agent session died mid-flight; resumed on
+  branch `fix/tim-001-movement-review` @ HEAD `5f5715ac` (**200 tests green**). Board refresh: WPT-01 (`7b5d5a01`),
+  02 (`5f5715ac`), 03/04/08 (`00f92e24`+`87eb6510`), 05/07 (`5f5715ac`), 06 (`87eb6510`) → **DONE-PUSHED**; Phase A
+  complete. WPT-23/25/26 → **DONE-PUSHED** (`68945a94`). Remaining lanes set **IN_PROGRESS**: WPT-09/10/13/14/20/31
+  (Cline#2), WPT-22/24/29 (Cline#3), **WPT-30 (Cline#4)** — `scripts/position_crosscheck.sh` written (`bash -n` OK;
+  live smoke flagged 23,327u CombatBot_01 drift vs DB), not yet committed. Resume log:
+  `Documentation/RuntimeLogs/2026-08-12-session-resume-finish.md`.
+
 ## 5. Right-now kickoff (start here, in order)
 | Instance | Starts with | Then (deps satisfied → order flexible) |
 |---|---|---|
