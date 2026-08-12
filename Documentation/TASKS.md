@@ -70,6 +70,16 @@
   - [ ] H5 (organic XP/level-up): **NOT shown** — exp unchanged (1.38M) over the window; the seeded-1.4M baseline question remains open.
 - **Probe gap RESOLVED + VERIFIED LIVE 2026-08-12:** `tim001_move_probe.sh` curls `/telemetry`; the missing route was **ADDED** to `FleetPlay.startDashboard()` (serializes `MoveTelemetry.report()`) and **confirmed live** — a fresh 2-min run returned per-bot `movesSent/degraded/EVIDENCE-H1/H2/H5` for all 5 bots (ai_combat_04: 3 far HOPs ~21391u, serverMoved=0). Probe defaults fixed (ENGINE → `/home/dadj/Projects/l24lude`, MYSQL_ARGS → `mysql -u l2j -pStrongPasswordHere gameserver`). **TIM-001 still open** — far single HOPs exceed the 9900u per-move cap and don't persist (`gameserver.characters` identical before/after); **short multi-hop design is what `3a6e7c29` already shipped — hop routing now ack-gated ≤4800u per send.** Live-verify log: `RuntimeLogs/2026-08-12-tim001-evidence-run.md`.
 - **2026-08-13 zone-hop lane (in this commit):** `ZoneRouter.buildHops()` extracted + **7 `ZoneRouterTest` cases** (21k route → ≥3 hops each ≤4800u; degenerate route → 0 hops; one-at-a-time delivery ending exactly at dest). Probe gained the `HOP-PROOF` + `DB-DELTA VERDICT` block. **Evidence run #2 (fresh, 5-bot, movement FORCED ON, 2 min):** `gameserver.characters` **IDENTICAL before/after** (pos + exp), `/telemetry` shows `movesSent=2` (only ai_combat_04) rest `0`, `serverMoved=0 u`, `expGained=0` → **H1/H5 remain UNPROVEN**; fleet not yet driving the hop sequence as primary idle behavior (next action). Full log: `RuntimeLogs/2026-08-13-tim001-evidence-run-zone-hops.md` + `REVIEWED_TASKS.md §B`. Suite: **218/218 green**. **TIM-001 stays IN PROGRESS.**
+- **2026-08-13 hop-persistence lane (this commit):** `ZoneRouter.isRouteStuck()` + `MAX_HOP_TIMEOUTS=2`
+  (stuck-hop recovery — a waypoint the server never walks toward is abandoned after 2 timeouts instead of
+  stalling forever), `Phase0Wiring.moveTo` → standard mouse-move (`moveType=1`), and a probe timing fix
+  (AFTER DB snapshot now runs AFTER fleet-stop + `DB_FLUSH_SEC` disconnect-save flush). **Evidence run #3
+  (fresh, 5-bot, movement FORCED ON, 1 min):** `/telemetry` `ai_combat_04 serverMoved=4569 u` (was 0),
+  `samples=172`, `degenerate=0/2`, fleet-log `USER_INFO` pos == planned HOP target; DB `CombatBot_04`
+  `(-109393,245900) → (-116158,242929)` Δ≈7390u — **H1 movement persistence PROVEN** (run #2's
+  "identical before/after" was the probe snapshotting BEFORE the disconnect-save, not a movement failure).
+  Suite **219/219 green**. **H5 organic XP still open.** Log:
+  `RuntimeLogs/2026-08-13-tim001-h1-persistence-proven.md`.
 
 ---
 

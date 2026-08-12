@@ -95,10 +95,7 @@ except Exception as e:
     print("  (json parse failed: %s)" % e)
 PYEOF
 
-# 4) AFTER snapshot + DB diff
-echo "--- characters AFTER ---"
-$MYSQL_ARGS -e "SELECT char_name,level,exp,x,y,z FROM characters WHERE char_name IN ($(echo "$CHARS" | sed 's/ /","/g;s/^/"/;s/$/"/'));" 2>/dev/null || echo "(no DB rows / no DB access)"
-
+# 4) AFTER snapshot is taken AFTER cleanup (#6) so the server disconnect-save has flushed
 
 # 4b) Hop-by-hop persistence verdict: per-bot movesSent vs serverMoved from live /telemetry,
 #     and a DB position-delta verdict comparing the BEFORE/AFTER snapshots above.
@@ -130,7 +127,16 @@ echo "  H5 (organic XP)    : see EVIDENCE-H5 expGained (seeded 1.4M baseline)"
 echo "  Paste this whole output into Documentation/TASKS.md TIM-001 Done notes."
 echo "================================================================"
 
-# 6) Cleanup
+# 6) Cleanup FIRST: stopping the fleet (kill/pkill) triggers the server on-disconnect save.
+#    AFTER snapshot must come after that async flush or it compares a stale pre-run row
+#    (the exact "DB identical before/after" false-negative). CharacterDataStoreInterval is
+#    15 min, so a short move persists only via this save; wait DB_FLUSH_SEC (default 12).
 kill "$FPID" 2>/dev/null
 pkill -f "com.aiplayer.examples.FleetPlay" 2>/dev/null
-echo "[tim001] fleet stopped; runbook done."
+echo "[tim001] fleet stopped; waiting ${DB_FLUSH_SEC:-12}s for disconnect-save flush ..."
+sleep "${DB_FLUSH_SEC:-12}"
+
+# 4) AFTER snapshot + DB diff (post-save)
+echo "--- characters AFTER ---"
+$MYSQL_ARGS -e "SELECT char_name,level,exp,x,y,z FROM characters WHERE char_name IN ($(echo "$CHARS" | sed 's/ /\",\"/g;s/^/\"/;s/$/\"/'));" 2>/dev/null || echo "(no DB rows / no DB access)"
+echo "[tim001] runbook done."

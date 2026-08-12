@@ -116,6 +116,19 @@ class ZoneRouterTest
     }
 
     @Test
+    void routeIsStuckOnlyAfterEnoughConsecutiveTimeouts()
+    {
+        // TIM-001 stuck-hop recovery: a hop that the server never walks the char toward must NOT
+        // resend forever (the movesSent=2-in-2min stall); it becomes "stuck" only after
+        // MAX_HOP_TIMEOUTS consecutive timeouts, so legitimately slow moves still get retries.
+        assertFalse(ZoneRouter.isRouteStuck(0), "fresh hop is not stuck");
+        assertFalse(ZoneRouter.isRouteStuck(1), "one timeout still allows a retry");
+        assertTrue(ZoneRouter.isRouteStuck(2), "MAX_HOP_TIMEOUTS timeouts -> stuck, abandon & re-plan");
+        assertTrue(ZoneRouter.isRouteStuck(5), "more timeouts stay stuck");
+        assertEquals(2, ZoneRouter.MAX_HOP_TIMEOUTS, "policy threshold is stable for test/debugging");
+    }
+
+    @Test
     void hopsAreDeliveredOneAtATimeAndExhaustExactlyAtDestination()
     {
         java.util.List<int[]> hops = ZoneRouter.buildHops(0, 0, 0, 21000, 0, 0);

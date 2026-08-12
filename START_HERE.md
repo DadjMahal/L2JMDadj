@@ -36,14 +36,14 @@ dashboard. All work is committed on `master` and pushed to GitHub.
 - ✅ **218 tests green** (2026-08-13). **All 33 WPT web-panel tasks DONE-PUSHED** (Phase A API
   WPT-01..08, Phase B UX, Phase C telemetry, Phase D ops). **Anti-redo registry:
   `Documentation/REVIEWED_TASKS.md`** — check it before starting anything.
-- ⚠️ **TIM-001 (HIGH)** — evidence instruments shipped + **short-multi-hop fix SHIPPED:
-  `ZoneRouter.buildHops()`** (a far goal is now a sequence of ≤4800u hops, under the server's 9900u
-  per-move cap; 7 `ZoneRouterTest` cases). **Evidence run #2 (2026-08-13, fresh, movement FORCED ON):
-  honest-negative** — `gameserver.characters` x/y/z + exp identical before/after, `/telemetry`
-  `serverMoved=0`, `expGained=0`. So **H1 persistence + H5 organic-XP remain UNPROVEN**; the live fleet
-  isn't yet emitting enough accepted hops (only 2 moves in 2 min). Next step: wire the hop-gate in
-  `FleetPlay` as the primary idle behavior, then re-probe for a nonzero DB delta. Log:
-  `RuntimeLogs/2026-08-13-tim001-evidence-run-zone-hops.md` + `REVIEWED_TASKS.md §B`.
+- ⚠️ **TIM-001 (HIGH)** — movement-persistence (H1) **PROVEN with a real DB delta (2026-08-13, run #3)**:
+  `ZoneRouter.buildHops()` short-multi-hop (≤4800u) + `isRouteStuck()` stuck-hop recovery + `moveTo`
+  via the standard mouse-move path landed. `/telemetry` shows `serverMoved=4569 u` (was 0) and the fleet
+  log confirms the char reaching its hop (`USER_INFO` == HOP target); `gameserver.characters` moved
+  `CombatBot_04 (-109393,245900) → (-116158,242929)` Δ≈7390u once the probe waits for the disconnect-save
+  flush (`DB_FLUSH_SEC`, default 12) — run #2's "identical before/after" was a probe timing bug. Suite
+  **219/219 green**. **H5 organic XP remains open.** Log:
+  `RuntimeLogs/2026-08-13-tim001-h1-persistence-proven.md`.
 - 🛑 **Server state 2026-08-13:** was **DOWN** at session open; brought **UP** on JDK25
   (`/home/dadj/.jdk/jdk-25.0.4+7` on PATH — system `java` is JDK21 but server JARs are JDK25).
   Login :2106/:9014, game :7777 up (`Server loaded`, `Registered on login`). Use

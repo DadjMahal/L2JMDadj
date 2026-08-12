@@ -27,6 +27,21 @@ public final class ZoneRouter
     /** Prefer a zone-center route when it is at least this far away (otherwise it's not "travel"). */
     private static final double MIN_ZONE_TRAVEL_DIST = 1500.0;
 
+    /**
+     * TIM-001: how many consecutive server-move timeouts on the SAME waypoint (each {@code >= hop_timeout_ms},
+     * 45s in FleetPlay) before a hop is declared unreachable and the whole route is abandoned so the bot
+     * re-plans instead of stalling forever. A hop that the server never walks the char toward (e.g. a
+     * geo-blocked / into-the-ocean destination) would otherwise resend every 45s and freeze the bot for
+     * minutes — exactly the movesSent=2-in-2-min symptom seen in the live run.
+     */
+    public static final int MAX_HOP_TIMEOUTS = 2;
+
+    /** True once a hop has timed out {@code MAX_HOP_TIMEOUTS} times without being approached. */
+    public static boolean isRouteStuck(int consecutiveTimeouts)
+    {
+        return consecutiveTimeouts >= MAX_HOP_TIMEOUTS;
+    }
+
     /** A planned far-travel route = ordered waypoints (hops) ending at the chosen destination. */
     public static final class RouteGoal
     {

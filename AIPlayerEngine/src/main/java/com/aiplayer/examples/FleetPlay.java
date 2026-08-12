@@ -188,6 +188,7 @@ public final class FleetPlay
             ZoneRouter.RouteGoal activeRoute = null;
             int[] pendingHop = null;
             long hopSentAtMs = 0;
+            int hopTimeouts = 0; // TIM-001: consecutive timeouts on the current hop (stuck-hop recovery)
             int prevLevel = info.level;
             int prevHp = info.hp;
             boolean firstTick = true;
@@ -398,6 +399,7 @@ public final class FleetPlay
                             {
                                 pendingHop = activeRoute.nextHop();
                                 hopSentAtMs = 0; // "not sent yet" trigger below
+                                hopTimeouts = 0; // fresh hop: reset the stuck-hop counter
                             }
 
                             final int arriveDist = 150;
@@ -411,10 +413,12 @@ public final class FleetPlay
                                 if (nearHop)
                                 {
                                     // Arrived at this hop: complete the route, or advance to the next one.
+                                    hopTimeouts = 0; // TIM-001: a reached hop is not stuck
                                     if (activeRoute.hasMoreHops())
                                     {
                                         pendingHop = activeRoute.nextHop();
                                         hopSentAtMs = 0;
+                                        hopTimeouts = 0;
                                     }
                                     else
                                     {
@@ -425,19 +429,44 @@ public final class FleetPlay
                                 }
                                 else if (neverSent || timedOut)
                                 {
-                                    hopSentAtMs = now;
-                                    telemetry.recordMove(account, snapshot.x, snapshot.y, snapshot.z,
-                                        pendingHop[0], pendingHop[1], pendingHop[2],
-                                        activeRoute.label, activeRoute.reason);
-                                    wiring.moveTo(snapshot.x, snapshot.y, snapshot.z,
-                                        pendingHop[0], pendingHop[1], pendingHop[2]);
-                                    emit(EventRing.TYPE_MOVE, "to", pendingHop[0] + "," + pendingHop[1],
-                                        "route", activeRoute.label);
-                                    info.state = "travel:" + activeRoute.label;
-                                    info.thought = activeRoute.reason;
-                                    LOGGER.info("[FleetPlay] " + account + " HOP -> " + activeRoute.label
-                                        + " (" + pendingHop[0] + "," + pendingHop[1] + "," + pendingHop[2] + ") "
-                                        + activeRoute.reason);
+                                    // TIM-001 stuck-hop recovery: a waypoint the server never walks us
+                                    // toward would otherwise resend forever every 45s (the movesSent=2
+                                    // in 2 min stall). Resend up to ZoneRouter.MAX_HOP_TIMEOUTS, then
+                                    // abandon the route so the bot re-plans a fresh far point.
+                                    boolean resend = neverSent;
+                                    if (timedOut && !neverSent)
+                                    {
+                                        hopTimeouts++;
+                                        resend = !ZoneRouter.isRouteStuck(hopTimeouts);
+                                        if (!resend)
+                                        {
+                                            LOGGER.warning("[FleetPlay] " + account + " hop unreachable after "
+                                                + hopTimeouts + " timeouts -> abandoning route "
+                                                + activeRoute.label + " (" + pendingHop[0] + "," + pendingHop[1] + ")");
+                                            activeRoute = null;
+                                            pendingHop = null;
+                                            hopSentAtMs = 0;
+                                            hopTimeouts = 0;
+                                            lastRoute = now; // re-plan on the next idle tick
+                                            break; // end this IDLE tick; don't resend the dead hop
+                                        }
+                                    }
+                                    if (resend)
+                                    {
+                                        hopSentAtMs = now;
+                                        telemetry.recordMove(account, snapshot.x, snapshot.y, snapshot.z,
+                                            pendingHop[0], pendingHop[1], pendingHop[2],
+                                            activeRoute.label, activeRoute.reason);
+                                        wiring.moveTo(snapshot.x, snapshot.y, snapshot.z,
+                                            pendingHop[0], pendingHop[1], pendingHop[2]);
+                                        emit(EventRing.TYPE_MOVE, "to", pendingHop[0] + "," + pendingHop[1],
+                                            "route", activeRoute.label);
+                                        info.state = "travel:" + activeRoute.label;
+                                        info.thought = activeRoute.reason;
+                                        LOGGER.info("[FleetPlay] " + account + " HOP -> " + activeRoute.label
+                                            + " (" + pendingHop[0] + "," + pendingHop[1] + "," + pendingHop[2] + ") "
+                                            + activeRoute.reason);
+                                    }
                                 }
                             }
                         }

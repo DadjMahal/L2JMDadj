@@ -85,9 +85,16 @@ public final class Phase0Wiring {
 
     /**
      * Move to an absolute location. Proven (encodeMoveToLocation).
+     *
+     * <p>TIM-001: use the standard mouse-click move path ({@code moveType = 1}) for proactive
+     * travel. The Interlude {@code MoveToLocation} handler (SourceCode/.../clientpackets/MoveToLocation.java)
+     * treats {@code 0} (cursor-key) as a special path that requires keyboard-movement config and
+     * resets {@code setLastServerPosition}; {@code 1} (mouse) is the plain "walk to point" path every
+     * real client uses and ends with the server's {@code onActionRequest()}. So a real far-travel hop
+     * is sent with {@code moveType = 1}.</p>
      */
     public boolean moveTo(int selfX, int selfY, int selfZ, int targetX, int targetY, int targetZ) {
-        return send(PacketCodec.encodeMoveToLocation(targetX, targetY, targetZ, selfX, selfY, selfZ, 0),
+        return send(PacketCodec.encodeMoveToLocation(targetX, targetY, targetZ, selfX, selfY, selfZ, 1),
                      "MOVE to (" + targetX + "," + targetY + "," + targetZ + ")");
     }
 
