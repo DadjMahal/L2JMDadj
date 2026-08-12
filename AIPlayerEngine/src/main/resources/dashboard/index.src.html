@@ -28,12 +28,13 @@
 <header>
   <h1>🤖 AI FLEET — INTERLUDE :7777</h1>
   <span class="meta" id="meta">loading…</span>
-  <span class="meta keys">M map · G grid · E events · D detail · T trails</span>
+  <span class="meta keys">M map · G grid · E events · D detail · T trails · P playback</span>
   <div class="spacer"></div>
   <div class="seg">
     <button id="btnMap" class="on" onclick="setView('map')">🗺️ Map</button>
     <button id="btnGrid" onclick="setView('grid')">📋 Grid</button>
     <button id="btnEvents" onclick="setView('events')">📡 Events</button>
+    <button id="btnPlayback" onclick="pbToggle()" title="replay recorded bot state from /api/v1/history">▶ Playback</button>
     <button id="btnTheme" onclick="toggleTheme()" title="toggle dark/light theme">🌗 Theme</button>
   </div>
 </header>
@@ -74,7 +75,7 @@
 
 <div class="panel" id="eventsPanel" style="display:none">
   <div class="gridbar">
-    <span class="meta">Live event feed — newest first · capped at 200</span>
+    <span class="meta" id="eventsNote">Live event feed — newest first · capped at 200</span>
     <div class="spacer"></div>
     <button onclick="clearEvents()">Clear</button>
   </div>
@@ -83,6 +84,26 @@
 
 <div class="panel" id="detailPanel" style="display:none">
   <div class="detail" id="detailBody"></div>
+</div>
+
+<!-- WPT-12 — state playback / replay control bar (reads real /api/v1/history). -->
+<div class="playbar" id="playbar" style="display:none">
+  <button id="pbPlay" onclick="pbTogglePlay()" title="play/pause replay">▶</button>
+  <button onclick="pbStep(-1)" title="step back one frame">⏮</button>
+  <button onclick="pbStep(1)" title="step forward one frame">⏭</button>
+  <input type="range" id="pbSlider" min="0" max="0" value="0" oninput="pbScrub(this.value)" title="scrub through recorded frames">
+  <select id="pbSpeed" onchange="pbSetSpeed(this.value)" title="playback speed">
+    <option value="1000">0.5×</option>
+    <option value="500">1×</option>
+    <option value="250" selected>2×</option>
+    <option value="100">5×</option>
+    <option value="50">10×</option>
+  </select>
+  <button onclick="pbLoad()" title="reload history from /api/v1/history">⟳</button>
+  <span class="meta" id="pbTime"></span>
+  <span class="meta" id="pbStatus"></span>
+  <div class="spacer"></div>
+  <button onclick="pbExit()" title="exit playback">✕</button>
 </div>
 
 <!--DEV-JS--><script src="js/map.js"></script><script src="js/app.js"></script><!--/DEV-JS-->

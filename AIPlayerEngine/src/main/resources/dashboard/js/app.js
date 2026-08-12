@@ -18,6 +18,13 @@ var seenSeqs = new Set();
 var TRAIL_N = 60;      // last-N distinct positions kept per bot (N = number of polls)
 var trailsOn = true;   // hotkey T toggles trails
 var trails = {};       // name -> [{x,y}, ...] oldest->newest
+// WPT-12 — state playback / replay mode (reads real /api/v1/history).
+var PB = {
+  on: false, playing: false, loaded: false, loading: false, err: '',
+  botNames: [], byBot: {}, times: [], frames: [], nTotal: 0,
+  idx: 0, speed: 250, timer: null, spanStart: 0, spanEnd: 0,
+  frameBots: [], trails: {}
+};
 
 function $(id) { return document.getElementById(id); }
 function FMT(n) { return n == null ? '-' : Number(n).toLocaleString('en-US'); }
@@ -78,6 +85,15 @@ function updateTrails() {
 }
 function toggleTrails() { trailsOn = !trailsOn; render(); }
 function render() {
+  if (PB.on) {
+    // WPT-12 — playback overrides the live map/events with the current recorded frame.
+    if (view === 'map') { if (window.MapRenderer) window.MapRenderer.render(PB.frameBots, ent, towns, PB.trails, true); }
+    else if (view === 'events') renderPlaybackEvents();
+    else if (view === 'grid') renderGrid();
+    else renderDetail();
+    pbRenderUI();
+    return;
+  }
   if (view === 'map') { if (window.MapRenderer) window.MapRenderer.render(bots, ent, towns, trails, trailsOn); }
   else if (view === 'grid') renderGrid();
   else if (view === 'events') renderEvents();
@@ -213,12 +229,16 @@ function fmtEventData(d) {
   }
   return parts.join(' · ');
 }
-function renderEvents() {
+function renderEvents(list) {
+  if (!list) {
+    list = events;
+    if ($('eventsNote')) $('eventsNote').textContent = 'Live event feed — newest first · capped at 200';
+  }
   var h = '';
-  if (!events.length) {
+  if (!list.length) {
     h = '<div class="ev ev-other"><span class="tag">···</span><span class="body">No events yet — the feed fills when the fleet runs.</span></div>';
   }
-  events.forEach(function (ev) {
+  list.forEach(function (ev) {
     var type = ev.type || 'other';
     var cls = EVCLASS[type] || 'ev-other';
     var lab = EVLABEL[type] || String(type).toUpperCase();
@@ -256,6 +276,169 @@ function renderDetail() {
   $('detailBody').innerHTML = h;
 }
 
+// ---- WPT-12 state playback / replay mode --------------------------------
+// Reads REAL /api/v1/history (HistoryRing snapshots: {t,bot,x,y,z,level,exp,hp,hpMax}),
+// merges every queried bot's trail into a global time-ordered frame timeline, and
+// replays it (play/pause/scrub/step/speed) onto the map + event feed. No fake data.
+function fmtPBT(ms) {
+  var d = new Date(ms);
+  function p(n) { return (n < 10 ? '0' : '') + n; }
+  return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+}
+function pbBuildFrames() {
+  var timeSet = new Set(), bots = Object.keys(PB.byBot);
+  bots.forEach(function (b) { PB.byBot[b].forEach(function (s) { timeSet.add(s.t); }); });
+  PB.times = Array.from(timeSet).sort(function (a, b) { return a - b; });
+  var ptr = {}, cur = {};
+  PB.frames = [];
+  PB.times.forEach(function (t) {
+    bots.forEach(function (b) {
+      var arr = PB.byBot[b], j = ptr[b] || 0;
+      while (j < arr.length && arr[j].t <= t) { cur[b] = arr[j]; j++; }
+      ptr[b] = j;
+    });
+    var fb = [];
+    bots.forEach(function (b) { if (cur[b]) fb.push(cur[b]); });
+    PB.frames.push({ t: t, bots: fb });
+  });
+  PB.spanStart = PB.times.length ? PB.times[0] : 0;
+  PB.spanEnd = PB.times.length ? PB.times[PB.times.length - 1] : 0;
+  PB.nTotal = bots.reduce(function (a, b) { return a + PB.byBot[b].length; }, 0);
+}
+async function pbLoad() {
+  if (PB.loading) return;
+  PB.loading = true; PB.loaded = false; PB.err = '';
+  pbRenderUI();
+  try {
+    // Seed bot names from the live fleet; expand with any discovered in history.
+    var names = [];
+    try {
+      var live = await fetch('/api/v1/bots').then(function (r) { return r.json(); });
+      (live.bots || []).forEach(function (b) { var n = b.account || b.name; if (n && names.indexOf(n) < 0) names.push(n); });
+    } catch (e) { /* live list unavailable — rely on discovery */ }
+    var byBot = {}, toFetch = names.slice(), guard = 0;
+    while (toFetch.length && guard < 24) {
+      guard++;
+      var batch = toFetch; toFetch = [];
+      await Promise.all(batch.map(function (name) {
+        return fetch('/api/v1/history?bot=' + encodeURIComponent(name))
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            var h = (j && j.history) || [];
+            var arr = byBot[name] || (byBot[name] = []);
+            for (var i = 0; i < h.length; i++) if (h[i] && h[i].x != null && h[i].t != null) arr.push(h[i]);
+          }).catch(function () { /* skip bot with no/errored history */ });
+      }));
+      Object.keys(byBot).forEach(function (b) {
+        byBot[b].forEach(function (s) {
+          if (s.bot && s.bot !== b && !byBot[s.bot]) toFetch.push(s.bot);
+        });
+      });
+    }
+    Object.keys(byBot).forEach(function (b) {
+      byBot[b].sort(function (a, c) { return a.t - c.t; });
+    });
+    PB.byBot = byBot; PB.botNames = Object.keys(byBot);
+    pbBuildFrames();
+    PB.loaded = true; PB.idx = 0; PB.playing = false;
+  } catch (err) {
+    PB.err = String(err);
+  }
+  PB.loading = false;
+  pbRefresh();
+}
+
+function pbClamp(i) { return PB.frames.length ? Math.max(0, Math.min(PB.frames.length - 1, i)) : 0; }
+function pbFrameBots() {
+  var f = PB.frames[PB.idx]; if (!f) return [];
+  return f.bots.map(function (s) {
+    return { name: s.bot, account: s.bot, level: s.level, hp: s.hp, hpMax: s.hpMax,
+      x: s.x, y: s.y, z: s.z, state: 'history', thought: fmtPBT(s.t) };
+  });
+}
+function pbTrails() {
+  var tr = {};
+  for (var i = 0; i <= PB.idx; i++) {
+    var f = PB.frames[i]; if (!f) continue;
+    f.bots.forEach(function (s) {
+      var a = tr[s.bot]; if (!a) a = tr[s.bot] = [];
+      var last = a[a.length - 1];
+      if (!last || last.x !== s.x || last.y !== s.y) a.push({ x: s.x, y: s.y });
+    });
+  }
+  return tr;
+}
+function pbSeek(idx) {
+  PB.idx = pbClamp(idx);
+  PB.frameBots = pbFrameBots();
+  PB.trails = pbTrails();
+  render();
+}
+function pbRefresh() { pbSeek(PB.idx); pbRenderUI(); }
+function pbEnter() {
+  PB.on = true;
+  if ($('btnPlayback')) $('btnPlayback').classList.add('on');
+  if ($('playbar')) $('playbar').style.display = 'flex';
+  setView('map');
+  if (!PB.loaded && !PB.loading) pbLoad();
+  pbRefresh();
+}
+function pbExit() {
+  PB.on = false; PB.playing = false;
+  if (PB.timer) { clearInterval(PB.timer); PB.timer = null; }
+  if ($('btnPlayback')) $('btnPlayback').classList.remove('on');
+  if ($('playbar')) $('playbar').style.display = 'none';
+  render();
+}
+function pbToggle() { if (PB.on) pbExit(); else pbEnter(); }
+function pbTogglePlay() {
+  if (!PB.loaded || !PB.frames.length) return;
+  PB.playing = !PB.playing;
+  if (PB.playing) {
+    if (PB.idx >= PB.frames.length - 1) PB.idx = 0;
+    PB.timer = setInterval(pbTick, Math.max(50, PB.speed));
+  } else if (PB.timer) { clearInterval(PB.timer); PB.timer = null; }
+  pbRefresh();
+}
+function pbTick() {
+  if (PB.idx < PB.frames.length - 1) { pbSeek(PB.idx + 1); }
+  else { PB.playing = false; if (PB.timer) { clearInterval(PB.timer); PB.timer = null; } pbRenderUI(); }
+}
+function pbStep(d) {
+  if (!PB.frames.length) return;
+  if (PB.playing) { PB.playing = false; if (PB.timer) { clearInterval(PB.timer); PB.timer = null; } }
+  pbSeek(PB.idx + (d || 0));
+}
+function pbScrub(v) { if (PB.frames.length) pbSeek(parseInt(v, 10) || 0); }
+function pbSetSpeed(ms) {
+  PB.speed = parseInt(ms, 10) || 250;
+  if (PB.playing) { if (PB.timer) clearInterval(PB.timer); PB.timer = setInterval(pbTick, Math.max(50, PB.speed)); }
+}
+function renderPlaybackEvents() {
+  var f = PB.frames[PB.idx];
+  var lo = 0, hi = Number.MAX_VALUE;
+  if (f) { lo = PB.idx > 0 ? PB.frames[PB.idx - 1].t + 1 : 0; hi = f.t; }
+  var list = events.filter(function (ev) { return ev.t >= lo && ev.t <= hi; });
+  var note = 'PLAYBACK: events in frame window ';
+  note += (PB.loaded && PB.frames.length) ? (fmtPBT(lo === 0 ? PB.spanStart : lo) + ' → ' + fmtPBT(hi)) : '—';
+  if ($('eventsNote')) $('eventsNote').textContent = note;
+  renderEvents(list);
+}
+function pbRenderUI() {
+  if (!$('playbar')) return;
+  var f = PB.frames[PB.idx];
+  $('pbPlay').textContent = PB.playing ? '⏸' : '▶';
+  var sl = $('pbSlider');
+  if (sl) { sl.max = PB.frames.length ? PB.frames.length - 1 : 0; sl.value = PB.idx; sl.disabled = !PB.frames.length; }
+  var msg;
+  if (PB.loading) msg = 'loading history…';
+  else if (!PB.loaded) msg = PB.err ? 'history error: ' + PB.err : 'not loaded';
+  else if (!PB.frames.length) msg = 'no recorded snapshots — /api/v1/history is empty';
+  else msg = 'frame ' + (PB.idx + 1) + '/' + PB.frames.length + ' · ' + PB.nTotal + ' snapshots · ' + PB.botNames.length + ' bots · ' + fmtPBT(PB.spanStart) + '→' + fmtPBT(PB.spanEnd);
+  $('pbStatus').textContent = msg;
+  $('pbTime').textContent = f ? fmtPBT(f.t) + ' +' + Math.round((f.t - PB.spanStart) / 1000) + 's' : '-';
+}
+
 // ---- WPT-20 theme + hotkeys ----
 function applyTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('fleetTheme', t); }
 function initTheme() { applyTheme(localStorage.getItem('fleetTheme') || 'dark'); }
@@ -269,6 +452,7 @@ document.addEventListener('keydown', function (e) {
   else if (k === 'e') setView('events');
   else if (k === 'd') { detailIndex = 0; setView('detail'); }
   else if (k === 't') toggleTrails();   // WPT-11: show/hide movement trails
+  else if (k === 'p') pbToggle();       // WPT-12: toggle state playback mode
 });
 
 initTheme();

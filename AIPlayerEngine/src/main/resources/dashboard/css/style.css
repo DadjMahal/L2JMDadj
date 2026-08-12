@@ -90,6 +90,17 @@ tr:hover{background:var(--hover)}
 #mapControls{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
 #mapControls button{width:28px;height:28px;background:var(--chipbg);border:1px solid var(--line);color:var(--txt);border-radius:6px;font-size:15px;cursor:pointer;line-height:1}
 #mapControls button:hover{border-color:var(--accent);color:var(--accent)}
+/* WPT-12 — state playback / replay control bar */
+.playbar{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:12px;flex-wrap:wrap}
+.playbar button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:5px 11px;cursor:pointer;font-size:12px;line-height:1}
+.playbar button:hover{border-color:var(--accent);color:var(--accent)}
+.playbar button:disabled{opacity:.45;cursor:default}
+.playbar button:disabled:hover{border-color:var(--line);color:var(--txt)}
+#pbPlay{background:var(--accent);color:var(--tagtxt);border-color:var(--accent);font-weight:700;min-width:38px}
+.playbar input[type=range]{flex:1;min-width:140px;accent-color:var(--accent)}
+.playbar select{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:4px 6px;font-size:12px;cursor:pointer}
+.playbar .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+.playbar .meta#pbStatus{color:var(--accent)}
 
 @media(max-width:820px){
   body{padding:8px 10px}
