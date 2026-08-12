@@ -68,7 +68,7 @@
   - [x] H3 (bots only chase hostiles, never travel): **ATTEMPTED** — bots issue proactive far-travel HOPs (travel intent shown) but landed-position persistence is the open gap (see H1).
   - [ ] H4 (DB spawn vs live pos mismatch): baseline captured (BEFORE==AFTER, no live delta to compare yet since positions static).
   - [ ] H5 (organic XP/level-up): **NOT shown** — exp unchanged (1.38M) over the window; the seeded-1.4M baseline question remains open.
-- **Probe gap RESOLVED 2026-08-12:** `scripts/tim001_move_probe.sh` curls `/telemetry`; **`FleetPlay` previously had no `/telemetry` route** (only `/`, `/json`, `/report`) — the route serializing `MoveTelemetry.report()` was **ADDED** in `FleetPlay.startDashboard()` (WPT-21 backend, uncommitted at this note). Probe script defaults also corrected (ENGINE → `/home/dadj/Projects/l24lude`, MYSQL_ARGS → `mysql -u l2j -pStrongPasswordHere gameserver`). Next: re-run `tim001_move_probe.sh` for a longer window and confirm a position delta before marking resolved.
+- **Probe gap RESOLVED + VERIFIED LIVE 2026-08-12:** `tim001_move_probe.sh` curls `/telemetry`; the missing route was **ADDED** to `FleetPlay.startDashboard()` (serializes `MoveTelemetry.report()`) and **confirmed live** — a fresh 2-min run returned per-bot `movesSent/degraded/EVIDENCE-H1/H2/H5` for all 5 bots (ai_combat_04: 3 far HOPs ~21391u, serverMoved=0). Probe defaults fixed (ENGINE → `/home/dadj/Projects/l24lude`, MYSQL_ARGS → `mysql -u l2j -pStrongPasswordHere gameserver`). **TIM-001 still open** — far single HOPs exceed the 9900u per-move cap and don't persist (`gameserver.characters` identical before/after); next step is `ZoneRouter.nextHop()` short multi-hop. Live-verify log: `RuntimeLogs/2026-08-12-tim001-evidence-run.md`.
 
 ---
 
@@ -122,7 +122,7 @@
 ## 9. Phase C — telemetry depth (owner **Cline#3**, protocol only)
 | ID | Task | Prio | Deps | Status |
 |---|---|---|---|---|
-| **WPT-21** | Movement-ack telemetry → "STAGNANT" badge on non-moving bots (TIM-001 evidence) | P0 | WPT-03 | **BACKEND DONE (uncommitted)** — `/telemetry` route added to `FleetPlay.startDashboard()` serving `MoveTelemetry.report()` (EVIDENCE-H1/H2/H5); instrument already unit-tested (`MoveTelemetryTest`); `ops.html` STAGNANT badge shipped (WPT-32). Live evidence re-run still pending (stack was down this session). |
+| **WPT-21** | Movement-ack telemetry → "STAGNANT" badge on non-moving bots (TIM-001 evidence) | P0 | WPT-03 | **DONE-PUSHED `e2eaa6a4`** — `/telemetry` route added to `FleetPlay.startDashboard()` serving `MoveTelemetry.report()` (EVIDENCE-H1/H2/H5); instrument unit-tested (`MoveTelemetryTest`); **VERIFIED LIVE** 2026-08-12 (returned per-bot movesSent/degraded/H1/H2/H5 for all 5 bots); `ops.html` STAGNANT badge (WPT-32). TIM-001 proof itself still open (movement not persisted). |
 | **WPT-22** | SystemMessage/Chat parser → real server messages & NPC dialogue | P0 | — | **DONE-PUSHED `e09530b7`+`d811c512`** — `PacketLogger` SystemMessage/Chat parse → live `sysmsg`/`chat` events |
 | **WPT-23** | StatusUpdate full attr map — stream EXP/SP/level/HP changes in real time | P1 | — | **DONE-PUSHED `68945a94`** — StatusUpdate attr map (11 tests) |
 | **WPT-24** | Inventory v2 — full ItemList (equipped vs loose) + datapack names | P1 | — | **DONE-PUSHED `e09530b7`** — `PacketLogger` inventory records (equipped/loose) + `DatapackNames` |

@@ -27,10 +27,14 @@
 > - H3 (never travel?) **travel attempted** — bots issue far HOPs + real NPC_INFO/DELETE_OBJECT (kills).
 > - **H1 movement-persistence & H5 organic XP NOT shown** — `gameserver.characters` x/y/z + exp were
 >   **IDENTICAL before/after** the 2-min run; far moves are sent but not persisted server-side.
-> - **Probe gap RESOLVED 2026-08-12:** `/telemetry` route **ADDED** to `FleetPlay.startDashboard()` serving
->   `MoveTelemetry.report()` (was missing — only `/`,`/json`,`/report`); probe defaults fixed
+> - **Probe gap RESOLVED + VERIFIED LIVE 2026-08-12:** `/telemetry` route **ADDED** to `FleetPlay.startDashboard()`
+>   (serves `MoveTelemetry.report()`; was missing — only `/`,`/json`,`/report`); probe defaults fixed
 >   (ENGINE→`/home/dadj/Projects/l24lude`, MYSQL_ARGS→`mysql -u l2j -pStrongPasswordHere gameserver`).
->   Re-run `tim001_move_probe.sh` for a longer window and confirm a position delta before marking resolved.
+>   Re-run done (2-min, stack UP, JDK25): `/telemetry` returned per-bot movesSent/degraded/H1/H2/H5 for all
+>   5 bots — **H2 ✓** (ai_combat_04: 3 far HOPs ~21391u, degenerate=0/3) but **H1 ✗ serverMoved=0, H5 ✗
+>   expGained=0**, DB pos/exp identical before/after → movement NOT persisted. Root cause: single far HOP
+>   exceeds the 9900u per-move cap; next step is `ZoneRouter.nextHop()` short multi-hop, then re-confirm a
+>   real DB position delta.
 > - **Verdict: TIM-001 still IN PROGRESS — NOT resolved.** Evidence log: `Documentation/RuntimeLogs/2026-08-12-tim001-evidence-run.md`.
 
 ---
