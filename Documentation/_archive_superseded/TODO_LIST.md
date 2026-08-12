@@ -1,3 +1,10 @@
+> **⚙️ ARCHIVED 2026-08-12** — risk/action list written **2026-07-31** (pre-migration). Superseded by
+> the live WPT board **`Documentation/TASKS.md`** and **`Documentation/PRIORITY_TASKS.md`** (TIM-001
+> detail). Remaining open rows (e.g. "PENDING" / "IN PROGRESS") were tracked from the live board and
+> are **not mirrored here** — see `Documentation/TASKS.md` for current status. Kept for traceability;
+
+---
+
 # L2JMobius Interlude Server - TODO List & Risk Analysis
 
 ## Priority: URGENT ⚠️

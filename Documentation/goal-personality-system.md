@@ -1,7 +1,7 @@
 # Goal & Personality System — Stream D (task 77)
 
 > Consolidated doc for the AI player goal / personality / emotion / learning system.
-> Implements `TASKS.md` Part 4 (tasks 64-77). Status: 14/14 tasks done.
+> Implements `_archive_superseded/TASK_ROADMAP_110.md` Part 4 (tasks 64-77). Status: 14/14 tasks done.
 
 ## 1. Overview
 The AI player behaves with **long-term objectives**, a **distinct personality**, an

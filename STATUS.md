@@ -1,6 +1,7 @@
 # 📊 Status — L2JM
 
 > Single live snapshot. Mirrored by `START_HERE.md`. Overwritten every session.
+## 📚 Docs consolidated 2026-08-12: root `TASKS.md` (110-task roadmap, 110/110 done) + stale `Documentation/README.md` + `Documentation/TODO_LIST.md` archived -> `Documentation/_archive_superseded/` (see `_ARCHIVE_INDEX.md`). ONLY live board = `Documentation/TASKS.md`; single canonical README = root `README.md`.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
 ## Phase: 5 — WPT web-panel telemetry COMPLETE + integrated (2026-08-12). 30 of 33 WPT tasks DONE-PUSHED; API + frontend + telemetry shipped. 213/213 tests green. TIM-001 HIGH-priority evidence run done (still NOT resolved).

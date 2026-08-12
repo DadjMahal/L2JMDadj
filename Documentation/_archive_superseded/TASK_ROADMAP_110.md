@@ -1,3 +1,11 @@
+> **⚙️ ARCHIVED 2026-08-12** — this 110-task ROADMAP (Parts 0-7) is **110/110 DONE** (all rows `done`).
+> It is superseded as the live task tracker by the **WPT board `Documentation/TASKS.md`** (single
+> source of truth). Kept for traceability per project rule. **Do NOT treat this as the current board.**
+> Companion detail: `Documentation/Streams.md` (D-G), `Documentation/goal-personality-system.md` (D),
+> `Documentation/social-economy-system.md` (E). Index: `_ARCHIVE_INDEX.md`.
+
+---
+
 # 📋 L2JM — Task Roadmap: Top-Tier AI Players + Multi-Agent Workflow
 
 **Goal:** Build autonomous AI players for the L2JMobius Interlude server using a multi-agent workflow.

@@ -115,7 +115,7 @@ Unit tests in CombatAITest.java:
 
 ## Related Documentation
 
-- TASKS.md - 100-task roadmap
+- _archive_superseded/TASK_ROADMAP_110.md - archived 110-task roadmap
 - SESSION_PROTOCOL.md - Agent session workflow  
 - MULTI_AGENT_RULES.md - Multi-agent coordination
 - SCRIPT/verify_no_dead_code.sh - Dead code verification

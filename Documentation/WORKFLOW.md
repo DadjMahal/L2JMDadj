@@ -2,12 +2,12 @@
 
 > Merged 2026-08-02 from `SESSION_PROTOCOL.md` + `MULTI_AGENT_RULES.md` + `WORKFLOW_RULES.md`
 > (those now live in `Documentation/_archive_superseded/`). This is the ONE rules doc.
-> Orientation lives in `START_HERE.md`; the task board is `TASKS.md`.
+> Orientation lives in `START_HERE.md`; the task board is `Documentation/TASKS.md`.
 
 ## 1. Session Startup (read in this order)
 1. `START_HERE.md` (orient; ~800 tokens). **If `SESSION_IN_PROGRESS.md` exists → resume it first** (rate-limited mid-work).
 2. `AGENT_ONBOARDING.md` (6 hard rules).
-3. `TASKS.md` (pick the first `pending` task) — unless resuming.
+3. `Documentation/TASKS.md` (pick the first `pending` task) — unless resuming.
 4. Run START_HERE's Reality-check commands; paste output before claiming anything works.
 
 ## 2. The Hard Rules (non-negotiable)
@@ -19,10 +19,10 @@
 6. **Leave cleaner** — remove dead code, update stale docs, leave the repo better than found.
 
 ## 3. Session Workflow (one task per session)
-1. Claim one task: set `in_progress` + your agent name in `TASKS.md`.
+1. Claim one task: set `in_progress` + your agent name in `Documentation/TASKS.md`.
 2. Do the work; modify only intended source.
 3. Verify with a real command; paste the output BEFORE claiming anything works.
-4. **Sync the knowledge base at every milestone** — update ALL of: `TASKS.md` (status + one-line Result +
+4. **Sync the knowledge base at every milestone** — update ALL of: `Documentation/TASKS.md` (status + one-line Result +
    Evidence), `STATUS.md`, `START_HERE.md` (orient), `Documentation/SESSION_HANDOFF.md` (depth), and
    `AIPlayerEngine/AIStatusLogs/ai_progress_report.txt` (the trusted status source). Never leave a fresh
    session able to read stale context.
@@ -32,7 +32,7 @@
 > ⚠️ **Milestone doc-sync is MANDATORY at every milestone even when the whole session is NOT finished.**
 > Do NOT defer doc updates to the end of a complete session. If a turn is cut off (e.g., by a
 > rate-limit), you MUST still have committed: the milestone's report (`ai_progress_report.txt`),
-> `STATUS.md`/`START_HERE.md` orient, `SESSION_HANDOFF.md` depth, `TASKS.md` board status, the new
+> `STATUS.md`/`START_HERE.md` orient, `SESSION_HANDOFF.md` depth, `Documentation/TASKS.md` board status, the new
 > Audit/RuntimeLog evidence, and (for multi-step work) a `SESSION_IN_PROGRESS.md` checkpoint. The next
 > session then resumes from accurate, current context — no re-deriving and no stale claims.
 
@@ -61,7 +61,7 @@ Echo the prior log's "remaining issues" for continuity.
 mvn clean compile -f AIPlayerEngine/pom.xml          # build
 grep -r "ClassName" --include="*.java" AIPlayerEngine/src   # usage validation
 AIPlayerEngine/AIStatusLogs/real_status.sh           # real server state (DB=`gameserver`)
-git -C /home/volodro/L2JM status                     # tree state
+git -C /home/dadj/Projects/l24lude status             # tree state
 ```
 
 ## 8. Git workflow

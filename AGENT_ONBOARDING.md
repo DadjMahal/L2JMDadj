@@ -19,7 +19,7 @@ internally — see `START_HERE.md`.
 5. **Document before code** — write the doc, then implement.
 6. **Leave cleaner** — remove dead code, update stale docs, leave the repo better than found.
 7. **Milestone doc-sync** — after EVERY milestone, update the knowledge base (`START_HERE.md`, `STATUS.md`,
-   `SESSION_HANDOFF.md`, `TASKS.md` board, `ai_progress_report.txt`) and git-commit, even if the whole
+   `SESSION_HANDOFF.md`, `Documentation/TASKS.md` board, `ai_progress_report.txt`) and git-commit, even if the whole
    session isn't finished. A fresh session must never read stale context.
 
 ## Token budget (per session)
@@ -28,6 +28,6 @@ Bootup (`START_HERE.md` + this file) target ≤ ~1,200 tokens.
 
 ## Quick Start
 ```bash
-cd /home/volodro/L2JM && ./scripts/session_start.sh   # orients + resume-aware
+cd /home/dadj/Projects/l24lude && ./scripts/session_start.sh   # orients + resume-aware
 ```
 Routing table + reality-check commands live in `START_HERE.md`. Full process/rules in `Documentation/WORKFLOW.md`.

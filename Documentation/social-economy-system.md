@@ -1,6 +1,6 @@
 # Social & Economy System — Stream E (task 91)
 
-> Consolidated doc for the AI player social & economy system. Implements `TASKS.md` Part 5
+> Consolidated doc for the AI player social & economy system. Implements `_archive_superseded/TASK_ROADMAP_110.md` Part 5
 > (tasks 78-91). Status: 14/14 tasks done.
 
 ## 1. Overview

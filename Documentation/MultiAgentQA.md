@@ -1,7 +1,7 @@
 # Multi-Agent QA & Meta Scope — Stream F (tasks 92-95, 99, 101-103)
 
 > Consolidates the QA / meta / planning deliverables of Stream F. Companion to `STATUS.md`,
-> `TASKS.md`, and `Documentation/Streams.md`.
+> `Documentation/TASKS.md` (board), and `Documentation/Streams.md`.
 
 ---
 

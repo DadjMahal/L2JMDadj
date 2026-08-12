@@ -34,7 +34,7 @@ emotion/goal-driven decisions → emit real wire frames. Delivered as **7 stream
 3. **REVIEWED ✓ (code)** `scripts/verify_no_dead_code.sh` = **BUILD SUCCESS**, only 2 `LEGIT_TODO` markers.
 4. **REVIEWED ✓ (code)** Engine is deterministic: no executable `Math.random()` in engine code (only comment mentions). `Math.random()` exists only in the exempt `examples/` demo drivers (ExampleAIPlayer, NightlyProgressReport), which is the documented design.
 5. **REVIEWED ✓ (git)** `master` in sync with `origin`; commits `0b37702f`, `1bc5c39a`, `2bc3eea0` present.
-6. **REVIEWED ✓ (git)** TASKS.md: 110 rows, **done=110, pending=0, in_progress=0** (roadmap 100% complete).
+6. **REVIEWED ✓ (git)** `_archive_superseded/TASK_ROADMAP_110.md` (archived 2026-08-12): 110 rows, **done=110, pending=0, in_progress=0** (roadmap 100% complete).
 7. **REVIEWED ✓ (env)** Server UP (:2106, :7777); all 25 `ai_%` bots relocated + healed; `still_stuck=0`.
 8. **REVIEWED ✓ (git)** Key artifacts exist: `GoalDrivenLoop`, `LiveFeedbackBridge`, `StreamGDisposition.md`, `AUDIT_ORIENTATION.md`, `DONE_SUMMARY.md`, `relocate_void_ai.sh`, 3 `StreamG*Test`.
 

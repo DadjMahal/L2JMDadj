@@ -1,8 +1,9 @@
 # Stream Declarations — D / E / F
 
-> Companion to `TASKS.md`. Streams A–C are DONE and live-proven (see `STATUS.md`).
+> Companion to the archived 110-task roadmap (`_archive_superseded/TASK_ROADMAP_110.md`).
+> Streams A–C are DONE and live-proven (see `STATUS.md`).
 > This file formally declares Streams D, E, F — the remaining work — mapping each stream to a
-> `TASKS.md` part, stating its purpose, scope, entry/exit criteria, and the existing (mostly
+> `_archive_superseded/TASK_ROADMAP_110.md` part, stating its purpose, scope, entry/exit criteria, and the existing (mostly
 > unwired) classes it will either wire or replace.
 
 Status legend: ✅ done | 🔄 in progress | ⏳ declared (not started)
@@ -10,7 +11,7 @@ Status legend: ✅ done | 🔄 in progress | ⏳ declared (not started)
 ---
 
 ## Stream D — Goals & Long-Term Behavior  ✅ DONE (2026-08-04)
-**Maps to:** `TASKS.md` Part 4 — tasks **64–77** (14 tasks)
+**Maps to:** `_archive_superseded/TASK_ROADMAP_110.md` Part 4 — tasks **64–77** (14 tasks)
 
 ### Purpose
 Make AI players pursue **persistent, long-term objectives** and behave with a **distinct
@@ -48,12 +49,12 @@ goal, get frustrated after deaths, pick easier mobs when cautious, and learn whi
 - **Entry:** 64/64 tests green; Stream C live-proven.
 - **Exit (Stream D done):** the live combat/quest loop consults an active goal; real combat
   outcomes mutate emotion + reinforcement state (unit-testable); at least one live proof showing a
-  personality/emotion-influenced decision. All Part 4 tasks (64–77) marked done in `TASKS.md`.
+  personality/emotion-influenced decision. All Part 4 tasks (64–77) marked done in `_archive_superseded/TASK_ROADMAP_110.md`.
 
 ---
 
 ## Stream E — Social & Economy  ✅ DONE (2026-08-04)
-**Maps to:** `TASKS.md` Part 5 — tasks **78–91** (14 tasks)
+**Maps to:** `_archive_superseded/TASK_ROADMAP_110.md` Part 5 — tasks **78–91** (14 tasks)
 
 ### Purpose
 Real **inventory-aware economy** (buy/sell/arbitrage on real merchant packets) and **social
@@ -78,7 +79,7 @@ path — not mock data.
 ---
 
 ## Stream F — Multi-Agent Scale & QA  ✅ DONE (2026-08-04)
-**Maps to:** `TASKS.md` Part 6 — tasks **92–103** (12 tasks; task 100 already done)
+**Maps to:** `_archive_superseded/TASK_ROADMAP_110.md` Part 6 — tasks **92–103** (12 tasks; task 100 already done)
 
 ### Purpose
 Run **many AI players concurrently** in isolation, coordinate them as a swarm, and a final
@@ -107,7 +108,7 @@ unwired `AIPlayer` subsystems — but implementation is sequential D→E→F.
 ---
 
 ## Stream G — Wire the Remaining Stubs  ✅ CODE DONE (2026-08-05); run-proof/env/style pending
-**Maps to:** `TASKS.md` Part 7 — tasks **104–110** (addressed the ~145 stub classes from task 92/103)
+**Maps to:** `_archive_superseded/TASK_ROADMAP_110.md` Part 7 — tasks **104–110** (addressed the ~145 stub classes from task 92/103)
 
 ### Purpose
 Wire the previously-dead helper/content/behavior classes into the live decision path, i.e. convert

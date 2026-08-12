@@ -2,7 +2,8 @@
 
 > **Purpose:** get an auditing/onboarding AI from zero to a confident mental model of the core in
 > minutes. Read this top-to-bottom (~4 min), then pull the deeper docs via the routing table (§9).
-> Everything here mirrors `STATUS.md` / `TASKS.md` / `START_HERE.md` (single source of truth = `STATUS.md`).
+> Everything here mirrors `START_HERE.md` (orient) / `STATUS.md` (status snapshot) / `Documentation/TASKS.md`
+> (board). Single source of truth for work = `Documentation/TASKS.md`.
 
 ---
 
@@ -20,7 +21,7 @@ matters (B/C combat), and fully synced in the docs.
 ## 2. Repo map
 ```
 L2JM/                         git root (branch master, origin = github DadjMahal/L2JMDadj)
-├── TASKS.md                  roadmap 1-110 (Parts 0-7); 108 done, 2 open (109 env, 110 done now)
+├── Documentation/_archive_superseded/TASK_ROADMAP_110.md   archived 110-task roadmap (110/110 DONE, 2026-08-12)
 ├── STATUS.md                 ★ single live snapshot — read first
 ├── START_HERE.md             fast orientation + routing table
 ├── Documentation/

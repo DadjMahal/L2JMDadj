@@ -1,7 +1,7 @@
 # SESSION HANDOFF — Full project state & knowledge (2026-08-03)
 
 > **Read this to reach near-full context cheaply** (~2-3k tokens). Live source: `START_HERE.md` (orient) +
-> this file (depth) + `TASKS.md` (board). This avoids re-deriving the ~70k tokens of history.
+> this file (depth) + `Documentation/TASKS.md` (board). This avoids re-deriving the ~70k tokens of history.
 > Save-update note: this doc is rewritten at the end of each significant session.
 
 ## 1. Project (one line)
@@ -188,7 +188,7 @@ is a follow-on. B7's earlier "buy-open blocked" note is corrected — the genuin
 5. Stream C/G cleanup — fake `assertTrue(true)` tests 54/63; ~145 unwired stub classes.
 
 ## 6. Key file/command map
-- Orient: `START_HERE.md` · Rules: `Documentation/WORKFLOW.md` · Board: `TASKS.md` · Status: `STATUS.md`
+- Orient: `START_HERE.md` · Rules: `Documentation/WORKFLOW.md` · Board: `Documentation/TASKS.md` · Status: `STATUS.md`
 - Login spec: `Documentation/Audit/31-login-protocol-handshake.md` · SQL DB: `loginserver` (accounts) / `gameserver` (characters)
 - `scripts/session_start.sh` (resume-aware) · `scripts/session_end.sh` (commit+cleanup) · `scripts/real_status.sh` (real state)
 - Probe/testers: `AIPlayerEngine/.../examples/LoginProbe.java`, `.../RawInitProbe.java`
