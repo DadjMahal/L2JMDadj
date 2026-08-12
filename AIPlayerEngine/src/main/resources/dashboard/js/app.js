@@ -237,11 +237,21 @@ function render() {
     pbRenderUI();
     return;
   }
-  if (view === 'map') { if (window.MapRenderer) window.MapRenderer.render(bots, ent, towns, trails, trailsOn); }
+  if (view === 'map') {
+    if (window.MapRenderer) window.MapRenderer.render(bots, ent, towns, trails, trailsOn);
+    // WPT-19 — keep the camera centered on the followed bot (unless pinned).
+    if (followName && !pinnedCam) {
+      var fb = findBotByKey(followName);
+      if (fb && fb.x != null && window.MapRenderer) window.MapRenderer.focusOn(fb.x, fb.y);
+    }
+  }
   else if (view === 'grid') renderGrid();
   else if (view === 'events') renderEvents();
   else if (view === 'alerts') renderAlerts();
+  else if (view === 'chat') renderChat();
   else renderDetail();
+  // WPT-19 — keep the follow/focus pickers current with the live bot list.
+  populateFocus();
 }
 
 function setView(v) {
@@ -250,10 +260,14 @@ function setView(v) {
   $('btnGrid').classList.toggle('on', v === 'grid');
   $('btnEvents').classList.toggle('on', v === 'events');
   $('btnAlerts').classList.toggle('on', v === 'alerts');
-  var panels = { map: 'mapPanel', grid: 'gridPanel', events: 'eventsPanel', detail: 'detailPanel', alerts: 'alertsPanel' };
+  $('btnChat').classList.toggle('on', v === 'chat');
+  $('btnControl').classList.toggle('on', v === 'control');
+  var panels = { map: 'mapPanel', grid: 'gridPanel', events: 'eventsPanel', detail: 'detailPanel', alerts: 'alertsPanel', chat: 'chatPanel', control: 'controlPanel' };
   Object.keys(panels).forEach(function (k) {
     $(panels[k]).style.display = (k === v) ? '' : 'none';
   });
+  if (v === 'control') cfLoad();
+  if (v === 'chat') renderChat();
   render();
 }
 
@@ -299,10 +313,16 @@ var COLS = [
 
 function filteredBots() {
   var fo = $('fOnline').value, fs = $('fState').value;
+  var sq = ($('searchQ') ? $('searchQ').value : '').trim().toLowerCase();
   return bots.filter(function (b) {
     if (fo === '1' && !b.online) return false;
     if (fo === '0' && b.online) return false;
     if (fs && (b.state || '') !== fs) return false;
+    // WPT-19 — search by account or name.
+    if (sq) {
+      var hay = (b.account || '').toLowerCase() + ' ' + (b.name || '').toLowerCase();
+      if (hay.indexOf(sq) < 0) return false;
+    }
     return true;
   });
 }
@@ -337,7 +357,8 @@ function renderGrid() {
   h += '</tr></thead><tbody>';
   rows.forEach(function (b) {
     var key = botKey(b).replace(/['"\\]/g, '');
-    h += '<tr onclick="openDrawer(\'' + key + '\')" title="open detail drawer" style="cursor:pointer">' +
+    var hl = isHighlighted(b);   // WPT-19 search/follow highlight
+    h += '<tr class="' + hl + '" onclick="openDrawer(\'' + key + '\')" title="open detail drawer" style="cursor:pointer">' +
       COLS.map(function (c) { return '<td>' + c.h(b) + '</td>'; }).join('') + '</tr>';
   });
   h += '</tbody></table>';
@@ -587,7 +608,113 @@ function pbRenderUI() {
 }
 
 // ---- WPT-20 theme + hotkeys ----
-function applyTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('fleetTheme', t); }
+// ============================================================================
+// WPT-19 — filter / follow / search / highlight + pin camera
+// ----------------------------------------------------------------------------
+// Search lives in the grid (#searchQ); follow + pin camera live on the map.
+// Row highlighting (search/follow match) is applied in renderGrid.
+// ============================================================================
+var followName = '';          // account being followed (camera follows + row highlighted)
+var pinnedCam = false;        // when on, follow does not re-center the camera
+function setFollow(name) {
+  followName = name || '';
+  var fs = $('fFocus'); if (fs) fs.value = followName;
+  var cs = $('cfFocus'); if (cs) cs.value = followName;
+  render();
+  // Center the camera immediately when following (unless pinned).
+  if (followName && !pinnedCam) {
+    var b = findBotByKey(followName);
+    if (b && window.MapRenderer) window.MapRenderer.focusOn(b.x, b.y);
+  }
+}
+function togglePinCam() {
+  pinnedCam = !pinnedCam;
+  var b = $('btnPinCam');
+  if (b) { b.classList.toggle('on', pinnedCam); b.textContent = pinnedCam ? '📍' : '📌'; b.title = pinnedCam ? 'camera pinned' : 'pin camera (auto-follow)'; }
+}
+function populateFocus() {
+  var fs = $('fFocus'), cs = $('cfFocus');
+  if (!fs && !cs) return;
+  var opts = bots.map(function (b) {
+    var key = botKey(b).replace(/['"\\]/g, '');
+    return '<option value="' + esc(key) + '">' + esc((b.name || key) + ' L' + b.level) + '</option>';
+  }).join('');
+  if (fs) { var cur = fs.value; fs.innerHTML = '<option value="">Follow: none</option>' + opts; if (fs.value !== cur) fs.value = cur; }
+  if (cs) { cs.innerHTML = '<option value="">Focus: none</option>' + opts; cs.value = followName; }
+}
+function isHighlighted(b) {
+  var q = $('searchQ') ? $('searchQ').value.trim().toLowerCase() : '';
+  if (q) {
+    var hay = (b.account || '').toLowerCase() + ' ' + (b.name || '').toLowerCase();
+    if (hay.indexOf(q) >= 0) return 'hl';
+  }
+  if (followName && botKey(b) === followName) return 'hl-follow';
+  return '';
+}
+
+// ============================================================================
+// WPT-17 — fleet control panel (reads + POSTs the real /api/v1/config tunables)
+// ============================================================================
+var cfCfg = null;
+function cfLoad() {
+  var sp = $('cfBody'); if (!sp) return;
+  fetch('/api/v1/config').then(function (r) { return r.json(); }).then(function (c) {
+    cfCfg = c;
+    setN('cfFleet', c.fleetSize); setN('cfWander', c.wanderRadius); setN('cfWanderMs', c.wanderIntervalMs); setN('cfPoll', c.pollMs);
+    cfMsg('loaded /api/v1/config ok');
+  }).catch(function (e) { cfMsg('config load error: ' + e); });
+}
+function setN(id, v) { var el = $(id); if (el && v != null) el.value = v; }
+function cfMsg(m) { var el = $('cfMsg'); if (el) el.textContent = m; }
+function cfApply(key, inputId) {
+  var el = $(inputId); if (!el) return;
+  var v = Number(el.value);
+  if (isNaN(v) || v < 0) { cfMsg('invalid value for ' + key); return; }
+  var body = {}; body[key] = v;
+  fetch('/api/v1/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function (r) { return r.json(); }).then(function (c) {
+    cfCfg = c; cfMsg('applied ' + key + '=' + v + ' (wanderRadius ' + c.wanderRadius + ')');
+  }).catch(function (e) { cfMsg('apply error: ' + e); });
+}
+function cfReset() { if (cfCfg) { setN('cfFleet', cfCfg.fleetSize); setN('cfWander', cfCfg.wanderRadius); setN('cfWanderMs', cfCfg.wanderIntervalMs); setN('cfPoll', cfCfg.pollMs); cfMsg('reset to GET values'); } }
+function cfFocusBot(name) { setFollow(name); }
+
+// ============================================================================
+// WPT-28 — chat manager (real incoming SAY / SystemMessage from /api/v1/events)
+// ----------------------------------------------------------------------------
+// The WPT-22 parser surfaces server chat as TYPE_CHAT (and sysmsg as
+// TYPE_SYSMSG) events; we render the chat ones in a readable channel view.
+// ============================================================================
+var chatCleared = 0;   // epoch-ish marker bumped by Clear so stale clears don't re-add
+function chatRows() {
+  var seen = new Set(), out = [];
+  events.slice().reverse().forEach(function (e) {
+    if (!e || (e.type !== 'chat' && e.type !== 'sysmsg')) return;
+    var msg = (e.data && (e.data.text || e.data.msg)) || '';
+    var who = (e.data && (e.data.speaker || e.data.who)) || e.bot || '';
+    var key = (e.seq || '') + '|' + msg + '|' + who;
+    if (seen.has(key)) return; seen.add(key);
+    out.push({ type: e.type, t: e.t, who: who, msg: msg });
+  });
+  return out.slice(-300);  // newest-last for a chat stream
+}
+function renderChat(force) {
+  if (view !== 'chat' && !force) return;
+  var t = $('chatTbl'); if (!t) return;
+  var rows = chatRows();
+  if (!rows.length) { t.innerHTML = '<div class="meta chat-empty">No chat events yet — incoming SAY / SystemMessage text from the WPT-22 parser appears here as the fleet runs.</div>'; return; }
+  t.innerHTML = rows.map(function (r) {
+    var whoClass = /^sys/i.test(r.who) || r.type === 'sysmsg' ? 'sys' : 'say';
+    return '<div class="chatrow ' + whoClass + '"><span class="c-t">' + new Date(r.t).toLocaleTimeString() + '</span>' +
+      '<span class="c-who">' + esc(r.who || (r.type === 'sysmsg' ? 'system' : 'say')) + '</span>' +
+      '<span class="c-msg">' + esc(r.msg) + '</span></div>';
+  }).join('');
+}
+function clearChat() { chatCleared++; var t = $('chatTbl'); if (t) t.innerHTML = '<div class="meta chat-empty">cleared — new events will re-fill</div>'; }
+
 function initTheme() { applyTheme(localStorage.getItem('fleetTheme') || 'dark'); }
 function toggleTheme() { applyTheme(document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
 document.addEventListener('keydown', function (e) {

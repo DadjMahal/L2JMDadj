@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- AI Fleet Dashboard GENERATED bundle — version 9fc361b4-20260812063016.
+<!-- AI Fleet Dashboard GENERATED bundle — version 1018fc0e-20260812063707.
      Source: index.src.html + js/map.js + js/app.js + css/style.css + data/*.json.
      Regenerate with: scripts/build_dashboard.sh  (do not hand-edit) -->
 <!--
@@ -144,6 +144,28 @@ tr:hover{background:var(--hover)}
 #btnSound,#btnAlerts{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;line-height:1}
 #btnSound:hover,#btnAlerts:hover{border-color:var(--accent);color:var(--accent)}
 #btnAlerts.on{border-color:var(--red);color:var(--red)}
+.focusbar{position:absolute;top:10px;left:10px;z-index:14;display:flex;gap:6px;align-items:center}
+.focusbar select,.focusbar button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font-size:12.5px;cursor:pointer}
+#btnPinCam.on{border-color:var(--accent);color:var(--accent)}
+tr.hl td{background:rgba(255,220,120,.12)}
+tr.hl-follow td{background:rgba(120,220,255,.16)}
+#searchQ{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font-size:12.5px;min-width:180px}
+.cfbody{display:flex;flex-direction:column;gap:12px;padding:14px 16px;max-width:640px}
+.cfrow{display:flex;align-items:center;gap:10px}
+.cfrow label{width:150px;color:var(--accent);font-size:13px}
+.cfrow input{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font-size:13px;width:150px}
+.cfrow select{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font-size:13px;flex:1;max-width:280px}
+.cfrow button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12.5px}
+.cfrow button:hover{border-color:var(--accent);color:var(--accent)}
+#cfMsg{padding:0 16px 12px;color:var(--dim);font-size:12.5px}
+#chatTbl{padding:10px 14px}
+.chatrow{display:flex;gap:10px;align-items:baseline;padding:4px 8px;border-bottom:1px solid var(--line);font-size:13px}
+.chatrow:last-child{border-bottom:0}
+.chatrow .c-t{color:var(--dim);white-space:nowrap;font-size:11.5px}
+.chatrow .c-who{color:var(--cy);font-weight:700;white-space:nowrap;min-width:110px}
+.chatrow.sys .c-who{color:var(--lm)}
+.chatrow .c-msg{color:var(--txt);word-break:break-word}
+.chat-empty{padding:14px;color:var(--dim);font-size:13px}
 .alert-count{display:inline-block;min-width:16px;padding:0 4px;border-radius:9px;background:var(--line);color:var(--txt);font-size:11px;font-weight:700;text-align:center;margin-left:2px}
 #btnAlerts.has-alerts .alert-count{background:var(--red);color:var(--tagtxt)}
 .toast-stack{position:fixed;top:14px;right:18px;z-index:40;display:flex;flex-direction:column;gap:8px;max-width:min(360px,92vw)}
@@ -187,6 +209,8 @@ h1{font-size:15px}
     <button id="btnMap" class="on" onclick="setView('map')">🗺️ Map</button>
     <button id="btnGrid" onclick="setView('grid')">📋 Grid</button>
     <button id="btnEvents" onclick="setView('events')">📡 Events</button>
+    <button id="btnChat" onclick="setView('chat')" title="chat manager (WPT-28)">💬 Chat</button>
+    <button id="btnControl" onclick="setView('control')" title="fleet control panel (WPT-17)">🎛️ Control</button>
     <button id="btnPlayback" onclick="pbToggle()" title="replay recorded bot state from /api/v1/history">▶ Playback</button>
     <button id="btnTheme" onclick="toggleTheme()" title="toggle dark/light theme">🌗 Theme</button>
   </div>
@@ -209,6 +233,13 @@ h1{font-size:15px}
       <button onclick="window.MapRenderer.zoomIn()" title="zoom in">＋</button>
       <button onclick="window.MapRenderer.zoomOut()" title="zoom out">－</button>
       <button onclick="window.MapRenderer.fit()" title="fit map to world">⤢</button>
+      <button id="btnPinCam" onclick="togglePinCam()" title="pin camera (WPT-19): keep current pan/zoom on auto-follow">📌</button>
+    </div>
+    <div class="focusbar">
+      <select id="fFocus" onchange="setFollow(this.value)" title="follow a bot (WPT-19)">
+        <option value="">Follow: none</option>
+      </select>
+      <button onclick="setFollow('')" title="stop following">✕</button>
     </div>
     <div class="tooltip" id="tip"></div>
   </div>
@@ -222,6 +253,7 @@ h1{font-size:15px}
       <option value="0">Offline only</option>
     </select>
     <select id="fState" onchange="renderGrid()"></select>
+    <input id="searchQ" type="search" placeholder="🔍 search name/account (WPT-19)" oninput="renderGrid()" title="filter bots by name/account">
     <button onclick="exportCsv()" title="download current grid rows as CSV">⬇ CSV</button>
     <span class="meta" id="gridCount"></span>
   </div>
@@ -239,6 +271,57 @@ h1{font-size:15px}
 
 <div class="panel" id="detailPanel" style="display:none">
   <div class="detail" id="detailBody"></div>
+</div>
+
+<!-- WPT-17 — fleet control panel: reads + POSTs the live /api/v1/config tunables
+     (wanderRadius / wanderIntervalMs / pollMs) plus a "focus bot" follow shortcut.
+     No fake endpoints — only the real, working v1 contract is used. -->
+<div class="panel" id="controlPanel" style="display:none">
+  <div class="gridbar">
+    <span class="meta" id="cfNote">Fleet control — live tunables from <code>/api/v1/config</code> (WPT-05 POST applies them immediately)</span>
+    <div class="spacer"></div>
+    <button onclick="cfReset()" title="set controls back to the GET values">↺ Reset</button>
+  </div>
+  <div class="cfbody" id="cfBody">
+    <div class="cfrow">
+      <label>Fleet size</label>
+      <input id="cfFleet" type="number" min="0" max="20" step="1" value="">
+      <span class="meta" id="cfFleetH"></span>
+    </div>
+    <div class="cfrow">
+      <label>Wander radius (u)</label>
+      <input id="cfWander" type="number" min="0" step="50" value="">
+      <button onclick="cfApply('wanderRadius', 'cfWander')">Apply</button>
+    </div>
+    <div class="cfrow">
+      <label>Wander interval (ms)</label>
+      <input id="cfWanderMs" type="number" min="0" step="500" value="">
+      <button onclick="cfApply('wanderIntervalMs', 'cfWanderMs')">Apply</button>
+    </div>
+    <div class="cfrow">
+      <label>Poll interval (ms)</label>
+      <input id="cfPoll" type="number" min="0" step="100" value="">
+      <button onclick="cfApply('pollMs', 'cfPoll')">Apply</button>
+    </div>
+    <div class="cfrow">
+      <label>Focus bot</label>
+      <select id="cfFocus" onchange="cfFocusBot(this.value)"></select>
+      <span class="meta">moves the camera + row highlight to the chosen bot (WPT-19 follow)</span>
+    </div>
+  </div>
+  <div class="meta" id="cfMsg"></div>
+</div>
+
+<!-- WPT-28 — chat manager: renders REAL incoming chat (TYPE_CHAT sysmsg/chat events
+     captured by the WPT-22 parser via /api/v1/events) in a readable channel view. -->
+<div class="panel" id="chatPanel" style="display:none">
+  <div class="gridbar">
+    <span class="meta" id="chatNote">Chat manager — real incoming SAY / SystemMessage text from <code>/api/v1/events</code> (WPT-22 parser)</span>
+    <div class="spacer"></div>
+    <button onclick="renderChat(true)" title="reload chat from the live event feed">⟳</button>
+    <button onclick="clearChat()">Clear</button>
+  </div>
+  <div id="chatTbl"></div>
 </div>
 
 <!-- WPT-18 — alerts & notifications: death / disconnect / level-up / server-down
@@ -290,7 +373,7 @@ h1{font-size:15px}
 </div>
 
 
-<script>/* build:9fc361b4-20260812063016 */window.__BUILD__="9fc361b4-20260812063016";window.__MAP_DATA__={regions:{"version":1,"units":"meters","source":"zones/custom_town.xml (TownZone NPoly/Cuboid)","regions":[{"name":"Giran Castle Town","id":"11020","category":"town","shape":"NPoly","minZ":-3800,"maxZ":-3300,"center":{"x":84273,"y":148288},"polygon":[[77170,147420],[79200,147420],[79200,144780],[80310,144780],[80310,143630],[83120,143630],[83120,143505],[83700,143505],[83700,141500],[84070,141500],[84070,143505],[85040,143505],[85040,145760],[86115,145760],[86115,146910],[88425,146910],[88425,147175],[90430,147175],[90430,147540],[88425,147540],[88425,150050],[86495,150050],[86495,150250],[85995,150250],[85995,152250],[86780,152250],[86780,153600],[84850,153600],[84850,152250],[85625,152250],[85265,150250],[85085,150250],[85085,149875],[83680,149875],[83680,149920],[83500,149920],[83500,151270],[82705,151270],[82705,152820],[79195,152820],[79195,149805],[77170,149805]]},{"name":"Dark Elven Village","id":"11021","category":"town","shape":"NPoly","minZ":-4700,"maxZ":-3600,"center":{"x":11247,"y":17086},"polygon":[[15704,15397],[15765,15878],[15801,16332],[14098,19672],[10278,20689],[8852,20421],[7484,18628],[7236,18042],[7141,17507],[7045,16819],[7382,14486],[13891,13025],[15542,15230]]},{"name":"Talking Island","id":"11022","category":"town","shape":"NPoly","minZ":-3800,"maxZ":-3700,"center":{"x":-84327,"y":242833},"polygon":[[-83739,245733],[-84049,246087],[-84289,246258],[-84556,246243],[-84984,245820],[-85336,245426],[-85684,245099],[-85969,244770],[-86400,244292],[-86664,243997],[-86940,243631],[-87517,243034],[-87650,242799],[-87613,242572],[-87348,242246],[-86956,241942],[-86656,241684],[-86343,241365],[-85829,240966],[-85544,240765],[-85193,240440],[-84865,240185],[-84594,239866],[-84284,239666],[-84002,239734],[-83822,239922],[-83640,240190],[-83295,240492],[-82990,240878],[-82635,241208],[-82234,241698],[-82027,241985],[-81684,242328],[-81421,242741],[-81113,243073],[-81011,243228],[-81029,243496],[-81340,243797],[-81691,244028],[-82292,244585],[-82787,244999],[-83726,245721]]},{"name":"Elven Village","id":"11023","category":"town","shape":"NPoly","minZ":-3600,"maxZ":-2750,"center":{"x":45365,"y":50045},"polygon":[[45364,46535],[45895,46578],[46388,46713],[46861,46934],[47290,47232],[47659,47598],[47959,48024],[48182,48499],[48318,49006],[48364,49523],[48319,50048],[48186,50548],[47963,51022],[47661,51450],[47286,51836],[46864,52126],[46398,52345],[46313,52598],[45768,52597],[45735,52665],[45651,52791],[45520,52878],[45363,52912],[45210,52882],[45077,52794],[44993,52667],[44961,52600],[44422,52600],[44342,52347],[43867,52131],[43438,51827],[43075,51458],[42766,51019],[42546,50557],[42412,50051],[42367,49530],[42410,49012],[42547,48509],[42769,48034],[43065,47602],[43437,47232],[43859,46937],[44336,46713],[44843,46575],[45395,46530]]},{"name":"Orc Village","id":"11024","category":"town","shape":"NPoly","minZ":-400,"maxZ":-200,"center":{"x":-45586,"y":-113739},"polygon":[[-45528,-110079],[-45711,-110075],[-45704,-110164],[-46633,-110080],[-46625,-109992],[-46803,-109993],[-47345,-109973],[-47388,-110012],[-47388,-113001],[-47351,-113039],[-47102,-113038],[-47107,-113382],[-47326,-113379],[-47326,-113829],[-47114,-113826],[-47102,-114171],[-47350,-114170],[-47388,-114199],[-47391,-117182],[-47339,-117239],[-46791,-117240],[-46607,-117240],[-46619,-117151],[-45701,-117000],[-45705,-117085],[-45523,-117088],[-44169,-116722],[-44147,-116804],[-43838,-116717],[-43855,-116638],[-43779,-116620],[-42581,-115424],[-42472,-115258],[-42051,-113671],[-42050,-113502],[-42474,-111925],[-42554,-111775],[-43843,-110456],[-44147,-110375],[-45529,-110078]]},{"name":"Gludin Village","id":"11025","category":"town","shape":"NPoly","minZ":-3300,"maxZ":-3000,"center":{"x":-80417,"y":151635},"polygon":[[-84867,149371],[-82581,149364],[-82499,149139],[-81593,149177],[-81551,149410],[-79270,149392],[-79275,150365],[-79055,150368],[-78820,150429],[-78644,150595],[-78558,150837],[-78567,152410],[-78796,152420],[-78803,154319],[-77131,155437],[-78190,156459],[-79978,156104],[-84876,156106],[-84875,149371]]},{"name":"Dwarven Village","id":"11026","category":"town","shape":"NPoly","minZ":-1600,"maxZ":-800,"center":{"x":116440,"y":-180511},"polygon":[[115499,-176771],[115301,-176769],[114877,-176811],[113385,-177602],[112934,-178507],[113954,-183578],[115493,-183698],[115748,-184078],[115936,-184197],[116268,-184243],[116716,-184246],[117023,-184162],[117211,-184022],[117325,-183825],[117490,-183411],[117629,-182930],[117762,-182686],[117762,-182260],[117734,-182090],[117531,-181747],[117452,-180534],[117492,-180010],[117466,-179559],[117327,-179170],[117328,-178966],[117303,-178695],[116860,-177230],[116806,-177131],[116650,-176975],[116418,-176887],[115929,-176804],[115490,-176767]]},{"name":"Gludio Castle Town","id":"11027","category":"town","shape":"NPoly","minZ":-3200,"maxZ":-2900,"center":{"x":-14522,"y":123414},"polygon":[[-14960,121148],[-14875,121120],[-14717,121106],[-14394,121109],[-14242,121104],[-12659,121098],[-12025,121767],[-12024,123944],[-12277,124668],[-12648,125573],[-12879,126199],[-13855,126470],[-14484,126463],[-15236,126178],[-16126,125356],[-16531,124493],[-16537,123850],[-16492,123330],[-16194,123160],[-16057,123101],[-15327,122741],[-14958,121150]]},{"name":"Dion Castle Town","id":"11028","category":"town","shape":"NPoly","minZ":-3250,"maxZ":-2600,"center":{"x":18112,"y":144278},"polygon":[[15264,141764],[15434,143574],[15760,144707],[15846,145302],[16134,146850],[16715,147153],[17844,147640],[18139,147138],[18541,146758],[18782,146598],[19069,146521],[19430,146485],[20363,146421],[20722,146319],[21415,146319],[21402,145011],[21381,143675],[20696,142841],[20380,142492],[19060,142463],[18821,142512],[17885,143046],[17447,143348],[17019,144028],[16780,142908],[17344,142847],[17327,142650],[17483,142634],[17396,141776],[17238,141792],[17218,141574],[15265,141765]]},{"name":"Town of Oren","id":"11029","category":"town","shape":"NPoly","minZ":-2250,"maxZ":-1400,"center":{"x":80896,"y":54436},"polygon":[[84014,52245],[84138,54683],[84143,55029],[84001,57029],[81773,57023],[81795,56237],[81239,56236],[81282,56892],[81187,56904],[81105,57179],[79195,57167],[78986,57076],[78844,55218],[78843,54882],[79148,54560],[79660,54556],[79662,53994],[79002,53990],[78963,53359],[78959,53070],[79027,52125],[79628,52070],[80547,52068],[80835,52116],[80733,53068],[81306,53070],[81369,52310],[82605,52244],[84010,52250]]},{"name":"Hunter Village","id":"11030","category":"town","shape":"NPoly","minZ":-2800,"maxZ":-1500,"center":{"x":117113,"y":76299},"polygon":[[115318,74260],[115019,74495],[113919,75365],[114386,77505],[114653,78197],[115063,80068],[117015,81804],[120527,81006],[121485,79049],[121631,74718],[119999,74209],[118499,74097],[117946,74068],[117404,73671],[115622,74026],[115328,74252]]},{"name":"Town of Aden","id":"11031","category":"town","shape":"NPoly","minZ":-2700,"maxZ":-1900,"center":{"x":147229,"y":26073},"polygon":[[143209,25727],[143209,26975],[143463,27286],[143473,30074],[144386,30947],[146209,30946],[146649,31179],[146830,31508],[148081,31511],[148275,31176],[148696,30937],[150367,30942],[151289,30008],[151233,25914],[151399,25719],[151403,24470],[151205,24271],[151198,21168],[150233,20225],[148287,20227],[148086,19992],[146836,19992],[146642,20199],[144429,20204],[143459,21124],[143446,25542],[143198,25731]]},{"name":"Town of Goddard","id":"11032","category":"town","shape":"NPoly","minZ":-3550,"maxZ":-2600,"center":{"x":147728,"y":-56548},"polygon":[[144345,-53353],[145283,-52411],[146840,-51665],[148575,-51659],[150128,-52405],[151075,-53362],[152091,-54735],[151974,-55898],[151852,-56567],[151737,-57217],[151608,-57387],[151239,-57131],[150447,-58201],[150832,-58488],[150551,-58851],[148717,-59764],[148590,-59759],[148590,-59291],[146839,-59291],[146842,-59768],[146700,-59766],[144860,-58848],[144589,-58489],[144967,-58193],[144179,-57141],[143807,-57392],[143685,-57210],[143335,-55225],[143679,-53917],[143887,-53081]]},{"name":"Rune Castle Town","id":"11033","category":"town","shape":"Cuboid","minZ":-1200,"maxZ":3000,"center":{"x":39840,"y":-48430},"polygon":[[32531,-52045],[47150,-52045],[47150,-44815],[32531,-44815]]},{"name":"Heine","id":"11034","category":"town","shape":"NPoly","minZ":-3800,"maxZ":-3400,"center":{"x":112094,"y":221381},"polygon":[[111391,216329],[106872,216579],[106693,217371],[106612,217923],[106612,218409],[106435,221617],[106435,222250],[106563,222851],[108183,223150],[108916,223150],[110264,222975],[110253,223651],[110185,223669],[110095,223756],[110056,223864],[109790,223883],[109703,223966],[109705,224197],[109882,224363],[109884,225522],[110764,225507],[110767,225985],[112002,225992],[112005,225510],[112891,225520],[112886,224389],[113068,224198],[113072,223967],[112983,223887],[112704,223864],[112676,223758],[112592,223669],[112520,223654],[112506,222975],[113745,223440],[115249,223440],[115249,223653],[115356,223653],[115356,223322],[115392,222838],[115393,221433],[115980,220372],[116055,219529],[116055,219029],[116220,218649],[116219,218388],[116041,218380],[116043,217586],[115310,217610],[114755,217086],[114434,217051],[114417,216838],[114182,216838],[114161,216957],[113280,216962],[111885,216801],[111808,216566],[111631,216386],[111393,216322]]},{"name":"Town of Schuttgart","id":"11035","category":"town","shape":"NPoly","minZ":-2350,"maxZ":-1200,"center":{"x":87626,"y":-141761},"polygon":[[91098,-144458],[91477,-143218],[91170,-141327],[90797,-140803],[90404,-141058],[90077,-140615],[90424,-140324],[89997,-139845],[88300,-138977],[87659,-138913],[87656,-139375],[87044,-139383],[87039,-138938],[86427,-138981],[84717,-139826],[84295,-140324],[84648,-140602],[84286,-141095],[83959,-140825],[83562,-141356],[83229,-143217],[83821,-145580],[84373,-148184],[89454,-148688],[91280,-145403],[91084,-144472]]},{"name":"Floran Village","id":"11036","category":"town","shape":"NPoly","minZ":-3600,"maxZ":-3400,"center":{"x":17629,"y":170150},"polygon":[[16529,170516],[16645,170141],[16747,169833],[16770,169677],[16822,169464],[16858,169431],[17457,169398],[17939,169475],[18109,169528],[18435,169666],[18628,169781],[18641,169828],[18531,170204],[18473,170530],[18452,170686],[18394,170900],[18361,170937],[17771,170962],[17220,170888],[16897,170757],[16543,170561]]},{"name":"Primeval Isle (Town Zone)","id":"40001","category":"town","shape":"Cuboid","minZ":-4300,"maxZ":2700,"center":{"x":16339,"y":-16384},"polygon":[[0,-32768],[32678,-32768],[32678,0],[0,0]]}]},landmarks:{"version":1,"units":"meters","source":"DashboardApi.java TOWN_NAMES/TOWNS","landmarks":[{"name":"TalkingIsland","kind":"town","x":-71338,"y":258271,"z":-3104},{"name":"Gludio","kind":"town","x":-14674,"y":123346,"z":-3112},{"name":"Dion","kind":"town","x":18574,"y":145346,"z":-3096},{"name":"Giran","kind":"town","x":80874,"y":147346,"z":-3464},{"name":"Oren","kind":"town","x":83074,"y":53246,"z":-1568},{"name":"HuntersVillage","kind":"town","x":116974,"y":76246,"z":-2728},{"name":"Aden","kind":"town","x":147446,"y":27046,"z":-2208}]}};(function () {
+<script>/* build:1018fc0e-20260812063707 */window.__BUILD__="1018fc0e-20260812063707";window.__MAP_DATA__={regions:{"version":1,"units":"meters","source":"zones/custom_town.xml (TownZone NPoly/Cuboid)","regions":[{"name":"Giran Castle Town","id":"11020","category":"town","shape":"NPoly","minZ":-3800,"maxZ":-3300,"center":{"x":84273,"y":148288},"polygon":[[77170,147420],[79200,147420],[79200,144780],[80310,144780],[80310,143630],[83120,143630],[83120,143505],[83700,143505],[83700,141500],[84070,141500],[84070,143505],[85040,143505],[85040,145760],[86115,145760],[86115,146910],[88425,146910],[88425,147175],[90430,147175],[90430,147540],[88425,147540],[88425,150050],[86495,150050],[86495,150250],[85995,150250],[85995,152250],[86780,152250],[86780,153600],[84850,153600],[84850,152250],[85625,152250],[85265,150250],[85085,150250],[85085,149875],[83680,149875],[83680,149920],[83500,149920],[83500,151270],[82705,151270],[82705,152820],[79195,152820],[79195,149805],[77170,149805]]},{"name":"Dark Elven Village","id":"11021","category":"town","shape":"NPoly","minZ":-4700,"maxZ":-3600,"center":{"x":11247,"y":17086},"polygon":[[15704,15397],[15765,15878],[15801,16332],[14098,19672],[10278,20689],[8852,20421],[7484,18628],[7236,18042],[7141,17507],[7045,16819],[7382,14486],[13891,13025],[15542,15230]]},{"name":"Talking Island","id":"11022","category":"town","shape":"NPoly","minZ":-3800,"maxZ":-3700,"center":{"x":-84327,"y":242833},"polygon":[[-83739,245733],[-84049,246087],[-84289,246258],[-84556,246243],[-84984,245820],[-85336,245426],[-85684,245099],[-85969,244770],[-86400,244292],[-86664,243997],[-86940,243631],[-87517,243034],[-87650,242799],[-87613,242572],[-87348,242246],[-86956,241942],[-86656,241684],[-86343,241365],[-85829,240966],[-85544,240765],[-85193,240440],[-84865,240185],[-84594,239866],[-84284,239666],[-84002,239734],[-83822,239922],[-83640,240190],[-83295,240492],[-82990,240878],[-82635,241208],[-82234,241698],[-82027,241985],[-81684,242328],[-81421,242741],[-81113,243073],[-81011,243228],[-81029,243496],[-81340,243797],[-81691,244028],[-82292,244585],[-82787,244999],[-83726,245721]]},{"name":"Elven Village","id":"11023","category":"town","shape":"NPoly","minZ":-3600,"maxZ":-2750,"center":{"x":45365,"y":50045},"polygon":[[45364,46535],[45895,46578],[46388,46713],[46861,46934],[47290,47232],[47659,47598],[47959,48024],[48182,48499],[48318,49006],[48364,49523],[48319,50048],[48186,50548],[47963,51022],[47661,51450],[47286,51836],[46864,52126],[46398,52345],[46313,52598],[45768,52597],[45735,52665],[45651,52791],[45520,52878],[45363,52912],[45210,52882],[45077,52794],[44993,52667],[44961,52600],[44422,52600],[44342,52347],[43867,52131],[43438,51827],[43075,51458],[42766,51019],[42546,50557],[42412,50051],[42367,49530],[42410,49012],[42547,48509],[42769,48034],[43065,47602],[43437,47232],[43859,46937],[44336,46713],[44843,46575],[45395,46530]]},{"name":"Orc Village","id":"11024","category":"town","shape":"NPoly","minZ":-400,"maxZ":-200,"center":{"x":-45586,"y":-113739},"polygon":[[-45528,-110079],[-45711,-110075],[-45704,-110164],[-46633,-110080],[-46625,-109992],[-46803,-109993],[-47345,-109973],[-47388,-110012],[-47388,-113001],[-47351,-113039],[-47102,-113038],[-47107,-113382],[-47326,-113379],[-47326,-113829],[-47114,-113826],[-47102,-114171],[-47350,-114170],[-47388,-114199],[-47391,-117182],[-47339,-117239],[-46791,-117240],[-46607,-117240],[-46619,-117151],[-45701,-117000],[-45705,-117085],[-45523,-117088],[-44169,-116722],[-44147,-116804],[-43838,-116717],[-43855,-116638],[-43779,-116620],[-42581,-115424],[-42472,-115258],[-42051,-113671],[-42050,-113502],[-42474,-111925],[-42554,-111775],[-43843,-110456],[-44147,-110375],[-45529,-110078]]},{"name":"Gludin Village","id":"11025","category":"town","shape":"NPoly","minZ":-3300,"maxZ":-3000,"center":{"x":-80417,"y":151635},"polygon":[[-84867,149371],[-82581,149364],[-82499,149139],[-81593,149177],[-81551,149410],[-79270,149392],[-79275,150365],[-79055,150368],[-78820,150429],[-78644,150595],[-78558,150837],[-78567,152410],[-78796,152420],[-78803,154319],[-77131,155437],[-78190,156459],[-79978,156104],[-84876,156106],[-84875,149371]]},{"name":"Dwarven Village","id":"11026","category":"town","shape":"NPoly","minZ":-1600,"maxZ":-800,"center":{"x":116440,"y":-180511},"polygon":[[115499,-176771],[115301,-176769],[114877,-176811],[113385,-177602],[112934,-178507],[113954,-183578],[115493,-183698],[115748,-184078],[115936,-184197],[116268,-184243],[116716,-184246],[117023,-184162],[117211,-184022],[117325,-183825],[117490,-183411],[117629,-182930],[117762,-182686],[117762,-182260],[117734,-182090],[117531,-181747],[117452,-180534],[117492,-180010],[117466,-179559],[117327,-179170],[117328,-178966],[117303,-178695],[116860,-177230],[116806,-177131],[116650,-176975],[116418,-176887],[115929,-176804],[115490,-176767]]},{"name":"Gludio Castle Town","id":"11027","category":"town","shape":"NPoly","minZ":-3200,"maxZ":-2900,"center":{"x":-14522,"y":123414},"polygon":[[-14960,121148],[-14875,121120],[-14717,121106],[-14394,121109],[-14242,121104],[-12659,121098],[-12025,121767],[-12024,123944],[-12277,124668],[-12648,125573],[-12879,126199],[-13855,126470],[-14484,126463],[-15236,126178],[-16126,125356],[-16531,124493],[-16537,123850],[-16492,123330],[-16194,123160],[-16057,123101],[-15327,122741],[-14958,121150]]},{"name":"Dion Castle Town","id":"11028","category":"town","shape":"NPoly","minZ":-3250,"maxZ":-2600,"center":{"x":18112,"y":144278},"polygon":[[15264,141764],[15434,143574],[15760,144707],[15846,145302],[16134,146850],[16715,147153],[17844,147640],[18139,147138],[18541,146758],[18782,146598],[19069,146521],[19430,146485],[20363,146421],[20722,146319],[21415,146319],[21402,145011],[21381,143675],[20696,142841],[20380,142492],[19060,142463],[18821,142512],[17885,143046],[17447,143348],[17019,144028],[16780,142908],[17344,142847],[17327,142650],[17483,142634],[17396,141776],[17238,141792],[17218,141574],[15265,141765]]},{"name":"Town of Oren","id":"11029","category":"town","shape":"NPoly","minZ":-2250,"maxZ":-1400,"center":{"x":80896,"y":54436},"polygon":[[84014,52245],[84138,54683],[84143,55029],[84001,57029],[81773,57023],[81795,56237],[81239,56236],[81282,56892],[81187,56904],[81105,57179],[79195,57167],[78986,57076],[78844,55218],[78843,54882],[79148,54560],[79660,54556],[79662,53994],[79002,53990],[78963,53359],[78959,53070],[79027,52125],[79628,52070],[80547,52068],[80835,52116],[80733,53068],[81306,53070],[81369,52310],[82605,52244],[84010,52250]]},{"name":"Hunter Village","id":"11030","category":"town","shape":"NPoly","minZ":-2800,"maxZ":-1500,"center":{"x":117113,"y":76299},"polygon":[[115318,74260],[115019,74495],[113919,75365],[114386,77505],[114653,78197],[115063,80068],[117015,81804],[120527,81006],[121485,79049],[121631,74718],[119999,74209],[118499,74097],[117946,74068],[117404,73671],[115622,74026],[115328,74252]]},{"name":"Town of Aden","id":"11031","category":"town","shape":"NPoly","minZ":-2700,"maxZ":-1900,"center":{"x":147229,"y":26073},"polygon":[[143209,25727],[143209,26975],[143463,27286],[143473,30074],[144386,30947],[146209,30946],[146649,31179],[146830,31508],[148081,31511],[148275,31176],[148696,30937],[150367,30942],[151289,30008],[151233,25914],[151399,25719],[151403,24470],[151205,24271],[151198,21168],[150233,20225],[148287,20227],[148086,19992],[146836,19992],[146642,20199],[144429,20204],[143459,21124],[143446,25542],[143198,25731]]},{"name":"Town of Goddard","id":"11032","category":"town","shape":"NPoly","minZ":-3550,"maxZ":-2600,"center":{"x":147728,"y":-56548},"polygon":[[144345,-53353],[145283,-52411],[146840,-51665],[148575,-51659],[150128,-52405],[151075,-53362],[152091,-54735],[151974,-55898],[151852,-56567],[151737,-57217],[151608,-57387],[151239,-57131],[150447,-58201],[150832,-58488],[150551,-58851],[148717,-59764],[148590,-59759],[148590,-59291],[146839,-59291],[146842,-59768],[146700,-59766],[144860,-58848],[144589,-58489],[144967,-58193],[144179,-57141],[143807,-57392],[143685,-57210],[143335,-55225],[143679,-53917],[143887,-53081]]},{"name":"Rune Castle Town","id":"11033","category":"town","shape":"Cuboid","minZ":-1200,"maxZ":3000,"center":{"x":39840,"y":-48430},"polygon":[[32531,-52045],[47150,-52045],[47150,-44815],[32531,-44815]]},{"name":"Heine","id":"11034","category":"town","shape":"NPoly","minZ":-3800,"maxZ":-3400,"center":{"x":112094,"y":221381},"polygon":[[111391,216329],[106872,216579],[106693,217371],[106612,217923],[106612,218409],[106435,221617],[106435,222250],[106563,222851],[108183,223150],[108916,223150],[110264,222975],[110253,223651],[110185,223669],[110095,223756],[110056,223864],[109790,223883],[109703,223966],[109705,224197],[109882,224363],[109884,225522],[110764,225507],[110767,225985],[112002,225992],[112005,225510],[112891,225520],[112886,224389],[113068,224198],[113072,223967],[112983,223887],[112704,223864],[112676,223758],[112592,223669],[112520,223654],[112506,222975],[113745,223440],[115249,223440],[115249,223653],[115356,223653],[115356,223322],[115392,222838],[115393,221433],[115980,220372],[116055,219529],[116055,219029],[116220,218649],[116219,218388],[116041,218380],[116043,217586],[115310,217610],[114755,217086],[114434,217051],[114417,216838],[114182,216838],[114161,216957],[113280,216962],[111885,216801],[111808,216566],[111631,216386],[111393,216322]]},{"name":"Town of Schuttgart","id":"11035","category":"town","shape":"NPoly","minZ":-2350,"maxZ":-1200,"center":{"x":87626,"y":-141761},"polygon":[[91098,-144458],[91477,-143218],[91170,-141327],[90797,-140803],[90404,-141058],[90077,-140615],[90424,-140324],[89997,-139845],[88300,-138977],[87659,-138913],[87656,-139375],[87044,-139383],[87039,-138938],[86427,-138981],[84717,-139826],[84295,-140324],[84648,-140602],[84286,-141095],[83959,-140825],[83562,-141356],[83229,-143217],[83821,-145580],[84373,-148184],[89454,-148688],[91280,-145403],[91084,-144472]]},{"name":"Floran Village","id":"11036","category":"town","shape":"NPoly","minZ":-3600,"maxZ":-3400,"center":{"x":17629,"y":170150},"polygon":[[16529,170516],[16645,170141],[16747,169833],[16770,169677],[16822,169464],[16858,169431],[17457,169398],[17939,169475],[18109,169528],[18435,169666],[18628,169781],[18641,169828],[18531,170204],[18473,170530],[18452,170686],[18394,170900],[18361,170937],[17771,170962],[17220,170888],[16897,170757],[16543,170561]]},{"name":"Primeval Isle (Town Zone)","id":"40001","category":"town","shape":"Cuboid","minZ":-4300,"maxZ":2700,"center":{"x":16339,"y":-16384},"polygon":[[0,-32768],[32678,-32768],[32678,0],[0,0]]}]},landmarks:{"version":1,"units":"meters","source":"DashboardApi.java TOWN_NAMES/TOWNS","landmarks":[{"name":"TalkingIsland","kind":"town","x":-71338,"y":258271,"z":-3104},{"name":"Gludio","kind":"town","x":-14674,"y":123346,"z":-3112},{"name":"Dion","kind":"town","x":18574,"y":145346,"z":-3096},{"name":"Giran","kind":"town","x":80874,"y":147346,"z":-3464},{"name":"Oren","kind":"town","x":83074,"y":53246,"z":-1568},{"name":"HuntersVillage","kind":"town","x":116974,"y":76246,"z":-2728},{"name":"Aden","kind":"town","x":147446,"y":27046,"z":-2208}]}};(function () {
 'use strict';
 function $e(id) { return document.getElementById(id); }
 function esc(s) {
@@ -360,6 +443,13 @@ s = ns;
 render();
 }
 function zoomBy(factor) { zoomAt(viewW() / 2, viewH() / 2, factor); }
+function focusOn(wx, wy) {
+if (wx == null || wy == null) return;
+var w = viewW(), h = viewH();
+tx = w / 2 - nx(wx) * s;
+ty = h / 2 - ny(wy) * s;
+render();
+}
 function svgEl(tag, attrs, parent) {
 var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
 for (var k in attrs) el.setAttribute(k, attrs[k]);
@@ -585,6 +675,7 @@ zoomIn: function () { zoomBy(1.3); },
 zoomOut: function () { zoomBy(1 / 1.3); },
 fit: function () { fit(); render(); },
 zoomAt: zoomAt,
+focusOn: focusOn,
 getRegions: function () { return regions; },
 getLandmarks: function () { return landmarks; }
 };
@@ -806,11 +897,19 @@ else renderDetail();
 pbRenderUI();
 return;
 }
-if (view === 'map') { if (window.MapRenderer) window.MapRenderer.render(bots, ent, towns, trails, trailsOn); }
+if (view === 'map') {
+if (window.MapRenderer) window.MapRenderer.render(bots, ent, towns, trails, trailsOn);
+if (followName && !pinnedCam) {
+var fb = findBotByKey(followName);
+if (fb && fb.x != null && window.MapRenderer) window.MapRenderer.focusOn(fb.x, fb.y);
+}
+}
 else if (view === 'grid') renderGrid();
 else if (view === 'events') renderEvents();
 else if (view === 'alerts') renderAlerts();
+else if (view === 'chat') renderChat();
 else renderDetail();
+populateFocus();
 }
 function setView(v) {
 view = v;
@@ -818,10 +917,14 @@ $('btnMap').classList.toggle('on', v === 'map');
 $('btnGrid').classList.toggle('on', v === 'grid');
 $('btnEvents').classList.toggle('on', v === 'events');
 $('btnAlerts').classList.toggle('on', v === 'alerts');
-var panels = { map: 'mapPanel', grid: 'gridPanel', events: 'eventsPanel', detail: 'detailPanel', alerts: 'alertsPanel' };
+$('btnChat').classList.toggle('on', v === 'chat');
+$('btnControl').classList.toggle('on', v === 'control');
+var panels = { map: 'mapPanel', grid: 'gridPanel', events: 'eventsPanel', detail: 'detailPanel', alerts: 'alertsPanel', chat: 'chatPanel', control: 'controlPanel' };
 Object.keys(panels).forEach(function (k) {
 $(panels[k]).style.display = (k === v) ? '' : 'none';
 });
+if (v === 'control') cfLoad();
+if (v === 'chat') renderChat();
 render();
 }
 function itemList(it) {
@@ -863,10 +966,15 @@ var COLS = [
 ];
 function filteredBots() {
 var fo = $('fOnline').value, fs = $('fState').value;
+var sq = ($('searchQ') ? $('searchQ').value : '').trim().toLowerCase();
 return bots.filter(function (b) {
 if (fo === '1' && !b.online) return false;
 if (fo === '0' && b.online) return false;
 if (fs && (b.state || '') !== fs) return false;
+if (sq) {
+var hay = (b.account || '').toLowerCase() + ' ' + (b.name || '').toLowerCase();
+if (hay.indexOf(sq) < 0) return false;
+}
 return true;
 });
 }
@@ -901,7 +1009,8 @@ h += '<th class="sortable" onclick="sortGrid(\'' + c.k + '\')" title="sort by ' 
 h += '</tr></thead><tbody>';
 rows.forEach(function (b) {
 var key = botKey(b).replace(/['"\\]/g, '');
-h += '<tr onclick="openDrawer(\'' + key + '\')" title="open detail drawer" style="cursor:pointer">' +
+var hl = isHighlighted(b);   // WPT-19 search/follow highlight
+h += '<tr class="' + hl + '" onclick="openDrawer(\'' + key + '\')" title="open detail drawer" style="cursor:pointer">' +
 COLS.map(function (c) { return '<td>' + c.h(b) + '</td>'; }).join('') + '</tr>';
 });
 h += '</tbody></table>';
@@ -1142,7 +1251,103 @@ else msg = 'frame ' + (PB.idx + 1) + '/' + PB.frames.length + ' · ' + PB.nTotal
 $('pbStatus').textContent = msg;
 $('pbTime').textContent = f ? fmtPBT(f.t) + ' +' + Math.round((f.t - PB.spanStart) / 1000) + 's' : '-';
 }
-function applyTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('fleetTheme', t); }
+var followName = '';
+var pinnedCam = false;
+function setFollow(name) {
+followName = name || '';
+var fs = $('fFocus'); if (fs) fs.value = followName;
+var cs = $('cfFocus'); if (cs) cs.value = followName;
+render();
+if (followName && !pinnedCam) {
+var b = findBotByKey(followName);
+if (b && window.MapRenderer) window.MapRenderer.focusOn(b.x, b.y);
+}
+}
+function togglePinCam() {
+pinnedCam = !pinnedCam;
+var b = $('btnPinCam');
+if (b) { b.classList.toggle('on', pinnedCam); b.textContent = pinnedCam ? '📍' : '📌'; b.title = pinnedCam ? 'camera pinned' : 'pin camera (auto-follow)'; }
+}
+function populateFocus() {
+var fs = $('fFocus'), cs = $('cfFocus');
+if (!fs && !cs) return;
+var opts = bots.map(function (b) {
+var key = botKey(b).replace(/['"\\]/g, '');
+return '<option value="' + esc(key) + '">' + esc((b.name || key) + ' L' + b.level) + '</option>';
+}).join('');
+if (fs) { var cur = fs.value; fs.innerHTML = '<option value="">Follow: none</option>' + opts; if (fs.value !== cur) fs.value = cur; }
+if (cs) { cs.innerHTML = '<option value="">Focus: none</option>' + opts; cs.value = followName; }
+}
+function isHighlighted(b) {
+var q = $('searchQ') ? $('searchQ').value.trim().toLowerCase() : '';
+if (q) {
+var hay = (b.account || '').toLowerCase() + ' ' + (b.name || '').toLowerCase();
+if (hay.indexOf(q) >= 0) return 'hl';
+}
+if (followName && botKey(b) === followName) return 'hl-follow';
+return '';
+}
+// ============================================================================
+// WPT-17 — fleet control panel (reads + POSTs the real /api/v1/config tunables)
+// ============================================================================
+var cfCfg = null;
+function cfLoad() {
+var sp = $('cfBody'); if (!sp) return;
+fetch('/api/v1/config').then(function (r) { return r.json(); }).then(function (c) {
+cfCfg = c;
+setN('cfFleet', c.fleetSize); setN('cfWander', c.wanderRadius); setN('cfWanderMs', c.wanderIntervalMs); setN('cfPoll', c.pollMs);
+cfMsg('loaded /api/v1/config ok');
+}).catch(function (e) { cfMsg('config load error: ' + e); });
+}
+function setN(id, v) { var el = $(id); if (el && v != null) el.value = v; }
+function cfMsg(m) { var el = $('cfMsg'); if (el) el.textContent = m; }
+function cfApply(key, inputId) {
+var el = $(inputId); if (!el) return;
+var v = Number(el.value);
+if (isNaN(v) || v < 0) { cfMsg('invalid value for ' + key); return; }
+var body = {}; body[key] = v;
+fetch('/api/v1/config', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(body)
+}).then(function (r) { return r.json(); }).then(function (c) {
+cfCfg = c; cfMsg('applied ' + key + '=' + v + ' (wanderRadius ' + c.wanderRadius + ')');
+}).catch(function (e) { cfMsg('apply error: ' + e); });
+}
+function cfReset() { if (cfCfg) { setN('cfFleet', cfCfg.fleetSize); setN('cfWander', cfCfg.wanderRadius); setN('cfWanderMs', cfCfg.wanderIntervalMs); setN('cfPoll', cfCfg.pollMs); cfMsg('reset to GET values'); } }
+function cfFocusBot(name) { setFollow(name); }
+// ============================================================================
+// WPT-28 — chat manager (real incoming SAY / SystemMessage from /api/v1/events)
+// ----------------------------------------------------------------------------
+// The WPT-22 parser surfaces server chat as TYPE_CHAT (and sysmsg as
+// TYPE_SYSMSG) events; we render the chat ones in a readable channel view.
+// ============================================================================
+var chatCleared = 0;   // epoch-ish marker bumped by Clear so stale clears don't re-add
+function chatRows() {
+var seen = new Set(), out = [];
+events.slice().reverse().forEach(function (e) {
+if (!e || (e.type !== 'chat' && e.type !== 'sysmsg')) return;
+var msg = (e.data && (e.data.text || e.data.msg)) || '';
+var who = (e.data && (e.data.speaker || e.data.who)) || e.bot || '';
+var key = (e.seq || '') + '|' + msg + '|' + who;
+if (seen.has(key)) return; seen.add(key);
+out.push({ type: e.type, t: e.t, who: who, msg: msg });
+});
+return out.slice(-300);
+}
+function renderChat(force) {
+if (view !== 'chat' && !force) return;
+var t = $('chatTbl'); if (!t) return;
+var rows = chatRows();
+if (!rows.length) { t.innerHTML = '<div class="meta chat-empty">No chat events yet — incoming SAY / SystemMessage text from the WPT-22 parser appears here as the fleet runs.</div>'; return; }
+t.innerHTML = rows.map(function (r) {
+var whoClass = /^sys/i.test(r.who) || r.type === 'sysmsg' ? 'sys' : 'say';
+return '<div class="chatrow ' + whoClass + '"><span class="c-t">' + new Date(r.t).toLocaleTimeString() + '</span>' +
+'<span class="c-who">' + esc(r.who || (r.type === 'sysmsg' ? 'system' : 'say')) + '</span>' +
+'<span class="c-msg">' + esc(r.msg) + '</span></div>';
+}).join('');
+}
+function clearChat() { chatCleared++; var t = $('chatTbl'); if (t) t.innerHTML = '<div class="meta chat-empty">cleared — new events will re-fill</div>'; }
 function initTheme() { applyTheme(localStorage.getItem('fleetTheme') || 'dark'); }
 function toggleTheme() { applyTheme(document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
 document.addEventListener('keydown', function (e) {

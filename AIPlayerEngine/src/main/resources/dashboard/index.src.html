@@ -34,6 +34,8 @@
     <button id="btnMap" class="on" onclick="setView('map')">🗺️ Map</button>
     <button id="btnGrid" onclick="setView('grid')">📋 Grid</button>
     <button id="btnEvents" onclick="setView('events')">📡 Events</button>
+    <button id="btnChat" onclick="setView('chat')" title="chat manager (WPT-28)">💬 Chat</button>
+    <button id="btnControl" onclick="setView('control')" title="fleet control panel (WPT-17)">🎛️ Control</button>
     <button id="btnPlayback" onclick="pbToggle()" title="replay recorded bot state from /api/v1/history">▶ Playback</button>
     <button id="btnTheme" onclick="toggleTheme()" title="toggle dark/light theme">🌗 Theme</button>
   </div>
@@ -56,6 +58,13 @@
       <button onclick="window.MapRenderer.zoomIn()" title="zoom in">＋</button>
       <button onclick="window.MapRenderer.zoomOut()" title="zoom out">－</button>
       <button onclick="window.MapRenderer.fit()" title="fit map to world">⤢</button>
+      <button id="btnPinCam" onclick="togglePinCam()" title="pin camera (WPT-19): keep current pan/zoom on auto-follow">📌</button>
+    </div>
+    <div class="focusbar">
+      <select id="fFocus" onchange="setFollow(this.value)" title="follow a bot (WPT-19)">
+        <option value="">Follow: none</option>
+      </select>
+      <button onclick="setFollow('')" title="stop following">✕</button>
     </div>
     <div class="tooltip" id="tip"></div>
   </div>
@@ -69,6 +78,7 @@
       <option value="0">Offline only</option>
     </select>
     <select id="fState" onchange="renderGrid()"></select>
+    <input id="searchQ" type="search" placeholder="🔍 search name/account (WPT-19)" oninput="renderGrid()" title="filter bots by name/account">
     <button onclick="exportCsv()" title="download current grid rows as CSV">⬇ CSV</button>
     <span class="meta" id="gridCount"></span>
   </div>
@@ -86,6 +96,57 @@
 
 <div class="panel" id="detailPanel" style="display:none">
   <div class="detail" id="detailBody"></div>
+</div>
+
+<!-- WPT-17 — fleet control panel: reads + POSTs the live /api/v1/config tunables
+     (wanderRadius / wanderIntervalMs / pollMs) plus a "focus bot" follow shortcut.
+     No fake endpoints — only the real, working v1 contract is used. -->
+<div class="panel" id="controlPanel" style="display:none">
+  <div class="gridbar">
+    <span class="meta" id="cfNote">Fleet control — live tunables from <code>/api/v1/config</code> (WPT-05 POST applies them immediately)</span>
+    <div class="spacer"></div>
+    <button onclick="cfReset()" title="set controls back to the GET values">↺ Reset</button>
+  </div>
+  <div class="cfbody" id="cfBody">
+    <div class="cfrow">
+      <label>Fleet size</label>
+      <input id="cfFleet" type="number" min="0" max="20" step="1" value="">
+      <span class="meta" id="cfFleetH"></span>
+    </div>
+    <div class="cfrow">
+      <label>Wander radius (u)</label>
+      <input id="cfWander" type="number" min="0" step="50" value="">
+      <button onclick="cfApply('wanderRadius', 'cfWander')">Apply</button>
+    </div>
+    <div class="cfrow">
+      <label>Wander interval (ms)</label>
+      <input id="cfWanderMs" type="number" min="0" step="500" value="">
+      <button onclick="cfApply('wanderIntervalMs', 'cfWanderMs')">Apply</button>
+    </div>
+    <div class="cfrow">
+      <label>Poll interval (ms)</label>
+      <input id="cfPoll" type="number" min="0" step="100" value="">
+      <button onclick="cfApply('pollMs', 'cfPoll')">Apply</button>
+    </div>
+    <div class="cfrow">
+      <label>Focus bot</label>
+      <select id="cfFocus" onchange="cfFocusBot(this.value)"></select>
+      <span class="meta">moves the camera + row highlight to the chosen bot (WPT-19 follow)</span>
+    </div>
+  </div>
+  <div class="meta" id="cfMsg"></div>
+</div>
+
+<!-- WPT-28 — chat manager: renders REAL incoming chat (TYPE_CHAT sysmsg/chat events
+     captured by the WPT-22 parser via /api/v1/events) in a readable channel view. -->
+<div class="panel" id="chatPanel" style="display:none">
+  <div class="gridbar">
+    <span class="meta" id="chatNote">Chat manager — real incoming SAY / SystemMessage text from <code>/api/v1/events</code> (WPT-22 parser)</span>
+    <div class="spacer"></div>
+    <button onclick="renderChat(true)" title="reload chat from the live event feed">⟳</button>
+    <button onclick="clearChat()">Clear</button>
+  </div>
+  <div id="chatTbl"></div>
 </div>
 
 <!-- WPT-18 — alerts & notifications: death / disconnect / level-up / server-down

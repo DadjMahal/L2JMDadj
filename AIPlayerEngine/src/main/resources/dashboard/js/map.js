@@ -102,6 +102,15 @@
 
   function zoomBy(factor) { zoomAt(viewW() / 2, viewH() / 2, factor); }
 
+  // WPT-19 — pan the camera so world point (wx, wy) is centered (follow-a-bot).
+  function focusOn(wx, wy) {
+    if (wx == null || wy == null) return;
+    var w = viewW(), h = viewH();
+    tx = w / 2 - nx(wx) * s;
+    ty = h / 2 - ny(wy) * s;
+    render();
+  }
+
   // ---- static base / terrain layer ---------------------------------------
   function svgEl(tag, attrs, parent) {
     var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -370,6 +379,7 @@
     zoomOut: function () { zoomBy(1 / 1.3); },
     fit: function () { fit(); render(); },
     zoomAt: zoomAt,
+    focusOn: focusOn,
     getRegions: function () { return regions; },
     getLandmarks: function () { return landmarks; }
   };
