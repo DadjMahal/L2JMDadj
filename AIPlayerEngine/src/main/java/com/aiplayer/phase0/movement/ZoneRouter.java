@@ -141,10 +141,29 @@ public final class ZoneRouter
             reason = String.format("%s random far point ~%.0f u", accountName, r);
         }
 
-        // Build hop list: interpolate from origin to dest with <= MAX_HOP_DIST spacing.
+        // Split origin->dest into server-accepted hops (see buildHops).
+        List<int[]> hops = buildHops(fromX, fromY, fromZ, destX, destY, destZ);
+        return new RouteGoal(destX, destY, destZ, label, reason, hops);
+    }
+
+    /**
+     * Split the straight line from origin to dest into consecutive hops the server accepts
+     * (each &le; MAX_HOP_DIST). Package-private so tests can drive the split directly.
+     * Degenerate routes (zero-length) produce NO hops - the caller should stay put rather than
+     * send a useless zero-progress MoveToLocation frame (server would reject/no-op it anyway).
+     *
+     * @return ordered {x,y,z} waypoints; the last always equals dest; empty when dest == origin
+     */
+    static List<int[]> buildHops(int fromX, int fromY, int fromZ,
+                                 int destX, int destY, int destZ)
+    {
         double dx = destX - fromX;
         double dy = destY - fromY;
         double total = hypot(dx, dy);
+        if (total < 1.0)
+        {
+            return java.util.Collections.emptyList(); // degenerate: no travel, no hops
+        }
         int n = Math.max(1, (int) Math.ceil(total / MAX_HOP_DIST));
         List<int[]> hops = new ArrayList<>(n);
         for (int i = 1; i <= n; i++)
@@ -156,7 +175,7 @@ public final class ZoneRouter
                 destZ
             });
         }
-        return new RouteGoal(destX, destY, destZ, label, reason, hops);
+        return hops;
     }
 
     private static double hypot(double dx, double dy)

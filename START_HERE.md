@@ -33,18 +33,21 @@ dashboard. All work is committed on `master` and pushed to GitHub.
 - ✅ phase0 integrated; skill-cast gate `0x2F` proven; SkillDatabase/combat AI/target selector live.
 - ✅ **5-bot fleet** (`FleetPlay`) + **web dashboard** :8080 — Map/Grid views, real packets
   (UserInfo/CharInfo/ValidateLocation/ItemList/StatusUpdate), real coords & town landmarks.
-- ✅ **213 tests green** — finished 2026-08-12 on `fix/tim-001-movement-review` @ HEAD `d811c512`.
-  **All 33 WPT web-panel tasks DONE-PUSHED**: Phase A API (WPT-01..08), Phase B UX (09/10/13/14/20/31),
-  Phase C telemetry (22/24/29/23/25/26/30), Phase D ops (32/33/34).
-- ⚠️ **TIM-001 (HIGH)** — evidence instruments shipped: `position_crosscheck.sh` (WPT-30), STAGNANT badge
-  in `ops.html` (WPT-21), movement harness + `/telemetry` route **ADDED** to `FleetPlay` (serves
-  `MoveTelemetry.report()`; probe defaults fixed). **VERIFIED LIVE 2026-08-12** on a fresh 2-min run —
-  returned per-bot movesSent/H2/H1/H5 for all 5 bots. **Movement persistence still UNPROVEN** (H1 ✗/H5 ✗;
-  far HOP ~21391u not persisted; `ZoneRouter.nextHop()` short multi-hop is the open fix). **WPT-27 quest
-  telemetry DONE-PUSHED `514f05c5`** (PacketLogger parses QUEST_LIST 0x80 journal; v1 `/api/v1/bots`
-  gains optional `"quests":{active,total,list:[...]}`).
-- 🛑 **Server state this session:** fleet + dashboard (:8080) **live** (relaunched on JDK25), `/api/v1/*`
-  verified returning real JSON + live `sysmsg`/`chat` events; login :2106, game :7777 up.
+- ✅ **218 tests green** (2026-08-13). **All 33 WPT web-panel tasks DONE-PUSHED** (Phase A API
+  WPT-01..08, Phase B UX, Phase C telemetry, Phase D ops). **Anti-redo registry:
+  `Documentation/REVIEWED_TASKS.md`** — check it before starting anything.
+- ⚠️ **TIM-001 (HIGH)** — evidence instruments shipped + **short-multi-hop fix SHIPPED:
+  `ZoneRouter.buildHops()`** (a far goal is now a sequence of ≤4800u hops, under the server's 9900u
+  per-move cap; 7 `ZoneRouterTest` cases). **Evidence run #2 (2026-08-13, fresh, movement FORCED ON):
+  honest-negative** — `gameserver.characters` x/y/z + exp identical before/after, `/telemetry`
+  `serverMoved=0`, `expGained=0`. So **H1 persistence + H5 organic-XP remain UNPROVEN**; the live fleet
+  isn't yet emitting enough accepted hops (only 2 moves in 2 min). Next step: wire the hop-gate in
+  `FleetPlay` as the primary idle behavior, then re-probe for a nonzero DB delta. Log:
+  `RuntimeLogs/2026-08-13-tim001-evidence-run-zone-hops.md` + `REVIEWED_TASKS.md §B`.
+- 🛑 **Server state 2026-08-13:** was **DOWN** at session open; brought **UP** on JDK25
+  (`/home/dadj/.jdk/jdk-25.0.4+7` on PATH — system `java` is JDK21 but server JARs are JDK25).
+  Login :2106/:9014, game :7777 up (`Server loaded`, `Registered on login`). Use
+  `https://github.com/DadjMahal/l24lude` as the remote.
 
 ## 5. How to run (when servers are OFF)
 ```bash
@@ -52,9 +55,9 @@ dashboard. All work is committed on `master` and pushed to GitHub.
 cd /home/dadj/Projects/l24lude/ServerBuild/login && ./LoginServerTask.sh
 cd /home/dadj/Projects/l24lude/ServerBuild/game  && ./GameServerTask.sh
 
-# Fleet + dashboard (5 bots, :8080 — needs the JDK25 at /tmp/jdk25)
+# Fleet + dashboard (5 bots, :8080 — needs JDK25 at ~/.jdk/jdk-25.0.4+7)
 cd /home/dadj/Projects/l24lude/AIPlayerEngine \
-  && setsid -f /tmp/jdk25/jdk-25.0.4+7/bin/java -cp target/classes \
+  && setsid -f /home/dadj/.jdk/jdk-25.0.4+7/bin/java -cp target/classes \
        com.aiplayer.examples.FleetPlay 5 127.0.0.1 7777 2106 8080 \
      </dev/null >/tmp/fleet.log 2>&1
 # open http://localhost:8080

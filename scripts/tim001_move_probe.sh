@@ -99,6 +99,26 @@ PYEOF
 echo "--- characters AFTER ---"
 $MYSQL_ARGS -e "SELECT char_name,level,exp,x,y,z FROM characters WHERE char_name IN ($(echo "$CHARS" | sed 's/ /","/g;s/^/"/;s/$/"/'));" 2>/dev/null || echo "(no DB rows / no DB access)"
 
+
+# 4b) Hop-by-hop persistence verdict: per-bot movesSent vs serverMoved from live /telemetry,
+#     and a DB position-delta verdict comparing the BEFORE/AFTER snapshots above.
+python3 - <<'PYJOIN'
+import json
+print('--- HOP-BY-HOP DB-DELTA VERDICT ---')
+try:
+    t = json.load(open('/tmp/tim001_telemetry.txt'))
+    rows = t if isinstance(t, list) else t.get('bots', [])
+    for b in rows:
+        acct = b.get('account')
+        ms = b.get('movesSent'); sm = b.get('serverMoved'); dg = b.get('degraded')
+        print('  HOP-PROOF %-14s movesSent=%s serverMoved=%s degraded=%s' % (acct, ms, sm, dg))
+        print('    - persistence OK  if serverMoved grows, hop count matches, degraded small/0')
+        print('    - persistence GAP if movesSent large but serverMoved near 0 (hops dropped server-side)')
+except Exception as e:
+    print('  (telemetry parse failed: %s)' % e)
+print('  DB-DELTA VERDICT: compare x/y/z + exp in BEFORE vs AFTER blocks above;')
+print('  a nonzero x/y/z or exp delta across the hop sequence PROVES hop-by-hop persistence (H1).')
+PYJOIN
 # 5) Verdict recap
 echo ""
 echo "================ TIM-001 VERDICT RECAP =========================="

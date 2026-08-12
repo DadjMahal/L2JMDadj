@@ -3,6 +3,7 @@ package com.aiplayer.phase0.movement;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -73,5 +74,68 @@ class ZoneRouterTest
     {
         ZoneRouter r = new ZoneRouter("ai_combat_03");
         assertNull(r.plan(20, 0, 0, 0, 4000, 30000), "0,0 = not spawned yet -> stay put");
+    }
+
+    @Test
+    void twentyOneKiloRouteDegradesIntoManyShortServerAcceptableHops()
+    {
+        java.util.List<int[]> hops = ZoneRouter.buildHops(0, 0, 0, 21000, 0, 0);
+        assertTrue(hops.size() >= 3, "21k route splits into >=3 hops, got " + hops.size());
+        int[] prev = null;
+        for (int[] hop : hops)
+        {
+            if (prev != null)
+            {
+                double step = Math.hypot(hop[0] - prev[0], hop[1] - prev[1]);
+                assertTrue(step <= ZoneRouter.MAX_HOP_DIST + 1, "each hop <= server cap, got " + step);
+            }
+            prev = hop;
+        }
+        int[] first = hops.get(0);
+        int[] last = hops.get(hops.size() - 1);
+        assertTrue(Math.hypot(first[0], first[1]) > 0, "first hop must be real progress, not origin");
+        assertTrue(last[0] > first[0], "destination strictly past the origin");
+        assertEquals(21000, last[0], "last hop lands exactly on the destination");
+        assertEquals(0, last[1], "last hop lands exactly on the destination");
+        prev = null;
+        for (int[] hop : hops)
+        {
+            if (prev != null)
+            {
+                assertTrue(Math.hypot(hop[0] - prev[0], hop[1] - prev[1]) > 0, "no zero-length step");
+            }
+            prev = hop;
+        }
+    }
+
+    @Test
+    void degenerateZeroLengthRouteYieldsNoHops()
+    {
+        java.util.List<int[]> hops = ZoneRouter.buildHops(100, 200, -3600, 100, 200, -3600);
+        assertTrue(hops.isEmpty(), "zero-length route must produce zero hops");
+    }
+
+    @Test
+    void hopsAreDeliveredOneAtATimeAndExhaustExactlyAtDestination()
+    {
+        java.util.List<int[]> hops = ZoneRouter.buildHops(0, 0, 0, 21000, 0, 0);
+        ZoneRouter.RouteGoal g = new ZoneRouter.RouteGoal(21000, 0, 0, "far-point", "task_0016 test", hops);
+        assertTrue(g.hasMoreHops(), "route starts with a pending hop");
+        int[] prev = null;
+        int pulled = 0;
+        int[] h;
+        while ((h = g.nextHop()) != null)
+        {
+            if (prev != null)
+            {
+                assertFalse(java.util.Arrays.equals(prev, h), "a hop is never handed out twice");
+                assertTrue(Math.hypot(h[0] - prev[0], h[1] - prev[1]) > 0, "each delivered hop is real progress");
+            }
+            prev = h;
+            pulled++;
+        }
+        assertEquals(hops.size(), pulled, "every planned hop is delivered exactly once");
+        assertFalse(g.hasMoreHops(), "route is complete after the last hop");
+        assertTrue(prev != null && prev[0] == 21000 && prev[1] == 0, "last delivered hop is the destination");
     }
 }
