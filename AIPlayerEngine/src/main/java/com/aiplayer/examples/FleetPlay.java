@@ -225,6 +225,16 @@ public final class FleetPlay
                 info.mobs = logger.getHostileEntityCount();
                 info.npcs = logger.getEntityCountTotal();
                 info.ents = entitySnapshot(logger);
+                // WPT-27: feed the quest journal from the real QUEST_LIST (0x80) parse.
+                java.util.List<int[]> ql = logger.getActiveQuestList();
+                if (!ql.isEmpty())
+                {
+                    info.totalQuestCount = ql.size();
+                    info.activeQuests = ql.toArray(new int[ql.size()][]);
+                    int act = 0;
+                    for (int[] q : ql) if (q[1] != 0) act++;
+                    info.questCount = act;
+                }
                 info.lastSeenMs = System.currentTimeMillis();
                 AIMonitorDashboard.getInstance().updatePlayerStats(player);
 

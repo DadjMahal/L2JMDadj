@@ -35,6 +35,10 @@ public class PacketLogger
    public static final int OP_SYSTEM_MESSAGE = 0x64;
    public static final int OP_EX_PACKET = 0xFE;
    public static final int OP_EX_QUEST_INFO = 0x19;
+   // WPT-27: top-level QUEST_LIST "quest journal" packet (ServerPackets.QUEST_LIST enum -> 0x80),
+   // the one the server sends on enter-world with the character's full active-quest log. Unlike
+   // the count-only ExQuestInfo (0xFE 0x19), this carries each quest's 4-byte journal state.
+   public static final int OP_QUEST_LIST = 0x80;
    // WPT-22: server->client SAY/chat broadcasts (ServerPackets.java enum + writeImpl verified).
    public static final int OP_NPC_SAY = 0x02;        // NpcSay: [objId][textType][npcId+1000000][text]
    public static final int OP_CREATURE_SAY = 0x4A;   // CreatureSay: [objId][chatType][name][text]
@@ -152,6 +156,15 @@ public class PacketLogger
    // Quest tracking (Task 36)
    private int activeQuestCount = 0;
 
+   // ============ WPT-27: quest journal telemetry ============
+   // Real per-quest state parsed from the top-level QUEST_LIST (0x80) packet the server sends on
+   // enter-world. questId -> 4-byte journal state (a positive cond step, or the completedStepFlags
+   // bitmask with bit 31 set when steps were skipped). A fresh 0x80 REPLACES the whole journal, so
+   // we rebuild the map each time it arrives rather than merge.
+   private final ConcurrentHashMap<Integer, Integer> activeQuests = new ConcurrentHashMap<>();
+   private int questListCount = 0;
+   private int totalQuestCount = 0;
+
    // Stream C7/C8: NPC dialog tracking. The last NpcHtmlMessage the server showed us.
    private String lastNpcHtml = null;
    private int lastNpcHtmlOriginObjId = 0;
@@ -255,6 +268,10 @@ public class PacketLogger
             case OP_ITEM_LIST:
                itemListCount++;
                parseItemList(buf);
+               break;
+            case OP_QUEST_LIST:
+               questListCount++;
+               parseQuestList(buf);
                break;
             case OP_EX_PACKET:
                parseExPacket(buf);
@@ -721,6 +738,39 @@ public class PacketLogger
       catch (Exception e)
       {
          LOGGER.fine("[" + playerName + "] QuestInfo parse incomplete");
+      }
+   }
+
+   /**
+    * WPT-27: Parse the top-level QUEST_LIST (0x80) "quest journal" packet — the one the server
+    * sends on enter-world with the character's full log. Verified Interlude layout
+    * (QuestList.java writeImpl): [count:2][per quest: questId:4][state:4]. The 4-byte state is
+    * either the current cond step or the completedStepFlags bitmask (bit 31 set = some steps were
+    * skipped). We record every entry; a quest counts as active (in the journal with progress)
+    * whenever its state is non-zero.
+    */
+   private void parseQuestList(ByteBuffer buf)
+   {
+      try
+      {
+         int questCount = buf.getShort() & 0xFFFF;
+         activeQuests.clear();
+         int active = 0;
+         for (int i = 0; i < questCount && buf.remaining() >= 8; i++)
+         {
+            int questId = buf.getInt();
+            int state = buf.getInt();
+            activeQuests.put(questId, state);
+            if (state != 0) active++;
+         }
+         this.totalQuestCount = activeQuests.size();
+         this.activeQuestCount = active;
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] QUEST_LIST: total=" + totalQuestCount
+            + " active=" + activeQuestCount);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] QuestList parse incomplete");
       }
    }
 
@@ -1450,6 +1500,22 @@ public class PacketLogger
    // Quest tracking getters (Task 36)
    public int getActiveQuestCount() { return activeQuestCount; }
    public int getQuestInfoCount() { return questInfoCount; }
+
+   // ============ WPT-27: quest journal telemetry getters ============
+   /** Number of top-level QUEST_LIST (0x80) packets parsed. */
+   public int getQuestListCount() { return questListCount; }
+   /** Total quests in the latest journal (regardless of in-progress vs completed). */
+   public int getTotalQuestCount() { return totalQuestCount; }
+   /** WPT-27: live snapshot of the quest journal as {questId, state} pairs (QUEST_LIST 0x80). */
+   public java.util.List<int[]> getActiveQuestList()
+   {
+      java.util.List<int[]> out = new java.util.ArrayList<>(activeQuests.size());
+      for (java.util.Map.Entry<Integer, Integer> e : activeQuests.entrySet())
+      {
+         out.add(new int[] { e.getKey(), e.getValue() });
+      }
+      return out;
+   }
 
    // ============ WPT-23: per-objectId StatusUpdate attribute snapshots ============
    /** WPT-23: full last-seen StatusUpdate attribute snapshot for an objectId (null if unseen). */

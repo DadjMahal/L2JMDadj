@@ -573,7 +573,18 @@ public final class DashboardApi
                   .append(',').append(en[i][2]).append(',').append(en[i][3]).append(',').append(en[i][4]).append(']');
             }
         }
-        sb.append("],\"target\":");
+        sb.append("], \"quests\":{\"active\":").append(b.questCount)
+          .append(",\"total\":").append(b.totalQuestCount).append(",\"list\":[");
+        int[][] aq = b.activeQuests;
+        if (aq != null)
+        {
+            for (int i = 0; i < aq.length; i++)
+            {
+                if (i > 0) sb.append(',');
+                sb.append('[').append(aq[i][0]).append(',').append(aq[i][1]).append(']');
+            }
+        }
+        sb.append("]},\"target\":");
         if (b.targetObjId > 0 && b.targetDist > 0)
         {
             sb.append("{\"objId\":").append(b.targetObjId)

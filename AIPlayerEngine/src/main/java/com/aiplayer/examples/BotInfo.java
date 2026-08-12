@@ -23,6 +23,10 @@ public final class BotInfo
     public volatile int[][] items;      // {itemId, count} top-5 by count
     public volatile int mobs, npcs;
     public volatile int[][] ents;       // {objId, kind(0 npc 1 hostile 2 player), x, y, z}
+    // WPT-27: quest journal telemetry (fed from PacketLogger.getActiveQuestList() — QUEST_LIST 0x80).
+    public volatile int questCount;     // quests in-progress (non-zero journal state)
+    public volatile int totalQuestCount;// all quests in the journal
+    public volatile int[][] activeQuests;// {{questId, state}, ...} from the live journal
     public volatile String action = "";
     public volatile String thought = "";
     public volatile int targetObjId;
