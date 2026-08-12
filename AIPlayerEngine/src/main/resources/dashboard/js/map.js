@@ -46,6 +46,7 @@
   var baseBuilt = false;
   var pointers = new Map();                     // pointerId -> {x,y}
   var pinchDist = 0;
+  var lastDyn = null;                          // WPT-11: last dynamic overlay, kept across pan/zoom re-renders
 
   function dataFromInline() {
     if (window.__MAP_DATA__ && window.__MAP_DATA__.regions && window.__MAP_DATA__.landmarks) {
@@ -185,9 +186,35 @@
   function centroidY(poly) { return poly.reduce(function (a, p) { return a + p[1]; }, 0) / poly.length; }
 
 
-  // ---- dynamic overlay (bots / entities / targets) -----------------------
-  function render(bots, ent, towns) {
+  // ---- dynamic overlay (bots / entities / targets / trails) ---------------
+  // WPT-11 — draw each bot's last-N movement trail as a faded polyline.
+  function drawTrails(g, trails, on) {
+    if (!on || !trails) return;
+    Object.keys(trails).forEach(function (name) {
+      var pts = trails[name];
+      if (!pts || pts.length < 2) return;
+      var d = '';
+      for (var i = 0; i < pts.length; i++) {
+        var X = nx(pts[i].x), Y = ny(pts[i].y);
+        d += (i === 0 ? 'M' : 'L') + X + ',' + Y + ' ';
+      }
+      svgEl('path', {
+        d: d, fill: 'none', stroke: 'var(--accent)',
+        'stroke-width': 2 / s, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+        opacity: '0.55', class: 'trail'
+      }, g);
+    });
+  }
+
+  function render(bots, ent, towns, trails, onTrails) {
     if (!svg) return;
+    if (trails !== undefined) {
+      // Fresh data from the app: remember it so pan/zoom re-renders (no args) keep trails + bots.
+      lastDyn = { bots: bots || [], ent: ent || [], towns: towns || [], trails: trails, onTrails: !!onTrails };
+    } else if (lastDyn) {
+      bots = lastDyn.bots; ent = lastDyn.ent; towns = lastDyn.towns;
+      trails = lastDyn.trails; onTrails = lastDyn.onTrails;
+    }
     bots = bots || []; ent = ent || []; towns = towns || [];
     var old = $e('overlay');
     if (old) svg.removeChild(old);
@@ -200,6 +227,9 @@
       if (t.x == null) return;
       svgEl('circle', { cx: nx(t.x), cy: ny(t.y), r: 9 / s, fill: 'var(--pu)', opacity: '0.85' }, g);
     });
+
+    // WPT-11 — movement trails below entity/bot dots so they read as paths.
+    drawTrails(g, trails, onTrails);
 
     // Entities (hostiles red, players cyan, npcs green).
     ent.forEach(function (e) {
@@ -323,7 +353,7 @@
 
   window.MapRenderer = {
     init: init,
-    render: function (bots, ent, towns) { render(bots, ent, towns); },
+    render: function (bots, ent, towns, trails, onTrails) { render(bots, ent, towns, trails, onTrails); },
     zoomIn: function () { zoomBy(1.3); },
     zoomOut: function () { zoomBy(1 / 1.3); },
     fit: function () { fit(); render(); },

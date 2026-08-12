@@ -14,6 +14,10 @@
 var bots = [], ent = [], towns = [], events = [], view = 'map';
 var gridSort = { key: 'account', dir: 1 }, detailIndex = 0;
 var seenSeqs = new Set();
+// WPT-11 — per-bot movement trails (TIM-001 evidence).
+var TRAIL_N = 60;      // last-N distinct positions kept per bot (N = number of polls)
+var trailsOn = true;   // hotkey T toggles trails
+var trails = {};       // name -> [{x,y}, ...] oldest->newest
 
 function $(id) { return document.getElementById(id); }
 function FMT(n) { return n == null ? '-' : Number(n).toLocaleString('en-US'); }
@@ -40,6 +44,7 @@ async function poll() {
     towns = l.towns || [];
     ent = e.entities || [];
     mergeEvents(ev.events || []);
+    updateTrails();
     $('meta').textContent = bots.length + ' bots · ' + events.length + ' evts · ' +
       new Date().toLocaleTimeString() + ' · up ' +
       Math.round((Date.now() - (window._t0 || Date.now())) / 1000) + 's · poll OK';
@@ -55,8 +60,25 @@ function mergeEvents(list) {
   events.sort(function (a, b) { return (b.seq || 0) - (a.seq || 0); });
   if (events.length > 200) events = events.slice(0, 200);
 }
+// WPT-11 — append each bot's current /api/v1 position to its trail (last-N distinct
+// points, so static bots grow no polyline = movement is visible). Prune vanished bots.
+function updateTrails() {
+  var seen = {}, now = Date.now();
+  bots.forEach(function (b) {
+    if (b.x == null) return;
+    var name = b.account || b.name;
+    seen[name] = true;
+    var arr = trails[name];
+    if (!arr) arr = trails[name] = [];
+    var last = arr[arr.length - 1];
+    if (!last || last.x !== b.x || last.y !== b.y) arr.push({ x: b.x, y: b.y, t: now });
+    if (arr.length > TRAIL_N) arr.splice(0, arr.length - TRAIL_N);
+  });
+  Object.keys(trails).forEach(function (name) { if (!seen[name]) delete trails[name]; });
+}
+function toggleTrails() { trailsOn = !trailsOn; render(); }
 function render() {
-  if (view === 'map') { if (window.MapRenderer) window.MapRenderer.render(bots, ent, towns); }
+  if (view === 'map') { if (window.MapRenderer) window.MapRenderer.render(bots, ent, towns, trails, trailsOn); }
   else if (view === 'grid') renderGrid();
   else if (view === 'events') renderEvents();
   else renderDetail();
@@ -246,6 +268,7 @@ document.addEventListener('keydown', function (e) {
   else if (k === 'g') setView('grid');
   else if (k === 'e') setView('events');
   else if (k === 'd') { detailIndex = 0; setView('detail'); }
+  else if (k === 't') toggleTrails();   // WPT-11: show/hide movement trails
 });
 
 initTheme();
