@@ -12,7 +12,7 @@
 3. Open THIS file → pick a `TODO` task you don't collide with (check `Owner` + §4 file map).
 4. **Claim it**: set your row to `IN_PROGRESS (Cline#N)` → **`git add` this file only → commit → push
    the claim immediately**, so every other instance sees it taken.
-5. Implement with tests. Rule: **`mvn -o -f AIPlayerEngine/pom.xml test` must stay fully green** (145 + yours).
+5. Implement with tests. Rule: **`mvn -o -f AIPlayerEngine/pom.xml test` must stay fully green** (currently 223/223).
 6. **One task = one commit**, push right after. Set row to `DONE-PUSHED <commit-hash>` + a short
    `Done notes` line → commit → push.
 7. Never leave `master` dirty between tasks. On conflict: `git pull --rebase`, resolve, and if it's
@@ -216,12 +216,12 @@
 
 ## 5. Right-now kickoff (start here, in order)
 > Historical kickoff plan for the 33-task WPT build — **ALL lanes since landed** (Phase A/B/C/D DONE-PUSHED by 2026-08-12).
-> Remaining open work (see §7/§8 statuses): **TIM-001** HIGH movement-persistence
-> proof (needs a longer `/telemetry`-driven run), and dashboard polish **WPT-11/12/15/17/18/19 trails/playback/control**
-> (documented as shipped-but-partial in the WPT-17/28 honest-scope note). See commit history below for what landed.
+> Remaining open work: **none from the WPT build** — **TIM-001 RESOLVED 2026-08-13 (H1–H5 PROVEN,
+> live DB evidence)** and **33/33 WPT tasks DONE-PUSHED** (Phase A/B/C/D, see §7/§8 statuses);
+> WPT-17/28 honest-scope notes still apply. See commit history below for what landed.
 | Instance | Started with (2026-08-10) | Then (deps satisfied → order flexible) |
 |---|---|---|
 | **Cline#1 (orchestrator)** | **WPT-01 → WPT-08 (API) — DONE-PUSHED** | DONE |
 | **Cline#2 (frontend)** | WPT-09 → WPT-10 → WPT-13 → WPT-20 → … → WPT-31 — **all DONE-PUSHED** | — |
-| **Cline#3 (protocol)** | WPT-22 → WPT-29 → WPT-23 → WPT-25 → WPT-26 → **WPT-27 — all DONE-PUSHED** | WPT-21 backend DONE, TIM-001 persistence open |
+| **Cline#3 (protocol)** | WPT-22 → WPT-29 → WPT-23 → WPT-25 → WPT-26 → **WPT-27 — all DONE-PUSHED** | WPT-21 backend DONE, TIM-001 persistence RESOLVED |
 | **Cline#4 (ops/docs)** | WPT-32 → WPT-33 → WPT-34 — **all DONE-PUSHED** (`ops.html`, README/e2e, `server_health.sh`) | non-Java, zero conflicts |

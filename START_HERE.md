@@ -14,7 +14,7 @@ We may run up to 4 Cline instances at once (Cline#1 orchestrator/backend, #2 fro
 4. **One task = one commit**, pushed immediately; then mark `DONE-PUSHED <hash>` + push.
 5. **Never edit a file you don't own** (§4). On merge conflict: `git pull --rebase`, resolve, ask the
    owner if it's their file.
-6. `mvn -o -f AIPlayerEngine/pom.xml test` must stay green (currently 145 + new).
+6. `mvn -o -f AIPlayerEngine/pom.xml test` must stay green (currently 223/223).
 
 ## 1. Project (one line)
 L2JMobius **Interlude** server + **external-socket AI Player Engine** (`AIPlayerEngine/`) — a fleet of
@@ -33,7 +33,7 @@ dashboard. All work is committed on `master` and pushed to GitHub.
 - ✅ phase0 integrated; skill-cast gate `0x2F` proven; SkillDatabase/combat AI/target selector live.
 - ✅ **5-bot fleet** (`FleetPlay`) + **web dashboard** :8080 — Map/Grid views, real packets
   (UserInfo/CharInfo/ValidateLocation/ItemList/StatusUpdate), real coords & town landmarks.
-- ✅ **218 tests green** (2026-08-13). **All 33 WPT web-panel tasks DONE-PUSHED** (Phase A API
+- ✅ **223 tests green** (2026-08-13). **All 33 WPT web-panel tasks DONE-PUSHED** (Phase A API
   WPT-01..08, Phase B UX, Phase C telemetry, Phase D ops). **Anti-redo registry:
   `Documentation/REVIEWED_TASKS.md`** — check it before starting anything.
 - ✅ **TIM-001 (HIGH) — RESOLVED 2026-08-13, all H1–H5 PROVEN** by live `gameserver.characters`
@@ -45,8 +45,8 @@ dashboard. All work is committed on `master` and pushed to GitHub.
   **+210 / +437 / +141 / +175 / +465** from the 2884 L5 baseline. Evidence:
   `RuntimeLogs/2026-08-13-tim001-h1-h5-resolved.md`. Suite **223/223 green**.
 - 🛑 **Server state 2026-08-13:** was **DOWN** at session open; brought **UP** on JDK25
-  (`/home/dadj/.jdk/jdk-25.0.4+7` on PATH — system `java` is JDK21 but server JARs are JDK25).
-  Login :2106/:9014, game :7777 up (`Server loaded`, `Registered on login`). Use
+  (`/home/dadj/.jdk/jdk-25.0.4+7` on PATH — system `java` is JDK21 but server JARs are JDK25);
+  **DOWN at session end** — Login :2106/:9014 and Game :7777 have no listeners right now. Use
   `https://github.com/DadjMahal/l24lude` as the remote.
 
 ## 5. How to run (when servers are OFF)
@@ -93,7 +93,6 @@ curl -s http://localhost:8080/api/v1/health ; echo
    `ai_progress_report.txt` + commit after EVERY milestone.
 ## 4. Current phase / next task
 - Board: **`Documentation/TASKS.md`**.
-- **Phase A (WPT-01..08) DONE-PUSHED**; protocol WPT-23/25/26 DONE-PUSHED. In-flight now:
-  frontend **WPT-09/10/13/14/20/31** (Cline#2), protocol **WPT-22/24/29** (Cline#3), ops
-  **WPT-30** (Cline#4 — `scripts/position_crosscheck.sh` written); **TIM-001** evidence work active.
-- Ops+docs lanes done: WPT-32/33/34 (`dashboard/ops.html`, README/e2e, `server_health.sh`).
+- **All 33 WPT web-panel tasks DONE-PUSHED** (Phase A API WPT-01..08, Phase B UX, Phase C telemetry,
+  Phase D ops WPT-32/33/34 — `dashboard/ops.html`, README/e2e, `server_health.sh`).
+- **TIM-001 RESOLVED 2026-08-13** (H1–H5 PROVEN, live `gameserver.characters` evidence).
