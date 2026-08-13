@@ -1,98 +1,52 @@
-# 🚀 START HERE — read first, EVERY session, EVERY Cline instance
+# 🚀 START HERE — read first, every session, every Cline instance
 
-> This file is the **fast orientation** for any Cline working in this repo, including multiple
-> instances working in parallel. Depth lives in `Documentation/SESSION_HANDOFF.md`; **the ONLY task
-> board is `Documentation/TASKS.md`** — pick work there, never create your own task list.
+> Fast binary orientation for any agent/session in this repo. Depth = only the files the routing
+> table (§3) links to. The ONLY task board is `Documentation/TASKS.md` — pick work there.
 
-## 0. Multi-Cline working together (IMPORTANT)
-We may run up to 4 Cline instances at once (Cline#1 orchestrator/backend, #2 frontend, #3 protocol,
-#4 ops/docs). Coordination is NOT shared memory — it is the **git repo + TASKS.md**:
-1. Always `git pull --ff-only origin master` before starting.
-2. Read `Documentation/TASKS.md` → §5 kickoff + §4 file-ownership map.
-3. **Claim a task FIRST** (set Status to `IN_PROGRESS (Cline#X)`, commit+push the claim) BEFORE coding,
-   so no one else starts it.
-4. **One task = one commit**, pushed immediately; then mark `DONE-PUSHED <hash>` + push.
-5. **Never edit a file you don't own** (§4). On merge conflict: `git pull --rebase`, resolve, ask the
-   owner if it's their file.
-6. `mvn -o -f AIPlayerEngine/pom.xml test` must stay green (currently 223/223).
+## 0. The ONE goal
+Make 3–5 AI player bots **actually PLAY the game** — fight, level, travel, pass quests — **never idle**.
+No more audits.
+**Current state (1-liner):** **242/242 tests green**, TIM-001 done (the fleet farms organically),
+server stack runnable on JDK25. All prior historical/audit/evidence docs are archived — do not redo them.
 
-## 1. Project (one line)
-L2JMobius **Interlude** server + **external-socket AI Player Engine** (`AIPlayerEngine/`) — a fleet of
-AI clients (no L2J server-code edits) that log in, hunt, level, and report live state to a web
-dashboard. All work is committed on `master` and pushed to GitHub.
-
-## 2. Where things live (repo root `/home/dadj/Projects/l24lude`)
-- `AIPlayerEngine/` — Java engine (login/GS protocol, combat AI, phase0 wiring, fleet, dashboard).
-- `SourceCode/` — L2J server source (server packet writers we mirror: `UserInfo`, `CharInfo`, ...).
-- `ServerBuild/login|game/` — running LoginServer/GameServer (`LoginServerTask.sh`/`GameServerTask.sh`).
-- `Documentation/` — audits, upgrade brief, `SESSION_HANDOFF.md`, `PRIORITY_TASKS.md` (TIM-001 detail),
-  and **`TASKS.md` — the ONLY task board**. `scripts/` — helper shell tools.
-
-## 3. Honest current state (proofs in `Documentation/Audit/*` + this session)
-- ✅ Interlude (protocol 746) handshake + enter-world proven — real external sockets, no server edits.
-- ✅ phase0 integrated; skill-cast gate `0x2F` proven; SkillDatabase/combat AI/target selector live.
-- ✅ **5-bot fleet** (`FleetPlay`) + **web dashboard** :8080 — Map/Grid views, real packets
-  (UserInfo/CharInfo/ValidateLocation/ItemList/StatusUpdate), real coords & town landmarks.
-- ✅ **223 tests green** (2026-08-13). **All 33 WPT web-panel tasks DONE-PUSHED** (Phase A API
-  WPT-01..08, Phase B UX, Phase C telemetry, Phase D ops). **Anti-redo registry:
-  `Documentation/REVIEWED_TASKS.md`** — check it before starting anything.
-- ✅ **TIM-001 (HIGH) — RESOLVED 2026-08-13, all H1–H5 PROVEN** by live `gameserver.characters`
-  evidence. **H1/H3** movement persistence + proactive travel: all 5 bots moved and the DB positions
-  persisted (~3.4–5k u deltas). **H2** degenerate destinations: 0/5 (NO). **H4** DB-tracks-live. **H5**
-  organic XP (the 2-session blocker): fixed two live combat-engagement bugs (stale `AIPlayer` position
-  used by `detectNearbyEnemy`; ATTACK decisions sent `targetObjId=0` so the combat planner emitted no
-  frames) → the fleet now actually lands kills. A live farm run shows all 5 bots gaining real kill XP:
-  **+210 / +437 / +141 / +175 / +465** from the 2884 L5 baseline. Evidence:
-  `RuntimeLogs/2026-08-13-tim001-h1-h5-resolved.md`. Suite **223/223 green**.
-- 🛑 **Server state 2026-08-13:** was **DOWN** at session open; brought **UP** on JDK25
-  (`/home/dadj/.jdk/jdk-25.0.4+7` on PATH — system `java` is JDK21 but server JARs are JDK25);
-  **DOWN at session end** — Login :2106/:9014 and Game :7777 have no listeners right now. Use
-  `https://github.com/DadjMahal/l24lude` as the remote.
-
-## 5. How to run (when servers are OFF)
+## 1. Run it (bring the fleet to life)
 ```bash
-# LoginServer (auth 2106/9014) and GameServer (7777)
+# Login/Game on JDK25 (system java is JDK21; server JARs need JDK25)
+export PATH=~/.jdk/jdk-25.0.4+7/bin:$PATH
 cd /home/dadj/Projects/l24lude/ServerBuild/login && ./LoginServerTask.sh
 cd /home/dadj/Projects/l24lude/ServerBuild/game  && ./GameServerTask.sh
 
-# Fleet + dashboard (5 bots, :8080 — needs JDK25 at ~/.jdk/jdk-25.0.4+7)
+# Fleet of 5 + web dashboard :8080
 cd /home/dadj/Projects/l24lude/AIPlayerEngine \
-  && setsid -f /home/dadj/.jdk/jdk-25.0.4+7/bin/java -cp target/classes \
+  && setsid -f ~/.jdk/jdk-25.0.4+7/bin/java -cp target/classes \
        com.aiplayer.examples.FleetPlay 5 127.0.0.1 7777 2106 8080 \
      </dev/null >/tmp/fleet.log 2>&1
 # open http://localhost:8080
 ```
-Build / verify:
+Build/verify:
 ```bash
 cd /home/dadj/Projects/l24lude/AIPlayerEngine && mvn -o compile && mvn -o test
 ```
 
-## 6. Reality check — paste output before claiming anything "works"
-```bash
-git -C /home/dadj/Projects/l24lude status --short
-ss -tlnp 2>/dev/null | grep -E '2106|9014|7777|8080'
-curl -s http://localhost:8080/api/v1/health ; echo
-```
+## 2. Active lanes (the two board pointers to drive next)
+- **STEP 1 — BotPlay controller** (`IN_PROGRESS`, play-builder): phase0/play controller so bots pick
+  goals and ACT, not idle.
+- **STEP 2 — quest accept/turn-in live loop** (`TODO`): accept → do → turn-in quests for real.
 
-## 7. Routing table (read the right file before writing code)
-| Task touches | Read first |
+## 3. Routing table (live files only)
+| You want to touch | Read first |
 |---|---|
-| Dashboard / web API | `examples/FleetPlay.java`, `com/aiplayer/web/DashboardApi.java`, `resources/dashboard/index.html` |
-| Protocol / packets | `protocol/PacketLogger.java`, `protocol/L2JProtocol.java`, `SourceCode/.../serverpackets/UserInfo.java` |
-| Combat AI / phase0 | `engine/CombatAI.java`, `phase0/combat/FighterRotation.java`, `ShotManager.java`, `SkillDatabase.java`, `Audit/*` |
-| Quest / W5 | `engine/QuestAI.java`, `Audit/30-quest-progression.md` |
-| Multi-agent / QA / meta | `Documentation/MultiAgentQA.md`, `scripts/`, `Documentation/Streams.md` |
-| Docs / workflow | `AGENT_ONBOARDING.md`, `Documentation/WORKFLOW.md` |
-| Audit / deep review | `Documentation/AUDIT_ORIENTATION.md`, `Documentation/DONE_SUMMARY.md`, `STATUS.md` |
+| Fleet launcher / fleet behavior | `examples/FleetPlay.java` |
+| Phase0 wiring | `phase0/Phase0Wiring.java` |
+| Live bot state | `phase0/BotSnapshot.java` |
+| **BotPlay controller (new)** | `phase0/play/**` (STEP 1) |
+| Quest NPC navigation | `phase0/quest/QuestNpcNavigator.java` |
 | **Task board** | **`Documentation/TASKS.md` (always)** |
 
-## 8. Rules (7 hard rules — full text in `AGENT_ONBOARDING.md`)
-1. Verify before claim (no "working" without pasted output). 2. No fake logs. 3. Usage validation.
-4. Audit-first. 5. Document before code. 6. Leave cleaner than you found it.
-7. Milestone doc-sync — update this file / `STATUS.md` / `SESSION_HANDOFF.md` / **`TASKS.md`** /
-   `ai_progress_report.txt` + commit after EVERY milestone.
-## 4. Current phase / next task
-- Board: **`Documentation/TASKS.md`**.
-- **All 33 WPT web-panel tasks DONE-PUSHED** (Phase A API WPT-01..08, Phase B UX, Phase C telemetry,
-  Phase D ops WPT-32/33/34 — `dashboard/ops.html`, README/e2e, `server_health.sh`).
-- **TIM-001 RESOLVED 2026-08-13** (H1–H5 PROVEN, live `gameserver.characters` evidence).
+## 4. Hard rules
+1. **Never edit server source** (`SourceCode/`, `ServerBuild/`) — the engine is external sockets only.
+2. `mvn -o -f AIPlayerEngine/pom.xml test` must stay **green** (242/242).
+3. **One task = one commit**, claimed on the board first, pushed immediately.
+4. Always `git pull --rebase origin master` before push; `git push origin master` right after.
+5. **No new audits** — prove via the board + live bot evidence, not audit piles.
+6. Verify before you claim: paste real output, never fake logs, leave the repo cleaner than found.

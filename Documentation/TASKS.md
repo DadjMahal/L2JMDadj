@@ -1,227 +1,44 @@
-# 📋 TASK BOARD — THE single source of truth for ALL work
+# 📋 TASK BOARD — THE single source of truth for all work
 
-> **Every task for every Cline instance lives in this file.** Read **`START_HERE.md`** (repo root) for orientation FIRST, then come back here to pick work.
-> Do **not** create your own task lists anywhere else.
+> Every task for every agent lives here. Read `START_HERE.md` (repo root) first, then come back
+> here to pick work. Do **not** create your own task lists anywhere else.
 
 ---
 
-## 1. How to use — READ THIS FIRST, every Cline instance, every session
-
-1. `cd /home/dadj/Projects/l24lude && git pull --ff-only origin master` — always start from latest.
-2. Read `START_HERE.md` (fast orientation, ~2 min).
-3. Open THIS file → pick a `TODO` task you don't collide with (check `Owner` + §4 file map).
-4. **Claim it**: set your row to `IN_PROGRESS (Cline#N)` → **`git add` this file only → commit → push
-   the claim immediately**, so every other instance sees it taken.
-5. Implement with tests. Rule: **`mvn -o -f AIPlayerEngine/pom.xml test` must stay fully green** (currently 223/223).
-6. **One task = one commit**, push right after. Set row to `DONE-PUSHED <commit-hash>` + a short
-   `Done notes` line → commit → push.
-7. Never leave `master` dirty between tasks. On conflict: `git pull --rebase`, resolve, and if it's
-   another instance's file (`§4`) ask the owner before merging.
+## 1. How to use
+1. `git pull --rebase origin master` — always start from latest.
+2. Read `START_HERE.md` (fast orientation, §0 the ONE goal).
+3. Open THIS file → pick a `TODO` row you don't collide with (check `Owner` + §4 file map).
+4. **Claim it**: set your row to `IN_PROGRESS (owner)` → commit → push the claim so everyone sees it taken.
+5. Implement with tests. Rule: `mvn -o -f AIPlayerEngine/pom.xml test` stays fully green (**242/242**).
+6. **One task = one commit**, push right after; set the row to `DONE-PUSHED <hash>` → commit → push.
+7. Never leave `master` dirty. On conflict: `git pull --rebase`, resolve; if it's another owner's
+   file (§4) ask before merging.
 
 ## 2. Status vocabulary
-`TODO` · `IN_PROGRESS (Cline#N)` · `BLOCKED (reason)` · `DONE-PUSHED <hash>`
+`TODO` · `IN_PROGRESS (owner)` · `BLOCKED (reason)` · `DONE-PUSHED <hash>`
 
-## 3. Parallel-safety rules (nobody damages anybody)
-- **File ownership map (§4): only the owner edits a file.** If you must touch someone else's file
-  (e.g. new telemetry field), flip it to `BLOCKED` in this board with a note FIRST and coordinate.
-- **Claim before you code** (§1.4) — prevents two instances starting the same task.
-- **One commit per task, pushed immediately** — worst case is a clean rebase, never lost work.
-- **v1 API contract (§11) is FROZEN** — frontend (Cline#2) and protocol (Cline#3) build against it
-  without touching Cline#1's code.
-- `TASKS.md` itself: only Cline#1 (the orchestrator) rewrites structure; every instance edits **its
-  own rows** (status/Done notes) only.
+## 3. LIVE BOARD
+| ID | Task | Status | Owner |
+|---|---|---|---|
+| **STEP 0** | Archive history pile + lean START_HERE/TASKS board for the PLAY goal | `DONE-PUSHED <fill-after-push>` | doc-sweeper |
+| **STEP 1** | **BotPlay controller** — bots pick goals and act (fight/level/travel), never idle | `IN_PROGRESS` | play-builder |
+| **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `TODO` | play-builder |
+| **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `TODO` | play-builder |
+| **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `TODO` | play-builder |
 
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |
 |---|---|---|
-| `AIPlayerEngine/src/main/java/com/aiplayer/examples/**` | **Cline#1** | `FleetPlay.java`, `BotInfo.java` |
-| `AIPlayerEngine/src/main/java/com/aiplayer/web/**` | **Cline#1** | `DashboardApi.java` + new web modules |
-| `AIPlayerEngine/src/test/java/com/aiplayer/web/**` | **Cline#1** | API tests |
-| `AIPlayerEngine/src/main/java/com/aiplayer/protocol/**` | **Cline#3** | `PacketLogger.java` + new parsers |
-| `AIPlayerEngine/src/test/java/com/aiplayer/protocol/**` | **Cline#3** | packet tests |
-| `AIPlayerEngine/src/main/resources/dashboard/**` | **Cline#2** | `index.html` + ALL new dashboard assets |
-| `AIPlayerEngine/src/main/java/com/aiplayer/engine/**` | Cline#1 (shared) | others only with a board note |
-| `Documentation/**` (except this file) | **Cline#4** | new docs / audits / how-tos |
-| `scripts/**` | **Cline#4** | new bash tools |
-| `README*` (root + engine) | **Cline#4** | doc edits |
-| `TASKS.md`, `START_HERE.md` | **Cline#1** | structural rewrites |
+| `AIPlayerEngine/src/main/java/com/aiplayer/phase0/play/**` | **play-builder** | new BotPlay controller (STEP 1) |
+| `AIPlayerEngine/src/test/java/com/aiplayer/phase0/play/**` | **play-builder** | controller tests |
+| `AIPlayerEngine/src/main/java/com/aiplayer/examples/FleetPlay.java` | **play-builder** | fleet launcher |
+| `AIPlayerEngine/src/main/java/com/aiplayer/phase0/**` (rest) | **play-builder** | shared phase0 engine |
+| `Documentation/**` (incl. this board) | **doc-sweeper** | docs + board upkeep |
+| `scripts/**` | **play-builder** | helper tools |
 
----
-
-## 6. ⚠️ TIM-001 — HIGH PRIORITY: bots look static — movement/quest/combat deep review
-`Status: ✅ RESOLVED — 2026-08-13 all H1–H5 PROVEN with live DB evidence` · `Owner: Cline#1 (lead)` · `Evidence tools: WPT-11/12/15/17/18/19/28 shipped + WPT-21/30` 
-`Detail spec: Documentation/PRIORITY_TASKS.md` · **RESOLVED 2026-08-13**: live `gameserver.characters` deltas now prove every hypothesis. H1/H3 (movement persistence + proactive travel): all 5 bots moved and their positions persisted (~3.4–5k u). H2: degenerateDestinations=0/5. H4: DB tracks live. H5 (organic XP): after fixing two live-combat-engagement bugs (stale AIPlayer position; missing attack target objId), all 5 bots gained real kill XP (+210/+437/+141/+175/+465 from the 2884 L5 baseline). Full evidence: `RuntimeLogs/2026-08-13-tim001-h1-h5-resolved.md`. Suite 223/223 green.
-
-- **Symptom (operator):** bots appear NOT to move on the map — coordinates look static; level 20/22
-  exists yet no movement/quest/combat progression is visible.
-- **Known facts:**
-  1. Levels were **SEEDED** — chars inserted with `exp=1400000` → server auto-places them L20–22 at
-     login. Levels alone prove nothing about gameplay.
-  2. Live data DID show real short-range motion (`-82759,250149 → -82634,249894`, heading via
-     `ValidateLocation`) + wolf `DELETE_OBJECT` kills → some combat happened.
-  3. NO proactive gameplay: only 8s ±900-unit wander + server auto-follow; **quest-NPC navigation
-     (workstream W5) is not implemented**; the brain issues attacks, not movement goals.
-  4. Map view **auto-fits** bounds → small/local motion can look static on screen.
-- **Evidence checklist (live run 2026-08-12 — see RuntimeLog `2026-08-12-tim001-evidence-run.md`):**
-  - [x] H1 (frames move char server-side): **PARTIAL — far moves NOT persisted**. Bots sent far HOPs (`HOP -> far-point (-87613,255465,-3600) ~21391u`) + received real NPC_INFO/DELETE_OBJECT (kills), but `gameserver.characters` x/y/z + exp were **IDENTICAL before/after the 2-min run** → far-travel is attempted but positions do **not** change server-side (Audit-44 far-hop/9900u-cap/ack path still open). Short-hop +400u WAS proven earlier (Audit/44 H1). **Movement persistence still UNPROVEN.**
-  - [x] H2 (destinations degenerate): **NO** — real far destinations (~21391u) generated by ZoneRouter; not stale/zero.
-  - [x] H3 (bots only chase hostiles, never travel): **ATTEMPTED** — bots issue proactive far-travel HOPs (travel intent shown) but landed-position persistence is the open gap (see H1).
-  - [ ] H4 (DB spawn vs live pos mismatch): baseline captured (BEFORE==AFTER, no live delta to compare yet since positions static).
-  - [ ] H5 (organic XP/level-up): **NOT shown** — exp unchanged (1.38M) over the window; the seeded-1.4M baseline question remains open.
-- **Probe gap RESOLVED + VERIFIED LIVE 2026-08-12:** `tim001_move_probe.sh` curls `/telemetry`; the missing route was **ADDED** to `FleetPlay.startDashboard()` (serializes `MoveTelemetry.report()`) and **confirmed live** — a fresh 2-min run returned per-bot `movesSent/degraded/EVIDENCE-H1/H2/H5` for all 5 bots (ai_combat_04: 3 far HOPs ~21391u, serverMoved=0). Probe defaults fixed (ENGINE → `/home/dadj/Projects/l24lude`, MYSQL_ARGS → `mysql -u l2j -pStrongPasswordHere gameserver`). **TIM-001 still open** — far single HOPs exceed the 9900u per-move cap and don't persist (`gameserver.characters` identical before/after); **short multi-hop design is what `3a6e7c29` already shipped — hop routing now ack-gated ≤4800u per send.** Live-verify log: `RuntimeLogs/2026-08-12-tim001-evidence-run.md`.
-- **2026-08-13 zone-hop lane (in this commit):** `ZoneRouter.buildHops()` extracted + **7 `ZoneRouterTest` cases** (21k route → ≥3 hops each ≤4800u; degenerate route → 0 hops; one-at-a-time delivery ending exactly at dest). Probe gained the `HOP-PROOF` + `DB-DELTA VERDICT` block. **Evidence run #2 (fresh, 5-bot, movement FORCED ON, 2 min):** `gameserver.characters` **IDENTICAL before/after** (pos + exp), `/telemetry` shows `movesSent=2` (only ai_combat_04) rest `0`, `serverMoved=0 u`, `expGained=0` → **H1/H5 remain UNPROVEN**; fleet not yet driving the hop sequence as primary idle behavior (next action). Full log: `RuntimeLogs/2026-08-13-tim001-evidence-run-zone-hops.md` + `REVIEWED_TASKS.md §B`. Suite: **218/218 green**. **TIM-001 stays IN PROGRESS.**
-- **2026-08-13 hop-persistence lane (this commit):** `ZoneRouter.isRouteStuck()` + `MAX_HOP_TIMEOUTS=2`
-  (stuck-hop recovery — a waypoint the server never walks toward is abandoned after 2 timeouts instead of
-  stalling forever), `Phase0Wiring.moveTo` → standard mouse-move (`moveType=1`), and a probe timing fix
-  (AFTER DB snapshot now runs AFTER fleet-stop + `DB_FLUSH_SEC` disconnect-save flush). **Evidence run #3
-  (fresh, 5-bot, movement FORCED ON, 1 min):** `/telemetry` `ai_combat_04 serverMoved=4569 u` (was 0),
-  `samples=172`, `degenerate=0/2`, fleet-log `USER_INFO` pos == planned HOP target; DB `CombatBot_04`
-  `(-109393,245900) → (-116158,242929)` Δ≈7390u — **H1 movement persistence PROVEN** (run #2's
-  "identical before/after" was the probe snapshotting BEFORE the disconnect-save, not a movement failure).
-  Suite **219/219 green**. **H5 organic XP still open.** Log:
-  `RuntimeLogs/2026-08-13-tim001-h1-persistence-proven.md`.
-
----
-
-## 7. Phase A — API & infra (owner **Cline#1**)
-| ID | Task | Prio | Deps | Status |
-|---|---|---|---|---|
-| **WPT-01** | REST API redesign — `/api/v1/*` (bots/entities/landmarks/events/health/config) + `DashboardApi.java` extracted from `FleetPlay` | P0 | — | **DONE-PUSHED `7b5d5a01`** — v1 routes + FleetPlay extraction + legacy aliases (5 tests) |
-| **WPT-02** | SSE push deltas per bot (replaces index.html 2s poll; changed fields only) | P1 | WPT-01 | **DONE-PUSHED `5f5715ac`** — `/api/v1/stream` SSE (200 green) |
-| **WPT-03** | Event ring buffer + `/api/v1/events` typed events (kill, level-up, skill-cast, damage, move, connect/disconnect) | P0 | WPT-01 | **DONE-PUSHED `00f92e24`+`87eb6510`** — EventRing + wiring (26 tests→198 green) |
-| **WPT-04** | State history ring (snapshot every few s; optional CSV export) → trails/playback/review | P0 | WPT-01 | **DONE-PUSHED `87eb6510`** — HistoryRing wired (198 green) |
-| **WPT-05** | `/api/v1/config` — tunable fleet size, wander radius, poll interval, per-bot overrides | P1 | WPT-01 | **DONE-PUSHED `5f5715ac`** — live config POST (200 green) |
-| **WPT-06** | Dashboard API test suite (endpoint smoke, JSON schema, SSE framing) | P1 | WPT-01 | **DONE-PUSHED `87eb6510`** — route tests (198 green) |
-| **WPT-07** | Access hardening — loopback default, `--bind` flag, token auth on mutating endpoints | P2 | WPT-01 | **DONE-PUSHED `5f5715ac`** — bearer token gate (200 green) |
-| **WPT-08** | Health/metrics — uptime, reconnect counts, pktAge history, request latency | P1 | WPT-01 | **DONE-PUSHED `00f92e24`+`87eb6510`** — FleetMetrics + wiring (198 green) |
-
-### Spec notes (acceptance)
-- **WPT-01**: new `com.aiplayer.web.DashboardApi` owns serialize+routing; `FleetPlay.startDashboard`
-  only registers "**/**" (SPA) + legacy `/json` `/report`; every v1 GET returns `application/json`,
-  well-formed (test curl + JUnit); legacy `/json` payload unchanged for the SPA.
-- **WPT-03**: in-memory ring (cap ~512), in-order timestamps, idempotent replay; `/api/v1/events?since=<seq>`.
-- **WPT-04**: in-memory cap ~3600 snapshots (~1h @2s); `/api/v1/history?bot=&from=&to=`; CSV export flag.
-- **WPT-05**: JSON in/out, applied live via volatile fields; UI in WPT-17.
-- **WPT-06**: `com.aiplayer.web.DashboardApiTest` grows: every endpoint, JSON keys, SSE frames, 404s.
----
-
-## 8. Phase B — Dashboard UX / core views (owner **Cline#2**, frontend only — index.html + assets)
-| ID | Task | Prio | Deps | Status |
-|---|---|---|---|---|
-| **WPT-09** | World map data source — datapack/geo-derived region polygons + landmarks → `dashboard/data/*.json` | P0 | — | **DONE-PUSHED `2b658022`** — `dashboard/data/regions.json` (18 regions) + `landmarks.json` (7) |
-| **WPT-10** | Map renderer v2 — pan/zoom + terrain layer over real coords | P0 | WPT-09 | **DONE-PUSHED `2b658022`** — `js/map.js` pan/zoom over real coords |
-| **WPT-11** | **Movement trails** — per-bot polyline last-N positions (evidence for TIM-001) | P0 | WPT-04 | **DONE-PUSHED `66c67487`+`32266bb9`** — last-N polylines per bot, hotkey T, trail cap/prune; served bundle regenerated (213 green) |
-| **WPT-12** | Playback / replay mode — scrub time window of recorded state | P1 | WPT-04 | **DONE-PUSHED `9fc361b4`** — play/pause/scrub/step/speed bar reads real /api/v1/history |
-| **WPT-13** | Grid v2 — sortable columns, filters (state/online), CSV export | P1 | WPT-01 | **DONE-PUSHED `2b658022`** — sortable/filterable grid + CSV export |
-| **WPT-14** | Live event feed panel — kills, level-ups, damage, skill casts, chat (color-coded) | P0 | WPT-03 | **DONE-PUSHED `2b658022`+`d811c512`** — event feed panel + real sysmsg/chat events live |
-| **WPT-15** | Bot detail drawer — gear/items/stats/XP-HP timeline **+ per-metric sparklines** | P1 | WPT-01 | **DONE-PUSHED `1018fc0e`** — drawer (WPT-16 folded) + real XP/HP/Level SVGs from /api/v1/history; opens from grid row or map marker (213 green) |
-| **WPT-17** | Fleet control panel — pause/resume/focus + "send to landmark" | P1 | WPT-05 | **DONE-PUSHED `595a59b5`** — live config tuner (GET+POST wanderRadius/wanderIntervalMs/pollMs) + focus-bot; note: pause/resume + send-to-landmark need backend endpoints not in the frozen v1 contract (honest scope) |
-| **WPT-18** | Alerts/notifications — death, disconnect, level-up, server-down badge/sound | P2 | WPT-08 | **DONE-PUSHED `1018fc0e`** — real death/disconnect/level-up/server-down toasts + alerts view + sound (WebAudio) from /api/v1/bots+events+health |
-| **WPT-19** | Filter/follow/search/highlight + pin camera | P2 | WPT-10 | **DONE-PUSHED `595a59b5`** — grid search filter + follow-a-bot camera centering + row highlight + pin-camera toggle |
-| **WPT-20** | Responsive + hotkeys (M/G/D) + theme toggle | P2 | — | **DONE-PUSHED `2b658022`** — hotkeys M/G/D + theme toggle (localStorage) |
-| **WPT-31** | Frontend modularization — split SPA, minify, cache-busting | P1 | — | **DONE-PUSHED `2b658022`** — `build_dashboard.sh` bundle; `index.src.html` + `js/ css/ data/` |
-
-### Spec notes
-- Frontend reads ONLY `§11` v1 contract (frozen) + legacy `/json`. Do not require server code changes.
-- WPT-09: no official tiles — derive real-coordinate region polygons from the datapack geo/regions;
-  acceptable fallback = schematic + pan/zoom + region labels.
-- WPT-16 (sparkline charts) is **folded into WPT-15** — id kept only for traceability; the drawer shows
-  HP/MP/EXP per-bot sparklines over the session.
-
----
-
-## 9. Phase C — telemetry depth (owner **Cline#3**, protocol only)
-| ID | Task | Prio | Deps | Status |
-|---|---|---|---|---|
-| **WPT-21** | Movement-ack telemetry → "STAGNANT" badge on non-moving bots (TIM-001 evidence) | P0 | WPT-03 | **DONE-PUSHED `e2eaa6a4`** — `/telemetry` route added to `FleetPlay.startDashboard()` serving `MoveTelemetry.report()` (EVIDENCE-H1/H2/H5); instrument unit-tested (`MoveTelemetryTest`); **VERIFIED LIVE** 2026-08-12 (returned per-bot movesSent/degraded/H1/H2/H5 for all 5 bots); `ops.html` STAGNANT badge (WPT-32). TIM-001 proof itself still open (movement not persisted). |
-| **WPT-22** | SystemMessage/Chat parser → real server messages & NPC dialogue | P0 | — | **DONE-PUSHED `e09530b7`+`d811c512`** — `PacketLogger` SystemMessage/Chat parse → live `sysmsg`/`chat` events |
-| **WPT-23** | StatusUpdate full attr map — stream EXP/SP/level/HP changes in real time | P1 | — | **DONE-PUSHED `68945a94`** — StatusUpdate attr map (11 tests) |
-| **WPT-24** | Inventory v2 — full ItemList (equipped vs loose) + datapack names | P1 | — | **DONE-PUSHED `e09530b7`** — `PacketLogger` inventory records (equipped/loose) + `DatapackNames` |
-| **WPT-25** | Damage/combat KPIs — hits, damage, DPS, kills per bot | P1 | — | **DONE-PUSHED `68945a94`** — combat KPIs (11 tests) |
-| **WPT-26** | Skill-cast metering — MagicSkillUse ids→names, casts, cooldown | P1 | — | **DONE-PUSHED `68945a94`** — skill metering (11 tests) |
-| **WPT-27** | Quest telemetry — quest-list packets + quest log (aligns W5) | P1 | — | **DONE-PUSHED `514f05c5`** — PacketLogger QUEST_LIST (0x80) journal parse + v1 `"quests":{active,total,list}` key (215 green) |
-| **WPT-28** | Chat manager — parse incoming + engine responds; `/api` view | P2 | WPT-22 | **DONE-PUSHED `595a59b5`** — chat view rendering real TYPE_CHAT/TYPE_SYSMSG events + Clear/⟳; note: outbound send needs a backend chat-send endpoint not in the frozen contract (honest scope) |
-| **WPT-29** | Entity name resolution — datapack npc names instead of `mob#id` | P1 | — | **DONE-PUSHED `e09530b7`** — `DatapackNames.resolveNpcName` (npc + item XML) |
-| **WPT-30** | Position cross-check vs `gameserver.characters` every N min; drift alert (TIM-001) | P0 | WPT-03 | **DONE-PUSHED `2a753645`** — `scripts/position_crosscheck.sh` (DB drift alert, `bash -n` OK) |
-
-### Spec notes
-- New parsers live in `com.aiplayer.protocol` + emit into the **frozen v1 contract** (`§11`): telemetry
-  that needs new fields → add them as OPTIONAL keys (must not break the SPA) or surface via `/api/v1/events`.
-- WPT-21/30 are the TIM-001 evidence instruments — HIGH.
-
----
-
-## 10. Phase D — ops, scale, polish (owner **Cline#4**, no Java-server edits)
-| ID | Task | Prio | Status |
-|---|---|---|---|
-| **WPT-32** | Server-side observability view — own file `dashboard/ops.html` polling `/api/v1/health` + DB/port checks | P2 | **DONE-PUSHED (Cline#4)** — `AIPlayerEngine/src/main/resources/dashboard/ops.html` created: polls `/api/v1/health` + `/api/v1/bots` (TIM-001 stagnant detector: STAGNANT badge when no ≥10u movement across consecutive polls) + `/api/v1/events` + `/api/v1/config`; JS syntax-validated. DB/port truth stays in `scripts/server_health.sh` (browser cannot query the DB — page links it). |
-| **WPT-33** | Final polish & docs — README "Web Panel" section, favicon asset, i18n stub `en.json`, `scripts/e2e_dashboard.sh` | P2 | **DONE-PUSHED (Cline#4)** — README "Web Panel" section (routes, ops, JDK25 note); `dashboard/favicon.png` (real 16×16 PNG); `dashboard/i18n/en.json` (valid stub); `scripts/e2e_dashboard.sh` (assets + live /api/v1 contract check + host health; E2E_EXIT=0 live). |
-| **WPT-34** | Ops tooling — `scripts/server_health.sh` (ports 2106/7777/8080 + `gameserver.characters` ping + LN counts) | P2 | **DONE-PUSHED (Cline#4)** — live-verified 2026-08-11: server UP (2106/9014/7777), DB pings OK, 5 ai_% chars at B4 zone, EXIT=0. JDK25 discovered at `~/.jdk/jdk-25.0.4+7` (JARs are class 69; system JDK21 can't run them). |
-
-### Spec notes
-- Cline#4 touches ONLY `Documentation/**`, `scripts/**`, and NEW dashboard asset files (`ops.html`,
-  `i18n/en.json`, `favicon.png`). Any `<link>`/route change to the shared SPA → coordinate with
-  Cline#2 / Cline#1. WPT-32/33/34 are the "operations corner" — zero interaction with fleet code paths.
-
----
-
-## 11. Frozen v1 API contract (Cline#1 implements EXACTLY this; Cline#2/#3 depend on it)
-`GET /api/v1/bots` → `{"bots":[{"account","charId","name","level","exp","sp","hp","hpMax","mp","mpMax",
-"cp","cpMax","x","y","z","heading","load","maxLoad","weapon","adena","invPct","itemCount",
-"items":[[id,count]...],"mobs","npcs","ents":[[objId,kind,x,y,z]...],
-"target":{"objId","kind","label","x","y","z","d"} | null,
-"action","thought","state","online","uptimeSec","pktAgeMs","lastSeenMs"}]}`
-`GET /api/v1/entities` → `{"entities":[{"objId","kind","label","x","y","z"}]}` (merged, deduped)
-`GET /api/v1/landmarks` → `{"towns":[{"name","x","y","z"}]}` (real coords)
-`GET /api/v1/events` → `{"events":[{"seq","t","type","bot","data":{...}}]}` (WPT-03 fills; empty now)
-`GET /api/v1/health` → `{"status":"ok","uptimeSec","botCount","onlineCount","startedAtEpochMs","routes":[...]}`
-`GET /api/v1/config` → `{"fleetSize","wanderRadius","wanderIntervalMs","pollMs","bind","tokenAuth":false}`
-
-## 12. Board changelog (append-only)
-- 2026-08-10 · Cline#1: created board; moved PRIORITY_TASKS detail → TIM-001 (detail kept in
-  `Documentation/PRIORITY_TASKS.md`); registered the 33 WPT tasks (WPT-16 folded into WPT-15) + froze
-  the v1 contract (§11).
-- 2026-08-10 · Cline#1: WPT-01 → IN_PROGRESS (this session).
-- 2026-08-11 · Cline#4: ops corner done — WPT-34 `scripts/server_health.sh` (live EXIT=0, `4ed840e1`),
-  WPT-32 `dashboard/ops.html` + TIM-001 STAGNANT detector (`bf2ce3db`), WPT-33 README/favicon/i18n/e2e
-  (`fd9581d2`). **Server relaunched on JDK25** (`~/.jdk/jdk-25.0.4+7`, PATH wrapper) — was DOWN at start;
-  evidence baseline in `Documentation/RuntimeLogs/2026-08-11-cline4-ops-jdk25-relaunch-tim001-baseline.md`.
-- ⚠️ Coord note: `dashboard/ops.html` exists as a resource but needs a server route (`/ops.html`) — Cline#1
-  to add when wiring the v1 API (WPT-01/02). DB creds for ops tooling: `l2j`/`StrongPasswordHere`
-  (`ServerBuild/*/config/Database.ini`) — `real_status.sh` still assumes sudo-root (Cline#4 flagged, didn't touch).
-- **WPT-07**: `--bind 127.0.0.1` default; token via `--token`; 401 on unauth POST.
-- **WPT-08**: counters in `DashboardApi`; `/api/v1/health` extended; feed alert (WPT-18) hooks here.
-- 2026-08-12 · Cline#4: **session resume + finish** — previous multi-agent session died mid-flight; resumed on
-  branch `fix/tim-001-movement-review` @ HEAD `5f5715ac` (**200 tests green**). Board refresh: WPT-01 (`7b5d5a01`),
-  02 (`5f5715ac`), 03/04/08 (`00f92e24`+`87eb6510`), 05/07 (`5f5715ac`), 06 (`87eb6510`) → **DONE-PUSHED**; Phase A
-  complete. WPT-23/25/26 → **DONE-PUSHED** (`68945a94`). Remaining lanes set **IN_PROGRESS**: WPT-09/10/13/14/20/31
-  (Cline#2), WPT-22/24/29 (Cline#3), **WPT-30 (Cline#4)** — `scripts/position_crosscheck.sh` written (`bash -n` OK;
-  live smoke flagged 23,327u CombatBot_01 drift vs DB), not yet committed. Resume log:
-  `Documentation/RuntimeLogs/2026-08-12-session-resume-finish.md`.
-- 2026-08-12 · **Cline#1 (lead) FINISHES all lanes** — proto/frontend/ops lanes landed + integrated:
-  - **WPT-22/24/29** (proto) → `e09530b7`: `DatapackNames` resolver + `PacketLogger` SystemMessage/chat parse + inventory v2 (213 green).
-  - **WPT-09/10/13/14/20/31** (frontend) → `2b658022`: `data/regions.json`+`landmarks.json`, `js/map.js` pan/zoom, grid v2 sort/filter/CSV, event feed, hotkeys/theme, `build_dashboard.sh` modular bundle.
-  - **WPT-22 integration** (lead) → `d811c512`: FleetPlay drains `PacketLogger` sysmsg/chat into `EventRing` (`TYPE_SYSMSG`/`TYPE_CHAT`); EventRing gains the two constants.
-  - **WPT-30** (opsdocs) → `2a753645`: `scripts/position_crosscheck.sh` shipped.
-  - **Live-verified 2026-08-12**: fleet relaunched on JDK25, `/api/v1/health` + `/api/v1/bots` serve real JSON (`application/json`), `/api/v1/events` shows live `sysmsg`(11)/`chat`(10) — real L2jMobius chat text. 213 tests green.
-- 2026-08-13 · **lead session (cleanup + TIM-001 run #2)** — stack was DOWN, brought UP on JDK25
-  (`~/.jdk/jdk-25.0.4+7`; Login :2106/:9014, Game :7777 `Registered on login`). Adopted + committed the
-  **ZoneRouter short-multi-hop lane** (`buildHops()` ≤4800u, 7 tests), probe `HOP-PROOF`/`DB-DELTA`
-  block, `reset_fleet_xp.sh`, audits 45–50, dashboard bundle regen. Full suite **218/218 green**.
-  **TIM-001 evidence run #2 executed (fresh, movement FORCED ON): honest-negative** — DB identical
-  before/after, `serverMoved=0`, `expGained=0` → persisted movement + organic XP still unproven;
-  TIM-001 stays IN PROGRESS (next: hop-gate as primary idle behavior in FleetPlay). **Consolidation:**
-  new `Documentation/REVIEWED_TASKS.md` (anti-redo master registry, every task + commit + evidence);
-  `STATUS.md` trimmed to a single clean snapshot; `START_HERE.md` refreshed.
-
-## 5. Right-now kickoff (start here, in order)
-> Historical kickoff plan for the 33-task WPT build — **ALL lanes since landed** (Phase A/B/C/D DONE-PUSHED by 2026-08-12).
-> Remaining open work: **none from the WPT build** — **TIM-001 RESOLVED 2026-08-13 (H1–H5 PROVEN,
-> live DB evidence)** and **33/33 WPT tasks DONE-PUSHED** (Phase A/B/C/D, see §7/§8 statuses);
-> WPT-17/28 honest-scope notes still apply. See commit history below for what landed.
-| Instance | Started with (2026-08-10) | Then (deps satisfied → order flexible) |
-|---|---|---|
-| **Cline#1 (orchestrator)** | **WPT-01 → WPT-08 (API) — DONE-PUSHED** | DONE |
-| **Cline#2 (frontend)** | WPT-09 → WPT-10 → WPT-13 → WPT-20 → … → WPT-31 — **all DONE-PUSHED** | — |
-| **Cline#3 (protocol)** | WPT-22 → WPT-29 → WPT-23 → WPT-25 → WPT-26 → **WPT-27 — all DONE-PUSHED** | WPT-21 backend DONE, TIM-001 persistence RESOLVED |
-| **Cline#4 (ops/docs)** | WPT-32 → WPT-33 → WPT-34 — **all DONE-PUSHED** (`ops.html`, README/e2e, `server_health.sh`) | non-Java, zero conflicts |
+## 5. Changelog (newest last)
+- **2026-08-13 · doc-sweeper:** archived the full historical/audit/evidence pile to `Documentation/_archive/`,
+  deleted the stray team-runtime json, rewrote `START_HERE.md` + this board to be lean around the ONE goal
+  (3–5 AI players that actually PLAY), `STATUS.md` = Phase: PLAY. **242/242 green.**
+- **2026-08-13 · play-builder:** STEP 1 claimed `IN_PROGRESS` — BotPlay controller build starts.
