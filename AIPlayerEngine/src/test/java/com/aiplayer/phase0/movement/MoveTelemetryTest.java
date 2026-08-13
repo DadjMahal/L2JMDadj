@@ -75,4 +75,48 @@ class MoveTelemetryTest
         assertTrue(r.contains("EVIDENCE-H2"), "H2 key must be present");
         assertTrue(r.contains("EVIDENCE-H5"), "H5 key must be present");
     }
+
+    @Test
+    void talliesMovesSentVsServerMovedAcrossDegradedMultiHopRoute()
+    {
+        // Audit 46 P0 #1 — telemetry honesty on a degraded multi-hop route:
+        // 5 hops are sent, the server ack-walks only 3 -> report must show 5 sent,
+        // 3 server-moved hops worth of distance, and 2 degraded (sent but unacked).
+        MoveTelemetry t = MoveTelemetry.getInstance();
+        t.reset();
+        String bot = "botA";
+
+        // 5 planned hops of exactly 4800u each (none degenerate); origin is non-zero so
+        // the first server sample is never mistaken for the pre-in-world (0,0) skip.
+        int[][] hops = {
+            {1000, 0, 5800, 0},
+            {5800, 0, 10600, 0},
+            {10600, 0, 15400, 0},
+            {15400, 0, 20200, 0},
+            {20200, 0, 25000, 0},
+        };
+        for (int[] h : hops)
+        {
+            t.recordMove(bot, h[0], h[1], 0, h[2], h[3], 0, "farm:X", "multi-hop");
+        }
+        assertEquals(5, t.moveCount(bot), "movesSent: all 5 hops recorded");
+
+        // Server acked position only through the first 3 hops (the route degraded: 2 hops unacked).
+        t.recordPosition(bot, 1000, 0, 0, 1400000);
+        t.recordPosition(bot, 5800, 0, 0, 1400001);
+        t.recordPosition(bot, 10600, 0, 0, 1400002);
+        t.recordPosition(bot, 15400, 0, 0, 1400003);
+
+        // serverMoved must reflect exactly the 3 acked hops (3 x 4800 = 14400u),
+        // and must NOT include the 2 unacked hops.
+        assertEquals(14400.0, t.totalMoved(bot), 0.001, "serverMoved = 3 acked hops x 4800u");
+
+        // 5 sent, 3 server-moved -> 2 degraded hops (sent but never acked).
+        assertEquals(2, t.moveCount(bot) - 3, "2 of 5 hops were never acked -> degraded");
+
+        // Honesty in the paste-able report too: it states the 5 sent and the acked distance.
+        String r = t.report();
+        assertTrue(r.contains("movesSent=5"), "report must show movesSent=5, got:\n" + r);
+        assertTrue(r.contains("serverMoved=14400"), "report must show serverMoved=14400 u, got:\n" + r);
+    }
 }

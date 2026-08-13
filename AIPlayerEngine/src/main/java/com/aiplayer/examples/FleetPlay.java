@@ -21,6 +21,7 @@ import com.aiplayer.monitor.AIMonitorDashboard;
 import com.aiplayer.phase0.BotSnapshot;
 import com.aiplayer.phase0.Phase0Wiring;
 import com.aiplayer.phase0.combat.TargetSelector;
+import com.aiplayer.phase0.movement.HopGate;
 import com.aiplayer.phase0.movement.MoveTelemetry;
 import com.aiplayer.phase0.movement.ZoneRouter;
 import com.aiplayer.phase0.movement.ZoneRouter.RouteGoal;
@@ -428,10 +429,12 @@ public final class FleetPlay
                             {
                                 boolean nearHop = Math.hypot(pendingHop[0] - snapshot.x,
                                     pendingHop[1] - snapshot.y) <= arriveDist;
-                                boolean neverSent = hopSentAtMs == 0;
-                                boolean timedOut = !neverSent && (now - hopSentAtMs) > 45_000;
+                                // Audit 46 P0 #2: the send/advance/resend decision is extracted into
+                                // the pure HopGate helper so it is unit-testable; only the stuck-hop
+                                // abandonment (timeout counter + MAX_HOP_TIMEOUTS) stays here.
+                                HopGate.Action hopAction = HopGate.nextAction(now, nearHop, hopSentAtMs);
 
-                                if (nearHop)
+                                if (hopAction == HopGate.Action.ADVANCE)
                                 {
                                     // Arrived at this hop: complete the route, or advance to the next one.
                                     hopTimeouts = 0; // TIM-001: a reached hop is not stuck
@@ -448,14 +451,14 @@ public final class FleetPlay
                                         info.state = "idle";
                                     }
                                 }
-                                else if (neverSent || timedOut)
+                                else if (hopAction == HopGate.Action.SEND || hopAction == HopGate.Action.RESEND)
                                 {
                                     // TIM-001 stuck-hop recovery: a waypoint the server never walks us
                                     // toward would otherwise resend forever every 45s (the movesSent=2
                                     // in 2 min stall). Resend up to ZoneRouter.MAX_HOP_TIMEOUTS, then
                                     // abandon the route so the bot re-plans a fresh far point.
-                                    boolean resend = neverSent;
-                                    if (timedOut && !neverSent)
+                                    boolean resend = hopAction == HopGate.Action.SEND; // never sent -> send fresh
+                                    if (hopAction == HopGate.Action.RESEND)
                                     {
                                         hopTimeouts++;
                                         resend = !ZoneRouter.isRouteStuck(hopTimeouts);
