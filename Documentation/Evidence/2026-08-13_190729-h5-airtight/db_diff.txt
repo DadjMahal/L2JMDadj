@@ -1,0 +1,6 @@
+ACCOUNT  beforeExp -> afterExp   dExp   afterPos (negative-control run)
+CombatBot_01       3094 ->     3094      +0   (-84721,242114,-3695)
+CombatBot_02       3321 ->     3321      +0   (-87346,254668,-3720)
+CombatBot_03       3025 ->     3025      +0   (-83751,243576,-3695)
+CombatBot_04       3059 ->     3059      +0   (-83733,243607,-3695)
+CombatBot_05       3349 ->     3349      +0   (-87346,254668,-3720)

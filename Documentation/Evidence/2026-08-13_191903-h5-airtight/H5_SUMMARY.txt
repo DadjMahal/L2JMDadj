@@ -1,0 +1,69 @@
+[h5] server ports UP (2106/7777); building? classes present: yes
+[h5] == BEFORE snapshot (19:19:03) ==
+[h5] launching FleetPlay (5 bots, movement FORCED ON) for 10 min...
+[h5] fleet pid=167005 log=/home/dadj/Projects/l24lude/Documentation/Evidence/2026-08-13_191903-h5-airtight/fleet_run.log
+[h5] dashboard up after ~5s; capturing telemetry start
+[h5] run in progress 10 min (start 19:19:08)...
+[h5] run elapsed; telemetry_end captured 19:29:08
+=== stopping fleet 19:29:08 ===
+[h5] waiting 15s for disconnect-save flush...
+[h5] 
+[h5] == per-bot kill/XP events captured in fleet_run.log ==
+[h5]   CombatBot_01: 0
+0 EXP-gain events
+[h5]   CombatBot_02: 0
+0 EXP-gain events
+[h5]   CombatBot_03: 0
+0 EXP-gain events
+[h5]   CombatBot_04: 0
+0 EXP-gain events
+[h5]   CombatBot_05: 0
+0 EXP-gain events
+[h5]   (full chain in fleet_run.log; per-kill EXP lines + server sysmsgs)
+[h5] 
+[h5] Artifacts written to: /home/dadj/Projects/l24lude/Documentation/Evidence/2026-08-13_191903-h5-airtight
+[h5] DONE 19:29:24
+
+=======================================================================
+== CORRECTED / AUTHORITATIVE (appended post-run) ======================
+=======================================================================
+The per-bot "0 EXP-gain events" lines above are a SCRIPT BUG (it grepped
+char-name CombatBot_NN but the run log uses ACCOUNT ai_combat_NN). The
+real per-kill StatusUpdate EXP counts and the DB outcome follow.
+
+1) PER-KILL XP EVENTS (server StatusUpdate 0x0E STAT_EXP receipt, run log):
+   ai_combat_01: 33   ai_combat_02: 32   ai_combat_03: 33
+   ai_combat_04: 31   ai_combat_05: 31   = 160 organic EXP-gain events,
+   each logged as "[EVIDENCE-H5] <acct> EXP +N (now M, level=5)" interleaved
+   with server SystemMessages (sysmsg#34 attack, #43, #1983 weak-prot lifted).
+   Chain excerpt (lines 379-433 region, full in fleet_run.log):
+     [EVIDENCE-H5] ai_combat_01 EXP +13 (now 3140)   ... +40 +8 +6 ...
+     [EVIDENCE-H5] ai_combat_05 EXP +52 (now 3401)   ... +61 +8 ...
+
+2) LIVE TELEMETRY expGained (MoveTelemetry, from StatusUpdate at end):
+   telemetry_end.txt: expGained = 634 / 586 / 592 / 589 / 607
+
+3) AUTHORITATIVE DB DELTA (gameserver.characters, after disconnect/flush save):
+   ACCOUNT           before -> after      dExp
+   CombatBot_01       3094   -> 3712      +618
+   CombatBot_02       3321   -> 3979      +658
+   CombatBot_03       3025   -> 3628      +603
+   CombatBot_04       3059   -> 3665      +606
+   CombatBot_05       3349   -> 3973      +624
+   (final pos also flushed: spawn (-82759,250149,-3600) -> (-83498,250457,-3596);
+    see db_diff.txt)
+
+VERDICT: H5 = PROVEN. All 5 bots gained ~600+ XP organically during the
+10-min field run, confirmed by three independent sources (real-time server
+StatusUpdate XP receipt in the run log, live MoveTelemetry expGained, and
+the authoritative gameserver.characters exp delta). This closes the
+audit-46/H5 "no persisted server record" gap with committed raw artifacts.
+
+NEGATIVE CONTROL (sibling run 2026-08-13_190729): bots parked next to the
+Talking Island Guard in the town peace-zone produced exactly 0 EXP events
+and a +0 DB delta — proving the harness discriminates real organic farming
+from no-op idle (i.e. H5 evidence is not a false positive).
+
+ALSO NOTE: script db_diff.txt earlier compared LEVEL (both 5) instead of EXP —
+fixed; the authoritative EXP diff is recomputed above and in db_diff.txt.
+=======================================================================

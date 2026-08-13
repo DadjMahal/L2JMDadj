@@ -1,0 +1,25 @@
+[h5] server ports UP (2106/7777); building? classes present: yes
+[h5] == BEFORE snapshot (19:07:29) ==
+[h5] launching FleetPlay (5 bots, movement FORCED ON) for 10 min...
+[h5] fleet pid=161753 log=/home/dadj/Projects/l24lude/Documentation/Evidence/2026-08-13_190729-h5-airtight/fleet_run.log
+[h5] dashboard up after ~5s; capturing telemetry start
+[h5] run in progress 10 min (start 19:07:34)...
+[h5] run elapsed; telemetry_end captured 19:17:34
+=== stopping fleet 19:17:34 ===
+[h5] waiting 15s for disconnect-save flush...
+[h5] 
+[h5] == per-bot kill/XP events captured in fleet_run.log ==
+[h5]   CombatBot_01: 0
+0 EXP-gain events
+[h5]   CombatBot_02: 0
+0 EXP-gain events
+[h5]   CombatBot_03: 0
+0 EXP-gain events
+[h5]   CombatBot_04: 0
+0 EXP-gain events
+[h5]   CombatBot_05: 0
+0 EXP-gain events
+[h5]   (full chain in fleet_run.log; per-kill EXP lines + server sysmsgs)
+[h5] 
+[h5] Artifacts written to: /home/dadj/Projects/l24lude/Documentation/Evidence/2026-08-13_190729-h5-airtight
+[h5] DONE 19:17:49

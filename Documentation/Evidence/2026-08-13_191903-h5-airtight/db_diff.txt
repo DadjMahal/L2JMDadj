@@ -1,0 +1,6 @@
+ACCOUNT  beforeExp -> afterExp   dExp   afterPos (AUTHORITATIVE after flush)
+CombatBot_01       3094 ->     3712    +618   (-83498,250457,-3596)
+CombatBot_02       3321 ->     3979    +658   (-83498,250457,-3596)
+CombatBot_03       3025 ->     3628    +603   (-83498,250456,-3596)
+CombatBot_04       3059 ->     3665    +606   (-83498,250456,-3596)
+CombatBot_05       3349 ->     3973    +624   (-83498,250457,-3596)

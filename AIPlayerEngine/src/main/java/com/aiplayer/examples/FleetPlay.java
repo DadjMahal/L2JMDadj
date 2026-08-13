@@ -191,6 +191,7 @@ public final class FleetPlay
             long hopSentAtMs = 0;
             int hopTimeouts = 0; // TIM-001: consecutive timeouts on the current hop (stuck-hop recovery)
             int prevLevel = info.level;
+            long prevExp = -1; // EVIDENCE-H5: StatusUpdate-driven per-kill XP-gain trail
             int prevHp = info.hp;
             boolean firstTick = true;
             long lastHistoryMs = 0;
@@ -257,6 +258,15 @@ public final class FleetPlay
                 }
                 firstTick = false;
                 prevHp = info.hp;
+                // EVIDENCE-H5: emit a human-readable per-kill XP-gain line whenever the server's
+                // StatusUpdate EXP for this bot rises (level showed in logs above). This is the engine's
+                // packet-level receipt of the same XP the server persisted to gameserver.characters.
+                if (prevExp >= 0 && info.exp > prevExp)
+                {
+                    System.out.println("[EVIDENCE-H5] " + account + " EXP +" + (info.exp - prevExp)
+                        + " (now " + info.exp + ", level=" + tickLevel + ")");
+                }
+                prevExp = info.exp;
                 // WPT-22: emit newly-parsed SystemMessage / chat broadcasts (real server text).
                 long sysNow = logger.getSystemMessageCount();
                 long chatNow = logger.getChatCount();
@@ -267,6 +277,10 @@ public final class FleetPlay
                     {
                         PacketLogger.SystemMessageEvent sm = sysmsgs.get(i);
                         if (sm == null) continue;
+                        // EVIDENCE-H5: echo every server SystemMessage to stdout so the persisted run log
+                        // carries the server's own per-kill cues (e.g. sysmsg#213 "You have earned X
+                        // experience." / adena / level-up) — independent of the DB outcome delta.
+                        System.out.println("[EVIDENCE-H5] " + account + " SYSMSG " + sm.msgId + " " + sm.text);
                         java.util.Map<String, Object> d = new java.util.LinkedHashMap<>();
                         d.put("msgId", sm.msgId);
                         d.put("text", sm.text);
