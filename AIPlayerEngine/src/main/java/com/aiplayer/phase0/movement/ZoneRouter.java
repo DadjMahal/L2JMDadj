@@ -169,7 +169,7 @@ public final class ZoneRouter
      *
      * @return ordered {x,y,z} waypoints; the last always equals dest; empty when dest == origin
      */
-    static List<int[]> buildHops(int fromX, int fromY, int fromZ,
+    public static List<int[]> buildHops(int fromX, int fromY, int fromZ,
                                  int destX, int destY, int destZ)
     {
         double dx = destX - fromX;

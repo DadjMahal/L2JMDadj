@@ -106,7 +106,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | Audit/45, 45a, 45b | Persistence findings+proof | 9900u cap; single far HOP dropped; short-hops are the fix path. |
 | Audit/46 | Test-coverage gap | **P0 RESOLVED `2b010086`** — MoveTelemetry honesty test (5 sent/3 server-moved/2 degraded) + HopGate.nextAction pure helper (send/advance/resend) extracted from FleetPlay and unit-tested. P1 items 3-5 still open. |
 | Audit/47 | Stub-class inventory | Static inventory of stub classes. |
-| Audit/48 | Quest-navigation plan | W5 quest-NPC nav not yet implemented. |
+| Audit/48 | Quest-navigation plan | **Stage A SHIPPED** (this session) — `QuestNpcNavigator` routes a bot to a quest-giver/turn-in NPC via ack-gated `ZoneRouter.buildHops()` (≤4800u) + `HopGate` send/advance/resend + stuck abandonment; target resolution from `QuestDatabase` TALK/RETURN steps and `QuestProgressTracker` quest state. 12 unit tests green. Stages B (talkToNpc 0xb0), C (bypass 0x21), D (quest-loop goal planning) remain future. |
 | Audit/49 | Organic-XP (H5) proof plan | Pairs movement with a verified kill path; caveat documented. |
 | Audit/50 | Secret hygiene | Static review of credentials in repo. |
 
