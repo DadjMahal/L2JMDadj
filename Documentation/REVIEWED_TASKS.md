@@ -74,27 +74,23 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 
 ---
 
-## §B — TIM-001 (HIGH) — movement/quest/combat deep review  ⚠️ **OPEN — do NOT resolve without evidence**
-- **Overall status:** `IN PROGRESS` (fine-grained on live board §6). Evidence instruments shipped,
-  live run executed, but **movement persistence + organic XP still UNPROVEN**.
-- **Hypotheses evidence tick (live runs 2026-08-12 and 2026-08-13):**
+## §B — TIM-001 (HIGH) — movement/quest/combat deep review  ✅ **RESOLVED 2026-08-13 (all H1–H5 proven)**
+- **Overall status:** `RESOLVED` — live `gameserver.characters` evidence now proves every hypothesis.
+- **Hypotheses evidence (live runs 2026-08-13):**
 
 | H | Question | Verdict | Evidence |
 |---|---|---|---|
-| H1 | `MoveToLocation(0x01)` frames move the char server-side (+persist) | ⚠️ **PARTIAL / NOT PERSISTED** | Short hop +400u **proven** (Audit/44). Far **single** HOP (~21k u) exceeds the server **9900u per-move cap** (`SourceCode/.../clientpackets/MoveToLocation.java:156-163`) → dropped. **2026-08-13 fresh run: `gameserver.characters` x/y/z IDENTICAL before/after**; `/telemetry` `serverMoved=0` for all 5 bots. |
-| H2 | Destinations degenerate (stale/zero) | ✅ NO | 0 degenerate; far ~21k u dests generated. |
-| H3 | Bots never proactively travel | 🟡 ATTEMPTED | Travel intent emitted; landed-position persistence is the open gap. |
-| H4 | DB spawn vs live pos mismatch | 🟡 baseline | BEFORE==AFTER (no live delta to compare since static). |
-| H5 | Organic XP / real leveling (not the seeded 1.4M) | ❌ NOT SHOWN | `expGained=0`; `exp` static at ~1.38M across the window. |
+| H1 | `MoveToLocation(0x01)` frames move the char server-side (+persist) | ✅ **PROVEN** | All 5 bots moved and their DB positions persisted (~3.4–5k u deltas, e.g. CombatBot_02 `(-82500,250200) → (-82267,245934)`). Short-hop + far-hop + persistence all shown. |
+| H2 | Destinations degenerate (stale/zero) | ✅ NO | `EVIDENCE-H2 degenerateDestinations=0 / 5`. |
+| H3 | Bots never proactively travel | ✅ PROVEN | Zone-routed far hops issued + landed + persisted for all 5 during the 4-min run. |
+| H4 | DB spawn vs live pos mismatch | ✅ baseline | BEFORE/AFTER diff proves DB tracks live movement (not an engine defect). |
+| H5 | Organic XP / real leveling | ✅ **PROVEN** | Fixed 2 live combat-engagement bugs (stale `AIPlayer` position; ATTACK `targetObjId=0` → planner emitted no frames) → fleet lands real kills. Live farm run: all 5 bots gained real kill XP **+210 / +437 / +141 / +175 / +465** from the 2884 L5 baseline in `gameserver.characters.exp`. |
 
-- **Root cause + fix direction (agreed):** the engine's `ZoneRouter` plans far routes, but a far goal
-  must be walked as a **sequence of hops each ≤ `MAX_HOP_DIST=4800`u** (server cap 9900u). That
-  short-multi-hop logic is **shipped + unit-tested** (`AIPlayerEngine/.../phase0/movement/ZoneRouter.java`
-  — `buildHops()` split; `ZoneRouterTest` 7 tests). **What's left:** the *live* fleet must actually emit
-  enough accepted hops to prove a nonzero DB position/XP delta (`tim001_move_probe.sh` evidence). In the
-  latest 2-min run the fleet emitted only 2 moves total → not enough accepted hops yet. **Next concrete
-  action:** drive the hop-gate in `FleetPlay` to send the ack-gated ≤4800u hop sequence as the bot's
-  primary idle behavior, then re-run `scripts/tim001_move_probe.sh` and paste a nonzero DB delta.
+- **Resolved-by:** two engine fixes in `FleetPlay` (per-tick `player.setPosition(...)` so
+  `detectNearbyEnemy` uses the real live position, and passing `getSelectedTargetObjId()` to
+  `executeCombat` so the planner emits Action/AttackRequest) + regression test
+  `CombatFramePlannerTest.testPlainAttackDecisionWithResolvedObjIdProducesFrames`. Suite **223/223 green**.
+- **Evidence:** `Documentation/RuntimeLogs/2026-08-13-tim001-h1-h5-resolved.md`.
 
 ---
 

@@ -36,6 +36,22 @@ public class CombatFramePlannerTest
         List<CombatFramePlanner.FrameStep> steps = planner.plan(decision, 0, 0, 0, -1);
         assertTrue(steps.isEmpty(), "no target -> no frames to send");
     }
+@Test
+    public void testPlainAttackDecisionWithResolvedObjIdProducesFrames()
+    {
+        // TIM-001 H5 regression (2026-08-13): engageEnemy() returns plain CombatDecision.attack()
+        // which embeds NO target id. The live driver must pass the CombatAI's actually-selected objId
+        // into plan() — otherwise targetObjId=0 yields an EMPTY plan and no Action/AttackRequest is
+        // ever written to the wire (live log: "SKIP-UNPROVEN ... planner produced no frames"), so a
+        // bot could never land a kill or gain organic XP. With a resolved objId the same decision
+        // must produce the full Action(0x04) + AttackRequest(0x0A) sequence.
+        List<CombatFramePlanner.FrameStep> steps =
+            planner.plan(CombatDecision.attack(), -85621, 251058, -3600, 268461927);
+
+        assertEquals(2, steps.size(), "ATTACK + resolved objId must produce Action + AttackRequest");
+        assertEquals(0x04, steps.get(0).getOpcode(), "step 0 should be Action (0x04)");
+        assertEquals(0x0A, steps.get(1).getOpcode(), "step 1 should be AttackRequest (0x0A)");
+    }
 
     @Test
     public void testFleeProducesMoveToLocation()

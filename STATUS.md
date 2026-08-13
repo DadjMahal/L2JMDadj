@@ -4,7 +4,7 @@
 ## 📚 Docs consolidated 2026-08-12: root `TASKS.md` (110-task roadmap, 110/110 done) + stale `Documentation/README.md` + `Documentation/TODO_LIST.md` archived -> `Documentation/_archive_superseded/` (see `_ARCHIVE_INDEX.md`). ONLY live board = `Documentation/TASKS.md`; single canonical README = root `README.md`.
 > If `SESSION_IN_PROGRESS.md` exists at repo root, resume it (rate-limited mid-work).
 
-## Phase: 5 — WPT web-panel telemetry COMPLETE + integrated (2026-08-12). **33/33 WPT tasks DONE-PUSHED**; API + frontend + telemetry shipped. **218/218 tests green** (2026-08-13). TIM-001 HIGH-priority evidence run #2 done (still NOT resolved — honest).
+## Phase: 5 — WPT web-panel telemetry COMPLETE + integrated (2026-08-12). **33/33 WPT tasks DONE-PUSHED**; API + frontend + telemetry shipped. **TIM-001 (H1–H5) ✅ RESOLVED 2026-08-13 with live DB evidence**; **223/223 tests green**.
 
 ## ✅ Reviewed-task registry (anti-redo) — `Documentation/REVIEWED_TASKS.md`
 > Consolidated record of every task + status + commit. **Check it before starting anything.** Live board = `Documentation/TASKS.md` (§6 TIM-001 open; §12 changelog).
@@ -14,7 +14,7 @@
 ## ✅ Phase C (telemetry) WPT-21..30: movemeter + STAGNANT badge (`ops.html`), SystemMessage/chat parser (+ WPT-28 chat view), StatusUpdate attr map, inventory v2 + datapack names, combat KPIs, skill metering, entity name resolution, quest telemetry (WPT-27), `position_crosscheck.sh`.
 ## ✅ Phase D (ops) WPT-32..34: `ops.html`, README/favicon/i18n/e2e, `server_health.sh`.
 ## ▶ Live-verified 2026-08-12/13: Login :2106 / GS :9014 / Game :7777 UP (JDK25); `/api/v1/health`+`/api/v1/bots`+`/api/v1/events` serve real JSON + live sysmsg/chat. **Marked DOWN at session open, brought back UP 2026-08-13** (`~/.jdk/jdk-25.0.4+7` on PATH; system java is JDK21 but server JARs are JDK25).
-## Open: **TIM-001 HIGH — NOT resolved** (honest). **ZoneRouter short-multi-hop SHIPPED + unit-tested** (`buildHops()` ≤4800u hops; ZoneRouterTest 7). **Evidence run #2 (2026-08-13)`):** `gameserver.characters` IDENTICAL before/after, `serverMoved=0`, `expGained=0` → H1 persistence + H5 organic-XP **UNPROVEN**. Root cause: the live fleet isn't yet emitting enough accepted ≤4800u hops (only 2 moves in 2 min). Next: wire the hop-gate in `FleetPlay` as the bot's primary idle behavior, then re-prove with a nonzero DB delta. Details: `RuntimeLogs/2026-08-13-tim001-evidence-run-zone-hops.md` + `REVIEWED_TASKS.md §B`.
+## ✅ TIM-001 (HIGH) RESOLVED — 2026-08-13, all H1–H5 PROVEN by live `gameserver.characters` evidence. H1/H3 (movement persistence + proactive travel): all 5 bots moved and their positions persisted (~3.4–5k u DB deltas). H2 (destinations degenerate?): 0/5, NO. H4 (DB vs live): positions track live movement. H5 (organic XP — the 2-session blocker): fixed two live combat-engagement bugs (stale `AIPlayer` position in `detectNearbyEnemy`; missing attack `targetObjId` → planner emitted no frames) and all 5 bots then gained real kill XP: **+210 / +437 / +141 / +175 / +465** from the 2884 L5 baseline. Full evidence: `RuntimeLogs/2026-08-13-tim001-h1-h5-resolved.md` + `REVIEWED_TASKS.md §B`. Suite **223/223 green**.
 
 ## Resumed & finished 2026-08-12/13 (on `master`)
 - All 33 WPT tasks DONE-PUSHED (see REVIEWED_TASKS §A for the commit table).

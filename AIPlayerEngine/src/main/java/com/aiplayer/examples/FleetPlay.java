@@ -324,6 +324,11 @@ public final class FleetPlay
                     info.state = "alive";
                 }
 
+                // TIM-001 H5: keep the CombatAI's AIPlayer position in sync with the LIVE snapshot.
+                // detectNearbyEnemy() computes distance from aiPlayer.getX/Y/Z, which were seeded at
+                // (0,0,0) at construction and never updated from packets, so every hostile read as
+                // ~83k units away -> the bot never engaged (stuck at AUTO_PLAY, no kills / no XP).
+                player.setPosition(snapshot.x, snapshot.y, snapshot.z);
                 CombatDecision decision = player.getCombatAI().makeDecision();
                 info.state = decision.getAction().toString();
                 info.action = decision.getAction().toString();
@@ -356,8 +361,16 @@ public final class FleetPlay
                     case ATTACK:
                     case ENGAGE_TARGET:
                     case USE_SKILL:
-                        int targetId = parseObjId(decision.getTargetId());
-                        wiring.executeCombat(decision, snapshot.x, snapshot.y, snapshot.z, targetId);
+                        // TIM-001 H5: ATTACK/ENGAGE_TARGET decisions from CombatAI carry no explicit
+                        // targetId (engageEnemy returns plain CombatDecision.attack()), so pass the
+                        // target the CombatAI actually selected (getSelectedTargetObjId). Otherwise the
+                        // combat planner gets targetObjId=0 and emits NO Action/AttackRequest frames
+                        // (the "SKIP-UNPROVEN ... planner produced no frames" stall -> no kills, no XP).
+                        int targetId = selTargetId > 0 ? selTargetId : parseObjId(decision.getTargetId());
+                        if (targetId > 0)
+                        {
+                            wiring.executeCombat(decision, snapshot.x, snapshot.y, snapshot.z, targetId);
+                        }
                         break;
 
                     case FLEE:

@@ -49,8 +49,8 @@
 ---
 
 ## 6. ⚠️ TIM-001 — HIGH PRIORITY: bots look static — movement/quest/combat deep review
-`Status: IN PROGRESS — live evidence run 2026-08-12 done, NOT resolved` · `Owner: Cline#1 (lead)` · `Evidence tools: WPT-11/12/15/17/18/19/28 shipped + WPT-21/30` 
-`Detail spec: Documentation/PRIORITY_TASKS.md` · **Do not mark RESOLVED until a run shows real DB position delta from far-travel and/or organic XP gain (with pasted evidence).**
+`Status: ✅ RESOLVED — 2026-08-13 all H1–H5 PROVEN with live DB evidence` · `Owner: Cline#1 (lead)` · `Evidence tools: WPT-11/12/15/17/18/19/28 shipped + WPT-21/30` 
+`Detail spec: Documentation/PRIORITY_TASKS.md` · **RESOLVED 2026-08-13**: live `gameserver.characters` deltas now prove every hypothesis. H1/H3 (movement persistence + proactive travel): all 5 bots moved and their positions persisted (~3.4–5k u). H2: degenerateDestinations=0/5. H4: DB tracks live. H5 (organic XP): after fixing two live-combat-engagement bugs (stale AIPlayer position; missing attack target objId), all 5 bots gained real kill XP (+210/+437/+141/+175/+465 from the 2884 L5 baseline). Full evidence: `RuntimeLogs/2026-08-13-tim001-h1-h5-resolved.md`. Suite 223/223 green.
 
 - **Symptom (operator):** bots appear NOT to move on the map — coordinates look static; level 20/22
   exists yet no movement/quest/combat progression is visible.
