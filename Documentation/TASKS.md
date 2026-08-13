@@ -21,7 +21,7 @@
 ## 3. LIVE BOARD
 | ID | Task | Status | Owner |
 |---|---|---|---|
-| **STEP 0** | Archive history pile + lean START_HERE/TASKS board for the PLAY goal | `DONE-PUSHED <fill-after-push>` | doc-sweeper |
+| **STEP 0** | Archive history pile + lean START_HERE/TASKS board for the PLAY goal | `DONE-PUSHED 7e820756` | doc-sweeper |
 | **STEP 1** | **BotPlay controller** — bots pick goals and act (fight/level/travel), never idle | `IN_PROGRESS` | play-builder |
 | **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `TODO` | play-builder |
 | **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `TODO` | play-builder |
