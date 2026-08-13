@@ -104,7 +104,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | `dashboard/ops.html` (WPT-32) | Ops UX | STAGNANT badge for non-moving bots. |
 | Audit/44 | Movement review | Short-hop +400u proven. |
 | Audit/45, 45a, 45b | Persistence findings+proof | 9900u cap; single far HOP dropped; short-hops are the fix path. |
-| Audit/46 | Test-coverage gap | Remaining `MoveTelemetry`/hop-gate tests to add (P0). |
+| Audit/46 | Test-coverage gap | **P0 RESOLVED `2b010086`** — MoveTelemetry honesty test (5 sent/3 server-moved/2 degraded) + HopGate.nextAction pure helper (send/advance/resend) extracted from FleetPlay and unit-tested. P1 items 3-5 still open. |
 | Audit/47 | Stub-class inventory | Static inventory of stub classes. |
 | Audit/48 | Quest-navigation plan | W5 quest-NPC nav not yet implemented. |
 | Audit/49 | Organic-XP (H5) proof plan | Pairs movement with a verified kill path; caveat documented. |
