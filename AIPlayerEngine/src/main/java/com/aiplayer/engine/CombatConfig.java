@@ -47,7 +47,7 @@ public class CombatConfig {
         setProperty("combat.skill_cooldown", "5000");
         setProperty("combat.pvp_enabled", "false");
         setProperty("combat.pvp_karma_threshold", "500");
-        setProperty("combat.health_threshold", "30");
+        setProperty("combat.health_threshold", "50");
         setProperty("combat.mana_threshold", "20");
         setProperty("combat.defensive_threshold", "40");
         setProperty("combat.retreat_threshold", "15");

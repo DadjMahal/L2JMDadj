@@ -325,6 +325,23 @@ public class PacketCodec {
     /**
      * Decode received packet - returns opcode and buffer
      */
+    /**
+     * Encode restart point packet (Client->Server)
+     * OPCODE: 0x6D = REQUEST_RESTART_POINT from ClientPackets.java
+     * Format: c (pointType)
+     */
+    public static byte[] encodeRestartPoint(int pointType) {
+        // size = 2(header) + 1(opcode) + 4(pointType) = 7
+        ByteBuffer buf = ByteBuffer.allocate(7);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) 7);
+        buf.put((byte) 0x6D);
+        buf.putInt(pointType);
+        buf.flip();
+        return buf.array();
+    }
+
+
     public static DecodedPacket decode(byte[] data) {
         if (data == null || data.length < 4) {
             return null;

@@ -507,13 +507,14 @@ public final class DashboardApi
         {
             if (!first) sb.append(',');
             first = false;
-            sb.append(botObject(b));
+            sb.append(botObject(b, false));
         }
         return sb.toString();
     }
 
     /** Comma-separated bot objects for the legacy combined payload (/json, /api/players): the same
-     *  v1 bot object plus the TIM-001 movement-evidence counters when a MoveTelemetry is wired. */
+     *  v1 bot object plus the TIM-001 movement-evidence counters INSIDE the object (valid fields,
+     *  not array siblings) when a MoveTelemetry is wired. */
     private String legacyBotsBody()
     {
         StringBuilder sb = new StringBuilder();
@@ -522,18 +523,16 @@ public final class DashboardApi
         {
             if (!first) sb.append(',');
             first = false;
-            sb.append(botObject(b));
-            if (telemetry != null)
-            {
-                sb.append(",\"movedLast60\":").append(Math.round(telemetry.movedLast(60_000, b.account)))
-                  .append(",\"movesSent\":").append(telemetry.moveCount(b.account));
-            }
+            sb.append(botObject(b, true));
         }
         return sb.toString();
     }
 
-    /** Single bot object, exact frozen section 11 /api/v1/bots shape. */
-    private String botObject(BotInfo b)
+    /** Single bot object, exact frozen section 11 /api/v1/bots shape. When {@code includeTelemetry}
+     *  is true and a MoveTelemetry is wired, the TIM-001 movement-evidence counters are emitted as
+     *  fields INSIDE the object (before the closing brace) — not appended after it, which would
+     *  produce invalid JSON (bare comma values in the array). null in tests/standalone. */
+    private String botObject(BotInfo b, boolean includeTelemetry)
     {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"account\":\"").append(jsonEscape(b.account))
@@ -573,7 +572,7 @@ public final class DashboardApi
                   .append(',').append(en[i][2]).append(',').append(en[i][3]).append(',').append(en[i][4]).append(']');
             }
         }
-        sb.append("], \"quests\":{\"active\":").append(b.questCount)
+        sb.append("],\"quests\":{\"active\":").append(b.questCount)
           .append(",\"total\":").append(b.totalQuestCount).append(",\"list\":[");
         int[][] aq = b.activeQuests;
         if (aq != null)
@@ -604,8 +603,13 @@ public final class DashboardApi
           .append(",\"online\":").append(b.connected && b.loggedIn ? "true" : "false")
           .append(",\"uptimeSec\":").append((System.currentTimeMillis() - b.sessionStartMs) / 1000)
           .append(",\"pktAgeMs\":").append(b.getPktAgeMs())
-          .append(",\"lastSeenMs\":").append(b.lastSeenMs)
-          .append('}');
+          .append(",\"lastSeenMs\":").append(b.lastSeenMs);
+        if (includeTelemetry && telemetry != null)
+        {
+            sb.append(",\"movedLast60\":").append(Math.round(telemetry.movedLast(60_000, b.account)))
+              .append(",\"movesSent\":").append(telemetry.moveCount(b.account));
+        }
+        sb.append('}');
         return sb.toString();
     }
 

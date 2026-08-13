@@ -259,6 +259,15 @@ public class CombatAI {
         int playerY = aiPlayer.getY();
         int playerZ = aiPlayer.getZ();
 
+        // Stream C slice 5: never engage while below the flee gate — return to
+        // safety first so we don't spiral into guaranteed death. The old code
+        // fought on until HP hit 0 because only shouldHeal() consulted the
+        // threshold; detection itself had no survival guard, so a 1-HP bot in
+        // a 10-mob pack would still "detect" a target and re-engage.
+        if (getCurrentHPPercentage() <= config.getHealthThreshold()) {
+            return null;
+        }
+
         // Use PacketLogger to find nearest hostile entity (NPC or player in PvP)
         // This requires NPC_INFO packets to have been parsed
         // Stream D: use personality/emotion-adjusted engage distance (was raw config.getTargetDistance)

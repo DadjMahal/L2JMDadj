@@ -311,9 +311,17 @@ public final class FleetPlay
 
                 if (snapshot.hpCurrent <= 0)
                 {
-                    info.state = "dead";
+                    if (!"dead".equals(info.state))
+                    {
+                        info.state = "dead";
+                        wiring.revive();
+                    }
                     Thread.sleep(TICK_MS * 10);
                     continue;
+                }
+                else if ("dead".equals(info.state))
+                {
+                    info.state = "alive";
                 }
 
                 CombatDecision decision = player.getCombatAI().makeDecision();

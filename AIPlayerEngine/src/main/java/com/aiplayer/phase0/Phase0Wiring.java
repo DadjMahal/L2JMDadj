@@ -50,6 +50,10 @@ public final class Phase0Wiring {
         this.accountName = accountName;
     }
 
+    public boolean revive() {
+        return send(PacketCodec.encodeRestartPoint(0), "REVIVE");
+    }
+
     /**
      * Execute a CombatDecision via the real, proven CombatFramePlanner. The
      * driver is responsible for respecting each FrameStep's delayAfterMs

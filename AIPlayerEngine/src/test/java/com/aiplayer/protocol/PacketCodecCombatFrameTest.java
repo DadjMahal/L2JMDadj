@@ -120,6 +120,24 @@ public class PacketCodecCombatFrameTest
       assertEquals(0x03, ew[0] & 0xff, "opcode 0x03");
    }
 
+   @Test
+   public void testEncodeRestartPointLayout()
+   {
+      // TIM-001 H5 survivability revive path: Phase0Wiring.revive() sends REQUEST_RESTART_POINT so a
+      // dead fleet bot can return at a restart point instead of staying corpse. Server decoder
+      // RequestRestartPoint.readImpl() = readInt(). Frame: size(2)+opcode(1)+pointType(4) = 7 bytes LE.
+      byte[] village = PacketCodec.encodeRestartPoint(0);
+      assertEquals(7, village.length, "RestartPoint frame should be 7 bytes");
+      assertEquals(7, (village[0] & 0xff) | ((village[1] & 0xff) << 8), "self-inclusive size 7");
+      assertEquals(0x6D, village[2] & 0xff, "opcode should be REQUEST_RESTART_POINT 0x6D");
+      assertEquals(0, leInt(village, 3), "pointType 0 = nearest village");
+
+      byte[] town = PacketCodec.encodeRestartPoint(1);
+      assertEquals(7, town.length, "town frame also 7 bytes");
+      assertEquals(0x6D, town[2] & 0xff, "same opcode");
+      assertEquals(1, leInt(town, 3), "pointType 1 = town");
+   }
+
    private static int leInt(byte[] d, int i)
    {
       return (d[i] & 0xff) | ((d[i + 1] & 0xff) << 8) | ((d[i + 2] & 0xff) << 16) | ((d[i + 3] & 0xff) << 24);

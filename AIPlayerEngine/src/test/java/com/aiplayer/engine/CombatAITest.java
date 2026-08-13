@@ -249,6 +249,39 @@ public class CombatAITest {
             "a dead bot must not attack (slice 6 death gate)");
         assertEquals(-1, ai.getSelectedTargetObjId(), "a dead bot must not select a combat target");
     }
+    @Test
+    public void testFleeGateHoldsLowHpOutOfCombat() {
+        // TIM-001 H5 survivability (2026-08-13): detectNearbyEnemy() must never return a target while
+        // HP% <= combat.health_threshold (the flee gate). The old code only consulted the threshold in
+        // shouldHeal(), so a low-HP bot BETWEEN fights would still "detect" a hostile pack and
+        // re-engage -> guaranteed-death loop (the observed H5 blocker: bots dead, no kills, no XP).
+        // Combats are sticky (engageEnemy sets inCombat=true), so each HP level gets a fresh bot.
+        int threshold = CombatConfig.getInstance().getHealthThreshold();
+        assertTrue(threshold > 5 && threshold < 95,
+            "this regression assumes a sane health_threshold for the flee gate; got " + threshold);
+
+        assertEquals(CombatDecision.Action.ATTACK, fleeGateDecision(100, 100).getAction(),
+            "full HP must engage a hostile in range (control)");
+        assertEquals(CombatDecision.Action.ATTACK, fleeGateDecision(threshold + 15, 100).getAction(),
+            "above the flee gate, engagement is allowed");
+        assertNotEquals(CombatDecision.Action.ATTACK, fleeGateDecision(threshold, 100).getAction(),
+            "at the flee gate the bot must NOT engage a hostile");
+        assertNotEquals(CombatDecision.Action.ATTACK, fleeGateDecision(Math.max(1, threshold / 2), 100).getAction(),
+            "below the flee gate the bot must NOT engage a hostile");
+    }
+
+    // One fresh bot + live logger at the given HP; hostile Orc Fighter in engage range at (100,100,0).
+    private CombatDecision fleeGateDecision(int curHp, int maxHp) {
+        AIPlayer player = new AIPlayer("FleeGateBot", 1, 1, 0);
+        player.setPosition(0, 0, 0);
+        CombatAI ai = new CombatAI(player);
+        PacketLogger live = new PacketLogger("FleeGateBot");
+        live.logPacket(buildNpcInfoFrame(9001, 1000000 + 20545, 1, 100, 100, 0, 0));
+        live.setCurHp(curHp);
+        live.setMaxHp(maxHp);
+        ai.setPacketLogger(live);
+        return ai.makeDecision();
+    }
 
     @Test
     public void testRetargetsAfterTargetDeath() {

@@ -15,6 +15,7 @@ import java.util.Map;
 import com.sun.net.httpserver.HttpServer;
 
 import com.aiplayer.examples.BotInfo;
+import com.aiplayer.phase0.movement.MoveTelemetry;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -245,6 +246,41 @@ public class DashboardApiTest
         Map<String, Object> health = assertJsonRoute("/api/v1/health", "status");
         assertEquals(42L, health.get("pktAgeLastMs"));
         assertTrue(health.containsKey("reconnectCount"));
+    }
+@Test
+    void legacyJsonWithWiredTelemetryKeepsCountersInsideBotObjects()
+    {
+        // Regression: legacy /json & /api/players previously appended movedLast60/movesSent AFTER
+        // botObject()'s closing '}', placing them as bare comma elements in the "bots" array ->
+        // invalid JSON ("Expecting ',' delimiter" observed live at ~col 1198/1163). They must be
+        // emitted as fields INSIDE each bot object (before the closing brace).
+        Map<String, BotInfo> bots2 = new LinkedHashMap<>();
+        BotInfo tb = new BotInfo("ai_tm_dash", 200001);
+        tb.charName = "TM_Bot";
+        tb.level = 22;
+        tb.exp = 1_400_000;
+        tb.x = -71338; tb.y = 258271; tb.z = -3104;
+        tb.connected = true;
+        tb.loggedIn = true;
+        bots2.put(tb.account, tb);
+
+        MoveTelemetry tm = MoveTelemetry.getInstance();
+        tm.recordPosition(tb.account, -71338, 258271, -3104, 1_400_000);
+        tm.recordMove(tb.account, -71338, 258271, -3104, -70400, 258000, -3104, "hop", "travel");
+        tm.recordPosition(tb.account, -70400, 258000, -3104, 1_400_000);
+
+        DashboardApi tmApi = new DashboardApi(bots2, System.currentTimeMillis(),
+            new DashboardApi.Config(1), tm);
+
+        // /json serves exactly legacyJson(): must be well-formed AND have the counters in-object.
+        Map<String, Object> combined = MiniJson.parse(
+            new String(tmApi.legacyJson(), StandardCharsets.UTF_8));
+        List<?> bl = (List<?>) combined.get("bots");
+        assertEquals(1, bl.size());
+        Map<?, ?> b = (Map<?, ?>) bl.get(0);
+        assertTrue(b.containsKey("movedLast60"),
+            "movedLast60 must be a field inside the bot object, not an array-level element");
+        assertTrue(b.containsKey("movesSent"));
     }
 
     private Map<String, BotInfo> bots()
