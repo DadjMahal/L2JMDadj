@@ -1,0 +1,200 @@
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#35 [0]
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_03 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_03] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseDeleteObject
+INFO: [PACKET-LOG] [ai_combat_05] DELETE_OBJECT: objId=268475116 (not tracked)
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseDeleteObject
+INFO: [PACKET-LOG] [ai_combat_03] DELETE_OBJECT: objId=268475116 (not tracked)
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseDeleteObject
+INFO: [PACKET-LOG] [ai_combat_01] DELETE_OBJECT: objId=268475116 (not tracked)
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseDeleteObject
+INFO: [PACKET-LOG] [ai_combat_01] DELETE_OBJECT: objId=268475115 (not tracked)
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseDeleteObject
+INFO: [PACKET-LOG] [ai_combat_05] DELETE_OBJECT: objId=268475115 (not tracked)
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseDeleteObject
+INFO: [PACKET-LOG] [ai_combat_03] DELETE_OBJECT: objId=268475115 (not tracked)
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+Aug 14, 2026 8:36:57 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_05 using skill: POWER_STRIKE
+Aug 14, 2026 8:36:57 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_05 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:57 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:58 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:58 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#35 [0]
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_05 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:36:58 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_05] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+[EVIDENCE-H5] ai_combat_01 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_01 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:36:58 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_01] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_04 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:36:58 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_04 using skill: POWER_STRIKE
+Aug 14, 2026 8:36:58 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_04 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+Aug 14, 2026 8:36:58 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:58 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436121 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"
+Aug 14, 2026 8:36:58 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_03 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_03] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_05] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseStatusUpdate
+INFO: [PACKET-LOG] [ai_combat_02] STATUS_UPDATE: objId=100001 [self=true] [MAX_HP=202, CUR_HP=160, MAX_MP=66, CUR_MP=66, MAX_CP=80, CUR_CP=80] hp=160/202 mp=66/66
+[EVIDENCE-H5] ai_combat_01 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_01 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:36:59 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_01 using skill: POWER_STRIKE
+Aug 14, 2026 8:36:59 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_01 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:36:59 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#35 [0]
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_04 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:00 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436121 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"
+Aug 14, 2026 8:37:00 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_01] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:37:00 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_03 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:00 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_03 using skill: POWER_STRIKE
+Aug 14, 2026 8:37:00 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_03 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+Aug 14, 2026 8:37:00 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 8:37:00 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_03] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:37:00 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 8:37:00 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 8:37:00 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_05 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:01 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_05] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:37:01 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:37:01 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#35 [0]
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_04 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:01 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436121 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"
+Aug 14, 2026 8:37:01 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_01 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_01 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:01 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_01] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:37:01 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_03 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_03] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#35 [0]
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_05 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_05] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseStatusUpdate
+INFO: [PACKET-LOG] [ai_combat_02] STATUS_UPDATE: objId=100001 [self=true] [MAX_HP=202, CUR_HP=163, MAX_MP=66, CUR_MP=66, MAX_CP=80, CUR_CP=80] hp=163/202 mp=66/66
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436121 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_01 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_01 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_01] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:37:02 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:37:03 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_03 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:03 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_03] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:37:03 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+Aug 14, 2026 8:37:03 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_05 using skill: POWER_STRIKE
+Aug 14, 2026 8:37:03 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_05 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+Aug 14, 2026 8:37:03 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:37:03 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 8:37:04 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_04 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:04 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_04 using skill: POWER_STRIKE
+Aug 14, 2026 8:37:04 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_04 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+Aug 14, 2026 8:37:04 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_05] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+[EVIDENCE-H5] ai_combat_01 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_01 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 8:37:04 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_01] NPC_HTML: npcObjId=268461875 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 8:37:04 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 8:37:04 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 8:37:04 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+Aug 14, 2026 8:37:04 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436121 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"

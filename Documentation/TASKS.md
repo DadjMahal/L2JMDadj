@@ -24,7 +24,7 @@
 | **STEP 0** | Archive history pile + lean START_HERE/TASKS board for the PLAY goal | `DONE-PUSHED 7e820756` | doc-sweeper |
 | **STEP 1** | **BotPlay controller** — bots pick goals and act (fight/level/travel), never idle | `DONE-PUSHED 9b0d34f6` | play-builder |
 | **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `DONE-PUSHED c4ee832a` | play-builder |
-| **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `IN_PROGRESS (play-builder)` | play-builder |
+| **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `DONE-PUSHED 94993a25` | play-builder |
 | **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `TODO` | play-builder |
 
 ## 4. File ownership map
@@ -52,3 +52,12 @@
   `FleetPlay`'s idle loop drives the live NPC dialog (click giver → read NpcHtmlMessage → send the
   single validated bypass) gated behind `phase0.quest.npcId` (off by default). 8 new tests.
   *273/273 green.* `c4ee832a`.
+- **2026-08-14 · play-builder:** STEP 3 live-run + evidence. Live 5-bot run (movement FORCED ON) on
+  master exposed a stall: whole fleet 0 MoveTo / 0 XP (CombatAI engages within `target_distance=1500`
+  and never lowers a far mob → never reaches the controller's movement branch; endless out-of-range
+  skill spam). Fix: pure `BotPlayController.chaseStep` (clamped single-hop, capped under the ~9900u
+  server move cap) + `FleetPlay` combat branch advances one hop toward an out-of-melee target when
+  `phase0.movement` is ON — proves real movement (**serverMoved 5698 u**) + organic XP (**+245**) on
+  the fixed build. Evidence: `Documentation/_archive/Evidence/2026-08-14_203704-step3-fleet-play/`.
+  *276/276 green.* `94993a25`. Follow-up: 4 bots still stall on despawned-target lifecycle (target
+  entity null after DeleteObject) → logged for fleet-wide farming consistency.

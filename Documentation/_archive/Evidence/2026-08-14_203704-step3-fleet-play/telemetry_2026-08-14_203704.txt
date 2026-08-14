@@ -1,0 +1,26 @@
+=== MOVE TELEMETRY 2026-08-14T17:37:04.549481960Z ===
+--- ai_combat_02 ---
+  movesSent=76  degraded<500 u=25  samples=379
+  [EVIDENCE-H1] serverMoved=864 u (last 60s)  total=6040 u
+  [EVIDENCE-H2] degenerateDestinations=25 / 76
+  [EVIDENCE-H5] expGained=245
+--- ai_combat_04 ---
+  movesSent=1  degraded<500 u=0  samples=219
+  [EVIDENCE-H1] serverMoved=0 u (last 60s)  total=0 u
+  [EVIDENCE-H2] degenerateDestinations=0 / 1
+  [EVIDENCE-H5] expGained=0
+--- ai_combat_05 ---
+  movesSent=1  degraded<500 u=0  samples=219
+  [EVIDENCE-H1] serverMoved=0 u (last 60s)  total=0 u
+  [EVIDENCE-H2] degenerateDestinations=0 / 1
+  [EVIDENCE-H5] expGained=0
+--- ai_combat_03 ---
+  movesSent=0  degraded<500 u=0  samples=215
+  [EVIDENCE-H1] serverMoved=0 u (last 60s)  total=0 u
+  [EVIDENCE-H2] degenerateDestinations=0 / 0
+  [EVIDENCE-H5] expGained=0
+--- ai_combat_01 ---
+  movesSent=0  degraded<500 u=0  samples=216
+  [EVIDENCE-H1] serverMoved=0 u (last 60s)  total=0 u
+  [EVIDENCE-H2] degenerateDestinations=0 / 0
+  [EVIDENCE-H5] expGained=0

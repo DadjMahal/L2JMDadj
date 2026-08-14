@@ -1,0 +1,48 @@
+STEP 3 — 5-bot live run + play evidence (2026-08-14)
+====================================================
+Server: JDK25 Login+Game up, 5 bots connected (CombatBot_01..05), dashboard :8080.
+commit 94993a25 (gap-close fix, 276 tests green)   board-claim ef3e6057
+
+WHAT STEP 3 IS
+  5 bots, movement FORCED ON (6th arg), live gameserver.characters/dashboard/telemetry
+  evidence that the fleet ACTUALLY plays (moves + gains XP), never just connects.
+
+RUN 1 (pre-fix, current master as-is) — WHOLE FLEET STUCK
+  All 5 bots: expGained=0, serverMoved=0 u, positions frozen, 245 skill casts, ~50 mob
+  DELETE_OBJECTs but ZERO XP. Root cause found:
+    CombatAI.detectNearbyEnemy() engages any hostile within combat.target_distance=1500 and
+    `isTargetOutOfRange()` only tests against that same 1500, so a bot facing a ~1400u mob is
+    "in range" forever -> never returns to IDLE -> the STEP 1 controller's movement branch
+    never runs -> stands still spamming an unreachable target (0 MoveTo, 0 XP).
+  telemetry (all 5): movesSent<=1, serverMoved=0, expGained=0.
+
+FIX (committed 94993a25, gated behind phase0.movement default OFF)
+  + BotPlayController.chaseStep(...) — pure clamped single-hop toward a target, capped under the
+    server's ~9900u single-move rejection.
+  + FleetPlay combat branch: when phase0.movement is ON and the selected target is beyond melee
+    reach, advance one hop toward it (reuse wiring.moveTo + MoveTelemetry + EventRing) instead of
+    standing still. +3 unit tests (total 276 green).
+
+RUN 2 (post-fix) — FLEET STARTS PLAYING
+  ai_combat_02 evidence (live dashboard/telemetry):
+    serverMoved = 5698 u total (real server-acked movement; was 0)
+    expGained   = +245   (organic XP from kills; was 0)
+    position    (-87406,250079) -> (-87118,251338) : physically chased the mob and killed it.
+  fleet_run log shows per-kill EXP StatusUpdates interleaved with sysmsg#34/#43 attack/hit.
+
+REMAINING LIMITATION (honest, carried forward)
+  The other 4 bots (ai_combat_01/03/04/05) stayed at spawn: movesSent 0..1, expGained 0. Psycho:
+    after a target despawns (DeleteObject) CombatAI keeps it selected; logger.getEntity(target)
+    is then null so the chase branch skips, and the ATTACK re-cycle never closes distance. Fixing
+    fleet-wide consistency is a follow-up (target-lifecycle/stale-target handling), tracked below.
+
+FILES
+  characters_online_*.txt  live DB row (level/exp/sp/pos/online)
+  dashboard_*.json         /api/players snapshot
+  telemetry_*.txt          MoveTelemetry (movesSent / serverMoved / expGained)
+  fleet_log_tail.txt       run-log excerpt (skills, kills, EXP events)
+
+VERDICT
+  STEP 3 milestone "fleet actually plays" is DEMONSTRATED on the fixed build (real movement + XP),
+  with a fleet-wide consistency gap logged as follow-up work. All 276 tests green; build green;
+  existing (movement OFF) behaviour untouched.
