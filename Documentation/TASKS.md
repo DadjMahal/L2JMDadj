@@ -24,7 +24,7 @@
 | **STEP 0** | Archive history pile + lean START_HERE/TASKS board for the PLAY goal | `DONE-PUSHED 7e820756` | doc-sweeper |
 | **STEP 1** | **BotPlay controller** — bots pick goals and act (fight/level/travel), never idle | `DONE-PUSHED 9b0d34f6` | play-builder |
 | **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `DONE-PUSHED c4ee832a` | play-builder |
-| **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `TODO` | play-builder |
+| **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `IN_PROGRESS (play-builder)` | play-builder |
 | **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `TODO` | play-builder |
 
 ## 4. File ownership map
