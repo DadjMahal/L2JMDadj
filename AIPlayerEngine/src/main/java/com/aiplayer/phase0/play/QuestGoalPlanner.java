@@ -124,8 +124,10 @@ public final class QuestGoalPlanner
             int cx = s.zoneX != 0 ? s.zoneX : playerX;
             int cy = s.zoneY != 0 ? s.zoneY : playerY;
             int cz = s.zoneZ;
-            return GoalDecision.moveTo(
-                PlayerGoal.ACQUIRE, cx, cy, cz,
+            // STEP 2: carry the giver NPC id (the step's talk target) so the fleet loop knows WHO to
+            // open the accept dialog with once the bot reaches the landmark (questTargetId).
+            return GoalDecision.questMove(
+                PlayerGoal.ACQUIRE, cx, cy, cz, s.targetId,
                 "acquire:" + q.name,
                 "no active quest; go get " + q.name + " from " + q.startNpc);
         }

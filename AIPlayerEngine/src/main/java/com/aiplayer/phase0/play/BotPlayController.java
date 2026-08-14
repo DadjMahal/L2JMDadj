@@ -60,11 +60,25 @@ public final class BotPlayController
                 "advance on hostile at " + seen.x + "," + seen.y);
         }
 
-        // 4. QUEST: advance the active quest, or go acquire one when none is active.
+        // 4. QUEST: advance the active quest, or go acquire one when none is active. When the goal is
+        //    an NPC step (QUEST/ACQUIRE) and we are already at that NPC, stop routing in place and
+        //    open its dialog: emit BYPASS (STEP 2) so the fleet loop turns the empty bypassCommand into
+        //    the single next validated bypass from the NPC's actual NpcHtmlMessage.
         GoalDecision quest = QuestGoalPlanner.decide(ctx.level, ctx.activeJournal,
             ctx.x, ctx.y, ctx.z, ctx.stepIndex);
         if (quest != null)
         {
+            if (quest.action == GoalAction.MOVE_TO
+                    && (quest.goal == PlayerGoal.QUEST || quest.goal == PlayerGoal.ACQUIRE)
+                    && quest.questTargetId != 0
+                    && within(quest.targetX, quest.targetY, quest.targetZ,
+                        ctx.x, ctx.y, ctx.z, c.talkRange))
+            {
+                return GoalDecision.bypass(
+                    quest.goal, "",
+                    "quest-dialog:" + quest.questTargetId,
+                    "at quest NPC " + quest.questTargetId + "; open dialog");
+            }
             return quest;
         }
 
@@ -109,6 +123,16 @@ public final class BotPlayController
             }
         }
         return best;
+    }
+
+    /** True when the point (tx,ty,tz) is within {@code range} of the bot (squared distance compare). */
+    private static boolean within(int tx, int ty, int tz, int x, int y, int z, int range)
+    {
+        long dx = (long) tx - x;
+        long dy = (long) ty - y;
+        long dz = (long) tz - z;
+        long limit = (long) range * range;
+        return dx * dx + dy * dy + dz * dz <= limit;
     }
 
     private static String fraction(int current, int max)
@@ -176,7 +200,7 @@ public final class BotPlayController
     public static final class BotPlayConfig
     {
         public static final BotPlayConfig DEFAULT =
-            new BotPlayConfig(0.25, 400, 2000);
+            new BotPlayConfig(0.25, 400, 2000, 300);
 
         /** HP fraction at/below which a bot stops fighting while hostiles are near (SURVIVE). */
         public final double surviveHpFraction;
@@ -184,12 +208,20 @@ public final class BotPlayController
         public final int combatRange;
         /** Distance within which a hostile is worth walking to (hunt-advance). */
         public final int sightRange;
+        /** STEP 2: distance within which being at a QUEST/ACQUIRE NPC means "open its dialog" (BYPASS). */
+        public final int talkRange;
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange)
+        {
+            this(surviveHpFraction, combatRange, sightRange, 300);
+        }
+
+        public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange)
         {
             this.surviveHpFraction = surviveHpFraction;
             this.combatRange = combatRange;
             this.sightRange = sightRange;
+            this.talkRange = talkRange;
         }
     }
 }

@@ -23,7 +23,7 @@
 |---|---|---|---|
 | **STEP 0** | Archive history pile + lean START_HERE/TASKS board for the PLAY goal | `DONE-PUSHED 7e820756` | doc-sweeper |
 | **STEP 1** | **BotPlay controller** — bots pick goals and act (fight/level/travel), never idle | `DONE-PUSHED 9b0d34f6` | play-builder |
-| **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `TODO` | play-builder |
+| **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `DONE-PUSHED 072110f1` | play-builder |
 | **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `TODO` | play-builder |
 | **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `TODO` | play-builder |
 
@@ -45,3 +45,10 @@
 - **2026-08-14 · play-builder:** STEP 1 sub-landed and pushed — 1A QuestGoalPlanner+GoalDecision value objects
   (`1dbf68e6`, 252/252), 1B BotPlayController decision ladder survive/combat/hunt/quest/rest + 11 tests
   (`df03840a`), 1C wired controller into FleetPlay idle loop via new pure ZoneRouter.routeTo (`9b0d34f6`). **265/265 green.**
+- **2026-08-14 · play-builder:** STEP 2 landed — pure quest accept→do→turn-in dialog driver
+  (`QuestDialogDriver`: `Script → quest-name → objective token → safe .htm/Quest` fallback; never
+  re-sends, never fabricates) + `GoalDecision.questMove`/`questTargetId`/`bypass` surfaced at giver,
+  `BotPlayController` emits `BYPASS` when a QUEST/ACQUIRE MOVE_TO lands within `talkRange`, and
+  `FleetPlay`'s idle loop drives the live NPC dialog (click giver → read NpcHtmlMessage → send the
+  single validated bypass) gated behind `phase0.quest.npcId` (off by default). 8 new tests.
+  *273/273 green.* `072110f1`.

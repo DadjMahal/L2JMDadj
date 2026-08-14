@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -33,6 +35,9 @@ import com.aiplayer.phase0.play.BotPlayController.PlayContext;
 import com.aiplayer.phase0.play.GoalAction;
 import com.aiplayer.phase0.play.GoalDecision;
 import com.aiplayer.phase0.play.PlayerGoal;
+import com.aiplayer.phase0.play.QuestDialogDriver;
+import com.aiplayer.phase0.play.QuestDialogDriver.Objective;
+import com.aiplayer.phase0.play.QuestDialogDriver.QuestDialog;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.protocol.PacketLogger.EntityInfo;
@@ -120,6 +125,10 @@ public final class FleetPlay
         private final int loginPort;
         private final int gamePort;
         private final Random rng;
+        // STEP 2: per-session quest-dialog driver state (only used when phase0.quest.npcId is set).
+        private boolean questDialogOpen = false;
+        private String questLastHtml = null;
+        private final Set<String> questSentLinks = new HashSet<>();
 
         private BotLoop(String account, int charId, BotInfo info, String host, int loginPort, int gamePort)
         {
@@ -161,6 +170,73 @@ public final class FleetPlay
             }
         }
 
+        /**
+         * STEP 2: drive an NPC quest dialog directly inside the fleet loop, off by default. Only runs
+         * when the controller returns BYPASS at the configured giver (phase0.quest.npcId). Sequence:
+         * click the NPC (Action) -> wait for its NpcHtmlMessage -> push the displayed bypass links
+         * through {@link QuestDialogDriver}, which returns the ONE next validated command; send it via
+         * wiring.bypass and pause until the server shows the next dialog. Never fabricates a command the
+         * server did not display and never re-sends a link already sent in this session.
+         */
+        private void driveQuestDialog(BotSnapshot snapshot, PacketLogger logger, Phase0Wiring wiring,
+                                      GoalDecision goal, int questNpcId, String questNameProp)
+        {
+            PacketLogger.EntityInfo giver = logger.findEntityByNpcId(questNpcId);
+            if (giver == null)
+            {
+                LOGGER.fine("[FleetPlay] " + account + " quest NPC " + questNpcId + " not tracked yet; waiting");
+                return;
+            }
+            Objective objective = (goal != null && goal.goal == PlayerGoal.ACQUIRE)
+                ? Objective.ACCEPT : Objective.TURN_IN;
+            QuestDialog dialogDef = new QuestDialog(0, questNameProp, objective, "", "");
+
+            if (!questDialogOpen)
+            {
+                // If this NPC's dialog is already on screen, begin driving it; otherwise click it open.
+                if (logger.getLastNpcHtmlOriginObjId() == giver.objectId)
+                {
+                    questDialogOpen = true;
+                    questLastHtml = null;
+                    LOGGER.info("[FleetPlay] " + account + " quest dialog on screen for objId=" + giver.objectId);
+                }
+                else
+                {
+                    wiring.actionOn(giver.objectId, snapshot.x, snapshot.y, snapshot.z);
+                    LOGGER.info("[FleetPlay] " + account + " clicking quest NPC objId=" + giver.objectId);
+                }
+                return;
+            }
+
+            // Dialog open: consume a NEW NpcHtmlMessage from this session, if the server sent one.
+            String html = logger.getLastNpcHtml();
+            if (html == null || html.equals(questLastHtml))
+            {
+                return; // no new dialog content yet -> pause for the server's next message
+            }
+            questLastHtml = html;
+            String[] links = PacketLogger.extractBypassLinks(html);
+            String next = QuestDialogDriver.next(links, dialogDef, questSentLinks);
+            if (next.isEmpty())
+            {
+                LOGGER.info("[FleetPlay] " + account + " quest dialog: no new validated bypass; pausing");
+                return;
+            }
+            questSentLinks.add(next);
+            boolean done = QuestDialogDriver.completes(dialogDef, next);
+            wiring.bypass(next);
+            LOGGER.info("[FleetPlay] " + account + " quest dialog -> bypass[" + (done ? "done" : "...") + "] "
+                + next);
+            if (done)
+            {
+                questDialogOpen = false;
+                questSentLinks.clear();
+                questLastHtml = null;
+                LOGGER.info("[FleetPlay] " + account + " quest dialog session complete (accept/turn-in sent); "
+                    + "journal will refresh");
+            }
+        }
+
         private void runSession() throws Exception
         {
             AIPlayer player = new AIPlayer(account, 100 + charId % 100, 0, 0); // Human Fighter
@@ -194,6 +270,10 @@ public final class FleetPlay
 
             long lastWander = 0;
             long lastRoute = 0;
+            // STEP 2: quest-dialog gating. When the operator sets phase0.quest.npcId (>0) the bot
+            // treats "being at the giver" as "open its dialog and follow the 1-validated-bypass driver".
+            int questNpcId = AIConfiguration.getInstance().getIntProperty("phase0.quest.npcId", 0);
+            String questNameProp = AIConfiguration.getInstance().getProperty("phase0.quest.name", "");
             ZoneRouter.RouteGoal activeRoute = null;
             int[] pendingHop = null;
             long hopSentAtMs = 0;
@@ -425,14 +505,30 @@ public final class FleetPlay
                             // so a route is sent as a sequence of <=4800u hops; a new hop is sent
                             // only after the server acked us near the previous one (ValidateLocation).
                             long now = System.currentTimeMillis();
-                            if (activeRoute == null && now - lastRoute > phase0.getMovementIdleRouteMs())
+                            // STEP 2: the controller authors the goal authoritatively, every tick (it is
+                            // cheap and pure). If it says BYPASS at a quest NPC and the operator configured
+                            // phase0.quest.npcId, drive the dialog (click NPC -> read html -> send the
+                            // single validated bypass) instead of routing; otherwise behave exactly as
+                            // STEP 1 (MOVE_TO quest NPC / random far-travel fallback).
+                            GoalDecision goal = BotPlayController.decide(buildPlayContext(snapshot, logger));
+                            boolean dialogDriven = false;
+                            if (questNpcId > 0 && activeRoute == null
+                                    && goal != null && goal.action == GoalAction.BYPASS)
+                            {
+                                driveQuestDialog(snapshot, logger, wiring, goal, questNpcId, questNameProp);
+                                activeRoute = null;
+                                pendingHop = null;
+                                lastRoute = now;
+                                info.state = "quest-dialog:" + goal.questTargetId;
+                                info.thought = "STEP2 talking to quest NPC " + questNpcId;
+                                dialogDriven = true;
+                            }
+                            if (!dialogDriven && activeRoute == null && now - lastRoute > phase0.getMovementIdleRouteMs())
                             {
                                 lastRoute = now;
-                                // STEP 1C: the BotPlayController authors the goal authoritatively. If it
-                                // picks a concrete MOVE destination (quest NPC / acquire / hunt), route
-                                // toward it via the same hop machinery; otherwise fall back to the proven
-                                // random far-travel plan (high-level REST holds still farm via far-points).
-                                GoalDecision goal = BotPlayController.decide(buildPlayContext(snapshot, logger));
+                                // If the controller picked a concrete MOVE destination (quest NPC /
+                                // acquire / hunt), route toward it via the same hop machinery; otherwise
+                                // fall back to the proven random far-travel plan (REST hold still).
                                 activeRoute = null;
                                 if (goal != null && goal.action == GoalAction.MOVE_TO
                                         && goal.targetX != 0 && goal.targetY != 0)

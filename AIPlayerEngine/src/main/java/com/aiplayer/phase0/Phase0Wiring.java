@@ -103,6 +103,16 @@ public final class Phase0Wiring {
     }
 
     /**
+     * Click/select an NPC to open its dialog (quest accept / turn-in). Proven (encodeAction, the same
+     * frame CombatFramePlanner emits for attacks — the server opens the NpcHtmlMessage on the second
+     * Action once the NPC is targeted, see QuestFlowLoop).
+     */
+    public boolean actionOn(int targetObjId, int selfX, int selfY, int selfZ) {
+        return send(PacketCodec.encodeAction(targetObjId, selfX, selfY, selfZ),
+                     "ACTION/TALK on objId=" + targetObjId);
+    }
+
+    /**
      * Send a chat message. Proven (encodeChat).
      */
     public boolean chat(String message) {
