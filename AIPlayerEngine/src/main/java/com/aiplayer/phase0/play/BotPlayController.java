@@ -1,0 +1,195 @@
+package com.aiplayer.phase0.play;
+
+import java.util.List;
+
+/**
+ * MODE: COMPLETE. The decision ladder — picks ONE deliberate {@link GoalDecision} every tick so a
+ *       bot is always doing something meaningful (fight / quest / travel / rest) and never idles.
+ *
+ * Pure logic: no IO, no packets, no threads. It reads a small real-data input (a {@link PlayContext}
+ * built by the fleet loop straight from the live {@code PacketLogger} / {@code BotSnapshot}) and
+ * returns an immutable {@link GoalDecision} the fleet loop executes through already-proven
+ * primitives (combat frames, server-ack-gated hop travel).
+ *
+ * Priority ladder (top wins; the bot is never allowed to fall through to {@code NONE}):
+ *  1. SURVIVE   — dangerously low HP while hostiles are near: stop and hold the beat.
+ *  2. COMBAT    — a hostile is within combat range: attack the nearest one (FARM goal).
+ *  3. HUNT      — a hostile is visible just beyond range: advance toward the nearest one.
+ *  4. QUEST     — push the active quest: QuestGoalPlanner returns a QUEST/ACQUIRE move.
+ *  5. REST      — nothing to do anywhere: a deliberate short hold (still a goal, never idle-wander).
+ */
+public final class BotPlayController
+{
+    private BotPlayController()
+    {
+    }
+
+    /** Decide the single next action for a bot this tick. Never returns a NONE/idle decision. */
+    public static GoalDecision decide(PlayContext ctx, BotPlayConfig cfg)
+    {
+        if (ctx == null)
+        {
+            return GoalDecision.wait(PlayerGoal.REST, "rest", "no context; hold");
+        }
+        BotPlayConfig c = cfg != null ? cfg : BotPlayConfig.DEFAULT;
+
+        // 1. SURVIVE: too low on HP to keep fighting (hostiles present -> dangerous spot).
+        if (c.surviveHpFraction > 0 && ctx.hpMax > 0
+                && (double) ctx.hpCurrent / ctx.hpMax <= c.surviveHpFraction
+                && nearestHostile(ctx, c.sightRange) != null)
+        {
+            return GoalDecision.wait(PlayerGoal.SURVIVE, "retreat",
+                "hp " + fraction(ctx.hpCurrent, ctx.hpMax) + " too low; hold");
+        }
+
+        // 2. COMBAT: a hostile we can hit right now.
+        Hostile combat = nearestHostile(ctx, c.combatRange);
+        if (combat != null)
+        {
+            return GoalDecision.combatTarget(PlayerGoal.FARM, combat.objId,
+                "fight:" + combat.objId,
+                "nearest hostile at " + combat.x + "," + combat.y);
+        }
+
+        // 3. HUNT: a hostile is visible but out of range -> walk toward it before questing on.
+        Hostile seen = nearestHostile(ctx, c.sightRange);
+        if (seen != null)
+        {
+            return GoalDecision.moveTo(PlayerGoal.FARM, seen.x, seen.y, seen.z,
+                "hunt:" + seen.objId,
+                "advance on hostile at " + seen.x + "," + seen.y);
+        }
+
+        // 4. QUEST: advance the active quest, or go acquire one when none is active.
+        GoalDecision quest = QuestGoalPlanner.decide(ctx.level, ctx.activeJournal,
+            ctx.x, ctx.y, ctx.z, ctx.stepIndex);
+        if (quest != null)
+        {
+            return quest;
+        }
+
+        // 5. REST: nothing acquirable/active anywhere -> deliberate hold, not idle-wander.
+        return GoalDecision.wait(PlayerGoal.REST, "rest",
+            "no quest and no target in sight; hold and re-check");
+    }
+
+    /** Convenience with default config. */
+    public static GoalDecision decide(PlayContext ctx)
+    {
+        return decide(ctx, BotPlayConfig.DEFAULT);
+    }
+
+    // ================================================================
+    // INTERNAL
+    // ================================================================
+
+    /** Nearest hostile within {@code range} of the bot, or null. */
+    private static Hostile nearestHostile(PlayContext ctx, int range)
+    {
+        if (ctx.hostiles == null || ctx.hostiles.isEmpty())
+        {
+            return null;
+        }
+        Hostile best = null;
+        long bestSq = (long) range * range;
+        for (Hostile h : ctx.hostiles)
+        {
+            if (h == null)
+            {
+                continue;
+            }
+            long dx = h.x - ctx.x;
+            long dy = h.y - ctx.y;
+            long dz = h.z - ctx.z;
+            long distSq = dx * dx + dy * dy + dz * dz;
+            if (distSq <= bestSq)
+            {
+                bestSq = distSq;
+                best = h;
+            }
+        }
+        return best;
+    }
+
+    private static String fraction(int current, int max)
+    {
+        if (max <= 0)
+        {
+            return "?";
+        }
+        return (int) ((current * 100.0) / max) + "%";
+    }
+
+    // ================================================================
+    // PURE INPUT / CONFIG VALUE TYPES (no PacketLogger dependency)
+    // ================================================================
+
+    /** One nearby hostile target: object id + position. */
+    public static final class Hostile
+    {
+        public final int objId;
+        public final int x;
+        public final int y;
+        public final int z;
+
+        public Hostile(int objId, int x, int y, int z)
+        {
+            this.objId = objId;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    /** Immutable per-tick input, built from the live BotSnapshot / PacketLogger by the fleet loop. */
+    public static final class PlayContext
+    {
+        public final int level;
+        public final int x;
+        public final int y;
+        public final int z;
+        public final int hpCurrent;
+        public final int hpMax;
+        /** Active quest journal as {questId, state} pairs (PacketLogger.getActiveQuestList). */
+        public final List<int[]> activeJournal;
+        /** Nearby hostiles (may be empty); survives null to keep the controller total. */
+        public final List<Hostile> hostiles;
+        /** 0-based quest step to play; defaults to 0 (fresh -> TALK to the giver). */
+        public final int stepIndex;
+
+        public PlayContext(int level, int x, int y, int z, int hpCurrent, int hpMax,
+                           List<int[]> activeJournal, List<Hostile> hostiles, int stepIndex)
+        {
+            this.level = level;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.hpCurrent = hpCurrent;
+            this.hpMax = hpMax;
+            this.activeJournal = activeJournal;
+            this.hostiles = hostiles != null ? hostiles : java.util.Collections.emptyList();
+            this.stepIndex = stepIndex;
+        }
+    }
+
+    /** Tuning knobs for the ladder; DEFAULT is the live run's behaviour. */
+    public static final class BotPlayConfig
+    {
+        public static final BotPlayConfig DEFAULT =
+            new BotPlayConfig(0.25, 400, 2000);
+
+        /** HP fraction at/below which a bot stops fighting while hostiles are near (SURVIVE). */
+        public final double surviveHpFraction;
+        /** Distance within which a hostile is considered a direct combat target. */
+        public final int combatRange;
+        /** Distance within which a hostile is worth walking to (hunt-advance). */
+        public final int sightRange;
+
+        public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange)
+        {
+            this.surviveHpFraction = surviveHpFraction;
+            this.combatRange = combatRange;
+            this.sightRange = sightRange;
+        }
+    }
+}
