@@ -22,7 +22,7 @@
 | ID | Task | Status | Owner |
 |---|---|---|---|
 | **STEP 0** | Archive history pile + lean START_HERE/TASKS board for the PLAY goal | `DONE-PUSHED 7e820756` | doc-sweeper |
-| **STEP 1** | **BotPlay controller** — bots pick goals and act (fight/level/travel), never idle | `IN_PROGRESS` | play-builder |
+| **STEP 1** | **BotPlay controller** — bots pick goals and act (fight/level/travel), never idle | `DONE-PUSHED 9b0d34f6` | play-builder |
 | **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `TODO` | play-builder |
 | **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `TODO` | play-builder |
 | **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `TODO` | play-builder |
@@ -42,3 +42,6 @@
   deleted the stray team-runtime json, rewrote `START_HERE.md` + this board to be lean around the ONE goal
   (3–5 AI players that actually PLAY), `STATUS.md` = Phase: PLAY. **242/242 green.**
 - **2026-08-13 · play-builder:** STEP 1 claimed `IN_PROGRESS` — BotPlay controller build starts.
+- **2026-08-14 · play-builder:** STEP 1 sub-landed and pushed — 1A QuestGoalPlanner+GoalDecision value objects
+  (`1dbf68e6`, 252/252), 1B BotPlayController decision ladder survive/combat/hunt/quest/rest + 11 tests
+  (`df03840a`), 1C wired controller into FleetPlay idle loop via new pure ZoneRouter.routeTo (`9b0d34f6`). **265/265 green.**
