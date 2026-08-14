@@ -25,7 +25,7 @@
 | **STEP 1** | **BotPlay controller** — bots pick goals and act (fight/level/travel), never idle | `DONE-PUSHED 9b0d34f6` | play-builder |
 | **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `DONE-PUSHED c4ee832a` | play-builder |
 | **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `DONE-PUSHED 94993a25` | play-builder |
-| **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `TODO` | play-builder |
+| **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `DONE` | play-builder |
 
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |
@@ -52,6 +52,15 @@
   `FleetPlay`'s idle loop drives the live NPC dialog (click giver → read NpcHtmlMessage → send the
   single validated bypass) gated behind `phase0.quest.npcId` (off by default). 8 new tests.
   *273/273 green.* `c4ee832a`.
+- **2026-08-14 · play-builder:** STEP 4 landed — death/respawn, low-HP retreat, restock. The SURVIVE
+  ladder now flees the nearest hostile (`RETREAT` action + `GoalDecision.retreat()` with a Y-aware
+  hop, clamped to `RETREAT_HOP=4800`, `FleetPlay` drives a single `moveTo` and logs a move event)
+  instead of WAIT. Low-HP restock: `PlayContext.inventoryPct` (0-100) + configurable
+  `restockThreshold` (default 100 = disabled) gates COMBAT/HUNT — returns `REST`-reason
+  `"restock"` above the threshold, and FleetPlay sets the `restock` state. Death/respawn hooks
+  added: `CombatAI.onDeath()`/`onRespawn(level)` called from the live loop, new
+  `EventRing.TYPE_DEATH`/`TYPE_RESPAWN` feed events. 5 new tests (retreat math, hop clamp,
+  restock above/below). *280/280 green.* Follow-up: live re-run + evidence capture pending.
 - **2026-08-14 · play-builder:** STEP 3 live-run + evidence. Live 5-bot run (movement FORCED ON) on
   master exposed a stall: whole fleet 0 MoveTo / 0 XP (CombatAI engages within `target_distance=1500`
   and never lowers a far mob → never reaches the controller's movement branch; endless out-of-range

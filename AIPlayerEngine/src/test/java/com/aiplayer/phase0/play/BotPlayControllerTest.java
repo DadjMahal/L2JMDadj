@@ -40,7 +40,7 @@ class BotPlayControllerTest
     private static PlayContext ctx(int level, int x, int y, int hp, int hpMax,
                                    List<int[]> j, List<Hostile> hostiles)
     {
-        return new PlayContext(level, x, y, 0, hp, hpMax, j, hostiles, 0);
+        return new PlayContext(level, x, y, 0, hp, hpMax, j, hostiles, 0, 0);
     }
 
     // ================================================================
@@ -48,15 +48,20 @@ class BotPlayControllerTest
     // ================================================================
 
     @Test
-    void lowHpWithHostilesNearbyStopsAndHolds()
+    void lowHpWithHostilesNearbyRetreatsAway()
     {
-        // 20/100 = 20% HP < 25% survive threshold, hostile inside sight range -> SURVIVE hold.
+        // 20/100 = 20% HP < 25% survive threshold, hostile inside sight range -> SURVIVE retreat.
+        // Hostile at (0,500), player at (0,0) -> flee away is directly south: (0,-500).
         GoalDecision d = BotPlayController.decide(
             ctx(10, 0, 0, 20, 100, journal(QUEST_ID, 1),
                 hostiles(new Hostile(50, 0, 500, 0))));
         assertNotNull(d);
         assertEquals(PlayerGoal.SURVIVE, d.goal, "low-HP + hostiles near -> survival goal");
-        assertEquals(GoalAction.WAIT, d.action, "survival = hold the beat to disengage");
+        assertEquals(GoalAction.RETREAT, d.action, "survival = retreat away from danger");
+        assertEquals(0, d.targetObjId, "retreat has no target objId");
+        assertEquals(0, d.targetX, "retreat X is away from hostile (south): player 0 -> hostile 0 => away 0");
+        assertTrue(d.targetY < 0, "retreat Y is south (negative): player 0, hostile 500 => away -500, got " + d.targetY);
+        assertTrue(d.reason.contains("retreat from"), "reason mentions retreat: " + d.reason);
         assertNotEquals(GoalAction.NONE, d.action);
     }
 
@@ -173,7 +178,7 @@ class BotPlayControllerTest
         assertNotEquals(GoalAction.NONE, nullCtx.action);
 
         GoalDecision nullHostiles = BotPlayController.decide(
-            new PlayContext(900, 0, 0, 0, 90, 100, journal(), null, 0));
+            new PlayContext(900, 0, 0, 0, 90, 100, journal(), null, 0, 0));
         assertNotNull(nullHostiles);
         assertNotEquals(GoalAction.NONE, nullHostiles.action);
     }
@@ -243,5 +248,69 @@ class BotPlayControllerTest
         assertEquals(5, c.x, "no-op hop when already at target");
         assertEquals(6, c.y, "no-op hop when already at target");
         assertEquals(7, c.z, "no-op hop when already at target");
+    }
+
+    // ================================================================
+    // RESTOCK INTENT
+    // ================================================================
+
+    @Test
+    void fullInventoryReturnsRestockBeforeCombat()
+    {
+        // Inventory 96% >= threshold 95, hostile in combat range -> REST-reason="restock".
+        GoalDecision d = BotPlayController.decide(
+            new PlayContext(10, 0, 0, 0, 90, 100, journal(),
+                hostiles(new Hostile(42, 200, 0, 0)), 0, 96),
+            new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 95));
+        assertNotNull(d);
+        assertEquals(PlayerGoal.REST, d.goal, "full inventory with hostile near -> rest over fight");
+        assertEquals(GoalAction.WAIT, d.action, "restock intent -> wait/hold");
+        assertTrue(d.reason.contains("restock"), "reason mentions restock: " + d.reason);
+        assertTrue(d.label.contains("restock"), "label mentions restock: " + d.label);
+    }
+
+    @Test
+    void restockBelowThresholdLetsCombatProceed()
+    {
+        // Inventory 80% < threshold 95, hostile in combat range -> normal COMBAT.
+        GoalDecision d = BotPlayController.decide(
+            new PlayContext(10, 0, 0, 0, 90, 100, journal(),
+                hostiles(new Hostile(7, 200, 0, 0)), 0, 80),
+            new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 95));
+        assertNotNull(d);
+        assertEquals(GoalAction.COMBAT_TARGET, d.action,
+            "inventory below threshold -> normal combat");
+        assertEquals(7, d.targetObjId, "attacks the hostile in range");
+    }
+
+    // ================================================================
+    // RETREAT MATH (reuses chaseStep internally)
+    // ================================================================
+
+    @Test
+    void retreatFromHostileMovesAway()
+    {
+        // Player at (0,0), hostile at (500,0). Retreat away: (0 + (0-500), 0 + (0-0)) = (-500, 0).
+        // RETREAT_HOP is 4800, distance 500 < 4800 -> lands exactly at (-500, 0).
+        // Use the same pattern as the SURVIVE ladder: flee point via chaseStep.
+        int rx = 0 + (0 - 500);
+        int ry = 0 + (0 - 0);
+        BotPlayController.Chase flee = BotPlayController.chaseStep(0, 0, 0, rx, ry, 0, 4800);
+        assertTrue(flee.x < 0, "flee away from hostile on X: hostile east -> retreat west, got " + flee.x);
+        assertEquals(-500, flee.x, "within 4800 -> lands exactly at away point");
+        assertEquals(0, flee.y, "Y unchanged when hostile is purely east");
+    }
+
+    @Test
+    void retreatClampsAtMaxHop()
+    {
+        // Player at (0,0), hostile at (-10000, 0). Away = (0+(0-(-10000)), 0) = (10000, 0).
+        // Distance 10000 > 4800 -> clamped to 4800 east.
+        int rx = 0 + (0 - (-10000));
+        int ry = 0 + (0 - 0);
+        BotPlayController.Chase flee = BotPlayController.chaseStep(0, 0, 0, rx, ry, 0, 4800);
+        double dist = Math.sqrt(flee.x * (double) flee.x + flee.y * (double) flee.y);
+        assertTrue(dist > 4000 && dist <= 4800, "clamped retreat within RETREAT_HOP, got " + dist);
+        assertTrue(flee.x > 0, "retreating east (positive X): hostile west, away east, got " + flee.x);
     }
 }

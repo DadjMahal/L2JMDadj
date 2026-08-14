@@ -11,6 +11,8 @@ public enum GoalAction
     BYPASS,
     /** Stop / hold a beat (respawn, low-HP disengage, between steps). */
     WAIT,
+    /** Retreat from an away point (computed as away from nearest hostile, clamped). */
+    RETREAT,
     /** No actionable step this tick (should be rare; the controller suppresses idling). */
     NONE
 }

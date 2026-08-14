@@ -20,6 +20,10 @@ import java.util.List;
  */
 public final class BotPlayController
 {
+    /** Maximum distance of a single retreat hop (matching CHASE_HOP in FleetPlay, 
+     * well under the server's ~9900u single-move rejection). */
+    private static final int RETREAT_HOP = 4800;
+
     private BotPlayController()
     {
     }
@@ -34,12 +38,32 @@ public final class BotPlayController
         BotPlayConfig c = cfg != null ? cfg : BotPlayConfig.DEFAULT;
 
         // 1. SURVIVE: too low on HP to keep fighting (hostiles present -> dangerous spot).
+        //    Instead of standing still (old WAIT), retreat away from the nearest hostile so the
+        //    bot disengages and its HP can regen.
         if (c.surviveHpFraction > 0 && ctx.hpMax > 0
-                && (double) ctx.hpCurrent / ctx.hpMax <= c.surviveHpFraction
-                && nearestHostile(ctx, c.sightRange) != null)
+                && (double) ctx.hpCurrent / ctx.hpMax <= c.surviveHpFraction)
         {
-            return GoalDecision.wait(PlayerGoal.SURVIVE, "retreat",
-                "hp " + fraction(ctx.hpCurrent, ctx.hpMax) + " too low; hold");
+            Hostile danger = nearestHostile(ctx, c.sightRange);
+            if (danger != null)
+            {
+                // Flee away from the nearest hostile: push through the player in the opposite
+                // direction, then clamp to a single RETREAT_HOP (same as FleetPlay CHASE_HOP cap).
+                int rx = ctx.x + (ctx.x - danger.x);
+                int ry = ctx.y + (ctx.y - danger.y);
+                Chase flee = chaseStep(ctx.x, ctx.y, ctx.z, rx, ry, ctx.z, RETREAT_HOP);
+                return GoalDecision.retreat(PlayerGoal.SURVIVE, flee.x, flee.y, flee.z,
+                    "retreat",
+                    "hp " + fraction(ctx.hpCurrent, ctx.hpMax) + " too low; retreat from "
+                        + danger.objId);
+            }
+        }
+
+        // 1.5 RESTOCK: when inventory is too full to keep farming, return a deliberate REST
+        //    instead of engaging COMBAT/HUNT so the bot stops fighting and (later) retreats.
+        if (ctx.inventoryPct >= c.restockThreshold)
+        {
+            return GoalDecision.wait(PlayerGoal.REST, "restock",
+                "inventory " + ctx.inventoryPct + "% full; restock/retreat");
         }
 
         // 2. COMBAT: a hostile we can hit right now.
@@ -216,9 +240,12 @@ public final class BotPlayController
         public final List<Hostile> hostiles;
         /** 0-based quest step to play; defaults to 0 (fresh -> TALK to the giver). */
         public final int stepIndex;
+        /** Inventory usage percentage 0..100 (from PacketLogger.getInventoryUsagePercent). */
+        public final int inventoryPct;
 
         public PlayContext(int level, int x, int y, int z, int hpCurrent, int hpMax,
-                           List<int[]> activeJournal, List<Hostile> hostiles, int stepIndex)
+                           List<int[]> activeJournal, List<Hostile> hostiles, int stepIndex,
+                           int inventoryPct)
         {
             this.level = level;
             this.x = x;
@@ -229,6 +256,7 @@ public final class BotPlayController
             this.activeJournal = activeJournal;
             this.hostiles = hostiles != null ? hostiles : java.util.Collections.emptyList();
             this.stepIndex = stepIndex;
+            this.inventoryPct = Math.max(0, Math.min(100, inventoryPct));
         }
     }
 
@@ -236,7 +264,7 @@ public final class BotPlayController
     public static final class BotPlayConfig
     {
         public static final BotPlayConfig DEFAULT =
-            new BotPlayConfig(0.25, 400, 2000, 300);
+            new BotPlayConfig(0.25, 400, 2000, 300, 100);
 
         /** HP fraction at/below which a bot stops fighting while hostiles are near (SURVIVE). */
         public final double surviveHpFraction;
@@ -246,18 +274,32 @@ public final class BotPlayController
         public final int sightRange;
         /** STEP 2: distance within which being at a QUEST/ACQUIRE NPC means "open its dialog" (BYPASS). */
         public final int talkRange;
+        /**
+         * Inventory usage percentage threshold for restock intent (0..100). When a bot's inventory
+         * usage percent >= restockThreshold and it would otherwise engage COMBAT or HUNT, the
+         * controller returns REST-reason="restock" instead, so the bot stops farming and retreats.
+         * Default 100 means disabled (never restock).
+         */
+        public final int restockThreshold;
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange)
         {
-            this(surviveHpFraction, combatRange, sightRange, 300);
+            this(surviveHpFraction, combatRange, sightRange, 300, 100);
         }
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange)
+        {
+            this(surviveHpFraction, combatRange, sightRange, talkRange, 100);
+        }
+
+        public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
+                             int restockThreshold)
         {
             this.surviveHpFraction = surviveHpFraction;
             this.combatRange = combatRange;
             this.sightRange = sightRange;
             this.talkRange = talkRange;
+            this.restockThreshold = Math.max(0, Math.min(100, restockThreshold));
         }
     }
 }

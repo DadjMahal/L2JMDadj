@@ -63,6 +63,11 @@ public final class GoalDecision
         return new GoalDecision(goal, GoalAction.BYPASS, 0, 0, 0, 0, 0, bypassCommand, label, reason);
     }
 
+    public static GoalDecision retreat(PlayerGoal goal, int x, int y, int z, String label, String reason)
+    {
+        return new GoalDecision(goal, GoalAction.RETREAT, 0, x, y, z, 0, "", label, reason);
+    }
+
     public static GoalDecision wait(PlayerGoal goal, String label, String reason)
     {
         return new GoalDecision(goal, GoalAction.WAIT, 0, 0, 0, 0, 0, "", label, reason);

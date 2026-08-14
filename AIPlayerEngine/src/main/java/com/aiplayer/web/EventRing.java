@@ -42,6 +42,10 @@ public final class EventRing
     public static final String TYPE_SYSMSG = "sysmsg";
     /** WPT-22: server SAY/Chat broadcast (NPC or player) surfaced into the feed. */
     public static final String TYPE_CHAT = "chat";
+    /** STEP 4: a bot died (HP shut off) and is being revived. */
+    public static final String TYPE_DEATH = "death";
+    /** STEP 4: a revived bot is back in the world. */
+    public static final String TYPE_RESPAWN = "respawn";
 
     /**
      * Immutable record for one event feed row. Field names and JSON key order are frozen by the

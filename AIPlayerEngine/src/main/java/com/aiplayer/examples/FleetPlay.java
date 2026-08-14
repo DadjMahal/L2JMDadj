@@ -426,6 +426,12 @@ public final class FleetPlay
                     if (!"dead".equals(info.state))
                     {
                         info.state = "dead";
+                        // STEP 4: notify CombatAI so it clears target/aggression state
+                        player.getCombatAI().onDeath();
+                        emit(EventRing.TYPE_DEATH, "died",
+                            snapshot.hpCurrent + "/" + snapshot.hpMax + " HP; lvl " + snapshot.level
+                                + " combat target " + info.targetObjId,
+                            "objId", info.targetObjId);
                         wiring.revive();
                     }
                     Thread.sleep(TICK_MS * 10);
@@ -434,6 +440,11 @@ public final class FleetPlay
                 else if ("dead".equals(info.state))
                 {
                     info.state = "alive";
+                    // STEP 4: notify CombatAI the bot is back in the world
+                    player.getCombatAI().onRespawn(snapshot.level);
+                    emit(EventRing.TYPE_RESPAWN, "respawned",
+                        "back at " + snapshot.x + "," + snapshot.y + " lvl " + snapshot.level,
+                        "lvl", snapshot.level);
                 }
 
                 // TIM-001 H5: keep the CombatAI's AIPlayer position in sync with the LIVE snapshot.
@@ -554,6 +565,35 @@ public final class FleetPlay
                             // single validated bypass) instead of routing; otherwise behave exactly as
                             // STEP 1 (MOVE_TO quest NPC / random far-travel fallback).
                             GoalDecision goal = BotPlayController.decide(buildPlayContext(snapshot, logger));
+                            // STEP 4: RETREAT is urgent — flee immediately via the controller's
+                            // clamped retreat hop. Skip route planning (the destination is one hop).
+                            if (goal != null && goal.action == GoalAction.RETREAT
+                                    && (goal.targetX != 0 || goal.targetY != 0))
+                            {
+                                telemetry.recordMove(account, snapshot.x, snapshot.y, snapshot.z,
+                                    goal.targetX, goal.targetY, goal.targetZ,
+                                    goal.label, goal.reason);
+                                wiring.moveTo(snapshot.x, snapshot.y, snapshot.z,
+                                    goal.targetX, goal.targetY, goal.targetZ);
+                                emit(EventRing.TYPE_MOVE, "to",
+                                    goal.targetX + "," + goal.targetY, "route", goal.label);
+                                info.state = "retreat";
+                                info.thought = goal.reason;
+                                activeRoute = null;
+                                pendingHop = null;
+                                break; // skip the rest of this IDLE tick
+                            }
+                            // STEP 4: restock intent — log and hold; don't route (the bot stays put
+                            // until inventory drops or the operator intervenes).
+                            if (goal != null && goal.action == GoalAction.WAIT
+                                    && goal.reason != null && goal.reason.contains("restock"))
+                            {
+                                info.state = "restock";
+                                info.thought = goal.reason;
+                                activeRoute = null;
+                                pendingHop = null;
+                                break;
+                            }
                             boolean dialogDriven = false;
                             if (questNpcId > 0 && activeRoute == null
                                     && goal != null && goal.action == GoalAction.BYPASS)
@@ -722,7 +762,7 @@ public final class FleetPlay
             java.util.List<int[]> journal = logger.getActiveQuestList();
             return new PlayContext(s.level, s.x, s.y, s.z, s.hpCurrent, s.hpMax,
                 journal != null ? journal : java.util.Collections.<int[]>emptyList(),
-                hostiles, 0);
+                hostiles, 0, s.inventoryUsagePercent);
         }
 
         private int parseObjId(String targetId)
