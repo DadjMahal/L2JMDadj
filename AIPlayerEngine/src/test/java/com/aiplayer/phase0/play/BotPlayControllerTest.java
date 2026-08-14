@@ -201,4 +201,47 @@ class BotPlayControllerTest
     {
         return new ArrayList<>(Arrays.asList(hs));
     }
+
+    private static double dist(BotPlayController.Chase c, int fx, int fy, int fz)
+    {
+        double dx = c.x - fx;
+        double dy = c.y - fy;
+        double dz = c.z - fz;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    // ================================================================
+    // STEP 3 gap-close: chaseStep clamps a single move-hop toward the target
+    // so a bot can close distance to an out-of-melee hostile. Pure math.
+    // ================================================================
+
+    @Test
+    void chaseStepReturnsTargetWhenWithinHop()
+    {
+        BotPlayController.Chase c = BotPlayController.chaseStep(0, 0, 0, 2000, 3000, 0, 4800);
+        assertTrue(dist(c, 0, 0, 0) <= 4800, "hop never exceeds the configured cap");
+        assertEquals(2000, c.x, "within one hop -> land exactly on target x");
+        assertEquals(3000, c.y, "within one hop -> land exactly on target y");
+    }
+
+    @Test
+    void chaseStepClampsLengthForFarTarget()
+    {
+        // Target far beyond the ~9900u server single-move cap: the step must be clamped
+        // to maxHop=4800 along the same direction, and still point at the target.
+        BotPlayController.Chase c = BotPlayController.chaseStep(0, 0, 0, 12000, 16000, 0, 4800);
+        double d = dist(c, 0, 0, 0);
+        assertTrue(d > 4000 && d <= 4800, "clamped step lands inside the hop window, got " + d);
+        // Direction preserved: y/x ratio from an origin-step equals the target ratio (3:4).
+        assertEquals(4.0 / 3.0, (double) c.y / c.x, 0.02, "clamping preserves direction toward target");
+    }
+
+    @Test
+    void chaseStepZeroDistanceStaysPut()
+    {
+        BotPlayController.Chase c = BotPlayController.chaseStep(5, 6, 7, 5, 6, 7, 4800);
+        assertEquals(5, c.x, "no-op hop when already at target");
+        assertEquals(6, c.y, "no-op hop when already at target");
+        assertEquals(7, c.z, "no-op hop when already at target");
+    }
 }

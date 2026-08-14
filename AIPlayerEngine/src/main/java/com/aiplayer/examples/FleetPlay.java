@@ -64,6 +64,12 @@ public final class FleetPlay
     private static final long TICK_MS = 300;
     private static final long WANDER_INTERVAL_MS = 8000;
     private static final int WANDER_RADIUS = 900;
+    // STEP 3 gap-close: a combat target closer than this is "in melee reach" (attack normally); farther
+    // and the bot advances toward it once per CHASE_INTERVAL_MS. CHASE_HOP is capped well under the server's
+    // ~9900u single-move rejection (MoveToLocation.java:156-163) so each chase move persists server-side.
+    private static final int CHASE_REACH = 150;
+    private static final int CHASE_HOP = 4800;
+    private static final long CHASE_INTERVAL_MS = 1500;
 
     /** Live bot rows live in com.aiplayer.examples.BotInfo (WPT-01 extraction) - shared with DashboardApi. */
 
@@ -283,6 +289,9 @@ public final class FleetPlay
             int prevHp = info.hp;
             boolean firstTick = true;
             long lastHistoryMs = 0;
+            // STEP 3: gap-close gate. Only chase toward an out-of-melee combat target once per interval
+            // (like wander) so a chasing bot re-routes without flooding the server every frame.
+            long lastChaseMs = 0;
             // WPT-22: drain newly-parsed SystemMessage / chat broadcasts into the shared event ring
             // (only the count delta is emitted once per tick; message bodies are read back from logger).
             long lastSysCount = logger.getSystemMessageCount();
@@ -472,7 +481,41 @@ public final class FleetPlay
                         int targetId = selTargetId > 0 ? selTargetId : parseObjId(decision.getTargetId());
                         if (targetId > 0)
                         {
-                            wiring.executeCombat(decision, snapshot.x, snapshot.y, snapshot.z, targetId);
+                            // STEP 3 gap-close: CombatAI engages any hostile within combat.target_distance
+                            // (default 1500) and never lowers a still-far mob (it only compares against 1500),
+                            // so a bot stands still spamming an unreachable target -> 0 XP, 0 movement. When
+                            // phase0.movement is ON (default OFF => existing behaviour preserved), advance one
+                            // hop toward an out-of-melee target so the fleet actually closes distance and farms.
+                            boolean chasing = false;
+                            if (phase0.isMovementEnabled() && System.currentTimeMillis() - lastChaseMs > CHASE_INTERVAL_MS)
+                            {
+                                PacketLogger.EntityInfo chaseTarget = logger.getEntity(targetId);
+                                if (chaseTarget != null)
+                                {
+                                    double cdx = chaseTarget.x - snapshot.x;
+                                    double cdy = chaseTarget.y - snapshot.y;
+                                    double cdz = chaseTarget.z - snapshot.z;
+                                    double cdist = Math.sqrt(cdx * cdx + cdy * cdy + cdz * cdz);
+                                    if (cdist > CHASE_REACH)
+                                    {
+                                        lastChaseMs = System.currentTimeMillis();
+                                        BotPlayController.Chase hop = BotPlayController.chaseStep(snapshot.x,
+                                            snapshot.y, snapshot.z, chaseTarget.x, chaseTarget.y, chaseTarget.z,
+                                            CHASE_HOP);
+                                        telemetry.recordMove(account, snapshot.x, snapshot.y, snapshot.z,
+                                            hop.x, hop.y, hop.z, "chase", "advance to target " + targetId);
+                                        wiring.moveTo(snapshot.x, snapshot.y, snapshot.z, hop.x, hop.y, hop.z);
+                                        emit(EventRing.TYPE_MOVE, "to", hop.x + "," + hop.y, "route", "chase");
+                                        info.state = "chase";
+                                        info.thought = "closing on target " + targetId;
+                                        chasing = true;
+                                    }
+                                }
+                            }
+                            if (!chasing)
+                            {
+                                wiring.executeCombat(decision, snapshot.x, snapshot.y, snapshot.z, targetId);
+                            }
                         }
                         break;
 

@@ -144,6 +144,42 @@ public final class BotPlayController
         return (int) ((current * 100.0) / max) + "%";
     }
 
+    /**
+     * STEP 3 gap-close: one chase hop from (sx,sy,sz) toward (tx,ty,tz), clamped to {@code maxHop}
+     * units so it stays under the server's single-move cap (MoveToLocation rejects hops &gt; ~9900u; the
+     * fleet routes in &lt;=4800u steps). Returns the exact destination to {@code MoveToLocation}; pure
+     * math, no IO. Lets a bot that just ran out of a corridor close the distance to an out-of-melee
+     * hostile instead of standing still and spamming an unreachable target (the STEP 3 live-run stall).
+     */
+    public static Chase chaseStep(int sx, int sy, int sz, int tx, int ty, int tz, int maxHop)
+    {
+        double dx = tx - sx;
+        double dy = ty - sy;
+        double dz = tz - sz;
+        double dist = java.lang.Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (dist <= maxHop)
+        {
+            return new Chase(tx, ty, tz);
+        }
+        double k = maxHop / dist;
+        return new Chase(sx + (int) java.lang.Math.round(k * dx),
+                         sy + (int) java.lang.Math.round(k * dy),
+                         sz + (int) java.lang.Math.round(k * dz));
+    }
+
+    /** Immutable chase destination (STEP 3 gap-close). */
+    public static final class Chase
+    {
+        public final int x, y, z;
+
+        public Chase(int x, int y, int z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
     // ================================================================
     // PURE INPUT / CONFIG VALUE TYPES (no PacketLogger dependency)
     // ================================================================
