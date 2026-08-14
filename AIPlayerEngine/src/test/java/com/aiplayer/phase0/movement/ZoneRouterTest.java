@@ -151,4 +151,44 @@ class ZoneRouterTest
         assertFalse(g.hasMoreHops(), "route is complete after the last hop");
         assertTrue(prev != null && prev[0] == 21000 && prev[1] == 0, "last delivered hop is the destination");
     }
+@Test
+    void routeToDestinationBuildsHopsEndingAtExactTarget()
+    {
+        ZoneRouter.RouteGoal g = ZoneRouter.routeTo(
+            -82759, 250149, -3600,   // Talking Island live origin
+            -14440, 121064, -2900,   // Gludio quest NPC (40001 giver, planner coords)
+            "goal:quest:40001", "quest navigation for 1C");
+        assertNotNull(g);
+        assertEquals(-14440, g.destX, "destination x preserved");
+        assertEquals(121064, g.destY, "destination y preserved");
+        assertEquals(-2900, g.destZ, "destination z preserved");
+        assertTrue(g.totalHops() >= 2, "long Gludio route splits into multiple hops, got " + g.totalHops());
+        assertTrue(g.hasMoreHops(), "first hop pending");
+
+        int[] prev = null;
+        int[] hop;
+        int seen = 0;
+        while ((hop = g.nextHop()) != null)
+        {
+            if (prev != null)
+            {
+                double step = Math.hypot(hop[0] - prev[0], hop[1] - prev[1]);
+                assertTrue(step <= ZoneRouter.MAX_HOP_DIST + 1, "each hop <= server cap, got " + step);
+            }
+            prev = hop;
+            seen++;
+        }
+        assertEquals(prev[0], -14440, "last hop lands exactly on the quest NPC");
+        assertEquals(prev[1], 121064, "last hop lands exactly on the quest NPC");
+        assertTrue(seen == g.totalHops(), "every planned hop delivered once");
+    }
+
+    @Test
+    void routeToDegenerateDestinationReturnsNullToAllowFallback()
+    {
+        // Same spot -> nothing to route; FleetPlay falls back to a random far-travel point.
+        assertNull(ZoneRouter.routeTo(-82759, 250149, -3600, -82759, 250149, -3600, "goal:x", "dup"));
+        // Not in-world -> refuse to route.
+        assertNull(ZoneRouter.routeTo(0, 0, 0, 100, 100, 0, "goal:x", "pre-world"));
+    }
 }

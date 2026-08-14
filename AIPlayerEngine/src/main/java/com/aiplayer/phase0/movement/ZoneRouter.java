@@ -192,6 +192,26 @@ public final class ZoneRouter
         }
         return hops;
     }
+/**
+     * Plan a route to a SPECIFIC destination (e.g. a quest NPC, or a hostile we chose to hunt),
+     * reusing the same hop-splitting as {@link #plan}. Returns null for a degenerate destination
+     * (equal to the origin -> no travel), so the caller can fall back to a random far point.
+     */
+    public static RouteGoal routeTo(int fromX, int fromY, int fromZ,
+                                    int destX, int destY, int destZ,
+                                    String label, String reason)
+    {
+        if (fromX == 0 && fromY == 0)
+        {
+            return null; // not in-world yet
+        }
+        java.util.List<int[]> hops = buildHops(fromX, fromY, fromZ, destX, destY, destZ);
+        if (hops.isEmpty())
+        {
+            return null; // already at the destination; nothing to route
+        }
+        return new RouteGoal(destX, destY, destZ, label, reason, hops);
+    }
 
     private static double hypot(double dx, double dy)
     {

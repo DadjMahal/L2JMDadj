@@ -1,6 +1,8 @@
 package com.aiplayer.examples;
 
-/** MODE: COMPLETE (except quest-NPC navigation — that seam is queued; see Audit/43). Real fleet launcher + live web dashboard. */
+/** MODE: COMPLETE. Real fleet launcher + live web dashboard. STEP 1C: quest-NPC navigation is wired —
+ *  the BotPlayController authors the goal each idle tick and FleetPlay routes toward the chosen
+ *  destination (quest NPC / acquire / hunt) via the proven hop machinery (see ZoneRouter.routeTo). */
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,6 +27,12 @@ import com.aiplayer.phase0.movement.HopGate;
 import com.aiplayer.phase0.movement.MoveTelemetry;
 import com.aiplayer.phase0.movement.ZoneRouter;
 import com.aiplayer.phase0.movement.ZoneRouter.RouteGoal;
+import com.aiplayer.phase0.play.BotPlayController;
+import com.aiplayer.phase0.play.BotPlayController.Hostile;
+import com.aiplayer.phase0.play.BotPlayController.PlayContext;
+import com.aiplayer.phase0.play.GoalAction;
+import com.aiplayer.phase0.play.GoalDecision;
+import com.aiplayer.phase0.play.PlayerGoal;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.protocol.PacketLogger.EntityInfo;
@@ -420,9 +428,26 @@ public final class FleetPlay
                             if (activeRoute == null && now - lastRoute > phase0.getMovementIdleRouteMs())
                             {
                                 lastRoute = now;
-                                activeRoute = zoneRouter.plan(snapshot.level,
-                                    snapshot.x, snapshot.y, snapshot.z,
-                                    phase0.getMovementMinRadius(), phase0.getMovementMaxRadius());
+                                // STEP 1C: the BotPlayController authors the goal authoritatively. If it
+                                // picks a concrete MOVE destination (quest NPC / acquire / hunt), route
+                                // toward it via the same hop machinery; otherwise fall back to the proven
+                                // random far-travel plan (high-level REST holds still farm via far-points).
+                                GoalDecision goal = BotPlayController.decide(buildPlayContext(snapshot, logger));
+                                activeRoute = null;
+                                if (goal != null && goal.action == GoalAction.MOVE_TO
+                                        && goal.targetX != 0 && goal.targetY != 0)
+                                {
+                                    activeRoute = ZoneRouter.routeTo(snapshot.x, snapshot.y, snapshot.z,
+                                        goal.targetX, goal.targetY, goal.targetZ,
+                                        "goal:" + (goal.label != null ? goal.label : goal.goal.toString()),
+                                        goal.reason);
+                                }
+                                if (activeRoute == null)
+                                {
+                                    activeRoute = zoneRouter.plan(snapshot.level,
+                                        snapshot.x, snapshot.y, snapshot.z,
+                                        phase0.getMovementMinRadius(), phase0.getMovementMaxRadius());
+                                }
                                 if (activeRoute != null)
                                 {
                                     info.state = "travel:" + activeRoute.label;
@@ -538,6 +563,27 @@ public final class FleetPlay
                 data.put(String.valueOf(kv[i]), kv[i + 1]);
             }
             EVENTS.add(type, account, data);
+        }
+
+        /** STEP 1C: build the controller's pure input straight from the live snapshot + packet logger. */
+        private PlayContext buildPlayContext(BotSnapshot s, PacketLogger logger)
+        {
+            java.util.List<Hostile> hostiles = new java.util.ArrayList<>();
+            if (s.hostileEntities != null)
+            {
+                for (EntityInfo e : s.hostileEntities)
+                {
+                    if (e == null)
+                    {
+                        continue;
+                    }
+                    hostiles.add(new Hostile(e.objectId, e.x, e.y, e.z));
+                }
+            }
+            java.util.List<int[]> journal = logger.getActiveQuestList();
+            return new PlayContext(s.level, s.x, s.y, s.z, s.hpCurrent, s.hpMax,
+                journal != null ? journal : java.util.Collections.<int[]>emptyList(),
+                hostiles, 0);
         }
 
         private int parseObjId(String targetId)
