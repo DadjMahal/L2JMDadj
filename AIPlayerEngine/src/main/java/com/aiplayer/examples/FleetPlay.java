@@ -70,6 +70,10 @@ public final class FleetPlay
     private static final int CHASE_REACH = 150;
     private static final int CHASE_HOP = 4800;
     private static final long CHASE_INTERVAL_MS = 1500;
+    // STEP 3 follow-up: if a combat target produces NO XP within this budget, the engagement is
+    // force-abandoned so the bot re-acquires a farmable target instead of chasing an un-killable
+    // or stale one (town NPCs, despawned mobs). 15s ≈ 10 chase-hop intervals.
+    private static final long STALE_TARGET_BUDGET_MS = 15_000;
 
     /** Live bot rows live in com.aiplayer.examples.BotInfo (WPT-01 extraction) - shared with DashboardApi. */
 
@@ -458,6 +462,17 @@ public final class FleetPlay
                 info.thought = decision.getReason();
                 // "thoughts / target": resolve the bot's current target into a label + distance.
                 int selTargetId = player.getCombatAI().getSelectedTargetObjId();
+                // STEP 3 follow-up: stale-target watchdog. If the engaged enemy produced NO XP within
+                // STALE_TARGET_BUDGET_MS, abandon it so detectNearbyEnemy() re-acquires a farmable target
+                // next tick (kills the "chase the merchant / dead mob forever" stall with live proof).
+                if (player.getCombatAI().checkStaleTarget(logger.getExp(), (int) STALE_TARGET_BUDGET_MS))
+                {
+                    emit(EventRing.TYPE_TARGET_ABANDON, "objId", selTargetId, "exp", logger.getExp());
+                    LOGGER.info("[FLEET] " + account + " abandoned stale target objId=" + selTargetId);
+                    selTargetId = 0;
+                    info.state = "idle";
+                    info.thought = "abandoned un-advancing target, re-acquiring";
+                }
                 info.targetObjId = selTargetId;
                 if (selTargetId > 0)
                 {
@@ -523,10 +538,13 @@ public final class FleetPlay
                                     }
                                 }
                             }
-                            if (!chasing)
-                            {
-                                wiring.executeCombat(decision, snapshot.x, snapshot.y, snapshot.z, targetId);
-                            }
+                            // Always send the combat frames even while chasing (fix for the no-kills
+                            // stall): the server receives AttackRequest, routes the character to the
+                            // target, and resolves melee range from SERVER-side positions. If we
+                            // skipped attacks while chasing, a lagging local snapshot meant the bot
+                            // chased forever and never landed a hit. Range checks are server-authoritative,
+                            // so an out-of-range AttackRequest is simply routed, not rejected.
+                            wiring.executeCombat(decision, snapshot.x, snapshot.y, snapshot.z, targetId);
                         }
                         break;
 

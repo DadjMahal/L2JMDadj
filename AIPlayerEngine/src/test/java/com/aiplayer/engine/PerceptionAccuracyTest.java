@@ -71,24 +71,26 @@ public class PerceptionAccuracyTest {
 
     @Test
     public void testNpcInfoHostilityDetectionMonster() {
-        // NPC IDs 1-199999 are hostile monsters
-        byte[] packet = createNpcInfoWithId(2001, 10001);
+        // A farmable monster template arrives with the packet's isAttackable=1 (server truth).
+        byte[] packet = createNpcInfoWithId(2001, 10001, 1);
         packetLogger.logPacket(packet);
 
         EntityInfo entity = packetLogger.getEntity(2001);
         assertNotNull(entity, "Entity should be parsed");
-        assertTrue(entity.isHostile, "Monster should be detected as hostile by ID range");
+        assertTrue(entity.isHostile, "Attackable monster should be hostile");
     }
 
     @Test
     public void testNpcInfoNeutralDetection() {
-        // NPC IDs 200000+ are neutral (non-hostile)
-        byte[] packet = createNpcInfoWithId(3001, 250000);
+        // The bug this regression guards: a Merchant/Guard NPC can carry a LOW template id (here
+        // 10001, in the old "hostile by ID range" band AND the merchant template id). The packet's
+        // isAttackable=0 is the server's ground truth (character.isAutoAttackable), so it must win.
+        byte[] packet = createNpcInfoWithId(3001, 10001, 0);
         packetLogger.logPacket(packet);
 
         EntityInfo entity = packetLogger.getEntity(3001);
         assertNotNull(entity, "Entity should be parsed");
-        assertFalse(entity.isHostile, "Regular NPC should NOT be hostile");
+        assertFalse(entity.isHostile, "Non-attackable NPC must NOT be hostile even with a monster-like npcId");
     }
 
     @Test
@@ -104,7 +106,7 @@ public class PerceptionAccuracyTest {
     @Test
     public void testDeleteObjectPacketAccuracy() {
         // First add an entity
-        packetLogger.logPacket(createNpcInfoWithId(5001, 10001));
+        packetLogger.logPacket(createNpcInfoWithId(5001, 10001, 1));
         assertNotNull(packetLogger.getEntity(5001), "Entity should exist before deletion");
 
         // Now delete it
@@ -130,12 +132,12 @@ public class PerceptionAccuracyTest {
 
     @Test
     public void testHostileEntityCount() {
-        // Add monster (hostile) - NPC ID 10001
-        packetLogger.logPacket(createNpcInfoWithId(1001, 10001));
-        // Add neutral NPC - NPC ID 250010 (neutral)
-        packetLogger.logPacket(createNpcInfoWithId(1002, 250010));
-        // Add another monster (hostile) - NPC ID 15001
-        packetLogger.logPacket(createNpcInfoWithId(1003, 15001));
+        // Add monster (hostile) - NPC ID 10001, packet isAttackable=1
+        packetLogger.logPacket(createNpcInfoWithId(1001, 10001, 1));
+        // Add neutral NPC - NPC ID 250010, packet isAttackable=0
+        packetLogger.logPacket(createNpcInfoWithId(1002, 250010, 0));
+        // Add another monster (hostile) - NPC ID 15001, packet isAttackable=1
+        packetLogger.logPacket(createNpcInfoWithId(1003, 15001, 1));
 
         assertEquals(2, packetLogger.getHostileEntityCount(),
             "Should have 2 hostile entities (monster IDs 10001, 15001)");
@@ -144,11 +146,11 @@ public class PerceptionAccuracyTest {
     @Test
     public void testFindNearestHostile() {
         // Add hostile at (0, 10000, 0) - distance 10000
-        packetLogger.logPacket(createNpcInfoAt(1001, 10001, 0, 10000, 0));
+        packetLogger.logPacket(createNpcInfoAt(1001, 10001, 0, 10000, 0, 1));
         // Add hostile at (3000, 3000, 0) - distance 4242.6
-        packetLogger.logPacket(createNpcInfoAt(1002, 10002, 3000, 3000, 0));
+        packetLogger.logPacket(createNpcInfoAt(1002, 10002, 3000, 3000, 0, 1));
         // Add hostile at (0, 5000, 0) - distance 5000
-        packetLogger.logPacket(createNpcInfoAt(1003, 15001, 0, 5000, 0));
+        packetLogger.logPacket(createNpcInfoAt(1003, 15001, 0, 5000, 0, 1));
 
         EntityInfo nearest = packetLogger.findNearestHostile(0, 0, 0, 15000);
         assertNotNull(nearest, "Should find nearest hostile");
@@ -215,7 +217,7 @@ public class PerceptionAccuracyTest {
 
     @Test
     public void testEntityTrackingInCombatAI() {
-        packetLogger.logPacket(createNpcInfoAt(1001, 10001, 1000, 2000, 0));
+        packetLogger.logPacket(createNpcInfoAt(1001, 10001, 1000, 2000, 0, 1));
 
         EntityInfo enemy = packetLogger.findNearestHostile(0, 0, 0, 5000);
         assertNotNull(enemy, "Should detect nearby enemy");
@@ -315,20 +317,19 @@ public class PerceptionAccuracyTest {
 
     private byte[] createNpcInfoPacket() {
         // Positioned hostile monster at (11000, 22000, -50) — matches the parsing assertions.
-        return createNpcInfoAt(1001, 10001, 11000, 22000, -50);
+        return createNpcInfoAt(1001, 10001, 11000, 22000, -50, 1);
     }
 
-    private byte[] createNpcInfoWithId(int objectId, int npcId) {
+    private byte[] createNpcInfoWithId(int objectId, int npcId, int isAttackable) {
         // Stream C: real Interlude AbstractNpcInfo layout (Audit/35, proven by B4):
         //   [0x16][objectId][displayId = npcId+1000000][isAttackable][x][y][z][heading]
-        // Frame = [2-byte self-inclusive size=31][payload]. isAttackable is left 0 here so the
-        // ID-range heuristic (isHostileNpc) exercises hostility, as these tests intend; the
-        // packet-flag path is covered by PacketLoggerNpcInfoTest.
-        return buildNpcInfoFrame(objectId, npcId + 1000000, 0, 0, 0, 0, 0);
+        // Frame = [2-byte self-inclusive size=31][payload]. isAttackable is the packet truth:
+        // 1 for attackable/farmable monsters, 0 for town NPCs (merchants/guards/quest givers).
+        return buildNpcInfoFrame(objectId, npcId + 1000000, isAttackable, 0, 0, 0, 0);
     }
 
-    private byte[] createNpcInfoAt(int objectId, int npcId, int x, int y, int z) {
-        return buildNpcInfoFrame(objectId, npcId + 1000000, 0, x, y, z, 0);
+    private byte[] createNpcInfoAt(int objectId, int npcId, int x, int y, int z, int isAttackable) {
+        return buildNpcInfoFrame(objectId, npcId + 1000000, isAttackable, x, y, z, 0);
     }
 
     /** Build a real-layout NPC_INFO frame: [2-byte self-inclusive size][opcode][fields]. */

@@ -311,6 +311,48 @@ public class CombatAITest {
             "re-target must select the next nearest hostile");
     }
 
+    @Test
+    public void testStaleTargetWatchdogAbandonsWithoutXp() throws InterruptedException {
+        // STEP 3 follow-up: the watchdog must abandon an engagement that produces NO XP within its
+        // budget, or the bot chases an un-killable/stale target forever (the merchant/chase stall).
+        AIPlayer player = new AIPlayer("StaleBot", 1, 1, 0);
+        player.setPosition(0, 0, 0);
+        CombatAI ai = new CombatAI(player);
+        PacketLogger live = new PacketLogger("StaleBot");
+        live.logPacket(buildNpcInfoFrame(9001, 1000000 + 20545, 1, 100, 100, 0, 0));
+        ai.setPacketLogger(live);
+
+        assertEquals(CombatDecision.Action.ATTACK, ai.makeDecision().getAction(),
+            "hostile in range engages");
+        assertTrue(ai.getCombatState().isInCombat(), "engaged target must be in combat");
+
+        assertFalse(ai.checkStaleTarget(0, 100), "first check only arms the stale timer");
+        Thread.sleep(10); // deterministically advance wall clock past the next budget
+        assertTrue(ai.checkStaleTarget(0, 1), "unchanged-XP target past budget must be abandoned");
+
+        assertFalse(ai.getCombatState().isInCombat(), "abandoned target must exit combat");
+        assertEquals(-1, ai.getSelectedTargetObjId(), "abandoned target must be cleared");
+    }
+
+    @Test
+    public void testStaleTargetWatchdogKeepsCombatWhileXpProgresses() throws InterruptedException {
+        // XP progress resets the stale clock: a bot that is actually gaining XP must keep fighting.
+        AIPlayer player = new AIPlayer("ProgressBot", 1, 1, 0);
+        player.setPosition(0, 0, 0);
+        CombatAI ai = new CombatAI(player);
+        PacketLogger live = new PacketLogger("ProgressBot");
+        live.logPacket(buildNpcInfoFrame(9001, 1000000 + 20545, 1, 100, 100, 0, 0));
+        ai.setPacketLogger(live);
+        assertEquals(CombatDecision.Action.ATTACK, ai.makeDecision().getAction());
+
+        assertFalse(ai.checkStaleTarget(1000, 15), "arms the stale timer at 15ms budget");
+        Thread.sleep(20); // exceed the budget BEFORE the XP update
+        assertFalse(ai.checkStaleTarget(1250, 15), "XP progress past budget resets the stale clock");
+        Thread.sleep(5);  // only 5ms since the reset — well inside the 15ms budget
+        assertFalse(ai.checkStaleTarget(1250, 15), "unchanged XP inside a fresh budget must NOT abandon");
+        assertTrue(ai.getCombatState().isInCombat(), "progressing fight stays in combat");
+    }
+
     // Real-layout builders matching the proven probe framing (same as PacketLoggerNpcInfoTest).
     private byte[] buildNpcInfoFrame(int objectId, int displayId, int isAttackable,
                                      int x, int y, int z, int heading) {

@@ -25,6 +25,12 @@ public class CombatAI {
     // Slice 6: last objId we engaged, so we can log when DeleteObject + re-detect makes us switch targets
     private int lastEngagedObjId = 0;
 
+    // Stale-target watchdog (STEP 3 follow-up): if the current combat target shows no progress
+    // (no XP gain) within the driver's budget, the engagement is force-ended so the bot re-acquires
+    // a fresh target instead of chasing an un-killable/stale one (e.g. a town NPC, a despawned mob).
+    private long staleSinceMs = 0;
+    private long staleCheckExp = 0;
+
     // Stream G (G-Combat): wire the previously-dead helper classes into live combat. These were
     // instantiated/static but had ZERO callers (the recurring instantiated-but-uncalled defect).
     private final AntiGriefing antiGriefing = new AntiGriefing();
@@ -291,6 +297,7 @@ public class CombatAI {
     private CombatDecision engageEnemy(String enemyId) {
         currentTarget = enemyId;
         combatState.setInCombat(true);
+        staleSinceMs = 0; // fresh engagement — stale-target watchdog starts from zero
         // Slice 6 re-target feedback: log when we switch to a different target (the previous one was
         // removed by DeleteObject). Lets the live proof / logs show target-hopping off dead mobs.
         int objId = parseTargetObjId(enemyId);
@@ -498,6 +505,37 @@ public class CombatAI {
         return CombatDecision.heal();
     }
 
+    /**
+     * Stale-target watchdog: ends combat when the current target has produced no progress
+     * (no XP gain) within {@code budgetMs}. Called by the driver (FleetPlay) once per tick.
+     * Returns true if the target was abandoned.
+     */
+    public boolean checkStaleTarget(long currentExp, int budgetMs) {
+        if (currentTarget == null || !combatState.isInCombat()) {
+            staleSinceMs = 0; // not engaged — keep the clock clean
+            return false;
+        }
+        long now = System.currentTimeMillis();
+        if (staleSinceMs == 0) {
+            staleSinceMs = now;
+            staleCheckExp = currentExp;
+            return false;
+        }
+        if (now - staleSinceMs > budgetMs) {
+            long expDelta = currentExp - staleCheckExp;
+            if (expDelta == 0) {
+                LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] STALE-TARGET: abandoning " + currentTarget
+                    + " after " + budgetMs + "ms (XP=" + currentExp + " unchanged)");
+                onCombatEnd();
+                return true;
+            }
+            // Got XP — progress made, reset the timer so we don't abandon a working fight.
+            staleSinceMs = now;
+            staleCheckExp = currentExp;
+        }
+        return false;
+    }
+
     public void onCombatStart() {
         combatState.setInCombat(true);
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] COMBAT_START: target=" + currentTarget);
@@ -509,6 +547,7 @@ public class CombatAI {
         LOGGER.info("[COMBAT-LOG] [" + aiPlayer.getName() + "] COMBAT_END: damage_dealt=" + damageDealt + " kills=" + combatState.getKillCount() + " deaths=0");
         currentTarget = null;
         comboCount = 0;
+        staleSinceMs = 0; // retire watchdog for ended combat
     }
 
     /** Log combat telemetry event */

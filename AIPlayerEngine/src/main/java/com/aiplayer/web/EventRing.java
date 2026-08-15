@@ -46,6 +46,8 @@ public final class EventRing
     public static final String TYPE_DEATH = "death";
     /** STEP 4: a revived bot is back in the world. */
     public static final String TYPE_RESPAWN = "respawn";
+    /** STEP 3 follow-up: the fleet abandoned a stale/un-advancing combat target. */
+    public static final String TYPE_TARGET_ABANDON = "target-abandon";
 
     /**
      * Immutable record for one event feed row. Field names and JSON key order are frozen by the

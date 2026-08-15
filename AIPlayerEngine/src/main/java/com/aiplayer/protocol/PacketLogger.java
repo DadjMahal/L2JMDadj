@@ -564,9 +564,12 @@ public class PacketLogger
          int heading = buf.remaining() >= 4 ? buf.getInt() : 0; // offset 25 (optional tail)
 
          int npcId = displayId - 1000000;      // real NPC template id
-         // The real packet gives isAttackable directly — better than the ID-range heuristic
-         // (Audit/35). Keep the heuristic as a fallback for monsters not flagged in this field.
-         boolean isHostile = isAttackable != 0 || isHostileNpc(npcId);
+         // The packet's isAttackable field IS the server's ground truth for "can this player attack this NPC":
+         //   _isAttackable = cha.isAutoAttackable(attacker)  from AbstractNpcInfo.java.
+         // Monsters (Attackable template) → true → 1; town NPCs (merchants/guards/quest givers) → false → 0.
+         // The old range-heuristic fallback (npcId < 200000) tagged merchants/guards as hostile, causing the
+         // fleet to chase them forever with zero XP. Rely on the packet truth alone.
+         boolean isHostile = isAttackable != 0;
 
          // Track entity for enemy detection (Task 47)
          entitiesById.put(objectId, new EntityInfo(objectId, npcId, x, y, z, heading, isHostile));
@@ -577,24 +580,6 @@ public class PacketLogger
       {
          LOGGER.fine("[" + playerName + "] NpcInfo parse incomplete");
       }
-   }
-
-   /**
-    * Determine if NPC ID represents a hostile creature
-    * Based on L2J typical NPC ID ranges
-    */
-   private boolean isHostileNpc(int npcId) {
-      // Hostile NPCs typically have IDs in these ranges:
-      // 1-199999: Standard monsters (varies by region)
-      // 210000-210999: Beasts (usually hostile)
-      // 800000-899999: Event monsters
-
-      // For now, we'll check common hostile ranges
-      // In production, this would be extended with actual L2JMobius data
-      if (npcId >= 1 && npcId < 200000) return true;  // Most monsters
-      if (npcId >= 210000 && npcId < 220000) return true;  // Beasts
-      if (npcId >= 800000) return true;  // Event monsters
-      return false;  // NPCs, guards, etc.
    }
 
    /**
