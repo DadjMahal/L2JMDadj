@@ -1,0 +1,200 @@
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_04 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:46 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436109 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"
+[EVIDENCE-H5] ai_combat_02 SYSMSG 34 sysmsg#34
+Aug 14, 2026 10:09:46 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_02 using skill: POWER_STRIKE
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_02] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_02 SYSMSG 34 sysmsg#34
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_02] NPC_HTML: npcObjId=268461844 htmlLen=1464 bypassLinks=7 excerpt="<html><body>I'm a merchant dispatched by the Lord in order to sell Seeds from the Manor and purchase Special Products.<"
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_02] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#35 [0]
+[EVIDENCE-H5] ai_combat_01 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_01 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_01] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_03] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseNpcInfo
+INFO: [PACKET-LOG] [ai_combat_04] NPC_INFO: objId=268461940 npcId=20544 attackable=1 pos=(-85732,239617,-3619) heading=16170 hostile=true
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseNpcInfo
+INFO: [PACKET-LOG] [ai_combat_02] NPC_INFO: objId=268461940 npcId=20544 attackable=1 pos=(-85732,239617,-3619) heading=16170 hostile=true
+Aug 14, 2026 10:09:47 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_05 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:48 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_05 using skill: POWER_STRIKE
+Aug 14, 2026 10:09:48 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_05 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_04 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:48 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_04 using skill: POWER_STRIKE
+Aug 14, 2026 10:09:48 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_04 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+Aug 14, 2026 10:09:48 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:48 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_05] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 10:09:48 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_02] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:48 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436109 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"
+[EVIDENCE-H5] ai_combat_02 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_02 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:48 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:48 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:48 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#35 [0]
+[EVIDENCE-H5] ai_combat_01 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_01 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_01] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_02] NPC_HTML: npcObjId=268461844 htmlLen=1464 bypassLinks=7 excerpt="<html><body>I'm a merchant dispatched by the Lord in order to sell Seeds from the Manor and purchase Special Products.<"
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_02] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#44
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#35 [0]
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_03 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_03] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_05 SYSMSG 1263 sysmsg#1263
+[EVIDENCE-H5] ai_combat_05 SYSMSG 1983 sysmsg#1983 [You are no longer protected from aggressive monsters.]
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_05] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 10:09:49 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#35 [0]
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_04 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436109 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_02 SYSMSG 34 sysmsg#34
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_02] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_01 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_01 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:50 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_01 using skill: POWER_STRIKE
+Aug 14, 2026 10:09:50 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_01 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+Aug 14, 2026 10:09:50 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_03 using skill: POWER_STRIKE
+Aug 14, 2026 10:09:50 PM com.aiplayer.phase0.Phase0Wiring skipUnproven
+INFO: [Phase0] SKIP-UNPROVEN ai_combat_03 kind=combat action=USE_SKILL — planner produced no frames (likely unencodable, e.g. USE_SKILL)
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_01] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_02] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_02 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_02 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_02] NPC_HTML: npcObjId=268461844 htmlLen=1464 bypassLinks=7 excerpt="<html><body>I'm a merchant dispatched by the Lord in order to sell Seeds from the Manor and purchase Special Products.<"
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_03 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:50 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_03] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_05 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:51 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_05] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_04 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:51 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436109 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"
+Aug 14, 2026 10:09:51 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:51 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:51 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:51 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_01 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_01 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_01] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 10:09:52 PM com.aiplayer.engine.CombatAI useOffensiveSkill
+INFO: ai_combat_02 using skill: POWER_STRIKE
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_02] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_03 SYSMSG 34 sysmsg#34
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_03] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_03] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_02 SYSMSG 34 sysmsg#34
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_02] NPC_HTML: npcObjId=268461844 htmlLen=1464 bypassLinks=7 excerpt="<html><body>I'm a merchant dispatched by the Lord in order to sell Seeds from the Manor and purchase Special Products.<"
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_02] SYSMESSAGE: sysmsg#43
+[EVIDENCE-H5] ai_combat_05 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_05 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_05] NPC_HTML: npcObjId=268461854 htmlLen=267 bypassLinks=0 excerpt="<html><body>Guard:<br>Be vigilant! Recently, it has been reported that bandits are targeting unwary travelers like your"
+[EVIDENCE-H5] ai_combat_04 SYSMSG 34 sysmsg#34
+[EVIDENCE-H5] ai_combat_04 SYSMSG 1263 sysmsg#1263
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger parseNpcHtml
+INFO: [PACKET-LOG] [ai_combat_04] NPC_HTML: npcObjId=268436109 htmlLen=1485 bypassLinks=6 excerpt="<html><body>Adventurers' Guide Miss Queen:<br>Welcome! I've been dispatched from the Adventurer's Guild to guide charact"
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger recordChat
+INFO: [PACKET-LOG] [ai_combat_04] CHAT kind=npc speaker=Leandro text="Where has he gone?"
+Aug 14, 2026 10:09:52 PM com.aiplayer.protocol.PacketLogger recordChat
+INFO: [PACKET-LOG] [ai_combat_02] CHAT kind=npc speaker=Leandro text="Where has he gone?"
+Aug 14, 2026 10:09:53 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 10:09:53 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_04] SYSMESSAGE: sysmsg#35 [0]
+Aug 14, 2026 10:09:53 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_05] SYSMESSAGE: sysmsg#43
+Aug 14, 2026 10:09:53 PM com.aiplayer.protocol.PacketLogger parseSystemMessage
+INFO: [PACKET-LOG] [ai_combat_01] SYSMESSAGE: sysmsg#43

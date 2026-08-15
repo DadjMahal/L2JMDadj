@@ -1,0 +1,42 @@
+STEP 4 — LIVE BROWSER / DASHBOARD VERIFICATION
+Date: 2026-08-14 ~22:09
+Owner: play-builder
+Commit under test: 463bc36f (STEP 4 code landed; 280/280 green)
+
+WHAT WAS BROUGHT UP
+- Login server   (JDK25) — LISTEN :2106, :9014
+- Game server    (JDK25) — LISTEN :7777
+- FleetPlay 5 bots + embedded AI dashboard — LISTEN :8080, HTTP 200
+  launched with 6th arg "movement" so phase0.movement is FORCED ON this run
+  -> opened in the browser via xdg-open http://localhost:8080 (Chrome/Firefox on DISPLAY :0)
+- See listeners.txt / processes.txt / dashboard_http.txt / players.json / events.json
+
+WHAT THE LIVE RUN DEMONSTRATED (evidence present)
+- 5 bots registered and in-world with real USER_INFO: ai_combat_01..05, lvl 5,
+  XP 3961/4438/3844/3665/4170, HP 202/202, weapons equipped (see fleet_log_tail.txt).
+- The dashboard serves live bot positions + entity scan (mobs/npcs counts change
+  between snapshots) -> bots are scanning and CombatAI is firing skill casts
+  (e.g. POWER_STRIKE) and issuing chase moves (event feed shows repeated
+  `move {to:'-83536,243280', route:'chase'}` for ai_combat_02).
+
+WHAT DID **NOT** FIRE THIS WINDOW (honest gap — not fabricated)
+- STEP 4 behaviour triggers did NOT organically occur:
+  * low-HP RETREAT   — all bots stayed at full HP (202/202), survive never triggered
+  * RESTOCK          — bots carry load 0 / itemCount 0 / invPct 0 (no pickups) so
+                       inventoryPct never crossed restockThreshold
+  * DEATH/RESPAWN    — no deaths occurred; onDeath/onRespawn hooks not exercised
+- The fleet did NOT land kills / gain XP during this window (XP values static).
+  Positions of 3 bots (ai_combat_01/03/05) are pinned at town centre (-87406,250079)
+  and ai_combat_02 repeatedly re-issues a chase hop to the same coordinate without
+  completing — i.e. the KNOWN pre-existing STEP 3 follow-up: bots stall on the
+  despawned-target lifecycle (target entity null after DeleteObject). This is NOT a
+  STEP 4 regression; it was already logged as the STEP 3 closure follow-up.
+
+So STEP 4 = CODE-DONE + unit-tested (280/280), dashboard/live-fleet = VERIFIED UP and
+RENDERING in-browser. The three STEP 4 runtime triggers (retreat / restock / death)
+still require an operator-forced or naturally-occurring low-HP/aggro/drop event to
+observe live; they were not witnessed in this window and are NOT being claimed.
+
+Files captured here can be re-generated at any time while the run is up
+(http://localhost:8080/api/players, /api/v1/events) or from /tmp/fleet.log,
+/tmp/login.log, /tmp/game.log.

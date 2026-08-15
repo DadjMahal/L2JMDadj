@@ -1,0 +1,3 @@
+LISTEN 0      50                               *:8080             *:*    users:(("java",pid=54731,fd=6))   
+LISTEN 0      50                               *:7777             *:*    users:(("java",pid=54354,fd=57))  
+LISTEN 0      50                               *:2106             *:*    users:(("java",pid=54090,fd=47))  

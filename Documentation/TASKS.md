@@ -60,7 +60,14 @@
   `"restock"` above the threshold, and FleetPlay sets the `restock` state. Death/respawn hooks
   added: `CombatAI.onDeath()`/`onRespawn(level)` called from the live loop, new
   `EventRing.TYPE_DEATH`/`TYPE_RESPAWN` feed events. 5 new tests (retreat math, hop clamp,
-  restock above/below). *280/280 green.* Follow-up: live re-run + evidence capture pending.
+  restock above/below). *280/280 green.* Live: dashboard+5-bot fleet brought up on
+  localhost:8080 and rendered in-browser (Login :2106, Game :7777, dash HTTP 200);
+  evidence captured under `Documentation/_archive/Evidence/2026-08-14_step4-browser-live/`.
+  STEP 4 runtime triggers (retreat/restock/death) did NOT organically fire this window
+  (bots stayed full-HP, invPct 0, no deaths) and the fleet hit the KNOWN pre-existing
+  STEP 3 stale-target stall (no kills/XP) — see evidence verification_notes.txt.
+  Follow-up persisted: live-verify/force STEP 4 triggers + recover fleet from
+  despawned-target stall.
 - **2026-08-14 · play-builder:** STEP 3 live-run + evidence. Live 5-bot run (movement FORCED ON) on
   master exposed a stall: whole fleet 0 MoveTo / 0 XP (CombatAI engages within `target_distance=1500`
   and never lowers a far mob → never reaches the controller's movement branch; endless out-of-range
