@@ -26,6 +26,7 @@
 | **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `DONE-PUSHED c4ee832a` | play-builder |
 | **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `DONE-PUSHED 94993a25` | play-builder |
 | **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `DONE` | play-builder |
+| **STEP 5** | Fleet-wide target lifecycle: 4/5 bots stall after `DeleteObject` (despawned target) — recover all-bots farming on the P2 fixed build | `IN_PROGRESS (play-builder)` | play-builder |
 
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |
@@ -38,6 +39,10 @@
 | `scripts/**` | **play-builder** | helper tools |
 
 ## 5. Changelog (newest last)
+- **2026-08-16 · play-builder:** STEP 5 claimed `IN_PROGRESS` — 4/5 fleet stall after `DeleteObject`
+  (the STEP 3 closure follow-up). P0/P1/P2 farming fix set live-verified single-bot (sustained XP/min +
+  reconnect, `06906195` + `b558d4f6`); STEP 5 re-probes the same lifecycle with the full 5-bot fleet on
+  the fixed build and recovers any remaining despawned-target stall for fleet-wide consistency.
 - **2026-08-13 · doc-sweeper:** archived the full historical/audit/evidence pile to `Documentation/_archive/`,
   deleted the stray team-runtime json, rewrote `START_HERE.md` + this board to be lean around the ONE goal
   (3–5 AI players that actually PLAY), `STATUS.md` = Phase: PLAY. **242/242 green.**
