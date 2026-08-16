@@ -30,6 +30,13 @@ class QuestGoalPlannerTest
     private static final int FARM_X = -60000;
     private static final int FARM_Y = 140000;
     private static final int FARM_Z = -3000;
+    // 30002 "Lizardmen Hunt" giver (Sentinel, Elven Village) — the other Human quest up at level 10.
+    private static final int ELVEN_GIVER_X = 46936;
+    private static final int ELVEN_GIVER_Y = 51520;
+    // Player spot with a real "some quests ARE available" level but NO reachable giver: > 20k from
+    // every quest a Human can take at level 10 (the nearer Dwarven Village givers are race-locked).
+    private static final int FAR_PLAYER_X = 100000;
+    private static final int FAR_PLAYER_Y = -180000;
 
     private static List<int[]> journal(int... questIdState)
     {
@@ -39,6 +46,15 @@ class QuestGoalPlannerTest
             l.add(new int[] { questIdState[i], questIdState[i + 1] });
         }
         return l;
+    }
+
+    /** Euclidean distance used to double-check the planner's reachability gate in assertions. */
+    private static double dist(int ax, int ay, int az, int bx, int by, int bz)
+    {
+        long dx = (long) ax - bx;
+        long dy = (long) ay - by;
+        long dz = (long) az - bz;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     // ================================================================
@@ -112,7 +128,9 @@ class QuestGoalPlannerTest
     @Test
     void emptyJournalFallsThroughToAcquire()
     {
-        GoalDecision d = QuestGoalPlanner.decide(10, new ArrayList<>(), 0, 0, 0);
+        // Player stands on the Gludio giver so 40001 (5-15) is reachable (from world origin every
+        // giver is > 20k away and the gate would correctly return null instead of a doomed route).
+        GoalDecision d = QuestGoalPlanner.decide(10, new ArrayList<>(), NPC_X, NPC_Y, NPC_Z);
         assertNotNull(d, "empty journal falls through to ACQUIRE (level 10 has quests)");
         assertEquals(PlayerGoal.ACQUIRE, d.goal);
         assertEquals(GoalAction.MOVE_TO, d.action);
@@ -121,19 +139,21 @@ class QuestGoalPlannerTest
     @Test
     void noActiveQuestAcquiresLevelAppropriateQuest()
     {
-        // level 10 (Human, any class): 40001 (5-15) is available -> ACQUIRE toward its giver.
-        GoalDecision d = QuestGoalPlanner.decide(10, journal(), 0, 0, 0);
+        // level 10 (Human, any class): 40001 (5-15) is available and its giver is right here ->
+        // ACQUIRE toward the local reachable giver, not the far-away one.
+        GoalDecision d = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z);
         assertNotNull(d);
         assertEquals(PlayerGoal.ACQUIRE, d.goal);
         assertEquals(GoalAction.MOVE_TO, d.action);
         assertTrue(d.label.startsWith("acquire:"), "label marks it as a quest to pick up, got " + d.label);
-        assertTrue(d.targetX != 0 || d.targetY != 0, "acquire has a real destination");
+        assertEquals(NPC_X, d.targetX, "nearest reachable giver drives the destination");
+        assertEquals(NPC_Y, d.targetY);
     }
 
     @Test
     void nullJournalIsTreatedAsEmpty()
     {
-        GoalDecision d = QuestGoalPlanner.decide(10, null, 0, 0, 0);
+        GoalDecision d = QuestGoalPlanner.decide(10, null, NPC_X, NPC_Y, NPC_Z);
         assertNotNull(d);
         assertEquals(PlayerGoal.ACQUIRE, d.goal);
     }
@@ -144,6 +164,75 @@ class QuestGoalPlannerTest
         // level 900 exceeds every quest's maxLevel -> nothing to acquire -> null (plain farm).
         assertNull(QuestGoalPlanner.decide(900, journal(), 0, 0, 0),
             "no acquirable quest -> null so the controller falls back to farming");
+    }
+
+    // ================================================================
+    // ACQUIRE REACHABILITY GATE (MAX_ACQUIRE_DIST)
+    // ================================================================
+
+    @Test
+    void unreachableQuestGiverSkippedReturnsNull()
+    {
+        // Talking Island-style spot far from every giver a Human can take at level 10: quests 40001
+        // (Gludio) and 30002 (Elven Village) ARE available but sit 200k+ units away (the nearer
+        // Dwarven Village givers are RACE_DWARF-locked, so not candidates). No reachable giver ->
+        // null so the caller falls back to plain farming instead of re-looping the same doomed route.
+        assertNull(QuestGoalPlanner.decide(10, journal(), FAR_PLAYER_X, FAR_PLAYER_Y, -3000),
+            "all available quest givers farther than " + QuestGoalPlanner.MAX_ACQUIRE_DIST
+                + " -> null (plain farm)");
+    }
+
+    @Test
+    void reachableQuestGiverPickedWhenAvailable()
+    {
+        // Player stands right on the 40001 giver (Trader, Gludio) -> the gate lets it through.
+        GoalDecision d = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z);
+        assertNotNull(d, "a quest giver within reach yields an ACQUIRE decision");
+        assertEquals(PlayerGoal.ACQUIRE, d.goal);
+        assertEquals(GoalAction.MOVE_TO, d.action);
+        double toGiver = dist(NPC_X, NPC_Y, NPC_Z, d.targetX, d.targetY, d.targetZ);
+        assertTrue(toGiver <= QuestGoalPlanner.MAX_ACQUIRE_DIST,
+            "best target within MAX_ACQUIRE_DIST of the player, was " + toGiver);
+        assertTrue(d.label.startsWith("acquire:Spider Silk Collection"),
+            "reachable local quest is the one picked, got " + d.label);
+    }
+
+    @Test
+    void nearestReachableQuestChosenWhenSeveral()
+    {
+        // Level 10 (Human) offers exactly two quests: 40001 "Spider Silk" (giver Gludio, rec 10) and
+        // 30002 "Lizardmen Hunt" (giver Elven Village, rec 12). Their givers are ~93k units apart, so
+        // no single position is within 20k of BOTH — this asserts both halves of the pick: the far
+        // quest is gated out and, among the reachable ones, the NEAREST giver wins (not the highest
+        // recommendedLevel, which would be the findAvailable sort-first behavior).
+        GoalDecision atGludio = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z);
+        assertNotNull(atGludio);
+        assertEquals(PlayerGoal.ACQUIRE, atGludio.goal);
+        assertEquals(NPC_X, atGludio.targetX, "player at Gludio picks the local giver (40001)");
+        assertEquals(NPC_Y, atGludio.targetY);
+        assertTrue(atGludio.label.contains("Spider Silk Collection"), "got " + atGludio.label);
+
+        GoalDecision atElven = QuestGoalPlanner.decide(10, journal(), ELVEN_GIVER_X, ELVEN_GIVER_Y, NPC_Z);
+        assertNotNull(atElven);
+        assertEquals(PlayerGoal.ACQUIRE, atElven.goal);
+        assertEquals(ELVEN_GIVER_X, atElven.targetX,
+            "player at Elven Village picks the local giver (30002), not the rec-10 40001");
+        assertEquals(ELVEN_GIVER_Y, atElven.targetY);
+        assertTrue(atElven.label.contains("Lizardmen Hunt"), "got " + atElven.label);
+    }
+
+    @Test
+    void sameDistanceGiverTieBreaksByRecommendedLevel()
+    {
+        // Level 35 (Human): many quests share the single Gludio giver — 40004 "Undead Ash" (rec 42)
+        // must win the distance tie over 30007 (rec 38) and the rec-37 class-change trials.
+        GoalDecision d = QuestGoalPlanner.decide(35, journal(), NPC_X, NPC_Y, NPC_Z);
+        assertNotNull(d);
+        assertEquals(PlayerGoal.ACQUIRE, d.goal);
+        assertEquals(NPC_X, d.targetX);
+        assertEquals(NPC_Y, d.targetY);
+        assertTrue(d.label.startsWith("acquire:Undead Ash Collection"),
+            "equal-distance givers tie-break by higher recommendedLevel, got " + d.label);
     }
 
     // ================================================================

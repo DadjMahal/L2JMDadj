@@ -29,6 +29,7 @@ import com.aiplayer.phase0.movement.HopGate;
 import com.aiplayer.phase0.movement.MoveTelemetry;
 import com.aiplayer.phase0.movement.ZoneRouter;
 import com.aiplayer.phase0.movement.ZoneRouter.RouteGoal;
+import com.aiplayer.phase0.play.AcquireCooldown;
 import com.aiplayer.phase0.play.BotPlayController;
 import com.aiplayer.phase0.play.BotPlayController.Hostile;
 import com.aiplayer.phase0.play.BotPlayController.PlayContext;
@@ -139,6 +140,11 @@ public final class FleetPlay
         private boolean questDialogOpen = false;
         private String questLastHtml = null;
         private final Set<String> questSentLinks = new HashSet<>();
+        // ACQUIRE-failure cooldown (per-bot, per-session state; reset() at each runSession start). Stops
+        // the "re-plan the same geo-unreachable ACQUIRE giver forever" loop — e.g. Wolf Hunt at Gludio,
+        // ~148k units across the ocean: after maxUnreachable abandoned goal:acquire:* routes the bot falls
+        // back to plain farming for cooldownMs instead of re-issuing the dead ocean-hop. See AcquireCooldown.
+        private final AcquireCooldown acquireCooldown = new AcquireCooldown();
 
         private BotLoop(String account, int charId, BotInfo info, String host, int loginPort, int gamePort)
         {
@@ -242,6 +248,9 @@ public final class FleetPlay
                 questDialogOpen = false;
                 questSentLinks.clear();
                 questLastHtml = null;
+                // ACQUIRE-failure cooldown: the dialog BYPASS actually drove an accept/turn-in — real quest
+                // progress, so cancel any active cooldown and let the planner author ACQUIRE/QUEST freely.
+                acquireCooldown.reset();
                 LOGGER.info("[FleetPlay] " + account + " quest dialog session complete (accept/turn-in sent); "
                     + "journal will refresh");
             }
@@ -288,6 +297,8 @@ public final class FleetPlay
             int[] pendingHop = null;
             long hopSentAtMs = 0;
             int hopTimeouts = 0; // TIM-001: consecutive timeouts on the current hop (stuck-hop recovery)
+            // ACQUIRE-failure cooldown is per-session run state: a fresh session (reconnect) starts clean.
+            acquireCooldown.reset();
             int prevLevel = info.level;
             long prevExp = -1; // EVIDENCE-H5: StatusUpdate-driven per-kill XP-gain trail
             int prevHp = info.hp;
@@ -302,6 +313,16 @@ public final class FleetPlay
             long lastChatCount = logger.getChatCount();
             while (true)
             {
+                // Broken-pipe / zombie guard: if the game-server reader thread died (EOF / reset /
+                // IOException), the socket is gone. Phase0Wiring.send() swallows the write failure, so
+                // WITHOUT this check the loop would keep planning HOPs against a dead server for hours
+                // (the ~2h CLOSE-WAIT zombie loop in the 2026-08-15 run). Throwing here lets the outer
+                // run() reconnect loop (15s sleep -> fresh runSession) rebuild the connection.
+                if (!gs.isOpen())
+                {
+                    info.connected = false;
+                    throw new IOException("GS connection lost (reader stopped)");
+                }
                 BotSnapshot snapshot = BotSnapshot.from(account, logger);
                 // Dashboard data layer — feed BotInfo from the REAL PacketLogger state
                 // (UserInfo 0x04 / StatusUpdate 0x0E / ValidateLocation 0x61 / ItemList 0x1B).
@@ -583,6 +604,19 @@ public final class FleetPlay
                             // single validated bypass) instead of routing; otherwise behave exactly as
                             // STEP 1 (MOVE_TO quest NPC / random far-travel fallback).
                             GoalDecision goal = BotPlayController.decide(buildPlayContext(snapshot, logger));
+                            // ACQUIRE-failure cooldown: with an empty journal the planner keeps re-issuing the
+                            // same ACQUIRE giver, but a geo-unreachable one (Wolf Hunt at Gludio, ~148k across the
+                            // ocean) only produces abandoned routes. While the cooldown is armed, null the goal so
+                            // the ZoneRouter.plan fallback below runs plain far-travel farming until the window
+                            // expires, instead of re-launching the dead ocean-hop route every 300ms tick.
+                            if (goal != null && goal.goal == PlayerGoal.ACQUIRE
+                                    && acquireCooldown.isSuppressed(System.currentTimeMillis()))
+                            {
+                                LOGGER.info("[FleetPlay] " + account + " ACQUIRE suppressed by cooldown until "
+                                    + acquireCooldown.cooldownUntilMs()
+                                    + "; plain farming while the giver is geo-unreachable");
+                                goal = null;
+                            }
                             // STEP 4: RETREAT is urgent — flee immediately via the controller's
                             // clamped retreat hop. Skip route planning (the destination is one hop).
                             if (goal != null && goal.action == GoalAction.RETREAT
@@ -703,6 +737,36 @@ public final class FleetPlay
                                             LOGGER.warning("[FleetPlay] " + account + " hop unreachable after "
                                                 + hopTimeouts + " timeouts -> abandoning route "
                                                 + activeRoute.label + " (" + pendingHop[0] + "," + pendingHop[1] + ")");
+                                            // Remember this destination as geo-unreachable so ZoneRouter.plan
+                                            // won't deterministically re-select the SAME zone/far point on the
+                                            // next re-plan (post-respawn 54-HOP / 27-abandon loop fix).
+                                            if (activeRoute != null)
+                                            {
+                                                zoneRouter.noteUnreachableDestination(activeRoute.destX, activeRoute.destY);
+                                            }
+                                            // ACQUIRE-failure cooldown: an abandoned goal:acquire:* route means the
+                                            // giver is geo-unreachable from here (empty journal + ~148k-unit ocean hop
+                                            // the server never walks the char toward). Count the abort; once the
+                                            // threshold is hit, ACQUIRE is suppressed below so the ZoneRouter.plan
+                                            // fallback runs plain far-travel farming instead of re-issuing this route.
+                                            if (activeRoute.label != null && activeRoute.label.startsWith("goal:acquire:"))
+                                            {
+                                                acquireCooldown.recordUnreachableAbort(now);
+                                                if (acquireCooldown.isSuppressed(now))
+                                                {
+                                                    LOGGER.warning("[FleetPlay] " + account + " ACQUIRE cooldown armed: "
+                                                        + acquireCooldown.unreachableCount() + "/"
+                                                        + acquireCooldown.maxUnreachable()
+                                                        + " unreachable abandons; falling back to plain farming");
+                                                }
+                                                else
+                                                {
+                                                    LOGGER.info("[FleetPlay] " + account + " ACQUIRE unreachable abort "
+                                                        + acquireCooldown.unreachableCount() + "/"
+                                                        + acquireCooldown.maxUnreachable()
+                                                        + "; one more abort suppresses the ocean-hop goal");
+                                                }
+                                            }
                                             activeRoute = null;
                                             pendingHop = null;
                                             hopSentAtMs = 0;
@@ -778,6 +842,12 @@ public final class FleetPlay
                 }
             }
             java.util.List<int[]> journal = logger.getActiveQuestList();
+            // ACQUIRE-failure cooldown: a non-empty journal is real quest progress (an accept/turn-in the
+            // server actually recorded) — clear any suppression so the planner authors ACQUIRE/QUEST freely.
+            if (journal != null && !journal.isEmpty())
+            {
+                acquireCooldown.reset();
+            }
             return new PlayContext(s.level, s.x, s.y, s.z, s.hpCurrent, s.hpMax,
                 journal != null ? journal : java.util.Collections.<int[]>emptyList(),
                 hostiles, 0, s.inventoryUsagePercent);

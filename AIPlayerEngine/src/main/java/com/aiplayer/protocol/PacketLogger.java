@@ -28,6 +28,14 @@ public class PacketLogger
    public static final int OP_DELETE_OBJECT = 0x12;
    public static final int OP_NPC_INFO = 0x16;
    public static final int OP_ITEM_LIST = 0x1B;
+   // TIM-001 movement-sync: the server broadcasts CHAR_MOVE_TO_LOCATION (0x01) at MOVE_START and
+   // STOP_MOVE (0x47) when the char reaches its destination / stops. Interlude clients lerp the walk
+   // client-side, so the server does NOT stream ValidateLocation(0x61) per-tick during a walk — a bot
+   // that only parses 0x61 saw itself as a frozen dot and every hop route was "abandoned as
+   // unreachable" 45s after the server had actually already walked it to the target (live-verified:
+   // gameserver.characters x/y/z == the hunt target coords while the bot's local position never moved).
+   public static final int OP_CHAR_MOVE_TO_LOCATION = 0x01; // [objId][xDest][yDest][zDest][x][y][z]
+   public static final int OP_STOP_MOVE = 0x47;             // [objId][x][y][z][heading]
    public static final int OP_VALIDATE_LOCATION = 0x61;
    // WPT-22: SystemMessage server opcode. NOTE: the ticket mentions 0x5A but the verified
    // SourceCode ServerPackets.java enum maps SYSTEM_MESSAGE to 0x64 (0x5A is VEHICLE_DEPARTURE),
@@ -254,6 +262,13 @@ public class PacketLogger
             case OP_USER_INFO:
                parseUserInfo(buf);
                break;
+            // Movement-sync: server broadcast at MOVE_START / STOP (see layout comments at constants).
+            case OP_CHAR_MOVE_TO_LOCATION:
+               parseCharMoveToLocation(buf);
+               break;
+            case OP_STOP_MOVE:
+               parseStopMove(buf);
+               break;
             case OP_VALIDATE_LOCATION:
                parseValidateLocation(buf);
                break;
@@ -468,6 +483,93 @@ public class PacketLogger
       catch (Exception e)
       {
          LOGGER.fine("[" + playerName + "] ValidateLocation parse incomplete");
+      }
+   }
+
+   /**
+    * Parse CharMoveToLocation packet (opcode 0x01, SERVER->CLIENT). Layout from
+    * serverpackets/MoveToLocation.java writeImpl (Interlude): [objId][xDest][yDest][zDest][x][y][z].
+    * The server broadcasts this to every known player when a Creature starts a walk. Interlude does
+    * NOT stream ValidateLocation per-tick while walking, so this is the ONLY mid-walk self-position
+    * feed the bot has; without it the engine's playerX/Y/Z stays frozen at the last UserInfo stop and
+    * the fleet's hop routes are abandoned as "unreachable" even though the server walked the char
+    * exactly there (live-verified TIM-001 / 2026-08-15).
+    */
+   private void parseCharMoveToLocation(ByteBuffer buf)
+   {
+      try
+      {
+         int objId = buf.getInt();
+         int xDest = buf.getInt();
+         int yDest = buf.getInt();
+         int zDest = buf.getInt();
+         int x = buf.getInt();
+         int y = buf.getInt();
+         int z = buf.getInt();
+         boolean isSelf = selfObjectId == 0 || objId == selfObjectId;
+         EntityInfo entity = entitiesById.get(objId);
+         if (entity != null)
+         {
+            entity.x = x;
+            entity.y = y;
+            entity.z = z;
+         }
+         if (isSelf)
+         {
+            playerX = x;
+            playerY = y;
+            playerZ = z;
+            if (buf.remaining() >= 4)
+            {
+               playerHeading = buf.getInt();
+            }
+         }
+         LOGGER.fine("[" + playerName + "] CHAR_MOVE_TO_LOCATION objId=" + objId
+            + " cur=(" + x + "," + y + "," + z + ") dest=(" + xDest + "," + yDest + "," + zDest
+            + ") self=" + isSelf);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] CharMoveToLocation parse incomplete");
+      }
+   }
+
+   /**
+    * Parse StopMove (opcode 0x47) — the server acknowledges the char reached its destination.
+    * Layout from serverpackets/StopMove.java writeImpl: [objId][x][y][z][heading]. Updates the
+    * self position to the server-confirmed arrival point (and any tracked entity).
+    */
+   private void parseStopMove(ByteBuffer buf)
+   {
+      try
+      {
+         int objId = buf.getInt();
+         int x = buf.getInt();
+         int y = buf.getInt();
+         int z = buf.getInt();
+         int heading = buf.remaining() >= 4 ? buf.getInt() : 0;
+         boolean isSelf = selfObjectId == 0 || objId == selfObjectId;
+         EntityInfo entity = entitiesById.get(objId);
+         if (entity != null)
+         {
+            entity.x = x;
+            entity.y = y;
+            entity.z = z;
+            entity.heading = heading;
+         }
+         if (isSelf)
+         {
+            playerX = x;
+            playerY = y;
+            playerZ = z;
+            playerHeading = heading;
+         }
+         LOGGER.fine("[" + playerName + "] STOP_MOVE objId=" + objId
+            + " pos=(" + x + "," + y + "," + z + ") self=" + isSelf);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] StopMove parse incomplete");
       }
    }
 

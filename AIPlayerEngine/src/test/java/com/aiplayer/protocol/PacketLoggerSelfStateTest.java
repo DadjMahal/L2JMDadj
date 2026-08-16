@@ -96,6 +96,83 @@ public class PacketLoggerSelfStateTest
    }
 
    @Test
+   public void charMoveToLocationUpdatesSelfPositionMidWalk()
+   {
+      // Server MoveToLocation.java writeImpl (CHAR_MOVE_TO_LOCATION 0x01):
+      // [objId][xDest][yDest][zDest][x][y][z] — the current position is carried last.
+      PacketLogger logger = new PacketLogger("CombatBot_01");
+      logger.setSelfObjectId(100000);
+
+      ByteBuffer b = payload(0x01);
+      b.putInt(100000);                 // objId
+      b.putInt(-80591);                 // destination x
+      b.putInt(240497);                 // destination y
+      b.putInt(-3639);                  // destination z
+      b.putInt(-81000);                 // current x (mid-walk)
+      b.putInt(240200);                 // current y
+      b.putInt(-3635);                  // current z
+      send(b, logger);
+
+      assertEquals(-81000, logger.getPlayerX(), "self X must track the server broadcast");
+      assertEquals(240200, logger.getPlayerY());
+      assertEquals(-3635, logger.getPlayerZ());
+   }
+
+   @Test
+   public void stopMoveConfirmsArrivalPosition()
+   {
+      // Server StopMove.java writeImpl (STOP_MOVE 0x47): [objId][x][y][z][heading].
+      PacketLogger logger = new PacketLogger("CombatBot_01");
+      logger.setSelfObjectId(100000);
+
+      ByteBuffer b = payload(0x47);
+      b.putInt(100000);
+      b.putInt(-80591);                 // arrived x = the hunt target from the live run
+      b.putInt(240497);                 // arrived y
+      b.putInt(-3639);                  // arrived z
+      b.putInt(4096);                   // heading
+      send(b, logger);
+
+      assertEquals(-80591, logger.getPlayerX(), "StopMove is the server-confirmed arrival");
+      assertEquals(240497, logger.getPlayerY());
+      assertEquals(-3639, logger.getPlayerZ());
+      assertEquals(4096, logger.getPlayerHeading());
+   }
+
+   @Test
+   public void charMoveToLocationForOtherEntityDoesNotMoveSelf()
+   {
+      PacketLogger logger = new PacketLogger("CombatBot_01");
+      logger.setSelfObjectId(100000);
+
+      // Seed self position with a CharInfo first.
+      ByteBuffer seed = payload(0x03);
+      seed.putInt(-79052);
+      seed.putInt(239857);
+      seed.putInt(-3639);
+      seed.putInt(0);                   // vehicle
+      seed.putInt(100000);              // objId
+      putString(seed, "CombatBot_01");
+      seed.putInt(0);
+      seed.putInt(0);
+      seed.putInt(0);
+      send(seed, logger);
+
+      ByteBuffer b = payload(0x01);
+      b.putInt(268461977);              // a wolf objId
+      b.putInt(-80591);
+      b.putInt(240497);
+      b.putInt(-3639);
+      b.putInt(-80000);
+      b.putInt(240000);
+      b.putInt(-3630);
+      send(b, logger);
+
+      assertEquals(-79052, logger.getPlayerX(), "another entity's move must not move self");
+      assertEquals(239857, logger.getPlayerY());
+   }
+
+   @Test
    public void statusUpdateLevelAndExpAttributesAreCaptured()
    {
       PacketLogger logger = new PacketLogger("CombatBot_01");

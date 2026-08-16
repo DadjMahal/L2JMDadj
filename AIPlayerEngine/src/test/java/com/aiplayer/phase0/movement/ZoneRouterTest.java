@@ -184,11 +184,90 @@ class ZoneRouterTest
     }
 
     @Test
+    void skipsRecentlyAbandonedFarmZoneInsteadOfReplanningToSameDestination()
+    {
+        // Regression: post-respawn re-loop. When a farm-zone route is abandoned as unreachable, the
+        // NEXT plan must NOT deterministically re-select the SAME zone center (54 HOP / 27-abandon loop).
+        ZoneRouter r = new ZoneRouter("ai_combat_04");
+        ZoneRouter.RouteGoal first = r.plan(5, -87792, 216639, -3619, 4000, 30000);
+        assertNotNull(first);
+        assertTrue(first.label.startsWith("farm:"), "level-5 picks a farm zone first, got " + first.label);
+
+        // Simulate FleetPlay recording that this route was abandoned as unreachable.
+        r.noteUnreachableDestination(first.destX, first.destY);
+
+        ZoneRouter.RouteGoal second = r.plan(5, -87792, 216639, -3619, 4000, 30000);
+        assertNotNull(second, "still plans a route after abandoning one destination");
+        boolean sameDest = second.destX == first.destX && second.destY == first.destY;
+        assertFalse(sameDest, "must not re-plan to the abandoned farm-zone center on the next tick");
+    }
+
+    @Test
+    void abandonedFarPointIsAvoidedByRandomReroll()
+    {
+        // The far-point fallback must also avoid a destination the fleet abandoned as unreachable.
+        ZoneRouter r = new ZoneRouter("ai_combat_05");
+        // Force the far-point branch: abandon every level-5 farm zone center first by re-planning and
+        // abandoning until a far-point is produced, then abandon that far point and re-roll.
+        int[] abandoned = new int[]{-1, -1};
+        for (int i = 0; i < 16; i++)
+        {
+            ZoneRouter.RouteGoal g = r.plan(5, -87792, 216639, -3619, 4000, 30000);
+            assertNotNull(g);
+            if (g.label.equals("far-point"))
+            {
+                abandoned[0] = g.destX;
+                abandoned[1] = g.destY;
+                break;
+            }
+            r.noteUnreachableDestination(g.destX, g.destY);
+        }
+        assertTrue(abandoned[0] != -1, "a far-point was produced after abandoning all farm zones");
+
+        r.noteUnreachableDestination(abandoned[0], abandoned[1]);
+        ZoneRouter.RouteGoal next = r.plan(5, -87792, 216639, -3619, 4000, 30000);
+        assertNotNull(next, "still plans after abandoning the far point");
+        boolean same = next.destX == abandoned[0] && next.destY == abandoned[1];
+        assertFalse(same, "re-roll must avoid the abandoned far point");
+    }
+
+    @Test
     void routeToDegenerateDestinationReturnsNullToAllowFallback()
     {
         // Same spot -> nothing to route; FleetPlay falls back to a random far-travel point.
         assertNull(ZoneRouter.routeTo(-82759, 250149, -3600, -82759, 250149, -3600, "goal:x", "dup"));
         // Not in-world -> refuse to route.
         assertNull(ZoneRouter.routeTo(0, 0, 0, 100, 100, 0, "goal:x", "pre-world"));
+    }
+
+    @Test
+    void slopedRouteInterpolatesZAcrossHopsAndLandsExactlyAtDestZ()
+    {
+        // Regression: intermediate hops used to carry destZ directly, so on a sloped route the
+        // first hop was sent at the final (cliff) Z over the intermediate terrain — the server's
+        // isCompletelyBlocked(geoX, geoY, _targetZ) geo-cell check in MoveToLocation.java:90 could
+        // reject it and stall a reachable route as "hop unreachable". Each hop's Z must follow the
+        // linear slope; the last hop lands exactly on destZ. Realistic case: TI char at z=-3619
+        // routing to Ruins of Agony (z=-3000) — the level-20 farm route from the live run.
+        java.util.List<int[]> hops = ZoneRouter.buildHops(0, 0, -3619, 21000, 0, -3000);
+        assertTrue(hops.size() >= 3, "sloped 21k route splits into >=3 hops, got " + hops.size());
+        int[] first = hops.get(0);
+        int[] last = hops.get(hops.size() - 1);
+        assertTrue(first[2] > -3619 && first[2] < -3000,
+            "first hop Z is partway up the slope (got " + first[2] + "), not the destination Z");
+        assertTrue(first[2] != -3000, "first hop must NOT carry the destination Z (was the pre-fix bug)");
+        assertEquals(-3000, last[2], "last hop lands exactly on the destination Z");
+        int prevZ = -3619;
+        for (int[] hop : hops)
+        {
+            assertTrue(hop[2] > prevZ && hop[2] <= -3000,
+                "Z climbs monotonically toward dest along the slope (got " + hop[2] + ")");
+            prevZ = hop[2];
+        }
+        // A truly flat route keeps z == fromZ on every hop (existing behaviour preserved).
+        for (int[] hop : ZoneRouter.buildHops(0, 0, -3619, 21000, 0, -3619))
+        {
+            assertEquals(-3619, hop[2], "flat route keeps the origin Z on every hop");
+        }
     }
 }

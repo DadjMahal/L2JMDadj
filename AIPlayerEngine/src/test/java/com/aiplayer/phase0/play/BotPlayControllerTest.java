@@ -147,11 +147,16 @@ class BotPlayControllerTest
     @Test
     void noActiveQuestAcquiresLevelAppropriateQuest()
     {
+        // Player stands ON the Gludio giver (NPC_X,NPC_Y) so quest 40001 is reachable. From world
+        // origin (0,0,0) every giver is > QuestGoalPlanner.MAX_ACQUIRE_DIST away, so the reachability
+        // gate correctly returns null -> REST (plain-farming fallback) instead of a doomed route.
         GoalDecision d = BotPlayController.decide(
-            ctx(10, 0, 0, 90, 100, journal(), hostiles()));
+            ctx(10, NPC_X, NPC_Y, 90, 100, journal(), hostiles()));
         assertNotNull(d, "no quest + no target -> go acquire");
         assertEquals(PlayerGoal.ACQUIRE, d.goal);
         assertEquals(GoalAction.MOVE_TO, d.action);
+        assertEquals(NPC_X, d.targetX, "acquire destination is the reachable local giver");
+        assertEquals(NPC_Y, d.targetY);
     }
 
     @Test

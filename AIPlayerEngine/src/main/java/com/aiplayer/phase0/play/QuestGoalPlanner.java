@@ -17,6 +17,16 @@ public final class QuestGoalPlanner
     /** Class param 0 = any class. */
     private static final int CLASS_ANY = 0;
 
+    /**
+     * MODE: reachability gate for the acquire step. The world is ~1.5M units across and
+     * humans/elves spawn on Talking Island while most quest givers sit on the mainland — a
+     * 120k+ unit ocean crossing. Sending the fleet on that crossing every idle tick produces
+     * the live-verified hop-unreachable acquire loop (giver far away -> <=4800u hops never walk
+     * the char toward the fleet -> route abandoned -> same goal re-decided next tick). A 20k gate
+     * keeps the bot farming locally and only sends it to givers it can actually walk to.
+     */
+    public static final int MAX_ACQUIRE_DIST = 20_000;
+
     private QuestGoalPlanner()
     {
     }
@@ -114,6 +124,12 @@ public final class QuestGoalPlanner
     {
         List<QuestInfo> available =
             QuestDatabase.findAvailable(playerLevel, RACE_HUMAN, CLASS_ANY, Collections.emptySet());
+
+        QuestInfo best = null;
+        long bestDistSq = Long.MAX_VALUE;
+        int bestX = 0;
+        int bestY = 0;
+        int bestZ = 0;
         for (QuestInfo q : available)
         {
             if (q.steps.isEmpty())
@@ -124,14 +140,48 @@ public final class QuestGoalPlanner
             int cx = s.zoneX != 0 ? s.zoneX : playerX;
             int cy = s.zoneY != 0 ? s.zoneY : playerY;
             int cz = s.zoneZ;
-            // STEP 2: carry the giver NPC id (the step's talk target) so the fleet loop knows WHO to
-            // open the accept dialog with once the bot reaches the landmark (questTargetId).
-            return GoalDecision.questMove(
-                PlayerGoal.ACQUIRE, cx, cy, cz, s.targetId,
-                "acquire:" + q.name,
-                "no active quest; go get " + q.name + " from " + q.startNpc);
+            // Reachability gate: skip givers farther than MAX_ACQUIRE_DIST. Routing the fleet
+            // across the ocean just to accept a quest dead-ends in hop timeouts every idle tick
+            // (the live-verified loop) — only local givers are worth an ACQUIRE decision.
+            long distSq = distSq(playerX, playerY, playerZ, cx, cy, cz);
+            long maxSq = (long) MAX_ACQUIRE_DIST * MAX_ACQUIRE_DIST;
+            if (distSq > maxSq)
+            {
+                continue;
+            }
+            // Among reachable givers prefer the NEAREST one; break distance ties by higher
+            // recommended level so the bot picks the most useful local quest.
+            if (best == null || distSq < bestDistSq
+                || (distSq == bestDistSq && q.recommendedLevel > best.recommendedLevel))
+            {
+                best = q;
+                bestDistSq = distSq;
+                bestX = cx;
+                bestY = cy;
+                bestZ = cz;
+            }
         }
-        return null; // nothing to acquire -> caller falls through to plain farming
+        if (best == null)
+        {
+            // No reachable quest giver -> caller falls through to plain farming (was the dead
+            // null-fallback in the live loop; now it is the desired fail-safe).
+            return null;
+        }
+        // Carry the giver NPC id (the step's talk target) so the fleet loop knows WHO to open the
+        // accept dialog with once the bot reaches the landmark (questTargetId).
+        return GoalDecision.questMove(
+            PlayerGoal.ACQUIRE, bestX, bestY, bestZ, best.steps.get(0).targetId,
+            "acquire:" + best.name,
+            "no active quest; go get " + best.name + " from " + best.startNpc);
+    }
+
+    /** Squared 3-D distance (long math, coords up to ~1.5M fit easily) — avoids sqrt in the gate. */
+    private static long distSq(int ax, int ay, int az, int bx, int by, int bz)
+    {
+        long dx = (long) ax - bx;
+        long dy = (long) ay - by;
+        long dz = (long) az - bz;
+        return dx * dx + dy * dy + dz * dz;
     }
 
     private static String zone(QuestStep s)
