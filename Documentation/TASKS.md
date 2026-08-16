@@ -28,6 +28,7 @@
 | **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `DONE` | play-builder |
 | **STEP 5** | Despawned-target (`DeleteObject`) lifecycle: bots stuck chasing a corpse after despawn — verify recovery on the P2 fixed build | `DONE (verified 3d97fe53; fleet-wide consistency split out → STEP 6)` | play-builder |
 | **STEP 6** | Idle-relocation empty-zone dead-end: a bot with no hostiles in range freezes (`movedLast60=0`) because idle far-travel MoveToLocation doesn't persist server movement — route toward last-XP / nearest mate, progressive-abandon escape gate | `TODO` | play-builder |
+| **GUIDE-MAP** | Per-race/profession guide map for the bots from real Interlude sources — profession tree (`classList.xml`), newbie Q1→Q10 + tutorial, Path Q401–418, Trial/Q235 pool Q211–235, Saga Q70–100, teleport legs + hunt zones, `idleAnchor` returns real in-world coords (fixes the void-spot idle) | `DONE-PUSHED ce3e2426` | play-builder |
 
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |
@@ -52,6 +53,14 @@
   `DONE (verified)`; fleet-wide consistency logged as **STEP 6** (route toward last-XP / nearest mate, escape gate).
   No engine change this session — build unchanged (`06906195` / `b558d4f6`).
 ## 5. Changelog (newest last)
+- **2026-08-16 · play-builder:** **GUIDE-MAP** landed (`ce3e2426`) — `com.aiplayer.phase0.guide.RaceGuide`
+  is the per-race/profession path map with real sourced coordinates (newbie/Path/trial/Saga chain,
+  teleport legs + BFS, hunt-zone bands, `idleAnchor` for real-world idle). Every quest NPC spawn
+  verified against `spawns/*.xml`; town centroids from `custom_town.xml`; saga quests registered as
+  Aden-hub events. New `RaceGuideTest` (14 tests, all 315 green) validates each race's full chain
+  (e.g. Human Fighter→Warrior→Gladiator→Duelist Q401/Q211/Q73) and that no registered node uses the
+  void `(16600,17000,434)`. Steps 5/6 in the play lane unchanged; guide-map now offers STEP 6 a real
+  idle displacement coordinate source.
 - **2026-08-16 · play-builder:** STEP 5 claimed `IN_PROGRESS` — 4/5 fleet stall after `DeleteObject`
   (the STEP 3 closure follow-up). P0/P1/P2 farming fix set live-verified single-bot (sustained XP/min +
   reconnect, `06906195` + `b558d4f6`); STEP 5 re-probes the same lifecycle with the full 5-bot fleet on
