@@ -26,7 +26,8 @@
 | **STEP 2** | Quest accept/turn-in live loop (accept → do → turn-in) | `DONE-PUSHED c4ee832a` | play-builder |
 | **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `DONE-PUSHED 94993a25` | play-builder |
 | **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `DONE` | play-builder |
-| **STEP 5** | Fleet-wide target lifecycle: 4/5 bots stall after `DeleteObject` (despawned target) — recover all-bots farming on the P2 fixed build | `IN_PROGRESS (play-builder)` | play-builder |
+| **STEP 5** | Despawned-target (`DeleteObject`) lifecycle: bots stuck chasing a corpse after despawn — verify recovery on the P2 fixed build | `DONE (verified 3d97fe53; fleet-wide consistency split out → STEP 6)` | play-builder |
+| **STEP 6** | Idle-relocation empty-zone dead-end: a bot with no hostiles in range freezes (`movedLast60=0`) because idle far-travel MoveToLocation doesn't persist server movement — route toward last-XP / nearest mate, progressive-abandon escape gate | `TODO` | play-builder |
 
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |
@@ -38,6 +39,18 @@
 | `Documentation/**` (incl. this board) | **doc-sweeper** | docs + board upkeep |
 | `scripts/**` | **play-builder** | helper tools |
 
+- **2026-08-16 · play-builder:** STEP 5 (4/5 despawned-target stall) verified on the P2 fixed build via a 1h50m
+  `FleetPlay 5 … movement` soak (`Documentation/RuntimeLogs/2026-08-16-step5-fleet-despawned-target.md`). The
+  `DeleteObject` corpse-chase lifecycle is FIXED — **1606 RE_TARGET** despawn-hop transitions, 1468 organic kill-XP
+  receipts, 0 server exceptions, no bot stuck on a corpse; all 5 chars accumulated large persisted XP (01
+  `14941→17880`, 02 `4438→27647`, 03 `3844→25191`, 04 `3665→27918`, 05 `4170→23343`; DB flush confirms persistence;
+  02/03/04/05 → L8). **New residual root (→ STEP 6):** 02/04 ended as a persistent idle-relocation dead-end —
+  `AUTO_PLAY`, `target=null`, `movedLast60=0` (server never moved the char) frozen at `(-95544,246398)` /
+  `(-97264,244673)` while the client kept issuing time-stamped far-point `HOP → … → hop unreachable → abandoning
+  route` churn (196 fleet-wide abandons). Distinct from the despawned-target lifecycle (which is fixed): an
+  out-of-hostile bot's idle far-travel does not persist server movement, so it freezes in place. STEP 5 marked
+  `DONE (verified)`; fleet-wide consistency logged as **STEP 6** (route toward last-XP / nearest mate, escape gate).
+  No engine change this session — build unchanged (`06906195` / `b558d4f6`).
 ## 5. Changelog (newest last)
 - **2026-08-16 · play-builder:** STEP 5 claimed `IN_PROGRESS` — 4/5 fleet stall after `DeleteObject`
   (the STEP 3 closure follow-up). P0/P1/P2 farming fix set live-verified single-bot (sustained XP/min +
