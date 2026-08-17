@@ -61,12 +61,12 @@
 | S2-T01 | LoginCrypt parity/padding property tests | M | P1 | DONE-PUSHED d653ab1e |
 | S2-T02 | GameCrypt key handling verified at 50 concurrent sessions | M | P1 | DONE-PUSHED 6ce4b56d |
 | S2-T03 | PacketLogger NPC_INFO tests for multi-race entities | M | P2 | DONE-PUSHED 5b56a768 |
-| S2-T04 | Per-bot packet loss/drop metrics | M | P1 | TODO |
+| S2-T04 | Per-bot packet loss/drop metrics | M | P1 | DONE-PUSHED 408a3b4c |
 | S2-T05 | Decode CharSelectInfo (name/class/race) instead of slot-only select | M | P1 | TODO |
 | S2-T06 | QUEST_LIST/SystemMessage decode coverage | M | P2 | DONE-PUSHED 5b56a768 |
 | S2-T07 | Reconnect backoff (avoid 50-bot thundering herd) | M | P0 | DONE-PUSHED 25f071df |
 | S2-T08 | Socket read-timeout/keepalive tuning for 50-bot load | M | P1 | DONE-PUSHED 25f071df |
-| S2-T09 | Structured JSON event log for the fleet watcher | M | P1 | TODO |
+| S2-T09 | Structured JSON event log for the fleet watcher | M | P1 | DONE-PUSHED 408a3b4c |
 | S2-T10 | Protocol-version guard (server mismatch detection) | E | P2 | DONE-PUSHED 2e04ba69 |
 
 ### Session 3 — Quest pillar — live accept/complete/turn-in (the ONE-goal gap)
@@ -176,7 +176,7 @@
 | S10-T04 | Kill dead imports across the 95 PARTIAL files | M | P2 | TODO |
 | S10-T05 | Consolidate config loading (AIConfiguration central) | M | P2 | TODO |
 | S10-T06 | Remove obsolete probes (superseded by FleetPlay) | M | P2 | TODO |
-| S10-T07 | Single logging convention (java.util.logging vs slf4j) | M | P2 | TODO |
+| S10-T07 | Single logging convention (java.util.logging vs slf4j) | M | P2 | DONE-PUSHED (verified: java.util.logging only; 159 Logger + 7 Level, 0 slf4j/log4j) |
 | S10-T08 | PARTIAL→COMPLETE conversion with tests (top-10 files) | H | P2 | TODO |
 | S10-T09 | Verify no Redis/Postgres deps (in-memory replacements) | M | P1 | DONE-PUSHED 3efd0c82 |
 | S10-T10 | Final docs sync (TASKS/START_HERE/STATUS) | E | P1 | TODO |
