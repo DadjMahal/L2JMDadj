@@ -37,6 +37,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  * <p>Verification: B's connection observing a 0x4A packet containing the token = the server processed A's chat
  * and delivered it to the other bot. No L2JM server source changed.
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class ChatProbe
 {
     private static final int PROTOCOL_VERSION = 746;

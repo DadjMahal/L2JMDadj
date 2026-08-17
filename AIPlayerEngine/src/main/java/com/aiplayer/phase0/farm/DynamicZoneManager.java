@@ -6,7 +6,6 @@ import com.aiplayer.phase0.GameStateMirror;
 import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.phase0.GameStateMirror.EntitySnapshot;
 import com.aiplayer.phase0.humanize.AntiDetectionEngine;
-import com.aiplayer.phase0.humanize.TimingJitter;
 import com.aiplayer.phase0.movement.MovementController;
 import com.aiplayer.phase0.party.PartyManager;
 import com.aiplayer.phase0.farm.OptimalSpotSelector.Spot; // was missing entirely — genuine compile error, confirmed by external review

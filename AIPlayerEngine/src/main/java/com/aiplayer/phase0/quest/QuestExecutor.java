@@ -2,13 +2,11 @@ package com.aiplayer.phase0.quest;
 
 /** MODE: PARTIAL. Reads from the not-yet-migrated GameStateMirror rather than BotSnapshot — see INTEGRATION_GAPS.md. */
 
-import com.aiplayer.phase0.GameStateMirror;
 import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.phase0.humanize.AntiDetectionEngine;
 import com.aiplayer.phase0.humanize.TimingJitter;
 import com.aiplayer.phase0.movement.MovementController;
 
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Executes quest steps with human-like pacing and failure recovery.

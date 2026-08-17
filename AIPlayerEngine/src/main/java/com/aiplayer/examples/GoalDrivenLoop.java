@@ -36,6 +36,7 @@ import com.aiplayer.protocol.PacketCodec;
  * <p>Usage: {@code java -cp target/classes com.aiplayer.examples.GoalDrivenLoop &lt;account&gt;
  * &lt;pass&gt; [host] [gamePort] [charId] [charSlot] [seedX] [seedY] [seedZ] [seconds]}
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class GoalDrivenLoop
 {
     private static final Logger LOGGER = Logger.getLogger(GoalDrivenLoop.class.getName());

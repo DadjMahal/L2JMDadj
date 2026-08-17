@@ -4,7 +4,6 @@ package com.aiplayer.phase0.quest;
 
 import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.phase0.humanize.AntiDetectionEngine;
-import com.aiplayer.phase0.humanize.TimingJitter;
 
 /**
  * Automates 1st, 2nd, and 3rd class change quest chains.

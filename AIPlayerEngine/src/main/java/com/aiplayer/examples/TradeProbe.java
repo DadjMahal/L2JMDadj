@@ -37,6 +37,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  *   <li>RequestBuyItem(0x1F) = `[0x1F][listId:int][n:int][{itemId:int,count:int}]`. Adena item_id=57.</li>
  * </ul>
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class TradeProbe
 {
     private static final int PROTOCOL_VERSION = 746;

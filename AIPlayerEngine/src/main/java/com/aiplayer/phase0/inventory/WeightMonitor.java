@@ -2,8 +2,6 @@ package com.aiplayer.phase0.inventory;
 
 /** MODE: PARTIAL. Reads from the not-yet-migrated GameStateMirror rather than BotSnapshot — see INTEGRATION_GAPS.md. */
 
-import com.aiplayer.phase0.GameStateMirror;
-import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 
 /**
  * Monitors inventory weight and triggers responses:

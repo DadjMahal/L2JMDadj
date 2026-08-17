@@ -4,11 +4,9 @@ package com.aiplayer.phase0.town;
 
 import com.aiplayer.phase0.ItemSnapshot;
 import com.aiplayer.phase0.BotSnapshot;
-import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.protocol.PacketLogger; // real class now, was never defined under GameStateMirror
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.phase0.town.VendorDatabase.VendorInfo;
-import com.aiplayer.phase0.town.VendorDatabase.VendorType;
 
 import java.util.ArrayList;
 import java.util.HashMap;

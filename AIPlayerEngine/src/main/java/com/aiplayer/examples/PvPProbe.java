@@ -30,6 +30,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  * `[0x05][attackerObjId][targetId][damage][flags][attackerX..Z][(hits-1)][...][targetX..Z]`.
  * DB has `karma/pvpkills/pkkills` for a kill-based bonus proof. No L2JM server source changed.
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class PvPProbe
 {
     private static final int PROTOCOL_VERSION = 746;

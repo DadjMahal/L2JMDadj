@@ -27,6 +27,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  * <p>Server facts (SourceCode): packetEncryption=0 -> plaintext GS channel; classic Socket setSoTimeout
  * is honored; QuestList(0x80) layout confirmed in QuestList.java writeImpl. No L2JM server source changed.
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class QuestProbe
 {
     private static final int PROTOCOL_VERSION = 746;

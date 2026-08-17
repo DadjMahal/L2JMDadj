@@ -6,9 +6,9 @@
 ## 0. The ONE goal
 Make 3–5 AI player bots **actually PLAY the game** — fight, level, travel, pass quests — **never idle**.
 No more audits.
-**Current state (1-liner):** **345/345 tests green**, TIM-001 done (the fleet farms organically,
-plus ultra-smart vol.1 — restock-to-vendor, hunt-zone spread, diverse quest pick), server stack
-runnable on JDK25. All prior historical/audit/evidence docs are archived — do not redo them.
+**Current state (1-liner):** **374/374 tests green**, Sessions 1 & 9 complete (code hygiene +
+ops), **36/100 board tasks done**, 50 random-race bots farming live (dashboard :8210),
+server stack on JDK25. All prior historical/audit/evidence docs are archived — do not redo them.
 
 ## 1. Run it (bring the fleet to life)
 ```bash
@@ -17,24 +17,22 @@ export PATH=~/.jdk/jdk-25.0.4+7/bin:$PATH
 cd /home/dadj/Projects/l24lude/ServerBuild/login && ./LoginServerTask.sh
 cd /home/dadj/Projects/l24lude/ServerBuild/game  && ./GameServerTask.sh
 
-# Fleet of 5 + web dashboard :8080
-cd /home/dadj/Projects/l24lude/AIPlayerEngine \
-  && setsid -f ~/.jdk/jdk-25.0.4+7/bin/java -cp target/classes \
-       com.aiplayer.examples.FleetPlay 5 127.0.0.1 7777 2106 8080 \
-     </dev/null >/tmp/fleet.log 2>&1
-# open http://localhost:8080
+# 50 random-race bot fleet + web dashboard (Servers must be up first)
+cd /home/dadj/Projects/l24lude && scripts/fleet_launch.sh 50 8210 ai_rand_ 500000 ELF,DARK_ELF,ORC,DWARF,HUMAN
+# open http://<host-ip>:8210  (not localhost from another machine)
+# ops during the run: scripts/health_check.sh 50   scripts/rotate_logs.sh   scripts/keep_alive.sh   scripts/backup_db.sh
+# stats: scripts/watch_fleet.sh http://localhost:8210/json /tmp/watch_fleet.log 60 120
 ```
 Build/verify:
 ```bash
 cd /home/dadj/Projects/l24lude/AIPlayerEngine && mvn -o compile && mvn -o test
 ```
 
-## 2. Active lanes (the two board pointers to drive next)
-- **Live quests + ultra-smart wiring** (`STEP 7 done`; next): STEP 2's quest accept/turn-in loop is
-  still gated off by default (`phase0.quest.npcId=0`) — prove accept → complete → turn-in → reward on a
-  LIVE char, then wire the smart planners (RestockPlanner BUY, FleetSpreadPlanner, quest seed) into
-  the running FleetPlay loop and capture live evidence (bots actually walk to vendors, split zones,
-  take different quests).
+## 2. Active lanes (the board pointers to drive next)
+- **Sessions 1 & 9 complete.** Next: **Session 10 remnants** (archive legacy probes/PARTIAL decision,
+  config consolidation, doc final sync), then **the live P0 cluster** — S3 live quest accept→complete→
+  turn-in, S5 solo-bot relocation dead-end (the fleet's periodic idle-wall), S7 town/economy wiring.
+  Watch progress on `Documentation/TASKS.md` (36/100 done).
 
 ## 3. Routing table (live files only)
 | You want to touch | Read first |

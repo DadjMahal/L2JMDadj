@@ -30,6 +30,7 @@ import com.aiplayer.protocol.PacketLogger;
  * <p>Usage: {@code java -cp target/classes com.aiplayer.examples.CombatLoop <account> <pass>
  * [host] [gamePort] [charId] [charSlot] [durationSeconds]}
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class CombatLoop
 {
     private static final Logger LOGGER = Logger.getLogger(CombatLoop.class.getName());

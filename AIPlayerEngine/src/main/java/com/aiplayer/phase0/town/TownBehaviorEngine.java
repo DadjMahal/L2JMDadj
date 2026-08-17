@@ -6,7 +6,6 @@ import com.aiplayer.phase0.GameStateMirror;
 import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.protocol.L2JProtocol;
 
-import java.util.List;
 
 /**
  * Main orchestrator for all town/vendor automation.

@@ -7,7 +7,6 @@ import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.phase0.ItemSnapshot;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.phase0.town.VendorDatabase.VendorInfo;
-import com.aiplayer.phase0.town.VendorDatabase.VendorType;
 import com.aiplayer.phase0.town.ItemValueEstimator.ItemFate;
 
 import java.util.ArrayList;

@@ -31,6 +31,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  * and after; B8 is PROVEN when the DB position moved from the origin toward the destination (and/or movement
  * packets were observed). No L2JM server source changed.
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class MoveProbe
 {
     private static final int PROTOCOL_VERSION = 746;

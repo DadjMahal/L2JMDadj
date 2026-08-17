@@ -21,6 +21,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  *   -> AuthLogin (0x08, game-crypt encrypted): [08][login UTF-16LE+\0][playKey2][playKey1][loginKey1][loginKey2]
  *   -> reads + decrypts subsequent server packets, prints opcode/hex.
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class EnterWorldProbe
 {
     private static final int PROTOCOL_VERSION = 746;

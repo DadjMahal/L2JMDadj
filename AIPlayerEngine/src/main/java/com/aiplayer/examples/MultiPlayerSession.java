@@ -29,6 +29,7 @@ import com.aiplayer.protocol.L2JProtocol;
  * <p>Usage: {@code java -cp target/classes com.aiplayer.examples.MultiPlayerSession
  * [runMinutes] [sliceSeconds]}
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class MultiPlayerSession
 {
     private static final long LOOP_SLEEP_MS = 500;

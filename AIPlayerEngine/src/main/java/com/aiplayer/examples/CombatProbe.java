@@ -40,6 +40,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  * <p>Wire framing mirrors {@link EnterWorldProbe} verbatim (proven by B3): 2-byte self-inclusive size
  * header; plaintext payload {@code [opcode][fields]}.
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class CombatProbe
 {
     private static final int PROTOCOL_VERSION = 746;

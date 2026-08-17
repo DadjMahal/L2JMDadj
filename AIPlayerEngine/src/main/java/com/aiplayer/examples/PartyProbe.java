@@ -38,6 +38,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  * <p>Verification: A's conn seeing PARTY_SMALL_WINDOW_ALL(0x4E) and/or B's conn seeing PARTY_SMALL_WINDOW_ADD(0x4F)
  * = the server created a party and pushed real party windows to both. No L2JM server source changed.
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class PartyProbe
 {
     private static final int PROTOCOL_VERSION = 746;

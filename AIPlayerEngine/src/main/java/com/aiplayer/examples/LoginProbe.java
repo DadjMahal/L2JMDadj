@@ -8,6 +8,7 @@ import com.aiplayer.protocol.L2JProtocol;
  * using the B2 handshake. Prints how far it gets so framing can be iterated.
  * Usage: LoginProbe <account> <password> <charId>
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class LoginProbe {
     public static void main(String[] args) {
         String account = args.length > 0 ? args[0] : "ai_combat_01";

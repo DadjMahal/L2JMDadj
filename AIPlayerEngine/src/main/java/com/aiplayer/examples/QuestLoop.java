@@ -20,6 +20,7 @@ import com.aiplayer.protocol.PacketCodec;
  *
  * Usage: java -cp target/classes com.aiplayer.examples.QuestLoop account pass host gamePort charId seedX seedY seedZ
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class QuestLoop {
     private static final Logger LOGGER = Logger.getLogger(QuestLoop.class.getName());
     private static final int LOGIN_PORT = 2106;

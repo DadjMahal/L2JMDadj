@@ -35,6 +35,7 @@ import com.aiplayer.protocol.PacketLogger;
  *   follow links: 30008-02a.htm -> 30008-02b.htm -> 30008-03.htm (startQuest + gives item 796)
  * Every bypass is read from the html the server actually sent us, so it is always validated.
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public class QuestFlowLoop {
     private static final Logger LOGGER = Logger.getLogger(QuestFlowLoop.class.getName());
     private static final int LOGIN_PORT = 2106;

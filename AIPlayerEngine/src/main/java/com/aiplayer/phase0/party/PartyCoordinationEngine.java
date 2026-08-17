@@ -4,7 +4,6 @@ package com.aiplayer.phase0.party;
 
 import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.phase0.humanize.AntiDetectionEngine;
-import com.aiplayer.phase0.humanize.TimingJitter;
 
 import java.util.HashMap;
 import java.util.Map;

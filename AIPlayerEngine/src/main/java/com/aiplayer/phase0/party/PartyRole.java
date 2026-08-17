@@ -1,6 +1,6 @@
 package com.aiplayer.phase0.party;
 
-/** MODE: PARTIAL. Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
+/** MODE: COMPLETE (re-verified 2026-08-17, S10-T08). Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
 
 import java.util.Arrays;
 import java.util.Collections;

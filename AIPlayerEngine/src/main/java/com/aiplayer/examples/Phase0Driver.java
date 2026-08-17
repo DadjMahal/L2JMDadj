@@ -31,6 +31,7 @@ import java.util.logging.Logger;
  * spawning multiple AI Players; adapting this loop into that manager instead
  * of running standalone is a follow-up task, not done here.
  */
+@Deprecated // S10-T06: superseded by examples.FleetPlay
 public final class Phase0Driver {
     private static final Logger LOGGER = Logger.getLogger(Phase0Driver.class.getName());
     private static final long TICK_INTERVAL_MS = 300;
