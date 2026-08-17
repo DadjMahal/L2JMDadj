@@ -166,7 +166,7 @@ public final class QuestGoalPlanner
             QuestDatabase.findAvailable(playerLevel, RACE_HUMAN, CLASS_ANY, Collections.emptySet());
 
         long maxSq = (long) MAX_ACQUIRE_DIST * MAX_ACQUIRE_DIST;
-        java.util.List<Candidate> candidates = new java.util.ArrayList<>();
+        List<Candidate> candidates = new java.util.ArrayList<>();
         for (QuestInfo q : available)
         {
             if (q.steps.isEmpty())
@@ -201,7 +201,7 @@ public final class QuestGoalPlanner
         }
         final long bestAdena = best.adena;
         final int bestRec = best.q.recommendedLevel;
-        java.util.List<Candidate> top = new java.util.ArrayList<>();
+        List<Candidate> top = new java.util.ArrayList<>();
         for (Candidate cd : candidates)
         {
             if (cd.adena == bestAdena && cd.q.recommendedLevel == bestRec)

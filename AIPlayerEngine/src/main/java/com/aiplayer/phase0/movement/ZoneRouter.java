@@ -307,7 +307,7 @@ public final class ZoneRouter
         {
             return null; // not in-world yet
         }
-        java.util.List<int[]> hops = buildHops(fromX, fromY, fromZ, destX, destY, destZ);
+        List<int[]> hops = buildHops(fromX, fromY, fromZ, destX, destY, destZ);
         if (hops.isEmpty())
         {
             return null; // already at the destination; nothing to route

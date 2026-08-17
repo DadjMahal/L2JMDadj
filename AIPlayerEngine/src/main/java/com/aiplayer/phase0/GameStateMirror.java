@@ -60,8 +60,8 @@ public class GameStateMirror {
     }
 
     /** Returns nearby visible entities (real equivalent of BotSnapshot.getNearbyEntities). */
-    public java.util.List<EntitySnapshot> getVisibleEntities(BotStateSnapshot self, int radius) {
-        java.util.List<EntitySnapshot> result = new java.util.ArrayList<>();
+    public List<EntitySnapshot> getVisibleEntities(BotStateSnapshot self, int radius) {
+        List<EntitySnapshot> result = new ArrayList<>();
         for (EntitySnapshot e : self.nearby.values()) {
             double dist = Math.hypot(e.x - self.x, e.y - self.y);
             if (dist <= radius) result.add(e);
@@ -70,7 +70,7 @@ public class GameStateMirror {
     }
 
     /** No-arg overload: returns all nearby entities within 2000 units of the default bot. */
-    public java.util.List<EntitySnapshot> getVisibleEntities() {
+    public List<EntitySnapshot> getVisibleEntities() {
         return getVisibleEntities(get("default"), 2000);
     }
 
@@ -127,7 +127,7 @@ public class GameStateMirror {
 
         // === Task 5 Extension: Inventory & Consumables ===
         public int adena = 0;
-        public java.util.List<com.aiplayer.phase0.ItemSnapshot> inventory = new java.util.ArrayList<>();
+        public List<com.aiplayer.phase0.ItemSnapshot> inventory = new ArrayList<>();
         public int inventoryUsagePercent = 0;
         public int inventorySlotsUsed = 0;
         public int inventorySlotsMax = 0;
@@ -135,7 +135,7 @@ public class GameStateMirror {
 
         // === Task 7 Extension: Town / Vendor ===
         public boolean isInTown = false;
-        public java.util.List<String> knownNpcNames = new java.util.ArrayList<>();
+        public List<String> knownNpcNames = new ArrayList<>();
 
         // === Task 9 Extension: Quest & Leveling ===
         public int currentXp = 0;

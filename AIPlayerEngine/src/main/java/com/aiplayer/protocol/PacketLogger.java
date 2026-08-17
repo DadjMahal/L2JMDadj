@@ -139,7 +139,7 @@ public class PacketLogger
    private int adena = 0;
    private int inventoryUsagePercent = 0;
    // Stream E (task 78): real inventory contents parsed from ItemList(0x1B). itemId -> count.
-   private final java.util.Map<Integer, Long> inventoryItems = new java.util.concurrent.ConcurrentHashMap<>();
+   private final java.util.Map<Integer, Long> inventoryItems = new ConcurrentHashMap<>();
 
    // ============ WPT-29: datapack-backed name resolution (NPC + item display names) ============
    private DatapackNames datapackNames = new DatapackNames();
@@ -149,7 +149,7 @@ public class PacketLogger
    // layout (ItemList.java writeImpl -> AbstractItemPacket.writeItem). Guarded by inventoryLock.
    private final Object inventoryLock = new Object();
    private final java.util.List<InventoryItem> inventoryRecords = new java.util.ArrayList<>();
-   private final java.util.Set<Integer> equippedItemIds = new java.util.concurrent.ConcurrentHashMap<>().newKeySet();
+   private final java.util.Set<Integer> equippedItemIds = new ConcurrentHashMap<>().newKeySet();
 
    // ============ WPT-22: SystemMessage + chat typed telemetry ============
    private final Object messageLock = new Object();

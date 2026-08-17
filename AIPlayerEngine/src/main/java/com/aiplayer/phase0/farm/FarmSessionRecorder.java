@@ -107,7 +107,7 @@ public final class FarmSessionRecorder {
     // Real cross-bot zone-quality aggregation, in-memory instead of Redis:
     // shared across all AI Players in this JVM (was Redis, external to the
     // process — this is the equivalent within a single-process engine).
-    private static final java.util.Map<String, ZoneMeta> ZONE_META =
+    private static final Map<String, ZoneMeta> ZONE_META =
         new java.util.concurrent.ConcurrentHashMap<>();
 
     private static final class ZoneMeta {

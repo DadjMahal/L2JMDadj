@@ -55,7 +55,7 @@ public class ResponseTemplate {
         if (lines == null || lines.isEmpty()) {
             lines = byPersona.getOrDefault(Persona.VETERAN, Arrays.asList("..."));
         }
-        String tpl = lines.get(new java.util.Random(seed).nextInt(lines.size()));
+        String tpl = lines.get(new Random(seed).nextInt(lines.size()));
         for (Map.Entry<String, String> e : vars.entrySet()) {
             tpl = tpl.replace("{" + e.getKey() + "}", e.getValue());
         }
