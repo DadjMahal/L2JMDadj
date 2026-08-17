@@ -597,12 +597,24 @@ public final class RaceGuide
         return Optional.empty();
     }
 
+    private static final java.util.concurrent.ConcurrentHashMap<String, QuestNode> IDLE_ANCHOR_CACHE =
+        new java.util.concurrent.ConcurrentHashMap<>();
+
     /**
      * A real, safe idle/displacement landmark for a bot instead of void coordinates:
      * below Lv15 the race newbie helper, otherwise the gatekeeper anchor of the town serving
      * the best matching hunt zone, or the race home town. Always a real in-world coordinate.
+     *
+     * <p>Computed once per (race,level) and cached in a thread-safe map so the per-idle-tick
+     * call from RelocationPlanner is O(1). Deterministic: the same key always yields the same node.
      */
     public static QuestNode idleAnchor(PlayerRace race, int level)
+    {
+        return IDLE_ANCHOR_CACHE.computeIfAbsent(race.name() + "@" + level,
+            k -> computeIdleAnchor(race, level));
+    }
+
+    private static QuestNode computeIdleAnchor(PlayerRace race, int level)
     {
         if (level < 15)
             return tutorial(race);

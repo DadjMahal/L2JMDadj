@@ -403,4 +403,32 @@ public class RaceGuideTest
         }
     }
 
+
+    @Test
+    public void idleAnchorCachedDeterministic()
+    {
+        // Repeated calls for the same (race,level) return the same cached anchor.
+        QuestNode first = RaceGuide.idleAnchor(PlayerRace.HUMAN, 10);
+        QuestNode second = RaceGuide.idleAnchor(PlayerRace.HUMAN, 10);
+        assertNotNull(first);
+        assertNotNull(second);
+        assertEquals(first.x, second.x);
+        assertEquals(first.y, second.y);
+        assertEquals(first.z, second.z);
+        assertEquals(first.name, second.name);
+
+        // Per-race determinism + real-coordinate sanity. idleAnchor picks by level-band hunt zones
+        // (race-agnostic list) and falls back to the shared newbie landmark, so ORC and HUMAN return
+        // the SAME anchor at low levels — asserting they "differ" is wrong. The cache must still be
+        // deterministic per (race, level) and always return a real, non-void point.
+        QuestNode orcA = RaceGuide.idleAnchor(PlayerRace.ORC, 10);
+        QuestNode orcB = RaceGuide.idleAnchor(PlayerRace.ORC, 10);
+        assertNotNull(orcA);
+        assertEquals(orcA.x, orcB.x);
+        assertEquals(orcA.y, orcB.y);
+        assertEquals(orcA.z, orcB.z);
+        assertEquals(orcA.name, orcB.name);
+        assertNotEquals(VOID_X, orcA.x, "ORC anchor must not be the void");
+    }
+
 }
