@@ -60,14 +60,14 @@
 |---|---|---|---|---|
 | S2-T01 | LoginCrypt parity/padding property tests | M | P1 | DONE-PUSHED d653ab1e |
 | S2-T02 | GameCrypt key handling verified at 50 concurrent sessions | M | P1 | DONE-PUSHED 6ce4b56d |
-| S2-T03 | PacketLogger NPC_INFO tests for multi-race entities | M | P2 | TODO |
+| S2-T03 | PacketLogger NPC_INFO tests for multi-race entities | M | P2 | DONE-PUSHED 5b56a768 |
 | S2-T04 | Per-bot packet loss/drop metrics | M | P1 | TODO |
 | S2-T05 | Decode CharSelectInfo (name/class/race) instead of slot-only select | M | P1 | TODO |
-| S2-T06 | QUEST_LIST/SystemMessage decode coverage | M | P2 | TODO |
+| S2-T06 | QUEST_LIST/SystemMessage decode coverage | M | P2 | DONE-PUSHED 5b56a768 |
 | S2-T07 | Reconnect backoff (avoid 50-bot thundering herd) | M | P0 | TODO |
 | S2-T08 | Socket read-timeout/keepalive tuning for 50-bot load | M | P1 | TODO |
 | S2-T09 | Structured JSON event log for the fleet watcher | M | P1 | TODO |
-| S2-T10 | Protocol-version guard (server mismatch detection) | E | P2 | TODO |
+| S2-T10 | Protocol-version guard (server mismatch detection) | E | P2 | DONE-PUSHED 2e04ba69 |
 
 ### Session 3 — Quest pillar — live accept/complete/turn-in (the ONE-goal gap)
 | ID | Task | Diff | Prio | Status |
@@ -79,7 +79,7 @@
 | S3-T05 | Persist quest stepIndex across sessions (QuestProgressTracker) | M | P1 | TODO |
 | S3-T06 | QuestDialogDriver: multi-quest journals + chain choice | M | P1 | TODO |
 | S3-T07 | Wire per-bot `varietySeed` into FleetPlay acquire pick (STEP 7) | M | P1 | TODO |
-| S3-T08 | AcquireCooldown tuning for L1 vs L20+ | E | P2 | TODO |
+| S3-T08 | AcquireCooldown tuning for L1 vs L20+ | E | P2 | DONE-PUSHED b72f182e |
 | S3-T09 | Newbie Q1–Q10 chain automation (per race) | H | P1 | TODO |
 | S3-T10 | Class-change Path quests (Q401–418) live loop | H | P2 | TODO |
 
@@ -93,7 +93,7 @@
 | S4-T05 | Per-race restock vendor landmarks verified live | M | P1 | TODO |
 | S4-T06 | Verify all races' base classes resolve in the profession tree | M | P1 | TODO |
 | S4-T07 | Teleport-leg BFS for cross-zone quest travel | H | P2 | TODO |
-| S4-T08 | Extend RaceGuideTest: every race chain has no void coords | E | P1 | TODO |
+| S4-T08 | Extend RaceGuideTest: every race chain has no void coords | E | P1 | DONE-PUSHED b72f182e |
 | S4-T09 | Cache idleAnchor per race (avoid per-tick recompute) | E | P2 | TODO |
 | S4-T10 | Landmark proximity gate (don't re-hop to the same landmark) | M | P1 | TODO |
 
@@ -178,7 +178,7 @@
 | S10-T06 | Remove obsolete probes (superseded by FleetPlay) | M | P2 | TODO |
 | S10-T07 | Single logging convention (java.util.logging vs slf4j) | M | P2 | TODO |
 | S10-T08 | PARTIAL→COMPLETE conversion with tests (top-10 files) | H | P2 | TODO |
-| S10-T09 | Verify no Redis/Postgres deps (in-memory replacements) | M | P1 | TODO |
+| S10-T09 | Verify no Redis/Postgres deps (in-memory replacements) | M | P1 | DONE-PUSHED 3efd0c82 |
 | S10-T10 | Final docs sync (TASKS/START_HERE/STATUS) | E | P1 | TODO |
 
 ## 4. File ownership map
