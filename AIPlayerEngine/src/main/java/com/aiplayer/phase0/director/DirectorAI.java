@@ -5,7 +5,7 @@ package com.aiplayer.phase0.director;
 import com.aiplayer.phase0.cabinet.BotProfile;
 import com.aiplayer.phase0.cabinet.ProfileStore;
 
-import java.util.*;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class DirectorAI {

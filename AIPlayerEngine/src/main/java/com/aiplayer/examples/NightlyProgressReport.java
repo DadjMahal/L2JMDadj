@@ -1,7 +1,5 @@
 package com.aiplayer.examples;
 
-import java.util.*;
-import java.time.*;
 import java.io.PrintStream;
 
 /**

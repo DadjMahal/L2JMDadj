@@ -5,7 +5,13 @@ package com.aiplayer.phase0.town;
 import com.aiplayer.phase0.GameStateMirror;
 import com.aiplayer.phase0.ItemSnapshot; // real class now, was never defined under GameStateMirror
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Determines item value classification for sell/keep/warehouse decisions.

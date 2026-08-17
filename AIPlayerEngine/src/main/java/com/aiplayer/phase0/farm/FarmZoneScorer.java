@@ -7,7 +7,10 @@ import com.aiplayer.phase0.farm.ZoneDensityTracker.DensitySnapshot;
 import com.aiplayer.phase0.farm.ZoneDensityTracker.Zone;
 import com.aiplayer.phase0.humanize.AntiDetectionEngine;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

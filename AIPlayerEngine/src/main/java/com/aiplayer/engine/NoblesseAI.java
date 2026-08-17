@@ -1,5 +1,5 @@
 package com.aiplayer.engine;
-import java.util.*;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class NoblesseAI {

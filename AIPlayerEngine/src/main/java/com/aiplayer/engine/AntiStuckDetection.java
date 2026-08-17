@@ -1,5 +1,7 @@
 package com.aiplayer.engine;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.logging.Logger;
 public class AntiStuckDetection {
     private static final Logger LOGGER = Logger.getLogger(AntiStuckDetection.class.getName());

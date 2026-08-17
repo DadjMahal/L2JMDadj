@@ -1,8 +1,11 @@
 package com.aiplayer.examples;
 
 import com.aiplayer.engine.AIPlayerReal;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * EPIC NIGHT MODE - 10 MORE AI PLAYERS FOR ALL NIGHT PLAYING

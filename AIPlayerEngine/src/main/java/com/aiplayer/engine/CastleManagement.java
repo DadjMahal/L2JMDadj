@@ -1,5 +1,4 @@
 package com.aiplayer.engine;
-import java.util.*;
 import java.util.logging.Logger;
 
 public class CastleManagement {

@@ -5,7 +5,9 @@ package com.aiplayer.phase0.chat;
 import com.aiplayer.phase0.cabinet.BotProfile;
 import com.aiplayer.phase0.cabinet.ProfileStore;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 import java.util.logging.Logger;
 
 public class ChatEngine {

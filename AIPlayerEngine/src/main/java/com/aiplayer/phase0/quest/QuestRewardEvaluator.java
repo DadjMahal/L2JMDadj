@@ -4,7 +4,9 @@ package com.aiplayer.phase0.quest;
 
 import com.aiplayer.phase0.quest.ZoneRecommender.ZoneInfo;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Evaluates quest efficiency and compares questing vs pure grinding.

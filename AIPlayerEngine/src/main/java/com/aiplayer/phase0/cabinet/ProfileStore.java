@@ -2,7 +2,11 @@ package com.aiplayer.phase0.cabinet;
 
 /** MODE: COMPLETE. In-memory replacement for CabinetService+RedisCache. No Postgres/Redis. */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

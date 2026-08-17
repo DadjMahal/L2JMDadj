@@ -11,7 +11,8 @@ import com.aiplayer.phase0.movement.MovementController;
 import com.aiplayer.phase0.party.PartyManager;
 import com.aiplayer.phase0.farm.OptimalSpotSelector.Spot; // was missing entirely — genuine compile error, confirmed by external review
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

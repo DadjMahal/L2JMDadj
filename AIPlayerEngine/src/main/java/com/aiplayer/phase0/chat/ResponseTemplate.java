@@ -2,7 +2,12 @@ package com.aiplayer.phase0.chat;
 
 /** MODE: PARTIAL. Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 public class ResponseTemplate {
     private static final Map<Intent, Map<Persona, List<String>>> POOL = new HashMap<>();

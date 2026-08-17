@@ -6,7 +6,8 @@ import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.phase0.humanize.AntiDetectionEngine;
 import com.aiplayer.phase0.humanize.TimingJitter;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Tactical coordination engine for party combat.

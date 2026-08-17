@@ -1,5 +1,7 @@
 package com.aiplayer.engine;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 import java.util.logging.Logger;
 
 public class BehaviorSeeder {

@@ -2,7 +2,10 @@ package com.aiplayer.phase0.combat;
 
 /** MODE: COMPLETE. Rewritten in-memory, same public API as the original Redis-backed version. */
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

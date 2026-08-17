@@ -1,6 +1,7 @@
 package com.aiplayer.neural;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 

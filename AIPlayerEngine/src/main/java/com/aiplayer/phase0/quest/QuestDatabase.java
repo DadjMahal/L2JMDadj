@@ -7,7 +7,14 @@ import com.aiplayer.phase0.quest.QuestInfo.QuestStep;
 import com.aiplayer.phase0.quest.QuestInfo.QuestType;
 import com.aiplayer.phase0.quest.QuestInfo.StepType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Static registry of essential Lineage II Interlude quests.

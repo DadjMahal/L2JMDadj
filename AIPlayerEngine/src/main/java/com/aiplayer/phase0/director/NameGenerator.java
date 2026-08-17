@@ -2,7 +2,9 @@ package com.aiplayer.phase0.director;
 
 /** MODE: PARTIAL. Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
 
 public class NameGenerator {
     private static final String[] PREFIXES = {"Dark","Shadow","Blood","Death","Holy","Light","Fire","Ice","Storm","Thunder"};

@@ -6,7 +6,7 @@ import com.aiplayer.phase0.humanize.AntiDetectionEngine;
 import com.aiplayer.phase0.humanize.TimingJitter;
 import com.aiplayer.phase0.town.ItemValueEstimator;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

@@ -12,7 +12,8 @@ import com.aiplayer.phase0.town.VendorDatabase.VendorInfo;
 import com.aiplayer.phase0.town.VendorDatabase.VendorType;
 import com.aiplayer.phase0.town.ItemValueEstimator.ItemFate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**

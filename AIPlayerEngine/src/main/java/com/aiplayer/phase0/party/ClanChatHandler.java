@@ -7,7 +7,7 @@ import com.aiplayer.phase0.humanize.TimingJitter;
 import com.aiplayer.phase0.social.ChatPersonality;
 import com.aiplayer.phase0.social.SocialBehaviorEngine;
 
-import java.util.*;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
