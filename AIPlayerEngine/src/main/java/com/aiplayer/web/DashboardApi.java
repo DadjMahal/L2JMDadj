@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -486,6 +487,9 @@ public final class DashboardApi
     // ============================ legacy combined payload (pre-v1 SPA) ============================
 
     /** Old combined shape used by /json and /api/players: {"bots":[...],"entities":[...]}. */
+    /** Per-bot {prevExp, prevKills, prevMs} so the dashboard can report XP/min + kills/min (S9-T06). */
+    private final ConcurrentHashMap<String, long[]> rateTrack = new ConcurrentHashMap<>();
+
     public byte[] legacyJson()
     {
         return ("{\"bots\":[" + legacyBotsBody() + "],\"entities\":[" + entitiesBody() + "]}").getBytes(StandardCharsets.UTF_8);
@@ -532,6 +536,29 @@ public final class DashboardApi
      *  is true and a MoveTelemetry is wired, the TIM-001 movement-evidence counters are emitted as
      *  fields INSIDE the object (before the closing brace) — not appended after it, which would
      *  produce invalid JSON (bare comma values in the array). null in tests/standalone. */
+    /** Compute and cache per-bot xp/min + kills/min deltas since the previous dashboard poll (S9-T06). */
+    private void appendRateFields(StringBuilder sb, BotInfo b)
+    {
+        long now = System.currentTimeMillis();
+        long[] prev = rateTrack.get(b.account);
+        double xpm = 0, kpm = 0;
+        if (prev != null && prev.length == 3)
+        {
+            long dt = Math.max(1000, now - prev[2]);
+            long dexp = Math.max(0, b.exp - prev[0]);
+            long dk = Math.max(0, b.killCount - prev[1]);
+            double mins = dt / 60000.0;
+            if (mins > 0)
+            {
+                xpm = dexp / mins;
+                kpm = dk / mins;
+            }
+        }
+        rateTrack.put(b.account, new long[] { b.exp, b.killCount, now });
+        sb.append(",\"xpPerMin\":").append(Math.round(xpm))
+          .append(",\"killsPerMin\":").append(Math.round(kpm * 10) / 10.0);
+    }
+
     private String botObject(BotInfo b, boolean includeTelemetry)
     {
         StringBuilder sb = new StringBuilder();
@@ -550,7 +577,10 @@ public final class DashboardApi
           .append(",\"weapon\":").append(b.weapon ? "true" : "false")
           .append(",\"adena\":").append(b.adena)
           .append(",\"invPct\":").append(b.invPct).append(",\"itemCount\":").append(b.itemCount)
-          .append(",\"mobs\":").append(b.mobs).append(",\"npcs\":").append(b.npcs);
+          .append(",\"mobs\":").append(b.mobs).append(",\"npcs\":").append(b.npcs)
+          .append(",\"race\":\"").append(jsonEscape(b.race)).append('"')
+          .append(",\"killCount\":").append(b.killCount);
+        appendRateFields(sb, b);
         sb.append(",\"items\":[");
         int[][] it = b.items;
         if (it != null)

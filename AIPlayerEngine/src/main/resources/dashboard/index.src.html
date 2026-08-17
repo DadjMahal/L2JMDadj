@@ -77,6 +77,7 @@
       <option value="1">Online only</option>
       <option value="0">Offline only</option>
     </select>
+    <select id="fRace" onchange="renderGrid()"></select>
     <select id="fState" onchange="renderGrid()"></select>
     <input id="searchQ" type="search" placeholder="🔍 search name/account (WPT-19)" oninput="renderGrid()" title="filter bots by name/account">
     <button onclick="exportCsv()" title="download current grid rows as CSV">⬇ CSV</button>

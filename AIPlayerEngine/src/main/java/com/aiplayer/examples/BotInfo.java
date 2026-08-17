@@ -29,6 +29,10 @@ public final class BotInfo
     public volatile int[][] activeQuests;// {{questId, state}, ...} from the live journal
     public volatile String action = "";
     public volatile String thought = "";
+    /** Race label (ELF/DARK_ELF/ORC/DWARF/HUMAN) for dashboard race filter + badge (S9-T05). */
+    public volatile String race = "";
+    /** Life-kills counter, bumped on each EVIDENCE-H5 EXP receipt (S9-T06 kills/min). */
+    public volatile long killCount;
     public volatile int targetObjId;
     public volatile String targetLabel = "";
     public volatile int targetKind;

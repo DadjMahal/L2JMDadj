@@ -213,6 +213,7 @@ public final class FleetPlay
             this.loginPort = loginPort;
             this.gamePort = gamePort;
             this.race = race != null ? race : PlayerRace.HUMAN;
+            this.info.race = this.race.name(); // S9-T05 dashboard race badge/filter
             this.rng = new Random(account.hashCode());
         }
 
@@ -449,6 +450,8 @@ public final class FleetPlay
                 {
                     System.out.println("[EVIDENCE-H5] " + account + " EXP +" + (info.exp - prevExp)
                         + " (now " + info.exp + ", level=" + tickLevel + ")");
+                    // S9-T06: count the kill (an EXP receipt == the server granted a kill's XP).
+                    info.killCount++;
                     // STEP 6: remember where this bot earned XP (hostiles live there) and clear any
                     // relocation-freeze counter — earning XP proves the char can move/fight here.
                     relocation.recordLastXp(info.x, info.y, info.z);

@@ -284,9 +284,12 @@ function itemMarkup(b) {
 var COLS = [
   { k: 'account', t: 'Account', num: false, v: function (b) { return b.account || ''; }, h: function (b) { return esc(b.account || '-'); } },
   { k: 'name', t: 'Char', num: false, v: function (b) { return b.name || ''; }, h: function (b) { return '<b>' + esc(b.name || '-') + '</b>'; } },
+  { k: 'race', t: 'Race', num: false, v: function (b) { return b.race || ''; }, h: function (b) { return '<span class="race">' + esc(b.race || '-') + '</span>'; } },
   { k: 'level', t: 'Lvl', num: true, v: function (b) { return b.level || 0; }, h: function (b) { return b.level; } },
   { k: 'class', t: 'Class', num: false, v: function (b) { return b.charClass || b.cls || ''; }, h: function (b) { return esc(b.charClass || b.cls || '-'); } },
   { k: 'exp', t: 'EXP', num: true, v: function (b) { return b.exp == null ? -1 : b.exp; }, h: function (b) { return FMT(b.exp); } },
+  { k: 'xpm', t: 'XP/min', num: true, v: function (b) { return b.xpPerMin || 0; }, h: function (b) { return b.xpPerMin || '-'; } },
+  { k: 'kpm', t: 'Kills/min', num: true, v: function (b) { return b.killsPerMin || 0; }, h: function (b) { return b.killsPerMin != null ? b.killsPerMin : '-'; } },
   { k: 'hp', t: 'HP', num: true, v: function (b) { return b.hp || 0; }, h: function (b) { var p = pct(b.hp, b.hpMax); return b.hp + '/' + b.hpMax + '<div class="bar"><div style="width:' + p + '%;background:var(--gr)"></div></div>'; } },
   { k: 'mp', t: 'MP', num: true, v: function (b) { return b.mp || 0; }, h: function (b) { var p = pct(b.mp, b.mpMax); return b.mp + '/' + b.mpMax + '<div class="bar"><div style="width:' + p + '%;background:var(--cy)"></div></div>'; } },
   { k: 'cp', t: 'CP', num: true, v: function (b) { return b.cp || 0; }, h: function (b) { return b.cp + '/' + b.cpMax; } },
@@ -312,12 +315,13 @@ var COLS = [
 
 
 function filteredBots() {
-  var fo = $('fOnline').value, fs = $('fState').value;
+  var fo = $('fOnline').value, fs = $('fState').value, fr = $('fRace').value;
   var sq = ($('searchQ') ? $('searchQ').value : '').trim().toLowerCase();
   return bots.filter(function (b) {
     if (fo === '1' && !b.online) return false;
     if (fo === '0' && b.online) return false;
     if (fs && (b.state || '') !== fs) return false;
+    if (fr && (b.race || '') !== fr) return false;
     // WPT-19 — search by account or name.
     if (sq) {
       var hay = (b.account || '').toLowerCase() + ' ' + (b.name || '').toLowerCase();
@@ -340,6 +344,13 @@ function buildStateFilter() {
     states.map(function (s) { return '<option value="' + esc(s) + '">' + esc(s) + '</option>'; }).join('');
   sel.value = cur;
 }
+function buildRaceFilter() {
+  var sel = $('fRace'), cur = sel.value;
+  var races = Array.from(new Set(bots.map(function (b) { return b.race; }).filter(Boolean))).sort();
+  sel.innerHTML = '<option value="">Race: all</option>' +
+    races.map(function (s) { return '<option value="' + esc(s) + '">' + esc(s) + '</option>'; }).join('');
+  sel.value = cur;
+}
 function sortGrid(k) {
   if (gridSort.key === k) gridSort.dir *= -1;
   else { gridSort.key = k; gridSort.dir = 1; }
@@ -347,6 +358,7 @@ function sortGrid(k) {
 }
 function renderGrid() {
   buildStateFilter();
+  buildRaceFilter();
   var rows = filteredBots().slice().sort(cmpRows);
   var h = '<table><thead><tr>';
   COLS.forEach(function (c) {
