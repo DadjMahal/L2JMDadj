@@ -64,8 +64,8 @@
 | S2-T04 | Per-bot packet loss/drop metrics | M | P1 | TODO |
 | S2-T05 | Decode CharSelectInfo (name/class/race) instead of slot-only select | M | P1 | TODO |
 | S2-T06 | QUEST_LIST/SystemMessage decode coverage | M | P2 | DONE-PUSHED 5b56a768 |
-| S2-T07 | Reconnect backoff (avoid 50-bot thundering herd) | M | P0 | TODO |
-| S2-T08 | Socket read-timeout/keepalive tuning for 50-bot load | M | P1 | TODO |
+| S2-T07 | Reconnect backoff (avoid 50-bot thundering herd) | M | P0 | DONE-PUSHED 25f071df |
+| S2-T08 | Socket read-timeout/keepalive tuning for 50-bot load | M | P1 | DONE-PUSHED 25f071df |
 | S2-T09 | Structured JSON event log for the fleet watcher | M | P1 | TODO |
 | S2-T10 | Protocol-version guard (server mismatch detection) | E | P2 | DONE-PUSHED 2e04ba69 |
 
@@ -162,10 +162,10 @@
 | S9-T04 | Reusable 50-bot launcher with race rotation | E | P1 | DONE-PUSHED 2aeae3de |
 | S9-T05 | Dashboard per-race filter + race badge | E | P1 | DONE-PUSHED fdf20296 |
 | S9-T06 | Dashboard kills/min + XP/min per bot | M | P1 | DONE-PUSHED fdf20296 |
-| S9-T07 | Log rotation for fleet50.log (50 bots = huge logs) | M | P0 | TODO |
-| S9-T08 | Auto-restart fleet on crash (systemd/supervisord) | M | P1 | TODO |
-| S9-T09 | DB backup before mass provisioning | E | P1 | TODO |
-| S9-T10 | Health endpoint: online-vs-expected + alerts | M | P1 | TODO |
+| S9-T07 | Log rotation for fleet50.log (50 bots = huge logs) | M | P0 | DONE-PUSHED 25f071df |
+| S9-T08 | Auto-restart fleet on crash (systemd/supervisord) | M | P1 | DONE-PUSHED 25f071df |
+| S9-T09 | DB backup before mass provisioning | E | P1 | DONE-PUSHED 25f071df |
+| S9-T10 | Health endpoint: online-vs-expected + alerts | M | P1 | DONE-PUSHED 25f071df |
 
 ### Session 10 — Legacy cleanup & archival
 | ID | Task | Diff | Prio | Status |
