@@ -8,7 +8,6 @@ import com.aiplayer.phase0.GameStateMirror.EntitySnapshot;
 import com.aiplayer.protocol.L2JProtocol;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Orchestrates all AI Player movement.

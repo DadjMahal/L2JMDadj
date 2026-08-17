@@ -68,19 +68,26 @@ public final class FleetPlay
     {
         return AIConfiguration.getInstance().getProperty("ai.account.password", "ai123pass");
     }
-    private static final long TICK_MS = 300;
-    private static final long WANDER_INTERVAL_MS = 8000;
-    private static final int WANDER_RADIUS = 900;
+    // S1-T08: live-loop tuning knobs read from AIConfiguration (defaults = the proven live values)
+    private static final long TICK_MS = AIConfiguration.getInstance().getLongProperty("bot.tickMs", 300);
+    private static final long WANDER_INTERVAL_MS =
+        AIConfiguration.getInstance().getLongProperty("bot.wanderIntervalMs", 8000);
+    private static final int WANDER_RADIUS =
+        AIConfiguration.getInstance().getIntProperty("bot.wanderRadius", 900);
     // STEP 3 gap-close: a combat target closer than this is "in melee reach" (attack normally); farther
     // and the bot advances toward it once per CHASE_INTERVAL_MS. CHASE_HOP is capped well under the server's
     // ~9900u single-move rejection (MoveToLocation.java:156-163) so each chase move persists server-side.
-    private static final int CHASE_REACH = 150;
-    private static final int CHASE_HOP = 4800;
-    private static final long CHASE_INTERVAL_MS = 1500;
+    private static final int CHASE_REACH =
+        AIConfiguration.getInstance().getIntProperty("bot.chaseReach", 150);
+    private static final int CHASE_HOP =
+        AIConfiguration.getInstance().getIntProperty("bot.chaseHop", 4800);
+    private static final long CHASE_INTERVAL_MS =
+        AIConfiguration.getInstance().getLongProperty("bot.chaseIntervalMs", 1500);
     // STEP 3 follow-up: if a combat target produces NO XP within this budget, the engagement is
     // force-abandoned so the bot re-acquires a farmable target instead of chasing an un-killable
     // or stale one (town NPCs, despawned mobs). 15s ≈ 10 chase-hop intervals.
-    private static final long STALE_TARGET_BUDGET_MS = 15_000;
+    private static final long STALE_TARGET_BUDGET_MS =
+        AIConfiguration.getInstance().getLongProperty("bot.staleTargetBudgetMs", 15_000);
 
     /** Live bot rows live in com.aiplayer.examples.BotInfo (WPT-01 extraction) - shared with DashboardApi. */
 

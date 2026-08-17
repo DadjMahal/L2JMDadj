@@ -366,34 +366,40 @@ public class L2JProtocol
         channel.write(ByteBuffer.wrap(PacketCodec.encodeChat(message)));
     }
 
-    /** Stub: send say (general chat). */
+    /** Say (general chat) — PROVEN path: same wire bytes as sendChat (S1-T04). */
     public void sendSay(String message) throws IOException
     {
-        LOGGER.warning("[sendSay] Not implemented - stub");
+        sendChat(message);
     }
 
-    /** Stub: send clan chat. */
-    public void sendClanChat(String message) throws IOException
-    {
-        LOGGER.warning("[sendClanChat] Not implemented - stub");
-    }
-
-    /** Stub: send party chat. */
-    public void sendPartyChat(String message) throws IOException
-    {
-        LOGGER.warning("[sendPartyChat] Not implemented - stub");
-    }
-
-    /** Stub: send trade chat. */
-    public void sendTradeChat(String message) throws IOException
-    {
-        LOGGER.warning("[sendTradeChat] Not implemented - stub");
-    }
-
-    /** Stub: send shout. */
+    /**
+     * Shout/party/trade/clan chat — NOT wire-proven: PacketCodec.encodeChat is a simplified
+     * say-only packet with no channel byte, so emitting these would FABRICATE an unverified
+     * wire format. Consumers today are only the unwired SocialBehaviorEngine (MODE:PARTIAL),
+     * so blocking here loses nothing. Wire the channel byte + verify LIVE before enabling
+     * (then delete this guard). NOTE: no change of this block without live chat verification.
+     */
     public void sendShout(String message) throws IOException
     {
-        LOGGER.warning("[sendShout] Not implemented - stub");
+        LOGGER.warning("[sendShout] channel not wire-proven (encodeChat has no channel byte); blocked");
+    }
+
+    /** @see #sendShout(String) — channel-blocked until a live-verified channel byte exists. */
+    public void sendClanChat(String message) throws IOException
+    {
+        LOGGER.warning("[sendClanChat] channel not wire-proven; blocked");
+    }
+
+    /** @see #sendShout(String) — channel-blocked until a live-verified channel byte exists. */
+    public void sendPartyChat(String message) throws IOException
+    {
+        LOGGER.warning("[sendPartyChat] channel not wire-proven; blocked");
+    }
+
+    /** @see #sendShout(String) — channel-blocked until a live-verified channel byte exists. */
+    public void sendTradeChat(String message) throws IOException
+    {
+        LOGGER.warning("[sendTradeChat] channel not wire-proven; blocked");
     }
 
     /** Stub: send clan notice. */
