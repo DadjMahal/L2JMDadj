@@ -98,6 +98,11 @@ public final class FleetPlay
         // TIM-001 proof hook: optional 6th arg "movement" force-enables phase0.movement at runtime
         // (never edits config/ai-player.properties; the default remains OFF).
         boolean forceMovement = args.length > 5 && "movement".equalsIgnoreCase(args[5]);
+        // Optional 7th/8th args: account prefix + charId base, so an operator can point the launch at a
+        // SPECIFIC (e.g. brand-new) account rather than the default ai_combat_01..05 pool. Defaults keep
+        // the original behaviour (ai_combat_%02d / charId 100000+).
+        String accountPrefix = args.length > 6 ? args[6] : "ai_combat_";
+        int charIdBase = args.length > 7 ? Integer.parseInt(args[7]) : 100000;
         if (forceMovement)
         {
             AIConfiguration cfg = AIConfiguration.getInstance();
@@ -113,8 +118,8 @@ public final class FleetPlay
 
         for (int i = 1; i <= count; i++)
         {
-            final String account = String.format("ai_combat_%02d", i);
-            final int charId = 100000 + i - 1; // ai_combat_01 -> 100000 ... ai_combat_05 -> 100004
+            final String account = accountPrefix + String.format("%02d", i);
+            final int charId = charIdBase + i - 1; // ai_combat_01 -> 100000 ... ai_combat_05 -> 100004
             BotInfo info = new BotInfo(account, charId);
             BOTS.put(account, info);
             new Thread(new BotLoop(account, charId, info, host, loginPort, gamePort), "bot-" + account).start();
@@ -574,6 +579,15 @@ public final class FleetPlay
                             // skipped attacks while chasing, a lagging local snapshot meant the bot
                             // chased forever and never landed a hit. Range checks are server-authoritative,
                             // so an out-of-range AttackRequest is simply routed, not rejected.
+                            // USE_SKILL fallback (2026-08-17 fresh-bot fix): a level-1 fighter has no
+                            // learned offensive skill, so CombatFramePlanner returns NO frames for
+                            // USE_SKILL and executeCombat no-ops -> the bot stands still, takes hits,
+                            // and STARVES (0 damage, 0 XP, STALE-TARGET abandon loop). Fall back to the
+                            // proven plain melee attack frame so it actually deals damage and farms.
+                            if (decision.getAction() == CombatDecision.Action.USE_SKILL)
+                            {
+                                decision = CombatDecision.attackTarget(String.valueOf(targetId));
+                            }
                             wiring.executeCombat(decision, snapshot.x, snapshot.y, snapshot.z, targetId);
                         }
                         break;
