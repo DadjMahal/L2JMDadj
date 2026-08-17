@@ -6,9 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
+import com.aiplayer.phase0.quest.QuestDatabase;
+import com.aiplayer.phase0.quest.QuestInfo;
+import com.aiplayer.phase0.quest.QuestInfo.QuestStep;
 
 /**
  * QuestGoalPlanner (STEP 1) tests — the pure planner must turn the real quest journal
@@ -233,6 +238,83 @@ class QuestGoalPlannerTest
         assertEquals(NPC_Y, d.targetY);
         assertTrue(d.label.startsWith("acquire:Undead Ash Collection"),
             "equal-distance givers tie-break by higher recommendedLevel, got " + d.label);
+    }
+
+    // ================================================================
+    // REWARD-AWARE + DIVERSE ACQUIRE (seed overload)
+    // ================================================================
+
+    @Test
+    void diversePathRewardAwarePicksMaxAdenaAmongReachable()
+    {
+        // Player at the Gludio giver (level 35): the diverse path (any seed) must pick a REACHABLE
+        // quest whose reward adena equals the max across all reachable givers from that spot.
+        int maxReachable = Integer.MIN_VALUE;
+        for (QuestInfo q : QuestDatabase.findAvailable(35, 1, 0, Collections.emptySet()))
+        {
+            if (q == null || q.steps.isEmpty() || q.reward == null)
+            {
+                continue;
+            }
+            QuestStep s = q.steps.get(0);
+            int cx = s.zoneX != 0 ? s.zoneX : NPC_X;
+            int cy = s.zoneY != 0 ? s.zoneY : NPC_Y;
+            int cz = s.zoneZ;
+            if (dist(NPC_X, NPC_Y, NPC_Z, cx, cy, cz) <= 20000)
+            {
+                maxReachable = Math.max(maxReachable, (int) q.reward.adena);
+            }
+        }
+
+        GoalDecision d = QuestGoalPlanner.decide(35, journal(), NPC_X, NPC_Y, NPC_Z, 0, 7);
+        assertNotNull(d);
+        assertEquals(PlayerGoal.ACQUIRE, d.goal);
+        assertEquals(NPC_X, d.targetX);
+        assertEquals(NPC_Y, d.targetY);
+
+        // Recover the picked quest by name from the label and check its adena is the reachable max.
+        String pickedName = d.label.startsWith("acquire:")
+            ? d.label.substring("acquire:".length()) : "";
+        long pickedAdena = -1;
+        for (QuestInfo q : QuestDatabase.findAvailable(35, 1, 0, Collections.emptySet()))
+        {
+            if (q != null && q.name.equals(pickedName) && q.reward != null)
+            {
+                pickedAdena = q.reward.adena;
+            }
+        }
+        assertEquals(maxReachable, (int) pickedAdena,
+            "diverse path must pick a max-adena reachable quest, got " + d.label);
+    }
+
+    @Test
+    void diversePathDeterministicForSameSeed()
+    {
+        GoalDecision a = QuestGoalPlanner.decide(35, journal(), NPC_X, NPC_Y, NPC_Z, 0, 11);
+        GoalDecision b = QuestGoalPlanner.decide(35, journal(), NPC_X, NPC_Y, NPC_Z, 0, 11);
+        assertNotNull(a);
+        assertEquals(a.label, b.label, "same seed must be deterministic");
+        assertEquals(a.targetX, b.targetX);
+        assertEquals(a.targetY, b.targetY);
+    }
+
+    @Test
+    void diversePathFallsBackToNullWhenNothingReachable()
+    {
+        // From FAR_PLAYER (level 10, no giver within 20k) the diverse path must fall back to null.
+        assertNull(QuestGoalPlanner.decide(10, journal(), FAR_PLAYER_X, FAR_PLAYER_Y, NPC_Z, 0, 3));
+    }
+
+    @Test
+    void zeroSeedDelegatesToClassicNearest()
+    {
+        // Seed 0 must behave exactly like the classic (no-seed) nearest-giver path at level 10.
+        GoalDecision seed0 = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z, 0, 0);
+        GoalDecision classic = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z, 0);
+        assertNotNull(seed0);
+        assertEquals(classic.targetX, seed0.targetX);
+        assertEquals(classic.targetY, seed0.targetY);
+        assertEquals(classic.label, seed0.label);
     }
 
     // ================================================================

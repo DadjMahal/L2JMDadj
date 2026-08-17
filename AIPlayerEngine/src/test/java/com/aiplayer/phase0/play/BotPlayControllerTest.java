@@ -13,6 +13,9 @@ import org.junit.jupiter.api.Test;
 
 import com.aiplayer.phase0.play.BotPlayController.Hostile;
 import com.aiplayer.phase0.play.BotPlayController.PlayContext;
+import com.aiplayer.phase0.guide.PlayerRace;
+import com.aiplayer.phase0.guide.QuestNode;
+import com.aiplayer.phase0.guide.RaceGuide;
 
 /**
  * BotPlayController (STEP 1B) — the decision ladder must always pick ONE deliberate action per tick
@@ -262,14 +265,19 @@ class BotPlayControllerTest
     @Test
     void fullInventoryReturnsRestockBeforeCombat()
     {
-        // Inventory 96% >= threshold 95, hostile in combat range -> REST-reason="restock".
+        // Inventory 96% >= threshold 95, hostile in combat range -> REST-reason="restock" to the
+        // vendor landmark (MOVE_TO, not the old WAIT).
+        QuestNode anchor = RestockPlannerTest.humanAnchor(10);
         GoalDecision d = BotPlayController.decide(
             new PlayContext(10, 0, 0, 0, 90, 100, journal(),
                 hostiles(new Hostile(42, 200, 0, 0)), 0, 96),
             new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 95));
         assertNotNull(d);
         assertEquals(PlayerGoal.REST, d.goal, "full inventory with hostile near -> rest over fight");
-        assertEquals(GoalAction.WAIT, d.action, "restock intent -> wait/hold");
+        assertEquals(GoalAction.MOVE_TO, d.action, "restock intent -> move to town vendor");
+        assertEquals(anchor.x, d.targetX, "targets the vendor landmark X");
+        assertEquals(anchor.y, d.targetY, "targets the vendor landmark Y");
+        assertEquals(anchor.z, d.targetZ, "targets the vendor landmark Z");
         assertTrue(d.reason.contains("restock"), "reason mentions restock: " + d.reason);
         assertTrue(d.label.contains("restock"), "label mentions restock: " + d.label);
     }
@@ -286,6 +294,56 @@ class BotPlayControllerTest
         assertEquals(GoalAction.COMBAT_TARGET, d.action,
             "inventory below threshold -> normal combat");
         assertEquals(7, d.targetObjId, "attacks the hostile in range");
+    }
+
+    @Test
+    void restockAtThresholdMovesToVendorLandmark()
+    {
+        // Inventory 80% >= threshold 60 with no hostiles -> REST to the vendor landmark (MOVE_TO).
+        QuestNode anchor = RestockPlannerTest.humanAnchor(20);
+        GoalDecision d = BotPlayController.decide(
+            new PlayContext(20, 0, 0, 0, 90, 100, journal(), hostiles(), 0, 80),
+            new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 60));
+        assertNotNull(d);
+        assertEquals(PlayerGoal.REST, d.goal, "full inventory -> rest goal");
+        assertEquals(GoalAction.MOVE_TO, d.action, "restock is a walk to the vendor, not a wait");
+        assertEquals(anchor.x, d.targetX, "vendor landmark X");
+        assertEquals(anchor.y, d.targetY, "vendor landmark Y");
+        assertEquals(anchor.z, d.targetZ, "vendor landmark Z");
+        assertTrue(d.reason.contains("restock"), "reason mentions restock: " + d.reason);
+    }
+
+    @Test
+    void restockUsesConfiguredRaceLandmark()
+    {
+        // An ELF bot with an over-full inventory walks to the ELF race's own landmark.
+        QuestNode anchor = RestockPlannerTest.anchor(PlayerRace.ELF, 20);
+        GoalDecision d = BotPlayController.decide(
+            new PlayContext(20, 0, 0, 0, 90, 100, journal(), hostiles(), 0, 80),
+            new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 60, PlayerRace.ELF));
+        assertNotNull(d);
+        assertEquals(GoalAction.MOVE_TO, d.action, "restock -> move to vendor");
+        assertEquals(anchor.x, d.targetX, "ELF vendor landmark X");
+        assertEquals(anchor.y, d.targetY, "ELF vendor landmark Y");
+        assertEquals(anchor.z, d.targetZ, "ELF vendor landmark Z");
+    }
+
+    @Test
+    void restockWinsOverCombatInRange()
+    {
+        // Inventory 80% >= threshold 60 and hostile in combat range -> still restock (walk to vendor),
+        // proving restock outranks combat.
+        QuestNode anchor = RestockPlannerTest.humanAnchor(20);
+        GoalDecision d = BotPlayController.decide(
+            new PlayContext(20, 0, 0, 0, 90, 100, journal(),
+                hostiles(new Hostile(7, 200, 0, 0)), 0, 80),
+            new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 60));
+        assertNotNull(d);
+        assertEquals(PlayerGoal.REST, d.goal, "restock outranks combat when inventory full");
+        assertEquals(GoalAction.MOVE_TO, d.action,
+            "restock intent sends us to the vendor, not to the hostile");
+        assertEquals(anchor.x, d.targetX, "vendor landmark X");
+        assertEquals(anchor.y, d.targetY, "vendor landmark Y");
     }
 
     // ================================================================

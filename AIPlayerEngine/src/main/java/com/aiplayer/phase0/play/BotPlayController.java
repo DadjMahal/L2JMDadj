@@ -58,12 +58,15 @@ public final class BotPlayController
             }
         }
 
-        // 1.5 RESTOCK: when inventory is too full to keep farming, return a deliberate REST
-        //    instead of engaging COMBAT/HUNT so the bot stops fighting and (later) retreats.
+        // 1.5 RESTOCK: when inventory is too full to keep farming, walk to the town vendor and
+        //    shop instead of engaging COMBAT/HUNT so the bot stops fighting and (later) restocks.
         if (ctx.inventoryPct >= c.restockThreshold)
         {
-            return GoalDecision.wait(PlayerGoal.REST, "restock",
-                "inventory " + ctx.inventoryPct + "% full; restock/retreat");
+            RestockPlanner.RestockPlan plan =
+                RestockPlanner.plan(ctx.level, ctx.inventoryPct, 0, c.race);
+            return GoalDecision.moveTo(PlayerGoal.REST, plan.vendorX, plan.vendorY, plan.vendorZ,
+                "restock",
+                "inventory " + ctx.inventoryPct + "% full; walk to vendor to restock");
         }
 
         // 2. COMBAT: a hostile we can hit right now.
@@ -264,7 +267,7 @@ public final class BotPlayController
     public static final class BotPlayConfig
     {
         public static final BotPlayConfig DEFAULT =
-            new BotPlayConfig(0.25, 400, 2000, 300, 100);
+            new BotPlayConfig(0.25, 400, 2000, 300, 100, com.aiplayer.phase0.guide.PlayerRace.HUMAN);
 
         /** HP fraction at/below which a bot stops fighting while hostiles are near (SURVIVE). */
         public final double surviveHpFraction;
@@ -272,34 +275,46 @@ public final class BotPlayController
         public final int combatRange;
         /** Distance within which a hostile is worth walking to (hunt-advance). */
         public final int sightRange;
-        /** STEP 2: distance within which being at a QUEST/ACQUIRE NPC means "open its dialog" (BYPASS). */
+        /** NPC dialog open distance for BYPASS (STEP 2). */
         public final int talkRange;
         /**
          * Inventory usage percentage threshold for restock intent (0..100). When a bot's inventory
          * usage percent >= restockThreshold and it would otherwise engage COMBAT or HUNT, the
-         * controller returns REST-reason="restock" instead, so the bot stops farming and retreats.
-         * Default 100 means disabled (never restock).
+         * controller returns REST-reason="restock" instead, so the bot stops farming and walks to
+         * the town vendor to shop. Default 100 means disabled (never restock).
          */
         public final int restockThreshold;
+        /** Race of the bot, used to pick the vendor landmark for restock trips (default HUMAN). */
+        public final com.aiplayer.phase0.guide.PlayerRace race;
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange)
         {
-            this(surviveHpFraction, combatRange, sightRange, 300, 100);
+            this(surviveHpFraction, combatRange, sightRange, 300, 100,
+                com.aiplayer.phase0.guide.PlayerRace.HUMAN);
         }
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange)
         {
-            this(surviveHpFraction, combatRange, sightRange, talkRange, 100);
+            this(surviveHpFraction, combatRange, sightRange, talkRange, 100,
+                com.aiplayer.phase0.guide.PlayerRace.HUMAN);
         }
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
                              int restockThreshold)
+        {
+            this(surviveHpFraction, combatRange, sightRange, talkRange, restockThreshold,
+                com.aiplayer.phase0.guide.PlayerRace.HUMAN);
+        }
+
+        public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
+                             int restockThreshold, com.aiplayer.phase0.guide.PlayerRace race)
         {
             this.surviveHpFraction = surviveHpFraction;
             this.combatRange = combatRange;
             this.sightRange = sightRange;
             this.talkRange = talkRange;
             this.restockThreshold = Math.max(0, Math.min(100, restockThreshold));
+            this.race = race != null ? race : com.aiplayer.phase0.guide.PlayerRace.HUMAN;
         }
     }
 }

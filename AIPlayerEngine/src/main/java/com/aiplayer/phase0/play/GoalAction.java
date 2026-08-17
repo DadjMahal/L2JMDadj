@@ -13,6 +13,8 @@ public enum GoalAction
     WAIT,
     /** Retreat from an away point (computed as away from nearest hostile, clamped). */
     RETREAT,
+    /** Buy from a vendor (restock intent: walk to the town vendor and shop). */
+    BUY,
     /** No actionable step this tick (should be rare; the controller suppresses idling). */
     NONE
 }
