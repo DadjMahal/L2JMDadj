@@ -14,6 +14,7 @@ URL  = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8210/json"
 NOTES= sys.argv[2] if len(sys.argv) > 2 else "/tmp/watch_fleet.log"
 INTERVAL = int(sys.argv[3]) if len(sys.argv) > 3 else 120
 DURATION = (int(sys.argv[4]) if len(sys.argv) > 4 else 120) * 60
+JSON_MODE = len(sys.argv) > 5 and sys.argv[5].lower() == "json"   # S2-T09: emit JSON-lines
 STATE = NOTES + ".state"
 RN = {1:"ELF", 2:"DARK_ELF", 3:"ORC", 4:"DWARF", 0:"HUMAN"}
 RACES = ["ELF","DARK_ELF","ORC","DWARF","HUMAN"]
@@ -69,12 +70,19 @@ while time.time() - start < DURATION:
     cur = {r: exp_sum[r] for r in RACES}
     pexp = prev.get("exp", {})
     bits = []
+    races_json = {}
     for r in RACES:
         n = per_race[r]
         d = cur.get(r,0) - pexp.get(r,0)
         xpm = int(d / (INTERVAL / 60.0)) if d > 0 else 0
         bits.append(f"{r}:n{n}/avgLv{lvl_sum[r]//n if n else 0}/xpmin{xpm}/mob{mobile[r]}/stall{stalled[r]}/dead{dead[r]}/ret{retreat[r]}")
-    line(f"[{elapsed}min] " + " ".join(bits))
+        races_json[r] = {"n": n, "avgLv": lvl_sum[r]//n if n else 0, "xpmin": xpm,
+                         "mob": mobile[r], "stall": stalled[r], "dead": dead[r], "ret": retreat[r]}
+    if JSON_MODE:
+        import json as _json
+        line(_json.dumps({"elapsed_min": elapsed, "ts": time.time(), "races": races_json}))  # S2-T09
+    else:
+        line(f"[{elapsed}min] " + " ".join(bits))
     prev = {"exp": cur}          # FIX (S9-T02): refresh prev so xp/min is a per-interval delta
     save_prev(prev)
     time.sleep(max(5, INTERVAL - (time.time() - t0)))

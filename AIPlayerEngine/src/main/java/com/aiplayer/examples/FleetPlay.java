@@ -367,6 +367,8 @@ public final class FleetPlay
             MoveTelemetry telemetry = MoveTelemetry.getInstance();
             info.connected = true;
             info.loggedIn = true;
+            info.packetsRead = gs.packetsRead;   // S2-T04: expose per-bot packet health
+            info.idleTimeouts = gs.idleTimeouts;
             emit(EventRing.TYPE_CONNECT, "level", info.level);
             LOGGER.info("[FleetPlay] " + account + " ENTERED WORLD"
                 + (phase0.isMovementEnabled() ? " [phase0.movement ON]" : ""));
@@ -431,6 +433,8 @@ public final class FleetPlay
                 info.adena = logger.getAdena();
                 info.invPct = logger.getInventoryUsagePercent();
                 info.itemCount = logger.getInventoryItems().size();
+                info.packetsRead = gs.packetsRead;   // S2-T04: refresh packet health each tick
+                info.idleTimeouts = gs.idleTimeouts;
                 info.items = topItems(logger);
                 info.mobs = logger.getHostileEntityCount();
                 info.npcs = logger.getEntityCountTotal();

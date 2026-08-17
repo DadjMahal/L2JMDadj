@@ -579,7 +579,9 @@ public final class DashboardApi
           .append(",\"invPct\":").append(b.invPct).append(",\"itemCount\":").append(b.itemCount)
           .append(",\"mobs\":").append(b.mobs).append(",\"npcs\":").append(b.npcs)
           .append(",\"race\":\"").append(jsonEscape(b.race)).append('"')
-          .append(",\"killCount\":").append(b.killCount);
+          .append(",\"killCount\":").append(b.killCount)
+          .append(",\"packetsRead\":").append(b.packetsRead)
+          .append(",\"idleTimeouts\":").append(b.idleTimeouts);
         appendRateFields(sb, b);
         sb.append(",\"items\":[");
         int[][] it = b.items;

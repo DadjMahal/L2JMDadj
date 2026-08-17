@@ -61,6 +61,9 @@ public class GameServerClient
     private final String host;
     private final int gamePort;
     private final PacketLogger packetLogger;
+    /** S2-T04: per-bot packet health — total frames read + consecutive read timeouts (feed the dashboard). */
+    public volatile long packetsRead;
+    public volatile int idleTimeouts;
 
     private Socket socket;
     private DataInputStream in;
@@ -249,10 +252,13 @@ public class GameServerClient
                 frame[1] = (byte) (((payload.length + 2) >> 8) & 0xff);
                 System.arraycopy(payload, 0, frame, 2, payload.length);
                 packetLogger.logPacket(frame);
+                packetsRead++;
+                idleTimeouts = 0; // any successful frame clears the idle streak
             }
             catch (SocketTimeoutException te)
             {
                 // No data within timeout — keep waiting while open.
+                idleTimeouts++;
             }
             catch (EOFException e)
             {

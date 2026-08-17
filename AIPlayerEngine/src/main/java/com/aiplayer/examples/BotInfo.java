@@ -33,6 +33,9 @@ public final class BotInfo
     public volatile String race = "";
     /** Life-kills counter, bumped on each EVIDENCE-H5 EXP receipt (S9-T06 kills/min). */
     public volatile long killCount;
+    /** S2-T04: per-bot packet health (fed from GameServerClient). */
+    public volatile long packetsRead;
+    public volatile int idleTimeouts;
     public volatile int targetObjId;
     public volatile String targetLabel = "";
     public volatile int targetKind;
