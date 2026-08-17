@@ -45,7 +45,7 @@
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
 | S1-T01 | Replace wildcard imports (`import java.util.*`) with explicit imports | E | P0 | TODO |
-| S1-T02 | Convert remaining fully-qualified class refs to imports (BotPlayController pattern) | E | P0 | TODO |
+| S1-T02 | Convert remaining fully-qualified class refs to imports (BotPlayController pattern) | E | P0 | DONE-PUSHED (swept engine/protocol/phase0 — none remaining) |
 | S1-T03 | Trailing-newline fixer pass over all main sources | E | P1 | DONE-PUSHED 87bf5a4b |
 | S1-T04 | Implement or remove 5 stub methods (sendSay/sendClanChat/sendPartyChat/sendTradeChat/sendShout) | E | P1 | TODO |
 | S1-T05 | javac -Xlint sweep: unused imports + warnings | E | P1 | TODO |
@@ -59,7 +59,7 @@
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
 | S2-T01 | LoginCrypt parity/padding property tests | M | P1 | DONE-PUSHED d653ab1e |
-| S2-T02 | GameCrypt key handling verified at 50 concurrent sessions | M | P1 | TODO |
+| S2-T02 | GameCrypt key handling verified at 50 concurrent sessions | M | P1 | DONE-PUSHED 6ce4b56d |
 | S2-T03 | PacketLogger NPC_INFO tests for multi-race entities | M | P2 | TODO |
 | S2-T04 | Per-bot packet loss/drop metrics | M | P1 | TODO |
 | S2-T05 | Decode CharSelectInfo (name/class/race) instead of slot-only select | M | P1 | TODO |
@@ -160,8 +160,8 @@
 | S9-T02 | Fix watcher xp/min metric (currently reads 0) | E | P0 | DONE-PUSHED 2aeae3de |
 | S9-T03 | Reusable random-race provisioning script (`scripts/provision_fleet.sh`) | M | P1 | DONE-PUSHED 2aeae3de |
 | S9-T04 | Reusable 50-bot launcher with race rotation | E | P1 | DONE-PUSHED 2aeae3de |
-| S9-T05 | Dashboard per-race filter + race badge | E | P1 | TODO |
-| S9-T06 | Dashboard kills/min + XP/min per bot | M | P1 | TODO |
+| S9-T05 | Dashboard per-race filter + race badge | E | P1 | DONE-PUSHED fdf20296 |
+| S9-T06 | Dashboard kills/min + XP/min per bot | M | P1 | DONE-PUSHED fdf20296 |
 | S9-T07 | Log rotation for fleet50.log (50 bots = huge logs) | M | P0 | TODO |
 | S9-T08 | Auto-restart fleet on crash (systemd/supervisord) | M | P1 | TODO |
 | S9-T09 | DB backup before mass provisioning | E | P1 | TODO |
