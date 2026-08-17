@@ -23,6 +23,7 @@ public class PacketLogger
 
    // Server packet opcodes (from SourceCode ServerPackets.java)
    public static final int OP_CHAR_INFO = 0x03;
+   public static final int OP_CHAR_SELECT_INFO = 0x13;
    public static final int OP_USER_INFO = 0x04;
    public static final int OP_STATUS_UPDATE = 0x0E;
    public static final int OP_DELETE_OBJECT = 0x12;
@@ -125,6 +126,11 @@ public class PacketLogger
    private boolean weaponEquipped = false;
    private int baseClass = 0;
    private String charName = null;
+   // S2-T05: character identity captured directly from CharSelectInfo (0x13) at handshake,
+   // so the build knows who it really is even before UserInfo/CharInfo arrive.
+   private String charSelectName = null;
+   private int charSelectClassId = 0;
+   private int charSelectRaceId = 0;
    private int curCp = 100;
    private int maxCp = 100;
 
@@ -258,6 +264,9 @@ public class PacketLogger
             case OP_CHAR_INFO:
                charInfoCount++;
                parseCharInfo(buf);
+               break;
+            case OP_CHAR_SELECT_INFO:
+               parseCharSelectInfo(buf);
                break;
             case OP_USER_INFO:
                parseUserInfo(buf);
@@ -447,6 +456,73 @@ public class PacketLogger
       catch (Exception e)
       {
          LOGGER.fine("[" + playerName + "] UserInfo parse incomplete");
+      }
+   }
+
+   /**
+    * Parse CharSelectInfo packet (opcode 0x13) - the character-select screen snapshot. Layout from
+    * SourceCode CharSelectionInfo.java writeImpl (Interlude):
+    *   [count:int]
+    *   per char: [name:UTF-16LE+null][objectId:int][account:UTF-16LE+null][sessionId:int]
+    *             [clanId:int][builder:int][sex:int][race:int][baseClassId:int]...
+    * We parse only the FIRST character entry (bots run a single-character account; charSlot is
+    * applied later by GameServerClient), capturing NAME / RACE / CLASS (baseClassId).
+    * buf is positioned right after the opcode.
+    */
+   private void parseCharSelectInfo(ByteBuffer buf)
+   {
+      try
+      {
+         int count = buf.getInt();
+         if (count < 1)
+         {
+            return;
+         }
+         String name = readUtf16Le(buf);
+         int objId = buf.getInt();
+         readUtf16Le(buf);       // account name
+         buf.getInt();           // session id
+         buf.getInt();           // clan id
+         buf.getInt();           // builder level
+         buf.getInt();           // sex
+         int raceId = buf.getInt();
+         int classId = buf.getInt();
+         charSelectName = name;
+         charSelectClassId = classId;
+         charSelectRaceId = raceId;
+         if (charName == null && name != null && !name.isEmpty())
+         {
+            charName = name;
+         }
+         LOGGER.info("[PACKET-LOG] [" + playerName + "] CHAR_SELECT_INFO: name=" + name
+            + " objId=" + objId + " raceId=" + raceId + " classId=" + classId);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] CharSelectInfo parse incomplete");
+      }
+   }
+
+   /**
+    * Public entry point for the handshake loop (GameServerClient): feed a raw CharSelectInfo
+    * payload (starting with the opcode byte) so the build records the char's name/class/race.
+    */
+   public void recordCharSelectInfo(byte[] payloadBody)
+   {
+      if (payloadBody == null || payloadBody.length < 2)
+      {
+         return;
+      }
+      try
+      {
+         ByteBuffer buf = ByteBuffer.wrap(payloadBody);
+         buf.order(ByteOrder.LITTLE_ENDIAN);
+         buf.get(); // skip opcode
+         parseCharSelectInfo(buf);
+      }
+      catch (Exception e)
+      {
+         LOGGER.fine("[" + playerName + "] CharSelectInfo record incomplete");
       }
    }
 
@@ -1503,6 +1579,12 @@ public class PacketLogger
    public boolean isWeaponEquipped() { return weaponEquipped; }
    public int getBaseClass() { return baseClass; }
    public String getCharName() { return charName; }
+   /** S2-T05: character name from CharSelectInfo (0x13) at handshake; null until seen. */
+   public String getCharSelectName() { return charSelectName; }
+   /** S2-T05: character classId (base class) from CharSelectInfo (0x13); 0 until seen. */
+   public int getCharSelectClassId() { return charSelectClassId; }
+   /** S2-T05: character raceId from CharSelectInfo (0x13); 0 until seen. */
+   public int getCharSelectRaceId() { return charSelectRaceId; }
    public int getCurCp() { return curCp; }
    public int getMaxCp() { return maxCp; }
    public java.util.Collection<EntityInfo> getEntities() { return entitiesById.values(); }

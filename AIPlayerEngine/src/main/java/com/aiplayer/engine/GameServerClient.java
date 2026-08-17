@@ -187,6 +187,9 @@ public class GameServerClient
                 int op = payload[0] & 0xff;
                 if (op == OP_CHAR_SELECT_INFO)
                 {
+                    // S2-T05: record who this character really is (name/class/race) from the
+                    // CharSelectInfo snapshot; the existing CharacterSelect send stays unchanged.
+                    packetLogger.recordCharSelectInfo(payload);
                     if (!sentSelect)
                     {
                         sendPayload(PacketCodec.encodeCharacterSelect(charSlot), useEnc);
