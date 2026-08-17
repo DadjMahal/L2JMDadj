@@ -94,7 +94,7 @@ public final class WarehouseManager {
      */
     public void startWithdraw(List<Integer> itemIds) {
         // Phase 0: No warehouse content tracking yet
-        // Phase 1: Query Redis warehouse snapshot, build withdraw list
+        // Phase 1: Query in-memory warehouse snapshot (no Redis), build withdraw list
         this.pendingItems = new ArrayList<>();
         this.actionIndex = 0;
         this.depositMode = false;

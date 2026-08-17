@@ -10,10 +10,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * Records farm session analytics for long-term zone quality learning.
  * Tracks XP/h, adena/h, death rate, kill rate, and spot quality
- * per zone. Data is persisted to Redis for cross-session analysis
+ * per zone. Kept in-memory (no Redis/Postgres — verified S10-T09)
  * and fed back into FarmZoneScorer for better recommendations.
  *
- * Phase 0: In-memory queue with Redis persistence.
+ * Phase 0: In-memory queue only (no external persistence).
  * Phase 1: Cross-account aggregation for server-wide zone meta.
  *
  * Integration: DynamicZoneManager logs sessions. AIBrain calls
