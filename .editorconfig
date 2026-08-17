@@ -1,0 +1,18 @@
+# S1-T09: minimal, non-destructive style contract for every editor.
+# Enforces what style_sweep.sh (S1-T10) fixes; does NOT auto-rewrite anything.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.java]
+indent_style = space
+indent_size = 4
+max_line_length = 120
+
+[*.{sh,py}]
+indent_style = space
+indent_size = 4
