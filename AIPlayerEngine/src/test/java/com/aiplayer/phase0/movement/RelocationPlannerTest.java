@@ -12,6 +12,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.aiplayer.phase0.guide.PlayerRace;
+import com.aiplayer.phase0.guide.QuestNode;
+import com.aiplayer.phase0.guide.RaceGuide;
 import com.aiplayer.phase0.movement.RelocationPlanner.Target;
 
 /**
@@ -155,6 +157,34 @@ class RelocationPlannerTest
         p.noteProgress();
         assertFalse(p.escapeHoldActive(), "healthy recoveries must stop the gate tripping");
         assertFalse(p.isFrozen());
+    }
+
+    @Test
+    void anchorTooCloseReturnsNullInsteadOfReplanningSameLandmark()
+    {
+        // Proximity gate: the bot sits effectively AT the guide landmark (inside the min relocation
+        // distance), so choose() must NOT be re-sent to that same landmark. choose() may still return
+        // a bounded far-point (the designed last resort) — the gate's contract is "no reuse of the
+        // occupied landmark", not "always null".
+        RelocationPlanner p = new RelocationPlanner("ai_combat_08");
+        QuestNode a = RaceGuide.idleAnchor(PlayerRace.HUMAN, 20);
+        Target t = p.choose(20, a.x, a.y, a.z, false,
+            nothing(), PlayerRace.HUMAN, 900, 30000);
+        assertTrue(t == null || !t.reason.contains("guide landmark"),
+            "must not re-hop to the same guide landmark; got " + (t == null ? "null" : t.reason));
+    }
+
+    @Test
+    void anchorWithinReachStillChosenWhenNotFrozen()
+    {
+        // Bot parked a guaranteed in-reach offset from the landmark (distance between min and
+        // max), so the real guide landmark is still preferred over any random point.
+        RelocationPlanner p = new RelocationPlanner("ai_combat_09");
+        QuestNode a = RaceGuide.idleAnchor(PlayerRace.HUMAN, 20);
+        Target t = p.choose(20, a.x + 20000, a.y, a.z, false,
+            nothing(), PlayerRace.HUMAN, 900, 30000);
+        assertNotNull(t, "landmark within reach must still be chosen when not frozen");
+        assertTrue(t.label.startsWith("reloc:"), "unexpected relocation label: " + t.label);
     }
 
     private static List<int[]> nothing()
