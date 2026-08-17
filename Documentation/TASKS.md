@@ -30,6 +30,7 @@
 | **STEP 6** | Idle-relocation empty-zone dead-end: a bot with no hostiles in range freezes (`movedLast60=0`) because idle far-travel MoveToLocation doesn't persist server movement — route toward last-XP / nearest mate, progressive-abandon escape gate | `DONE-PUSHED 4d8acad5` | play-builder |
 | **GUIDE-MAP-**INTEG | Guide map wired into bot behavior: `RelocationPlanner` idles to a real `RaceGuide.idleAnchor` landmark (never the void spot) and, when frozen, re-routes to last-XP / nearest fleet mate with a consecutive-abandon escape gate | `DONE-PUSHED 4d8acad5` | play-builder |
 | **GUIDE-MAP** | Per-race/profession guide map for the bots from real Interlude sources — profession tree (`classList.xml`), newbie Q1→Q10 + tutorial, Path Q401–418, Trial/Q235 pool Q211–235, Saga Q70–100, teleport legs + hunt zones, `idleAnchor` returns real in-world coords (fixes the void-spot idle) | `DONE-PUSHED ce3e2426` | play-builder |
+| **STEP 7** | Ultra-smart sprint vol.1 — `RestockPlanner` (dead RESTOCK-WAIT → real walk-to-vendor shop trip + `GoalAction.BUY`), `FleetSpreadPlanner` (anti-clustering hunt-zone spread so the fleet stops ganging), reward-aware + per-bot `varietySeed`-diverse quest-giver pick (`QuestGoalPlanner` seed overload) | `DONE-PUSHED d2c75b4b` | play-builder |
 
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |

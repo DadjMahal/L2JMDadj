@@ -1,4 +1,23 @@
-- Split large file writes into multiple small replace/write steps.
-- No tail -f or long sleeps in-turn; use background + tail -n on files.
-- On output token limit errors: reduce scope, do not retry the same huge action.
-- At 500k+ context, prefer summary + new task over endless continuation.
+## Output (hard)
+- Assume ~4k max output/turn ≤30–50 new lines.
+- Small search_replace only; never one huge write.
+- On output-limit error: smaller chunk only — never retry the same dump.
+- Never dump large code/data in one response.
+
+## Codebase
+- Search/grep → read a slice → small edit → minimal check.
+- Plan to explore; Act to change. One concern per turn.
+
+## Commands
+- Non-interactive flags only. Cap logs (tail/head).
+- >30s work → background + log + PID; never block the turn.
+
+## Watchers (hours OK)
+- No tail -f, watch, or long sleep in a turn.
+- Start: `nohup <cmd> > /tmp/watch.log 2>&1 & echo $! > /tmp/watch.pid`
+- Later: PID check + `tail -n 40` only. User owns wait time between polls.
+
+## Session / failures
+- Short progress notes; prefer fresh task after big milestones.
+- Timeout → background+log. Empty output → redirect then tail.
+- Partial write → continue from last good line, small chunk.
