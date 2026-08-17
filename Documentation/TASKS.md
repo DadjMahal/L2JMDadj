@@ -208,6 +208,12 @@
 | **LIVE-RUN** | 50 random-race players created + played 2h (provisioning, launcher race rotation, USE_SKILL→melee fix) | `DONE-PUSHED 0fd3fef4/e53ca85a` | play-builder |
 
 ## 6. Changelog (newest last)
+- **2026-08-17 · play-builder:** **50-bot random-race run completed** (2h window 14:56→16:56). End-state
+  persisted in DB: **50 chars, avg L3.9 / max L6, ~119 500 total XP**, 0 crashes seen while live. Post-run
+  findings: (1) `/tmp` watcher notes were cleared with the machine, so the fine-grained series is lost — only
+  DB end-state survives; (2) the server **reverted DB race/class to Human on save** because `character_subclasses`
+  rows were not provisioned → bots were Human-in-world with race-diverse spawn positions; true random race
+  requires subclass provisioning (→ S4-T06/S10-T09 style follow-up).
 - **2026-08-17 · doc-sweeper/play-builder:** Board restructure — 100-task roadmap in 10 sessions
   (difficulty E/M/H × priority P0–P2, all `TODO`), grounded in the code review (95 `MODE:PARTIAL`,
   stubs, unwired modules), the 50-bot live logs (solo relocation dead-end, race imbalance, L1
