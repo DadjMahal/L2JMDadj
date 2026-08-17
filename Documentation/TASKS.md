@@ -31,6 +31,7 @@
 | **GUIDE-MAP-**INTEG | Guide map wired into bot behavior: `RelocationPlanner` idles to a real `RaceGuide.idleAnchor` landmark (never the void spot) and, when frozen, re-routes to last-XP / nearest fleet mate with a consecutive-abandon escape gate | `DONE-PUSHED 4d8acad5` | play-builder |
 | **GUIDE-MAP** | Per-race/profession guide map for the bots from real Interlude sources — profession tree (`classList.xml`), newbie Q1→Q10 + tutorial, Path Q401–418, Trial/Q235 pool Q211–235, Saga Q70–100, teleport legs + hunt zones, `idleAnchor` returns real in-world coords (fixes the void-spot idle) | `DONE-PUSHED ce3e2426` | play-builder |
 | **STEP 7** | Ultra-smart sprint vol.1 — `RestockPlanner` (dead RESTOCK-WAIT → real walk-to-vendor shop trip + `GoalAction.BUY`), `FleetSpreadPlanner` (anti-clustering hunt-zone spread so the fleet stops ganging), reward-aware + per-bot `varietySeed`-diverse quest-giver pick (`QuestGoalPlanner` seed overload) | `DONE-PUSHED d2c75b4b` | play-builder |
+| **STEP 8** | Live-path code cleanup vol.1 — pull `BotPlayController` off fully-qualified `PlayerRace` onto a proper import (style debt; the rest of the live play/movement/guide path reviewed, mostly clean). Legacy `MODE:PARTIAL` pile (95 files / ~320 TODO-FIXME) is **not** blindly rewritten — see review + roadmap; not re-audited (hard rule #5). | `DONE-PUSHED <hash>` | play-builder |
 
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |

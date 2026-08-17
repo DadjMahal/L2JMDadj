@@ -2,6 +2,8 @@ package com.aiplayer.phase0.play;
 
 import java.util.List;
 
+import com.aiplayer.phase0.guide.PlayerRace;
+
 /**
  * MODE: COMPLETE. The decision ladder — picks ONE deliberate {@link GoalDecision} every tick so a
  *       bot is always doing something meaningful (fight / quest / travel / rest) and never idles.
@@ -267,7 +269,7 @@ public final class BotPlayController
     public static final class BotPlayConfig
     {
         public static final BotPlayConfig DEFAULT =
-            new BotPlayConfig(0.25, 400, 2000, 300, 100, com.aiplayer.phase0.guide.PlayerRace.HUMAN);
+            new BotPlayConfig(0.25, 400, 2000, 300, 100, PlayerRace.HUMAN);
 
         /** HP fraction at/below which a bot stops fighting while hostiles are near (SURVIVE). */
         public final double surviveHpFraction;
@@ -285,36 +287,36 @@ public final class BotPlayController
          */
         public final int restockThreshold;
         /** Race of the bot, used to pick the vendor landmark for restock trips (default HUMAN). */
-        public final com.aiplayer.phase0.guide.PlayerRace race;
+        public final PlayerRace race;
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange)
         {
             this(surviveHpFraction, combatRange, sightRange, 300, 100,
-                com.aiplayer.phase0.guide.PlayerRace.HUMAN);
+                PlayerRace.HUMAN);
         }
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange)
         {
             this(surviveHpFraction, combatRange, sightRange, talkRange, 100,
-                com.aiplayer.phase0.guide.PlayerRace.HUMAN);
+                PlayerRace.HUMAN);
         }
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
                              int restockThreshold)
         {
             this(surviveHpFraction, combatRange, sightRange, talkRange, restockThreshold,
-                com.aiplayer.phase0.guide.PlayerRace.HUMAN);
+                PlayerRace.HUMAN);
         }
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
-                             int restockThreshold, com.aiplayer.phase0.guide.PlayerRace race)
+                             int restockThreshold, PlayerRace race)
         {
             this.surviveHpFraction = surviveHpFraction;
             this.combatRange = combatRange;
             this.sightRange = sightRange;
             this.talkRange = talkRange;
             this.restockThreshold = Math.max(0, Math.min(100, restockThreshold));
-            this.race = race != null ? race : com.aiplayer.phase0.guide.PlayerRace.HUMAN;
+            this.race = race != null ? race : PlayerRace.HUMAN;
         }
     }
 }
