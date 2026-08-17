@@ -44,15 +44,15 @@
 ### Session 1 — Code hygiene & foundations
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
-| S1-T01 | Replace wildcard imports (`import java.util.*`) with explicit imports | E | P0 | TODO |
+| S1-T01 | Replace wildcard imports (`import java.util.*`) with explicit imports | E | P0 | DONE-PUSHED 910a2812 |
 | S1-T02 | Convert remaining fully-qualified class refs to imports (BotPlayController pattern) | E | P0 | DONE-PUSHED (swept engine/protocol/phase0 — none remaining) |
 | S1-T03 | Trailing-newline fixer pass over all main sources | E | P1 | DONE-PUSHED 87bf5a4b |
-| S1-T04 | Implement or remove 5 stub methods (sendSay/sendClanChat/sendPartyChat/sendTradeChat/sendShout) | E | P1 | TODO |
-| S1-T05 | javac -Xlint sweep: unused imports + warnings | E | P1 | TODO |
-| S1-T06 | Audit + index all 95 `MODE:PARTIAL` files into one map | M | P1 | TODO |
+| S1-T04 | Implement or remove 5 stub methods (sendSay/sendClanChat/sendPartyChat/sendTradeChat/sendShout) | E | P1 | DONE-PUSHED b8879263 |
+| S1-T05 | javac -Xlint sweep: unused imports + warnings | E | P1 | DONE-PUSHED b8879263 |
+| S1-T06 | Audit + index all 95 `MODE:PARTIAL` files into one map | M | P1 | DONE-PUSHED 945344cc |
 | S1-T07 | Move hardcoded PASSWORD `ai123pass` into AIConfiguration | E | P1 | DONE-PUSHED e4211337 |
-| S1-T08 | Centralize magic numbers (RETREAT_HOP/CHASE_HOP/MAX_ACQUIRE_DIST/…) | E | P2 | TODO |
-| S1-T09 | Add Spotless/Checkstyle config to keep style green going forward | M | P2 | TODO |
+| S1-T08 | Centralize magic numbers (RETREAT_HOP/CHASE_HOP/MAX_ACQUIRE_DIST/…) | E | P2 | DONE-PUSHED b8879263 |
+| S1-T09 | Add Spotless/Checkstyle config to keep style green going forward | M | P2 | DONE-PUSHED 945344cc |
 | S1-T10 | Create `scripts/style_sweep.sh` (repeatable sed hygiene) | E | P1 | DONE-PUSHED 87bf5a4b |
 
 ### Session 2 — Protocol & data hardening
