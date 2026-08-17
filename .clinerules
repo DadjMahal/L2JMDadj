@@ -1,0 +1,4 @@
+- Split large file writes into multiple small replace/write steps.
+- No tail -f or long sleeps in-turn; use background + tail -n on files.
+- On output token limit errors: reduce scope, do not retry the same huge action.
+- At 500k+ context, prefer summary + new task over endless continuation.

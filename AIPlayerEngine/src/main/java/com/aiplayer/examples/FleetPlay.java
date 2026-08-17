@@ -25,8 +25,10 @@ import com.aiplayer.monitor.AIMonitorDashboard;
 import com.aiplayer.phase0.BotSnapshot;
 import com.aiplayer.phase0.Phase0Wiring;
 import com.aiplayer.phase0.combat.TargetSelector;
+import com.aiplayer.phase0.guide.PlayerRace;
 import com.aiplayer.phase0.movement.HopGate;
 import com.aiplayer.phase0.movement.MoveTelemetry;
+import com.aiplayer.phase0.movement.RelocationPlanner;
 import com.aiplayer.phase0.movement.ZoneRouter;
 import com.aiplayer.phase0.movement.ZoneRouter.RouteGoal;
 import com.aiplayer.phase0.play.AcquireCooldown;
@@ -280,6 +282,9 @@ public final class FleetPlay
             TargetSelector targetSelector = new TargetSelector(account, logger.getLevel());
             Phase0Config phase0 = Phase0Config.getInstance();
             ZoneRouter zoneRouter = new ZoneRouter(account);
+            // STEP 6: idle-relocation decision maker — prefers last-XP / nearest-mate when frozen,
+            // real guide-map landmark otherwise, with a consecutive-abandon escape gate.
+            RelocationPlanner relocation = new RelocationPlanner(account);
             MoveTelemetry telemetry = MoveTelemetry.getInstance();
             info.connected = true;
             info.loggedIn = true;
@@ -387,6 +392,10 @@ public final class FleetPlay
                 {
                     System.out.println("[EVIDENCE-H5] " + account + " EXP +" + (info.exp - prevExp)
                         + " (now " + info.exp + ", level=" + tickLevel + ")");
+                    // STEP 6: remember where this bot earned XP (hostiles live there) and clear any
+                    // relocation-freeze counter — earning XP proves the char can move/fight here.
+                    relocation.recordLastXp(info.x, info.y, info.z);
+                    relocation.noteProgress();
                 }
                 prevExp = info.exp;
                 // WPT-22: emit newly-parsed SystemMessage / chat broadcasts (real server text).
@@ -675,9 +684,41 @@ public final class FleetPlay
                                 }
                                 if (activeRoute == null)
                                 {
-                                    activeRoute = zoneRouter.plan(snapshot.level,
+                                    // STEP 6: pick an idle-relocation aim. When frozen (previous route
+                                    // abandoned = zero server movement) this routes BACK toward the last-XP
+                                    // spot or nearest fleet mate instead of a random far point; otherwise it
+                                    // prefers a real guide-map landmark. The consecutive-abandon escape gate
+                                    // returns null -> stay put (no doomed far move re-issued every tick).
+                                    java.util.List<int[]> mates = new java.util.ArrayList<>();
+                                    for (BotInfo b : BOTS.values())
+                                    {
+                                        if (b == null || b.account == null || b.account.equals(account)
+                                                || !b.connected || !b.loggedIn || (b.x == 0 && b.y == 0))
+                                        {
+                                            continue; // skip self / offline / not-in-world mates
+                                        }
+                                        mates.add(new int[] { b.x, b.y, b.z });
+                                    }
+                                    // Fleet chars are all Human Fighters (see AIPlayer ctor below).
+                                    RelocationPlanner.Target reloc = relocation.choose(snapshot.level,
                                         snapshot.x, snapshot.y, snapshot.z,
+                                        relocation.isFrozen(), mates, PlayerRace.HUMAN,
                                         phase0.getMovementMinRadius(), phase0.getMovementMaxRadius());
+                                    if (reloc != null)
+                                    {
+                                        activeRoute = ZoneRouter.routeTo(snapshot.x, snapshot.y, snapshot.z,
+                                            reloc.x, reloc.y, reloc.z, reloc.label, reloc.reason);
+                                        if (activeRoute != null)
+                                        {
+                                            info.thought = reloc.reason;
+                                        }
+                                    }
+                                    else if (relocation.escapeHoldActive())
+                                    {
+                                        // STEP 6 escape gate: hold still — break the frozen far-travel loop.
+                                        info.state = "idle";
+                                        info.thought = "escape-hold (frozen relocation aborted)";
+                                    }
                                 }
                                 if (activeRoute != null)
                                 {
@@ -708,6 +749,7 @@ public final class FleetPlay
                                 {
                                     // Arrived at this hop: complete the route, or advance to the next one.
                                     hopTimeouts = 0; // TIM-001: a reached hop is not stuck
+                                    relocation.noteProgress(); // STEP 6: server moved us — not frozen
                                     if (activeRoute.hasMoreHops())
                                     {
                                         pendingHop = activeRoute.nextHop();
@@ -744,6 +786,9 @@ public final class FleetPlay
                                             {
                                                 zoneRouter.noteUnreachableDestination(activeRoute.destX, activeRoute.destY);
                                             }
+                                            // STEP 6: count this consecutive frozen-route abandon so the
+                                            // escape gate eventually holds the bot still (breaks the churn).
+                                            relocation.noteAbandonedRoute();
                                             // ACQUIRE-failure cooldown: an abandoned goal:acquire:* route means the
                                             // giver is geo-unreachable from here (empty journal + ~148k-unit ocean hop
                                             // the server never walks the char toward). Count the abort; once the

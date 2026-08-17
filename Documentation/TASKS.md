@@ -27,7 +27,8 @@
 | **STEP 3** | 5-bot live run + play evidence (fleet actually plays) | `DONE-PUSHED 94993a25` | play-builder |
 | **STEP 4** | Smartness polish: death/respawn, low-HP, restock | `DONE` | play-builder |
 | **STEP 5** | Despawned-target (`DeleteObject`) lifecycle: bots stuck chasing a corpse after despawn — verify recovery on the P2 fixed build | `DONE (verified 3d97fe53; fleet-wide consistency split out → STEP 6)` | play-builder |
-| **STEP 6** | Idle-relocation empty-zone dead-end: a bot with no hostiles in range freezes (`movedLast60=0`) because idle far-travel MoveToLocation doesn't persist server movement — route toward last-XP / nearest mate, progressive-abandon escape gate | `TODO` | play-builder |
+| **STEP 6** | Idle-relocation empty-zone dead-end: a bot with no hostiles in range freezes (`movedLast60=0`) because idle far-travel MoveToLocation doesn't persist server movement — route toward last-XP / nearest mate, progressive-abandon escape gate | `DONE-PUSHED 6cd9ffaf` | play-builder |
+| **GUIDE-MAP-**INTEG | Guide map wired into bot behavior: `RelocationPlanner` idles to a real `RaceGuide.idleAnchor` landmark (never the void spot) and, when frozen, re-routes to last-XP / nearest fleet mate with a consecutive-abandon escape gate | `DONE-PUSHED 6cd9ffaf` | play-builder |
 | **GUIDE-MAP** | Per-race/profession guide map for the bots from real Interlude sources — profession tree (`classList.xml`), newbie Q1→Q10 + tutorial, Path Q401–418, Trial/Q235 pool Q211–235, Saga Q70–100, teleport legs + hunt zones, `idleAnchor` returns real in-world coords (fixes the void-spot idle) | `DONE-PUSHED ce3e2426` | play-builder |
 
 ## 4. File ownership map
@@ -53,6 +54,16 @@
   `DONE (verified)`; fleet-wide consistency logged as **STEP 6** (route toward last-XP / nearest mate, escape gate).
   No engine change this session — build unchanged (`06906195` / `b558d4f6`).
 ## 5. Changelog (newest last)
+- **2026-08-16 · play-builder:** **STEP 6 + GUIDE-MAP-INTEG** (`6cd9ffaf`) — new `phase0.movement.RelocationPlanner`
+  fixes the empty-zone idle dead-end. When a bot's far-travel relocation is frozen (server never walks it
+  toward the hop, `movedLast60=0`), it now routes **back toward the last XP-earning position** or the nearest
+  **in-world fleet mate** instead of a random far point; a **consecutive-abandon escape gate**
+  (`MAX_CONSECUTIVE_ABANDONS=3`) holds the bot still for 60s to break the frozen re-plan churn. Non-frozen
+  idle now prefers a **real guide-map landmark** (`RelocationPlanner` → `RaceGuide.idleAnchor`, Human fleet),
+  so a displaced bot always targets a real gatekeeper/town landmark — never the void `(16600,17000,434)`.
+  Wired into `FleetPlay` (XP-gain remembers the spot; hop ADVANCE = progress; abandon = freeze). New
+  `RelocationPlannerTest` (10 tests). Full suite **325 green, BUILD SUCCESS**. Fleet left running; fix takes
+  effect on the next fleet restart (needs a rebuilt+relaunched `FleetPlay 5` soak to re-verify live).
 - **2026-08-16 · play-builder:** **GUIDE-MAP** landed (`ce3e2426`) — `com.aiplayer.phase0.guide.RaceGuide`
   is the per-race/profession path map with real sourced coordinates (newbie/Path/trial/Saga chain,
   teleport legs + BFS, hunt-zone bands, `idleAnchor` for real-world idle). Every quest NPC spawn
