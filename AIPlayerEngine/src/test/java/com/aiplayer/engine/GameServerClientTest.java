@@ -15,6 +15,7 @@ import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketCodec;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -121,14 +122,14 @@ public class GameServerClientTest
                     OutputStream out = s.getOutputStream();
 
                     readPayload(in); // ProtocolVersion
-                    writeFrame(out, buildKeyPacket((byte) 1)); // server rejects the protocol
+                    writeFrame(out, buildKeyPacket((byte) 1)); // server replies result=1 (protocol-version mismatch)
                     try
                     {
-                        readPayload(in); // client must NOT send AuthLogin
+                        readPayload(in); // client must CONTINUE and send AuthLogin (tolerated mismatch)
                     }
                     catch (IOException e)
                     {
-                        serverSawClose.set(true); // client closed the socket
+                        serverSawClose.set(true); // client closed the socket (must NOT happen for result=1)
                     }
                 }
                 catch (IOException e)
@@ -152,8 +153,10 @@ public class GameServerClientTest
             boolean entered = client.connectAndEnterWorld(fakeLogin, "ai_combat_01", 0);
 
             fakeServer.join(5000);
-            assertEquals(false, entered, "must fail fast when the server rejects the protocol (result=1)");
-            assertTrue(serverSawClose.get(), "client should close the socket after the result mismatch");
+            assertEquals(false, entered,
+                "no CharSelected from the fake -> no enter-world (tolerated mismatch then timeout)");
+            assertFalse(serverSawClose.get(),
+                "client must NOT fail-fast/close on a tolerated protocol mismatch (result=1)");
         }
     }
 

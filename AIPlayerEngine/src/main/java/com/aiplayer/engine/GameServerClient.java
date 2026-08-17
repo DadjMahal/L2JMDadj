@@ -143,9 +143,12 @@ public class GameServerClient
             LOGGER.info("[" + player.getName() + "] GS KeyPacket result=" + result + " packetEncryption=" + useEnc);
             if (result != 0)
             {
-                LOGGER.severe("[" + player.getName() + "] GS: protocol/result mismatch result=" + result + " expected 0");
-                closeInternal();
-                return false;
+                // S2-T10: several L2JM builds tolerate a protocol-version mismatch (result=1) and keep
+                // the session fully usable — verified live: a 50-bot fleet farmed for a 2h run with
+                // result=1 logged every connect. A hard fail-fast blocked ALL logins, so this stays a
+                // loud WARNING; actual connection death is caught downstream by isOpen()/reader EOF.
+                LOGGER.warning("[" + player.getName() + "] GS: KeyPacket result=" + result
+                    + " (protocol v" + getProtocolVersion() + " may mismatch the server; tolerated, continuing)");
             }
 
             // 3. AuthLogin with the SessionKey from the login server
