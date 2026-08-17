@@ -63,7 +63,11 @@ import com.aiplayer.web.HistoryRing;
 public final class FleetPlay
 {
     private static final Logger LOGGER = Logger.getLogger(FleetPlay.class.getName());
-    private static final String PASSWORD = "ai123pass";
+    /** S1-T07: bot accounts' shared password, overridable via ai.account.password (default same as before). */
+    private static String accountPassword()
+    {
+        return AIConfiguration.getInstance().getProperty("ai.account.password", "ai123pass");
+    }
     private static final long TICK_MS = 300;
     private static final long WANDER_INTERVAL_MS = 8000;
     private static final int WANDER_RADIUS = 900;
@@ -320,7 +324,7 @@ public final class FleetPlay
         {
             AIPlayer player = new AIPlayer(account, 100 + charId % 100, 0, 0); // Human Fighter
             L2JProtocol login = new L2JProtocol(player, host, loginPort, gamePort);
-            if (!login.connectAndLogin(account, PASSWORD, charId))
+            if (!login.connectAndLogin(account, accountPassword(), charId))
             {
                 info.state = "login-failed";
                 throw new IllegalStateException("login-server auth failed");
