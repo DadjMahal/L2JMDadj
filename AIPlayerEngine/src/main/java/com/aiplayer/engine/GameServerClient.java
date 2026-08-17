@@ -117,6 +117,9 @@ public class GameServerClient
             socket = new Socket();
             socket.connect(new InetSocketAddress(host, gamePort), CONNECT_TIMEOUT_MS);
             socket.setSoTimeout(READ_TIMEOUT_MS);
+            // S2-T08: keep dead-peers detectable + no Nagle lag for 50 concurrent sessions.
+            socket.setKeepAlive(true);
+            socket.setTcpNoDelay(true);
             out = socket.getOutputStream();
             in = new DataInputStream(socket.getInputStream());
             open = true;

@@ -88,6 +88,11 @@ public final class FleetPlay
     // or stale one (town NPCs, despawned mobs). 15s ≈ 10 chase-hop intervals.
     private static final long STALE_TARGET_BUDGET_MS =
         AIConfiguration.getInstance().getLongProperty("bot.staleTargetBudgetMs", 15_000);
+    // S2-T07: reconnect backoff — 5s base, doubling to 120s max, +jitter, reset on a clean enter-world.
+    private static final long RECONNECT_BASE_MS =
+        AIConfiguration.getInstance().getLongProperty("bot.reconnectBaseMs", 5000);
+    private static final long RECONNECT_MAX_MS =
+        AIConfiguration.getInstance().getLongProperty("bot.reconnectMaxMs", 120_000);
 
     /** Live bot rows live in com.aiplayer.examples.BotInfo (WPT-01 extraction) - shared with DashboardApi. */
 
@@ -213,6 +218,8 @@ public final class FleetPlay
         // ~148k units across the ocean: after maxUnreachable abandoned goal:acquire:* routes the bot falls
         // back to plain farming for cooldownMs instead of re-issuing the dead ocean-hop. See AcquireCooldown.
         private final AcquireCooldown acquireCooldown = new AcquireCooldown();
+        // S2-T07: grows on repeated failures, reset to base after a clean enter-world.
+        private long reconnectDelayMs = RECONNECT_BASE_MS;
 
         private BotLoop(String account, int charId, BotInfo info, String host, int loginPort, int gamePort,
                         PlayerRace race)
@@ -247,12 +254,15 @@ public final class FleetPlay
                     LOGGER.warning("[FleetPlay] " + account + " session ended: " + e.getMessage());
                     try
                     {
-                        Thread.sleep(15000); // reconnect loop
+                        // S2-T07: exponential backoff + jitter so 50 bots don't stampede the server
+                        // on a shared outage; escalate on repeated failures.
+                        Thread.sleep(reconnectDelayMs + Math.abs(rng.nextInt() % 2000));
                     }
                     catch (InterruptedException ie)
                     {
                         return;
                     }
+                    reconnectDelayMs = Math.min(reconnectDelayMs * 2, RECONNECT_MAX_MS);
                 }
             }
         }
@@ -360,6 +370,7 @@ public final class FleetPlay
             emit(EventRing.TYPE_CONNECT, "level", info.level);
             LOGGER.info("[FleetPlay] " + account + " ENTERED WORLD"
                 + (phase0.isMovementEnabled() ? " [phase0.movement ON]" : ""));
+            reconnectDelayMs = RECONNECT_BASE_MS; // S2-T07: clean enter resets the backoff
 
             long lastWander = 0;
             long lastRoute = 0;
