@@ -44,7 +44,7 @@ public class GameServerClientTest
                     // 1. ProtocolVersion (0x00, 746)
                     readPayload(in); // 5 bytes
                     // 2. KeyPacket (plaintext): [0x00][result][key8][packetEnc=0]
-                    byte[] keyPkt = buildKeyPacket();
+                    byte[] keyPkt = buildKeyPacket((byte) 0); // result 0 = protocol accepted
                     writeFrame(out, keyPkt);
                     // 3. AuthLogin
                     readPayload(in);
@@ -105,13 +105,67 @@ public class GameServerClientTest
         assertEquals(false, client.connectAndEnterWorld(fakeLogin, "a", 0), "must refuse without login");
     }
 
+    @Test
+    public void testFailsFastOnKeyPacketResultMismatch() throws Exception
+    {
+        try (ServerSocket server = new ServerSocket(0))
+        {
+            int port = server.getLocalPort();
+            AtomicBoolean serverSawClose = new AtomicBoolean(false);
+
+            Thread fakeServer = new Thread(() -> {
+                try (Socket s = server.accept())
+                {
+                    s.setSoTimeout(15000);
+                    DataInputStream in = new DataInputStream(s.getInputStream());
+                    OutputStream out = s.getOutputStream();
+
+                    readPayload(in); // ProtocolVersion
+                    writeFrame(out, buildKeyPacket((byte) 1)); // server rejects the protocol
+                    try
+                    {
+                        readPayload(in); // client must NOT send AuthLogin
+                    }
+                    catch (IOException e)
+                    {
+                        serverSawClose.set(true); // client closed the socket
+                    }
+                }
+                catch (IOException e)
+                {
+                    // test will fail if the flag never set
+                }
+            }, "fake-gs-bad-result");
+            fakeServer.start();
+
+            AIPlayer player = new AIPlayer("CombatBot_01", 100, 1, 0);
+            L2JProtocol fakeLogin = new L2JProtocol(player, "127.0.0.1", 2106, port)
+            {
+                @Override public boolean isLoggedIn() { return true; }
+                @Override public int getPlayOk2() { return 1; }
+                @Override public int getPlayOk1() { return 2; }
+                @Override public int getLoginOk1() { return 3; }
+                @Override public int getLoginOk2() { return 4; }
+            };
+
+            GameServerClient client = new GameServerClient(player, "127.0.0.1", port);
+            boolean entered = client.connectAndEnterWorld(fakeLogin, "ai_combat_01", 0);
+
+            fakeServer.join(5000);
+            assertEquals(false, entered, "must fail fast when the server rejects the protocol (result=1)");
+            assertTrue(serverSawClose.get(), "client should close the socket after the result mismatch");
+        }
+    }
+
+
+
     // ---- helpers (fake server side) ----
 
-    private static byte[] buildKeyPacket()
+    private static byte[] buildKeyPacket(byte result)
     {
         ByteBuffer bb = ByteBuffer.allocate(1 + 1 + 8 + 4).order(ByteOrder.LITTLE_ENDIAN);
         bb.put((byte) 0x00);      // KeyPacket opcode
-        bb.put((byte) 0x00);      // result
+        bb.put(result);           // result (0 = protocol accepted)
         bb.put(KEY8);             // 8-byte key
         bb.putInt(0);             // packetEncryption = 0 (crypt disabled)
         return bb.array();

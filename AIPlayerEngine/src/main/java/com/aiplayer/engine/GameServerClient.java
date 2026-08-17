@@ -43,6 +43,12 @@ public class GameServerClient
     /** Fixed suffix appended to the 8-byte KeyPacket key to reconstruct the 16-byte session key. */
     public static final byte[] KEY_TAIL = { (byte) 0xC8, (byte) 0x27, (byte) 0x93, (byte) 0x01, (byte) 0xA1, (byte) 0x6C, (byte) 0x31, (byte) 0x97 };
 
+    /** Current Interlude protocol version reported to the GameServer. */
+    public static int getProtocolVersion()
+    {
+        return PROTOCOL_VERSION;
+    }
+
     // Server->client opcodes used during the handshake
     private static final int OP_CHAR_SELECT_INFO = 0x13;
     private static final int OP_CHAR_SELECTED = 0x15;
@@ -135,6 +141,12 @@ public class GameServerClient
             crypt = new GameCrypt();
             crypt.setKey(key);
             LOGGER.info("[" + player.getName() + "] GS KeyPacket result=" + result + " packetEncryption=" + useEnc);
+            if (result != 0)
+            {
+                LOGGER.severe("[" + player.getName() + "] GS: protocol/result mismatch result=" + result + " expected 0");
+                closeInternal();
+                return false;
+            }
 
             // 3. AuthLogin with the SessionKey from the login server
             sendPayload(PacketCodec.encodeAuthLogin(account, login.getPlayOk2(), login.getPlayOk1(),
