@@ -62,8 +62,11 @@
   idle now prefers a **real guide-map landmark** (`RelocationPlanner` → `RaceGuide.idleAnchor`, Human fleet),
   so a displaced bot always targets a real gatekeeper/town landmark — never the void `(16600,17000,434)`.
   Wired into `FleetPlay` (XP-gain remembers the spot; hop ADVANCE = progress; abandon = freeze). New
-  `RelocationPlannerTest` (10 tests). Full suite **325 green, BUILD SUCCESS**. Fleet left running; fix takes
-  effect on the next fleet restart (needs a rebuilt+relaunched `FleetPlay 5` soak to re-verify live).
+  `RelocationPlannerTest` (10 tests). Full suite **325 green, BUILD SUCCESS**. **Live-verified**: rebuilt,
+  restarted the fleet (fresh JVM) and soaked ~9 min / 18 telemetry samples — the previously-frozen
+  `ai_combat_02`/`ai_combat_04` (were `idle`, `movedLast60=0`) now move & farm continuously; **zero
+  `moved60=0` samples** across the whole fleet; frozen-detection (`reloc:mate … frozen -> nearest fleet
+  mate`) observed firing live on abandonment, and the escape gate stays cleared by XP progress.
 - **2026-08-16 · play-builder:** **GUIDE-MAP** landed (`ce3e2426`) — `com.aiplayer.phase0.guide.RaceGuide`
   is the per-race/profession path map with real sourced coordinates (newbie/Path/trial/Saga chain,
   teleport legs + BFS, hunt-zone bands, `idleAnchor` for real-world idle). Every quest NPC spawn
