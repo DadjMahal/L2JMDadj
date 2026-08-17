@@ -377,4 +377,30 @@ public class RaceGuideTest
             assertReal(goddard);
         }
     }
+
+    @Test
+    public void idleAnchorNeverVoidForAllRaces()
+    {
+        int[] levels = { 1, 5, 10, 20, 35, 50, 70 };
+        for (PlayerRace r : PlayerRace.values())
+        {
+            for (int level : levels)
+            {
+                QuestNode anchor = RaceGuide.idleAnchor(r, level);
+                assertNotNull(anchor, r + " has no idle anchor at Lv" + level);
+                assertFalse(anchor.x == VOID_X && anchor.y == VOID_Y,
+                        anchor.name + " at Lv" + level + " idles on the void point (16600,17000)");
+            }
+        }
+        // Mid-game hunt coverage: the band around every level 10..50 must resolve to at least one
+        // zone, and every resolved zone must carry a real (positive-radius) hunting area.
+        for (int level = 10; level <= 50; level++)
+        {
+            List<HuntZone> zones = RaceGuide.huntZones(Math.max(1, level - 5), level + 5);
+            assertFalse(zones.isEmpty(), "no hunt zone covers Lv" + level);
+            for (HuntZone z : zones)
+                assertTrue(z.radius > 0, z.name + " has no hunting radius");
+        }
+    }
+
 }

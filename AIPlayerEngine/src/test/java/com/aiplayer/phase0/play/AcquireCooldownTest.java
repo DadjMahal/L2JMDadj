@@ -123,4 +123,19 @@ class AcquireCooldownTest
         assertTrue(cd.cooldownUntilMs() > 0, "window armed by the wall-clock variant");
         assertTrue(cd.isSuppressed(System.currentTimeMillis()), "just-armed window suppresses now");
     }
+
+    @Test
+    void suppressionBoundariesAroundTheWindow()
+    {
+        // Tiny public-constructor window (10ms) + injected clock: pure boundary probe, no sleeps.
+        AcquireCooldown cd = new AcquireCooldown(1, 10);
+        assertFalse(cd.isSuppressed(NOW), "fresh instance starts un-suppressed");
+        cd.noteUnreachableAbandon(NOW);
+        long until = cd.cooldownUntilMs();
+        assertEquals(NOW + 10, until, "window armed at now + cooldownMs");
+        assertTrue(cd.isSuppressed(until - 1), "suppressed just before cooldownUntilMs");
+        assertTrue(cd.isSuppressed(until), "still suppressed exactly at cooldownUntilMs");
+        assertFalse(cd.isSuppressed(until + 1), "no longer suppressed after the window");
+    }
+
 }
