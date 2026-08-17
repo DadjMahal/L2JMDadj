@@ -103,6 +103,15 @@ public final class FleetPlay
         // the original behaviour (ai_combat_%02d / charId 100000+).
         String accountPrefix = args.length > 6 ? args[6] : "ai_combat_";
         int charIdBase = args.length > 7 ? Integer.parseInt(args[7]) : 100000;
+        // Optional 9th arg: race distribution for the launched bots. "random" -> each bot gets a
+        // uniformly random race; a comma list like "ELF,ORC,DWARF" rotates across those races;
+        // absent/empty -> every bot HUMAN (preserves the original all-Human-Fighter behaviour).
+        PlayerRace[] raceRotation = resolveRaces(args.length > 8 ? args[8] : "");
+        if (args.length > 8)
+        {
+            System.out.println("[FleetPlay] race mode: "
+                + ("random".equalsIgnoreCase(args[8]) ? "random per bot" : args[8]));
+        }
         if (forceMovement)
         {
             AIConfiguration cfg = AIConfiguration.getInstance();
@@ -120,9 +129,12 @@ public final class FleetPlay
         {
             final String account = accountPrefix + String.format("%02d", i);
             final int charId = charIdBase + i - 1; // ai_combat_01 -> 100000 ... ai_combat_05 -> 100004
+            final PlayerRace race = (raceRotation.length > 0)
+                ? raceRotation[(i - 1) % raceRotation.length] : PlayerRace.HUMAN;
             BotInfo info = new BotInfo(account, charId);
             BOTS.put(account, info);
-            new Thread(new BotLoop(account, charId, info, host, loginPort, gamePort), "bot-" + account).start();
+            new Thread(new BotLoop(account, charId, info, host, loginPort, gamePort, race),
+                "bot-" + account).start();
         }
 
         synchronized (FleetPlay.class)
@@ -134,6 +146,42 @@ public final class FleetPlay
         }
     }
 
+    /**
+     * Parse the 9th launcher arg into a race rotation. "random" -> the 5 races shuffled (balanced
+     * 10-each over a 50-bot fleet); a comma list like "ELF,ORC,DWARF" rotates across those races;
+     * absent/empty -> empty array (callers fall back to all HUMAN, preserving old behaviour).
+     */
+    private static PlayerRace[] resolveRaces(String spec)
+    {
+        if (spec == null || spec.trim().isEmpty())
+        {
+            return new PlayerRace[0];
+        }
+        if ("random".equalsIgnoreCase(spec.trim()))
+        {
+            java.util.List<PlayerRace> l = new java.util.ArrayList<>();
+            for (PlayerRace r : PlayerRace.values())
+            {
+                l.add(r);
+            }
+            java.util.Collections.shuffle(l, new Random());
+            return l.toArray(new PlayerRace[0]);
+        }
+        java.util.List<PlayerRace> out = new java.util.ArrayList<>();
+        for (String p : spec.split(","))
+        {
+            try
+            {
+                out.add(PlayerRace.valueOf(p.trim().toUpperCase()));
+            }
+            catch (IllegalArgumentException ignore)
+            {
+                // unknown race token -> skip
+            }
+        }
+        return out.toArray(new PlayerRace[0]);
+    }
+
     private static final class BotLoop implements Runnable
     {
         private final String account;
@@ -142,6 +190,8 @@ public final class FleetPlay
         private final String host;
         private final int loginPort;
         private final int gamePort;
+        /** Per-bot race: drives the guide landmark + restock vendor so non-Humans stay in their own zone. */
+        private final PlayerRace race;
         private final Random rng;
         // STEP 2: per-session quest-dialog driver state (only used when phase0.quest.npcId is set).
         private boolean questDialogOpen = false;
@@ -153,7 +203,8 @@ public final class FleetPlay
         // back to plain farming for cooldownMs instead of re-issuing the dead ocean-hop. See AcquireCooldown.
         private final AcquireCooldown acquireCooldown = new AcquireCooldown();
 
-        private BotLoop(String account, int charId, BotInfo info, String host, int loginPort, int gamePort)
+        private BotLoop(String account, int charId, BotInfo info, String host, int loginPort, int gamePort,
+                        PlayerRace race)
         {
             this.account = account;
             this.charId = charId;
@@ -161,6 +212,7 @@ public final class FleetPlay
             this.host = host;
             this.loginPort = loginPort;
             this.gamePort = gamePort;
+            this.race = race != null ? race : PlayerRace.HUMAN;
             this.rng = new Random(account.hashCode());
         }
 
@@ -713,10 +765,11 @@ public final class FleetPlay
                                         }
                                         mates.add(new int[] { b.x, b.y, b.z });
                                     }
-                                    // Fleet chars are all Human Fighters (see AIPlayer ctor below).
+                                    // Route toward THIS bot's race's guide landmark, so an Orc/Dwarf/Elf
+                                    // relocates to its OWN village zone (never drifts to Talking Island).
                                     RelocationPlanner.Target reloc = relocation.choose(snapshot.level,
                                         snapshot.x, snapshot.y, snapshot.z,
-                                        relocation.isFrozen(), mates, PlayerRace.HUMAN,
+                                        relocation.isFrozen(), mates, race,
                                         phase0.getMovementMinRadius(), phase0.getMovementMaxRadius());
                                     if (reloc != null)
                                     {
