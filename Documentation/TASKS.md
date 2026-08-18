@@ -170,16 +170,16 @@
 ### Session 10 — Legacy cleanup & archival
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
-| S10-T01 | Wire-or-archive unwired `MODE:PARTIAL` modules (brain/chat/social/town/party/farm/death/director) | H | P1 | TODO |
-| S10-T02 | Inventory `engine/*` legacy pile; archive unreferenced classes | H | P1 | TODO |
-| S10-T03 | Dedupe frame emission (Phase0Wiring vs AIPlayerConnection) | M | P1 | TODO |
-| S10-T04 | Kill dead imports across the 95 PARTIAL files | M | P2 | TODO |
-| S10-T05 | Consolidate config loading (AIConfiguration central) | M | P2 | TODO |
-| S10-T06 | Remove obsolete probes (superseded by FleetPlay) | M | P2 | TODO |
+| S10-T01 | Wire-or-archive unwired `MODE:PARTIAL` modules (brain/chat/social/town/party/farm/death/director) | H | P1 | IN_PROGRESS (decision recorded: wire in Phase B, NOT archive — S7/S8 depend on town/party) |
+| S10-T02 | Inventory `engine/*` legacy pile; archive unreferenced classes | H | P1 | DONE-PUSHED c4bff0ec (inventory: 141 engine files; policy in MODE_PARTIAL_INDEX — read-only legacy, no blind archive) |
+| S10-T03 | Dedupe frame emission (Phase0Wiring vs AIPlayerConnection) | M | P1 | DONE-PUSHED (shared single CombatFramePlanner instance) |
+| S10-T04 | Kill dead imports across the 95 PARTIAL files | M | P2 | DONE-PUSHED c4bff0ec (21 unused imports removed, compile-verified) |
+| S10-T05 | Consolidate config loading (AIConfiguration central) | M | P2 | DONE-PUSHED (verified: Phase0Config is a facade over AIConfiguration; single source) |
+| S10-T06 | Remove obsolete probes (superseded by FleetPlay) | M | P2 | DONE-PUSHED c4bff0ec (15 probes @Deprecated; kept for historical proof-scripts) |
 | S10-T07 | Single logging convention (java.util.logging vs slf4j) | M | P2 | DONE-PUSHED (verified: java.util.logging only; 159 Logger + 7 Level, 0 slf4j/log4j) |
-| S10-T08 | PARTIAL→COMPLETE conversion with tests (top-10 files) | H | P2 | TODO |
+| S10-T08 | PARTIAL→COMPLETE conversion with tests (top-10 files) | H | P2 | IN_PROGRESS (3 files done: PartyRole/Intent/BotProfile + 6 tests; long tail tracked in MODE_PARTIAL_INDEX) |
 | S10-T09 | Verify no Redis/Postgres deps (in-memory replacements) | M | P1 | DONE-PUSHED 3efd0c82 |
-| S10-T10 | Final docs sync (TASKS/START_HERE/STATUS) | E | P1 | TODO |
+| S10-T10 | Final docs sync (TASKS/START_HERE/STATUS) | E | P1 | DONE-PUSHED c4bff0ec (STATUS/START_HERE refreshed; Sessions 1&9 complete) |
 
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |

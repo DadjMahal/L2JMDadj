@@ -18,6 +18,8 @@ public class AIPlayerConnection {
 
     private final AIPlayer aiPlayer;
     private final L2JProtocol protocol;
+    /** S10-T03: single shared frame planner (was allocated per call — dedupe vs Phase0Wiring). */
+    private final CombatFramePlanner planner = new CombatFramePlanner();
 
     /** Real GameServer frame writer (crypt disabled = plaintext); attached once a GS socket is held. */
     private volatile GameServerFrameWriter gameServerWriter;
@@ -132,7 +134,6 @@ public class AIPlayerConnection {
             LOGGER.warning("[" + aiPlayer.getName() + "] Cannot execute combat - not logged in");
             return;
         }
-        CombatFramePlanner planner = new CombatFramePlanner();
         List<CombatFramePlanner.FrameStep> steps =
             planner.plan(decision, aiPlayer.getX(), aiPlayer.getY(), aiPlayer.getZ(), targetObjId);
 
