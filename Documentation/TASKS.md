@@ -62,7 +62,7 @@
 | S2-T02 | GameCrypt key handling verified at 50 concurrent sessions | M | P1 | DONE-PUSHED 6ce4b56d |
 | S2-T03 | PacketLogger NPC_INFO tests for multi-race entities | M | P2 | DONE-PUSHED 5b56a768 |
 | S2-T04 | Per-bot packet loss/drop metrics | M | P1 | DONE-PUSHED 408a3b4c |
-| S2-T05 | Decode CharSelectInfo (name/class/race) instead of slot-only select | M | P1 | TODO |
+| S2-T05 | Decode CharSelectInfo (name/class/race) instead of slot-only select | M | P1 | DONE-PUSHED 66462e9c |
 | S2-T06 | QUEST_LIST/SystemMessage decode coverage | M | P2 | DONE-PUSHED 5b56a768 |
 | S2-T07 | Reconnect backoff (avoid 50-bot thundering herd) | M | P0 | DONE-PUSHED 25f071df |
 | S2-T08 | Socket read-timeout/keepalive tuning for 50-bot load | M | P1 | DONE-PUSHED 25f071df |
