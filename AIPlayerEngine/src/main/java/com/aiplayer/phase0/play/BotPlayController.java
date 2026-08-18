@@ -30,6 +30,12 @@ public final class BotPlayController
     {
     }
 
+    /** S6-T08: range multiplier by level — L1-3 use 0.6x (weak starter gear), L4+ the full base. */
+    public static double levelRangeScale(int level)
+    {
+        return level <= 3 ? 0.6 : 1.0;
+    }
+
     /** Decide the single next action for a bot this tick. Never returns a NONE/idle decision. */
     public static GoalDecision decide(PlayContext ctx, BotPlayConfig cfg)
     {
@@ -38,6 +44,10 @@ public final class BotPlayController
             return GoalDecision.wait(PlayerGoal.REST, "rest", "no context; hold");
         }
         BotPlayConfig c = cfg != null ? cfg : BotPlayConfig.DEFAULT;
+        // S6-T08: fresh (L1-3) bots have weak starter gear -> engage closer; from L4+ use the base ranges.
+        double rangeScale = levelRangeScale(ctx.level);
+        int combatRange = (int) Math.round(c.combatRange * rangeScale);
+        int sightRange = (int) Math.round(c.sightRange * rangeScale);
 
         // 1. SURVIVE: too low on HP to keep fighting (hostiles present -> dangerous spot).
         //    Instead of standing still (old WAIT), retreat away from the nearest hostile so the
@@ -45,7 +55,7 @@ public final class BotPlayController
         if (c.surviveHpFraction > 0 && ctx.hpMax > 0
                 && (double) ctx.hpCurrent / ctx.hpMax <= c.surviveHpFraction)
         {
-            Hostile danger = nearestHostile(ctx, c.sightRange);
+            Hostile danger = nearestHostile(ctx, sightRange);
             if (danger != null)
             {
                 // Flee away from the nearest hostile: push through the player in the opposite
@@ -72,7 +82,7 @@ public final class BotPlayController
         }
 
         // 2. COMBAT: a hostile we can hit right now.
-        Hostile combat = nearestHostile(ctx, c.combatRange);
+        Hostile combat = nearestHostile(ctx, combatRange);
         if (combat != null)
         {
             return GoalDecision.combatTarget(PlayerGoal.FARM, combat.objId,
@@ -81,7 +91,7 @@ public final class BotPlayController
         }
 
         // 3. HUNT: a hostile is visible but out of range -> walk toward it before questing on.
-        Hostile seen = nearestHostile(ctx, c.sightRange);
+        Hostile seen = nearestHostile(ctx, sightRange);
         if (seen != null)
         {
             return GoalDecision.moveTo(PlayerGoal.FARM, seen.x, seen.y, seen.z,

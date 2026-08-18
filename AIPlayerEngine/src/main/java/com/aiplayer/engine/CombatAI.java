@@ -224,12 +224,20 @@ public class CombatAI {
 
     private boolean shouldHeal() {
         int hpPercent = getCurrentHPPercentage();
+        // S6-T09: don't spam HEAL without a mana budget — casting with ~no MP just fails silently.
+        if (getCurrentMpPercentage() < 15) {
+            return false;
+        }
         // Phase 0 / Task 1 (additive, gated): the rotation's class-specific flee threshold.
         if (phase0 != null && Phase0Config.getInstance().isCombatRotationEnabled()
                 && hpPercent < phase0.fleeThreshold()) {
             return true;
         }
         return hpPercent < config.getHealthThreshold();
+    }
+
+    private double getCurrentMpPercentage() {
+        return packetLogger != null ? packetLogger.getMpPercentage() : 100.0;
     }
 
     private int getCurrentHPPercentage() {

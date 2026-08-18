@@ -88,6 +88,28 @@ public final class FleetPlay
     // or stale one (town NPCs, despawned mobs). 15s ≈ 10 chase-hop intervals.
     private static final long STALE_TARGET_BUDGET_MS =
         AIConfiguration.getInstance().getLongProperty("bot.staleTargetBudgetMs", 15_000);
+    // S6-T02: low-level killers are slow, so give fresh bots a longer no-XP budget (30s vs 15s).
+    private static long staleBudgetMs(int level)
+    {
+        long normal = STALE_TARGET_BUDGET_MS;
+        long low = AIConfiguration.getInstance().getLongProperty("bot.staleTargetBudgetLowLevelMs", normal * 2);
+        return level < 6 ? low : normal;
+    }
+
+    /** S6-T03/T07: current HP fraction (1.0 when unknown) used by the survival guards. */
+    private static double hpFrac(com.aiplayer.phase0.BotSnapshot s)
+    {
+        return s.hpMax > 0 ? (double) s.hpCurrent / s.hpMax : 1.0;
+    }
+    // S6-T03/T06/T07/T10: survival guards — post-retreat regen hold, overwhelm back-off, death-loop guard.
+    private static final long REGEN_HOLD_MS =
+        AIConfiguration.getInstance().getLongProperty("bot.regenHoldMs", 8000);
+    private static final int SURROUND_CAP =
+        AIConfiguration.getInstance().getIntProperty("bot.surroundCap", 6);
+    private static final int DEATH_GUARD_DEATHS =
+        AIConfiguration.getInstance().getIntProperty("bot.deathGuardDeaths", 3);
+    private static final long DEATH_GUARD_MS =
+        AIConfiguration.getInstance().getLongProperty("bot.deathGuardMs", 90_000);
     // S2-T07: reconnect backoff — 5s base, doubling to 120s max, +jitter, reset on a clean enter-world.
     private static final long RECONNECT_BASE_MS =
         AIConfiguration.getInstance().getLongProperty("bot.reconnectBaseMs", 5000);
@@ -220,6 +242,11 @@ public final class FleetPlay
         private final AcquireCooldown acquireCooldown = new AcquireCooldown();
         // S2-T07: grows on repeated failures, reset to base after a clean enter-world.
         private long reconnectDelayMs = RECONNECT_BASE_MS;
+        // S6-T03/T06/T07/T10: survival-guard state (retreat regen hold, death-loop guard).
+        private long regenHoldUntilMs = 0;
+        private long deathGuardUntilMs = 0;
+        private long lastDeathMs = 0;
+        private int recentDeaths = 0;
 
         private BotLoop(String account, int charId, BotInfo info, String host, int loginPort, int gamePort,
                         PlayerRace race)
@@ -548,6 +575,17 @@ public final class FleetPlay
                         info.state = "dead";
                         // STEP 4: notify CombatAI so it clears target/aggression state
                         player.getCombatAI().onDeath();
+                        // S6-T06/T10: track death rate; 3+ deaths in 60s = death-loop -> force a regen hold.
+                        long nowMs = System.currentTimeMillis();
+                        if (nowMs - lastDeathMs < 60_000) recentDeaths++;
+                        else recentDeaths = 1;
+                        lastDeathMs = nowMs;
+                        if (recentDeaths >= DEATH_GUARD_DEATHS)
+                        {
+                            deathGuardUntilMs = nowMs + DEATH_GUARD_MS;
+                            LOGGER.warning("[FleetPlay] " + account + " DEATH-LOOP guard: " + recentDeaths
+                                + " deaths in 60s -> " + (DEATH_GUARD_MS / 1000) + "s regen/relocate hold");
+                        }
                         emit(EventRing.TYPE_DEATH, "died",
                             snapshot.hpCurrent + "/" + snapshot.hpMax + " HP; lvl " + snapshot.level
                                 + " combat target " + info.targetObjId,
@@ -581,7 +619,7 @@ public final class FleetPlay
                 // STEP 3 follow-up: stale-target watchdog. If the engaged enemy produced NO XP within
                 // STALE_TARGET_BUDGET_MS, abandon it so detectNearbyEnemy() re-acquires a farmable target
                 // next tick (kills the "chase the merchant / dead mob forever" stall with live proof).
-                if (player.getCombatAI().checkStaleTarget(logger.getExp(), (int) STALE_TARGET_BUDGET_MS))
+                if (player.getCombatAI().checkStaleTarget(logger.getExp(), (int) staleBudgetMs(snapshot.level)))
                 {
                     emit(EventRing.TYPE_TARGET_ABANDON, "objId", selTargetId, "exp", logger.getExp());
                     LOGGER.info("[FLEET] " + account + " abandoned stale target objId=" + selTargetId);
@@ -682,13 +720,29 @@ public final class FleetPlay
                             int fy = snapshot.y + (snapshot.y - nearest.y) * 2;
                             wiring.moveTo(snapshot.x, snapshot.y, snapshot.z, fx, fy, snapshot.z);
                         }
+                        // S6-T03: after a low-HP retreat, hold for regen before re-engaging.
+                        regenHoldUntilMs = System.currentTimeMillis() + REGEN_HOLD_MS;
                         break;
 
                     case IDLE:
                     default:
                         info.state = "idle";
-                        // "Mostly smart" wander: only when no hostile target is available.
-                        int newTarget = targetSelector.selectTarget();
+                        int newTarget = 0;
+                        long nowMs = System.currentTimeMillis();
+                        boolean survivalGuard = nowMs < deathGuardUntilMs
+                            || (nowMs < regenHoldUntilMs && hpFrac(snapshot) < 0.60)
+                            || (info.mobs > SURROUND_CAP && hpFrac(snapshot) < 0.70);
+                        if (survivalGuard)
+                        {
+                            // S6-T03/T06/T07/T10: regen/death-loop/overwhelm guard — skip re-engaging
+                            // so the bot recovers (or relocates) instead of farming itself to death.
+                            info.state = "regen";
+                            info.thought = "survival guard (regen/death-loop/overwhelm)";
+                        }
+                        else
+                        {
+                            newTarget = targetSelector.selectTarget();
+                        }
                         if (newTarget != 0)
                         {
                             info.state = "engage";
