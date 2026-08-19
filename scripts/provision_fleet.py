@@ -49,4 +49,13 @@ for i in range(1, COUNT + 1):
                 "'2015-01-01',NULL,0,0,0,0,3"
                 % (acc, charid, charname, x, y, z, raceid, cid))
 out.append(",\n".join(rows) + ";")
+# S6-T05: starter consumables for each new char (20x HP potion 1061, 50x soulshot 1835), live inventory loc=1.
+out.append("INSERT INTO gameserver.items (owner_id,object_id,item_id,count,enchant_level,loc,loc_data,time_of_use,custom_type1,custom_type2,mana_left) VALUES")
+ibase = 4000000 + CHARID_BASE
+iro = []
+for i in range(1, COUNT + 1):
+    charid = CHARID_BASE + i - 1
+    iro.append("(%d,%d,1061,20,0,1,0,0,0,0,-1)" % (charid, ibase + (i - 1) * 2))
+    iro.append("(%d,%d,1835,50,0,1,0,0,0,0,-1)" % (charid, ibase + (i - 1) * 2 + 1))
+out.append(",\n".join(iro) + ";")
 print("\n".join(out))

@@ -42,6 +42,7 @@ import com.aiplayer.phase0.play.QuestDialogDriver;
 import com.aiplayer.phase0.play.QuestDialogDriver.Objective;
 import com.aiplayer.phase0.play.QuestDialogDriver.QuestDialog;
 import com.aiplayer.protocol.L2JProtocol;
+import com.aiplayer.protocol.PacketCodec;
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.protocol.PacketLogger.EntityInfo;
 import com.aiplayer.web.DashboardApi;
@@ -237,6 +238,11 @@ public final class FleetPlay
         private long lastQuestClickMs = 0;
         /** S3-T02: after the dialog goes stale, re-click the giver to surface the quest's next step. */
         private static final long QUEST_RECLICK_MS = 10_000L;
+        // S6-T04: HP potion (itemId 1061) at low HP, gated by a cooldown.
+        private static final int POTION_ITEM_ID = 1061;
+        private static final long POTION_COOLDOWN_MS = 20_000L;
+        private static final double POTION_USE_HP_FRAC = 0.45;
+        private long lastPotionUseMs = 0;
         private final Set<String> questSentLinks = new HashSet<>();
         // ACQUIRE-failure cooldown (per-bot, per-session state; reset() at each runSession start). Stops
         // the "re-plan the same geo-unreachable ACQUIRE giver forever" loop — e.g. Wolf Hunt at Gludio,
@@ -299,6 +305,19 @@ public final class FleetPlay
                     reconnectDelayMs = Math.min(reconnectDelayMs * 2, RECONNECT_MAX_MS);
                 }
             }
+        }
+
+        /** S6-T04: an HP potion in the live inventory records (objectId needed for UseItem). */
+        private PacketLogger.InventoryItem findPotion(PacketLogger logger)
+        {
+            for (PacketLogger.InventoryItem it : logger.getInventoryRecords())
+            {
+                if (it != null && it.itemId == POTION_ITEM_ID && it.count > 0)
+                {
+                    return it;
+                }
+            }
+            return null;
         }
 
         /** QUEST-PRIORITY: is the configured quest giver nearby (< QUEST_PRIORITY_DIST)? */
@@ -518,6 +537,21 @@ public final class FleetPlay
                 }
                 info.lastSeenMs = System.currentTimeMillis();
                 AIMonitorDashboard.getInstance().updatePlayerStats(player);
+
+                // S6-T04: at low HP, sip an HP potion when one is stocked (server opcode 0x14), gated by a
+                // cooldown so a pocket full of pots isn't drained in one fight.
+                if (snapshot.hpMax > 0 && (double) snapshot.hpCurrent / snapshot.hpMax < POTION_USE_HP_FRAC
+                        && System.currentTimeMillis() - lastPotionUseMs > POTION_COOLDOWN_MS)
+                {
+                    PacketLogger.InventoryItem potion = findPotion(logger);
+                    if (potion != null)
+                    {
+                        lastPotionUseMs = System.currentTimeMillis();
+                        gs.sendGameFrame(PacketCodec.encodeUseItem(potion.objectId));
+                        LOGGER.info("[FleetPlay] " + account
+                            + " sipping HP potion objectId=" + potion.objectId);
+                    }
+                }
 
                 // TIM-001: feed the movement-evidence harness every tick with the real server-acked
                 // position + exp (ValidateLocation 0x61 / CharInfo 0x03 parse in PacketLogger).
