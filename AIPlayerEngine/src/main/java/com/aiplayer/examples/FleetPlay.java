@@ -25,6 +25,7 @@ import com.aiplayer.monitor.AIMonitorDashboard;
 import com.aiplayer.phase0.BotSnapshot;
 import com.aiplayer.phase0.Phase0Wiring;
 import com.aiplayer.phase0.combat.TargetSelector;
+import com.aiplayer.phase0.quest.QuestProgressTracker;
 import com.aiplayer.phase0.guide.PlayerRace;
 import com.aiplayer.phase0.movement.HopGate;
 import com.aiplayer.phase0.movement.MoveTelemetry;
@@ -268,6 +269,8 @@ public final class FleetPlay
         private long lastFrozenLogMs = 0;
         private int lastSeenFx = Integer.MIN_VALUE;
         private int lastSeenFy = Integer.MIN_VALUE;
+        // S3-T05: quest stepIndex persistence across ticks/sessions (feeds PlayContext).
+        private final QuestProgressTracker questTracker;
         private final Set<String> questSentLinks = new HashSet<>();
         // ACQUIRE-failure cooldown (per-bot, per-session state; reset() at each runSession start). Stops
         // the "re-plan the same geo-unreachable ACQUIRE giver forever" loop — e.g. Wolf Hunt at Gludio,
@@ -297,6 +300,7 @@ public final class FleetPlay
             this.info.race = this.race.name(); // S9-T05 dashboard race badge/filter
             this.cfg = new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 100,
                 this.race, Math.abs(account.hashCode()));
+            this.questTracker = new QuestProgressTracker(account);
             this.rng = new Random(account.hashCode());
         }
 
@@ -1229,9 +1233,31 @@ public final class FleetPlay
             {
                 acquireCooldown.reset();
             }
+            // S3-T05: keep the per-bot tracker in sync with the real journal and feed its stepIndex so
+            // the planner resumes the CURRENT step across ticks/sessions (persists step progress).
+            if (journal != null)
+            {
+                for (int[] q : journal)
+                {
+                    if (q != null && q.length > 0 && questTracker.getActiveState(q[0]) == null)
+                    {
+                        questTracker.startQuest(q[0]);
+                    }
+                }
+            }
+            int stepIndex = 0;
+            Integer priorityQuest = questTracker.getCurrentPriorityQuest();
+            if (priorityQuest != null)
+            {
+                QuestProgressTracker.ActiveQuestState st = questTracker.getActiveState(priorityQuest);
+                if (st != null)
+                {
+                    stepIndex = st.currentStepIndex;
+                }
+            }
             return new PlayContext(s.level, s.x, s.y, s.z, s.hpCurrent, s.hpMax,
                 journal != null ? journal : java.util.Collections.<int[]>emptyList(),
-                hostiles, 0, s.inventoryUsagePercent);
+                hostiles, stepIndex, s.inventoryUsagePercent);
         }
 
         private int parseObjId(String targetId)

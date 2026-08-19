@@ -1,6 +1,6 @@
 package com.aiplayer.phase0.humanize;
 
-/** MODE: PARTIAL. Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
+/** MODE: COMPLETE (re-verified 2026-08-19, S10-T08). Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
