@@ -645,12 +645,12 @@ public final class QuestDatabase {
         register(new QuestInfo(40001, "Spider Silk Collection", QuestType.COLLECT,
             5, 15, RACE_ALL, 0, Collections.emptySet(),
             Arrays.asList(
-                new QuestStep(StepType.TALK, 30002, 1, "Gludio", -14440, 121064, -3000, "Talk to Trader"),
+                new QuestStep(StepType.TALK, 30002, 1, "Talking Island", -86733, 242918, -3720, "Talk to Trader"),
                 new QuestStep(StepType.COLLECT, 20140, 50, "Gludio", -60000, 140000, -3000, "Collect Spider Silk from spiders"),
-                new QuestStep(StepType.RETURN, 30002, 1, "Gludio", -14440, 121064, -3000, "Return to Trader")
+                new QuestStep(StepType.RETURN, 30002, 1, "Talking Island", -86733, 242918, -3720, "Return to Trader")
             ),
             new QuestReward(5000, 1000, 15000, Collections.emptyList(), Collections.emptyList()),
-            "Trader", 30002, "Gludio", 10, true, 25));
+            "Trader", 30002, "Talking Island", 10, true, 25));
 
         // Adena quest: Collect bone fragments
         register(new QuestInfo(40002, "Bone Fragment Collection", QuestType.COLLECT,

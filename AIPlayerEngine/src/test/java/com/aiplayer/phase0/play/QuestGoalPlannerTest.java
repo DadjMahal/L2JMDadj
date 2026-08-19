@@ -32,6 +32,11 @@ class QuestGoalPlannerTest
     private static final int NPC_X = -14440;
     private static final int NPC_Y = 121064;
     private static final int NPC_Z = -3000;
+    // REAL giver for 40001 (Spider Silk Collection): NPC 30002 "Jackson" on Talking Island
+    // (spawns/TalkingIsland/TalkingIslandNPCs.xml), NOT the old (wrong) Gludio coords.
+    private static final int TI_GIVER_X = -86733;
+    private static final int TI_GIVER_Y = 242918;
+    private static final int TI_GIVER_Z = -3720;
     private static final int FARM_X = -60000;
     private static final int FARM_Y = 140000;
     private static final int FARM_Z = -3000;
@@ -73,9 +78,9 @@ class QuestGoalPlannerTest
         assertNotNull(d, "pickable TALK step yields a move");
         assertEquals(GoalAction.MOVE_TO, d.action);
         assertEquals(PlayerGoal.QUEST, d.goal);
-        assertEquals(NPC_X, d.targetX);
-        assertEquals(NPC_Y, d.targetY);
-        assertEquals(NPC_Z, d.targetZ);
+        assertEquals(TI_GIVER_X, d.targetX);
+        assertEquals(TI_GIVER_Y, d.targetY);
+        assertEquals(TI_GIVER_Z, d.targetZ);
         assertEquals(30002, d.questTargetId, "quest target = the quest NPC (Trader)");
         assertTrue(d.label.startsWith("quest:Spider Silk Collection"), "label names the quest, got " + d.label);
     }
@@ -87,8 +92,8 @@ class QuestGoalPlannerTest
         assertNotNull(d);
         assertEquals(GoalAction.MOVE_TO, d.action);
         assertEquals(PlayerGoal.QUEST, d.goal);
-        assertEquals(NPC_X, d.targetX, "turn-in goes back to the giver NPC");
-        assertEquals(NPC_Y, d.targetY);
+        assertEquals(TI_GIVER_X, d.targetX, "turn-in goes back to the giver NPC");
+        assertEquals(TI_GIVER_Y, d.targetY);
     }
 
     @Test
@@ -112,7 +117,7 @@ class QuestGoalPlannerTest
         assertNotNull(d);
         assertEquals(GoalAction.MOVE_TO, d.action);
         assertEquals(PlayerGoal.QUEST, d.goal, "stepIndex out of range clamps to last (RETURN) step");
-        assertEquals(NPC_X, d.targetX);
+        assertEquals(TI_GIVER_X, d.targetX);
     }
 
     @Test
@@ -135,7 +140,7 @@ class QuestGoalPlannerTest
     {
         // Player stands on the Gludio giver so 40001 (5-15) is reachable (from world origin every
         // giver is > 20k away and the gate would correctly return null instead of a doomed route).
-        GoalDecision d = QuestGoalPlanner.decide(10, new ArrayList<>(), NPC_X, NPC_Y, NPC_Z);
+        GoalDecision d = QuestGoalPlanner.decide(10, new ArrayList<>(), TI_GIVER_X, TI_GIVER_Y, TI_GIVER_Z);
         assertNotNull(d, "empty journal falls through to ACQUIRE (level 10 has quests)");
         assertEquals(PlayerGoal.ACQUIRE, d.goal);
         assertEquals(GoalAction.MOVE_TO, d.action);
@@ -146,19 +151,19 @@ class QuestGoalPlannerTest
     {
         // level 10 (Human, any class): 40001 (5-15) is available and its giver is right here ->
         // ACQUIRE toward the local reachable giver, not the far-away one.
-        GoalDecision d = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z);
+        GoalDecision d = QuestGoalPlanner.decide(10, journal(), TI_GIVER_X, TI_GIVER_Y, TI_GIVER_Z);
         assertNotNull(d);
         assertEquals(PlayerGoal.ACQUIRE, d.goal);
         assertEquals(GoalAction.MOVE_TO, d.action);
         assertTrue(d.label.startsWith("acquire:"), "label marks it as a quest to pick up, got " + d.label);
-        assertEquals(NPC_X, d.targetX, "nearest reachable giver drives the destination");
-        assertEquals(NPC_Y, d.targetY);
+        assertEquals(TI_GIVER_X, d.targetX, "nearest reachable giver drives the destination");
+        assertEquals(TI_GIVER_Y, d.targetY);
     }
 
     @Test
     void nullJournalIsTreatedAsEmpty()
     {
-        GoalDecision d = QuestGoalPlanner.decide(10, null, NPC_X, NPC_Y, NPC_Z);
+        GoalDecision d = QuestGoalPlanner.decide(10, null, TI_GIVER_X, TI_GIVER_Y, TI_GIVER_Z);
         assertNotNull(d);
         assertEquals(PlayerGoal.ACQUIRE, d.goal);
     }
@@ -190,12 +195,12 @@ class QuestGoalPlannerTest
     @Test
     void reachableQuestGiverPickedWhenAvailable()
     {
-        // Player stands right on the 40001 giver (Trader, Gludio) -> the gate lets it through.
-        GoalDecision d = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z);
+        // Player stands right on the 40001 giver (Jackson, Talking Island) -> the gate lets it through.
+        GoalDecision d = QuestGoalPlanner.decide(10, journal(), TI_GIVER_X, TI_GIVER_Y, TI_GIVER_Z);
         assertNotNull(d, "a quest giver within reach yields an ACQUIRE decision");
         assertEquals(PlayerGoal.ACQUIRE, d.goal);
         assertEquals(GoalAction.MOVE_TO, d.action);
-        double toGiver = dist(NPC_X, NPC_Y, NPC_Z, d.targetX, d.targetY, d.targetZ);
+        double toGiver = dist(TI_GIVER_X, TI_GIVER_Y, TI_GIVER_Z, d.targetX, d.targetY, d.targetZ);
         assertTrue(toGiver <= QuestGoalPlanner.MAX_ACQUIRE_DIST,
             "best target within MAX_ACQUIRE_DIST of the player, was " + toGiver);
         assertTrue(d.label.startsWith("acquire:Spider Silk Collection"),
@@ -210,12 +215,12 @@ class QuestGoalPlannerTest
         // no single position is within 20k of BOTH — this asserts both halves of the pick: the far
         // quest is gated out and, among the reachable ones, the NEAREST giver wins (not the highest
         // recommendedLevel, which would be the findAvailable sort-first behavior).
-        GoalDecision atGludio = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z);
-        assertNotNull(atGludio);
-        assertEquals(PlayerGoal.ACQUIRE, atGludio.goal);
-        assertEquals(NPC_X, atGludio.targetX, "player at Gludio picks the local giver (40001)");
-        assertEquals(NPC_Y, atGludio.targetY);
-        assertTrue(atGludio.label.contains("Spider Silk Collection"), "got " + atGludio.label);
+        GoalDecision atJackson = QuestGoalPlanner.decide(10, journal(), TI_GIVER_X, TI_GIVER_Y, TI_GIVER_Z);
+        assertNotNull(atJackson);
+        assertEquals(PlayerGoal.ACQUIRE, atJackson.goal);
+        assertEquals(TI_GIVER_X, atJackson.targetX, "player at Jackson picks the local giver (40001)");
+        assertEquals(TI_GIVER_Y, atJackson.targetY);
+        assertTrue(atJackson.label.contains("Spider Silk Collection"), "got " + atJackson.label);
 
         GoalDecision atElven = QuestGoalPlanner.decide(10, journal(), ELVEN_GIVER_X, ELVEN_GIVER_Y, NPC_Z);
         assertNotNull(atElven);
@@ -309,8 +314,8 @@ class QuestGoalPlannerTest
     void zeroSeedDelegatesToClassicNearest()
     {
         // Seed 0 must behave exactly like the classic (no-seed) nearest-giver path at level 10.
-        GoalDecision seed0 = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z, 0, 0);
-        GoalDecision classic = QuestGoalPlanner.decide(10, journal(), NPC_X, NPC_Y, NPC_Z, 0);
+        GoalDecision seed0 = QuestGoalPlanner.decide(10, journal(), TI_GIVER_X, TI_GIVER_Y, TI_GIVER_Z, 0, 0);
+        GoalDecision classic = QuestGoalPlanner.decide(10, journal(), TI_GIVER_X, TI_GIVER_Y, TI_GIVER_Z, 0);
         assertNotNull(seed0);
         assertEquals(classic.targetX, seed0.targetX);
         assertEquals(classic.targetY, seed0.targetY);
