@@ -945,6 +945,16 @@ public final class FleetPlay
                                             // STEP 6: count this consecutive frozen-route abandon so the
                                             // escape gate eventually holds the bot still (breaks the churn).
                                             relocation.noteAbandonedRoute();
+                                            // S5-T01 (root cause: server rejects moves while isOutOfControl()
+                                            // — MoveToLocation sends ActionFailed, no ValidateLocation). If
+                                            // hostiles are near the bot is likely CC'd (stunned/rooted): hold
+                                            // to recover instead of churning far re-plans.
+                                            if (info.mobs > 0)
+                                            {
+                                                regenHoldUntilMs = now + REGEN_HOLD_MS;
+                                                info.state = "regen";
+                                                info.thought = "route abandoned near hostiles (CC?) — holding";
+                                            }
                                             // ACQUIRE-failure cooldown: an abandoned goal:acquire:* route means the
                                             // giver is geo-unreachable from here (empty journal + ~148k-unit ocean hop
                                             // the server never walks the char toward). Count the abort; once the

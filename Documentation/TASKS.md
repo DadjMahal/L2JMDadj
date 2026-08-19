@@ -208,6 +208,12 @@
 | **LIVE-RUN** | 50 random-race players created + played 2h (provisioning, launcher race rotation, USE_SKILL→melee fix) | `DONE-PUSHED 0fd3fef4/e53ca85a` | play-builder |
 
 ## 6. Changelog (newest last)
+- **2026-08-19 · play-builder:** **S5 root-cause found** (from `MoveToLocation.java` source): the server
+  rejects a move with `ActionFailed` (no ValidateLocation -> "hop unreachable") when the player
+  `isOutOfControl()` (stunned/rooted by mob CC); the 9900-distance check uses the SERVER-side position,
+  so our ≤4800 hops are fine. Engine fix: on route-abandon with hostiles near, hold for CC/regen
+  recovery instead of churning far re-plans (S5-T01 progress, `S5-T06` hop-success telemetry now makes
+  the freeze visible live). Suite **382 green**.
 - **2026-08-17 · play-builder:** **Sessions 1 & 9 fully complete.** S1 = code hygiene all 10 (wildcards→explicit over 99 files, stubs honesty, unused imports, PARTIAL index, tunables via config, .editorconfig). S9 = monitoring/ops all 10 (watcher + xp/min fix, provisioning/launcher scripts, log rotation, keep-alive, DB backup, health check). Live: `health_check.sh` → **OK: 50/50**, fleet refreshed to mob fields after a ~12h idle-wall and relaunched on new classes (17 ATTACK / 0 stuck).
 - **2026-08-17 · play-builder:** S2-T04/T05/T07/T08/T09 — per-bot packet health (packetsRead/idleTimeouts), CharSelectInfo name/class/race decode (+3 tests), reconnect backoff, socket keepalive/TCP_NODELAY, watcher JSON mode.
   persisted in DB: **50 chars, avg L3.9 / max L6, ~119 500 total XP**, 0 crashes seen while live. Post-run
