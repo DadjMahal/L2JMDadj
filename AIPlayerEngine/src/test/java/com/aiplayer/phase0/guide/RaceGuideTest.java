@@ -431,4 +431,51 @@ public class RaceGuideTest
         assertNotEquals(VOID_X, orcA.x, "ORC anchor must not be the void");
     }
 
+    @Test
+    public void raceNewbieFieldsExistAndAreReal()
+    {
+        // S4-T01/T02: every non-Human race has its OWN L1-5 newbie mob field (real coords) as the
+        // first zone of huntZones(race,1,5).
+        java.util.Map<PlayerRace, String> names = new java.util.HashMap<>();
+        names.put(PlayerRace.ELF, "Elven Newbie Field");
+        names.put(PlayerRace.DARK_ELF, "Dark Elven Newbie Field");
+        names.put(PlayerRace.ORC, "Orc Newbie Field");
+        names.put(PlayerRace.DWARF, "Dwarven Newbie Field");
+        for (java.util.Map.Entry<PlayerRace, String> e : names.entrySet())
+        {
+            List<HuntZone> zones = RaceGuide.huntZones(e.getKey(), 1, 5);
+            assertFalse(zones.isEmpty(), e.getKey() + " has an L1-5 zone");
+            assertEquals(e.getValue(), zones.get(0).name, e.getKey() + " field is first");
+            assertFalse(zones.get(0).x == VOID_X && zones.get(0).y == VOID_Y,
+                e.getKey() + " field is a real in-world point");
+        }
+    }
+
+    @Test
+    public void allRacesBaseClassesResolveInProfessionTree()
+    {
+        // S4-T06: Human 0, Elf 18, DarkElf 31, Orc 44, Dwarf 53 all resolve.
+        int[][] rc = { { 0, 0 }, { 18, 1 }, { 31, 2 }, { 44, 3 }, { 53, 4 } };
+        for (int[] row : rc)
+        {
+            assertTrue(RaceGuide.profession(row[0]).isPresent(),
+                "base class " + row[0] + " (race id " + row[1] + ") resolves in the tree");
+        }
+    }
+
+    @Test
+    public void teleportRouteBfsConnectsTowns()
+    {
+        // S4-T07: the teleport-leg BFS yields a real path from the starting island to a mainland town.
+        List<TeleportLeg> path = RaceGuide.route("Talking Island", "Gludin");
+        assertFalse(path.isEmpty(), "Talking Island -> Gludin has a teleport/boat route");
+        TeleportLeg first = path.get(0);
+        TeleportLeg last = path.get(path.size() - 1);
+        assertTrue(first.fromTown.equals("Talking Island") || first.toTown.equals("Talking Island"),
+            "route starts at the island, got " + first);
+        assertTrue(last.toTown.equals("Gludin") || last.fromTown.equals("Gludin"),
+            "route ends at Gludin, got " + last);
+        assertTrue(RaceGuide.route("Gludin", "Gludin").isEmpty(), "same town -> no legs");
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.aiplayer.phase0.play;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -110,6 +111,19 @@ class RestockPlannerTest
         {
             assertEquals(a.orders.get(i).itemId, b.orders.get(i).itemId, "order item id stable");
             assertEquals(a.orders.get(i).qty, b.orders.get(i).qty, "order qty stable");
+        }
+    }
+
+    @Test
+    void vendorLandmarkIsRealPerRace()
+    {
+        // S4-T05: each race's restock trip targets a REAL in-world vendor landmark (not the void).
+        for (PlayerRace race : PlayerRace.values())
+        {
+            RestockPlanner.RestockPlan p = RestockPlanner.plan(20, 85, 50_000, race);
+            assertNotNull(p, race + " always returns a plan");
+            boolean isVoid = p.vendorX == 0 && p.vendorY == 0;
+            assertFalse(isVoid, race + " vendor must be a real point, got " + p.vendorX + "," + p.vendorY);
         }
     }
 }

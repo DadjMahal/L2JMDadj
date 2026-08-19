@@ -383,9 +383,20 @@ public final class RaceGuide
 
     private static final List<HuntZone> HUNT_ZONES = new ArrayList<>();
 
+    /** S4-T01: each non-Human race's OWN L1-5 newbie mob field (real spawn anchors). */
+    private static final java.util.Map<PlayerRace, HuntZone> RACE_NEWBIE_ZONES =
+        new java.util.EnumMap<>(PlayerRace.class);
+
     private static void addHunt(String name, int min, int max, int avg, int x, int y, int z, int r, String town)
     {
         HUNT_ZONES.add(new HuntZone(name, min, max, avg, x, y, z, r, town));
+    }
+
+    private static void addRaceNewbie(PlayerRace race, String name, int x, int y, int z, String town)
+    {
+        HuntZone zone = new HuntZone(name, 1, 5, 3, x, y, z, 12000, town);
+        RACE_NEWBIE_ZONES.put(race, zone);
+        HUNT_ZONES.add(zone);
     }
 
     private static void registerZones()
@@ -394,6 +405,12 @@ public final class RaceGuide
         // Town names are canonical and match the TeleportLeg keys so idleAnchor can resolve a
         // real gatekeeper anchor for every band.
         addHunt("Talking Island", 1, 10, 5, -99500, 237500, -3500, 15000, "Talking Island");
+        // S4-T01: each race's own L1-5 starting mob field (real spawns/*Starting.xml anchors) so a fresh
+        // non-Human bot has a REAL farm anchor in its OWN zone from level 1 (not the shared tutorial node).
+        addRaceNewbie(PlayerRace.ELF, "Elven Newbie Field", 50000, 42000, -3500, "Elven Village");
+        addRaceNewbie(PlayerRace.DARK_ELF, "Dark Elven Newbie Field", 30000, 15500, -4100, "Dark Elven Village");
+        addRaceNewbie(PlayerRace.ORC, "Orc Newbie Field", -48500, -110000, -270, "Orc Village");
+        addRaceNewbie(PlayerRace.DWARF, "Dwarven Newbie Field", 115500, -174500, -1100, "Dwarven Village");
         addHunt("Elven Forest", 5, 15, 10, 10000, 50000, -3000, 20000, "Elven Village");
         addHunt("Dark Elven Swampland", 8, 18, 13, 20000, 10000, -3000, 18000, "Dark Elven Village");
         addHunt("Gludio Plains", 10, 20, 15, -60000, 140000, -3000, 25000, "Gludin");
@@ -547,6 +564,27 @@ public final class RaceGuide
         return java.util.Collections.emptyList();
     }
 
+    /** S4-T01: hunt zones for a level band, PREFERRING the race's own L1-5 newbie field first. */
+    public static List<HuntZone> huntZones(PlayerRace race, int minLevel, int maxLevel)
+    {
+        HuntZone own = race != null ? RACE_NEWBIE_ZONES.get(race) : null;
+        List<HuntZone> zones = huntZones(minLevel, maxLevel);
+        if (own != null && own.minLevel <= maxLevel && own.maxLevel >= minLevel)
+        {
+            List<HuntZone> out = new ArrayList<>();
+            out.add(own);
+            for (HuntZone z : zones)
+            {
+                if (z != own)
+                {
+                    out.add(z);
+                }
+            }
+            return out;
+        }
+        return zones;
+    }
+
     /** Hunting zones overlapping the given level band (highest average first). */
     public static List<HuntZone> huntZones(int minLevel, int maxLevel)
     {
@@ -617,7 +655,7 @@ public final class RaceGuide
     private static QuestNode computeIdleAnchor(PlayerRace race, int level)
     {
         if (level < 15)
-            return tutorial(race);
+            return tutorial(race);   // documented contract: low-idle = this race's newbie helper NPC
         List<HuntZone> zones = huntZones(Math.max(1, level - 5), level + 5);
         if (!zones.isEmpty())
         {
