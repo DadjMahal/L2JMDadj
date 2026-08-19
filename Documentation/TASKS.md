@@ -185,8 +185,8 @@
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
 | UP-EP-1 (UpgradePlan) | Archive dead engine classes to attic/ | M | P0 | DONE-PUSHED 4827ac0f (zcode) |
-| UP-EP-2 (UpgradePlan) | Relocate live engine classes to target packages; remove engine/ | M | P0 | IN_PROGRESS (zcode) |
-| UP-EP-3 (UpgradePlan) | Rename phase0/* to behavior/* domain packages | L | P0 | TODO |
+| UP-EP-2 (UpgradePlan) | Relocate live engine classes to target packages; remove engine/ | M | P0 | DONE-PUSHED 9601dd77 (zcode) |
+| UP-EP-3 (UpgradePlan) | Rename phase0/* to behavior/* domain packages | L | P0 | IN_PROGRESS (zcode) |
 | UP-EP-6 (UpgradePlan) | Security pass (passwords, dashboard auth, script lint) | M | P0 | TODO |
 | UP-GK-1 (UpgradePlan) | Datapack knowledge extractor skeleton | S | P1 | TODO |
 | UP-LW-1 (UpgradePlan) | Structured event file sink (events.jsonl) | M | P1 | TODO |
