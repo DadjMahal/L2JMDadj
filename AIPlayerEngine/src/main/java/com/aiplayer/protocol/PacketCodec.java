@@ -263,10 +263,20 @@ public class PacketCodec {
         return result;
     }
 
-    /**
-     * Encode chat packet
-     * OPCODE from L2J implementation
-     */
+    /** S6-T04: UseItem (server opcode 0x14): [0x14][objectId:int][ctrlPressed:int]. */
+    public static byte[] encodeUseItem(int objectId)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(11);
+        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        buf.putShort((short) 11);
+        buf.put((byte) 0x14);
+        buf.putInt(objectId);
+        buf.putInt(0); // ctrlPressed = false
+        buf.flip();
+        return buf.array();
+    }
+
+    /** Encode chat packet. OPCODE from L2J implementation. */
     public static byte[] encodeChat(String message) {
         // Simplified chat packet
         byte[] msgBytes = message.getBytes(StandardCharsets.UTF_16LE);

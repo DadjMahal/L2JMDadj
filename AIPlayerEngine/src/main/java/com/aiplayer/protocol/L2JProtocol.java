@@ -421,9 +421,11 @@ public class L2JProtocol
     }
 
     /** Stub: use item. */
-    public void sendUseItem(int itemId) throws IOException
+    /** S6-T04: Use the item with the server opcode 0x14 → [#14][objectId][ctrl]. */
+    public void sendUseItem(int objectId) throws IOException
     {
-        LOGGER.warning("[sendUseItem] Not implemented - stub");
+        LOGGER.info("[" + aiPlayer.getName() + "] USE_ITEM objectId=" + objectId);
+        channel.write(ByteBuffer.wrap(PacketCodec.encodeUseItem(objectId)));
     }
 
 
