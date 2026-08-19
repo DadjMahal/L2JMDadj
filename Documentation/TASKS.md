@@ -181,6 +181,17 @@
 | S10-T09 | Verify no Redis/Postgres deps (in-memory replacements) | M | P1 | DONE-PUSHED 3efd0c82 |
 | S10-T10 | Final docs sync (TASKS/START_HERE/STATUS) | E | P1 | DONE-PUSHED c4bff0ec (STATUS/START_HERE refreshed; Sessions 1&9 complete) |
 
+### UpgradePlan 2026-08 (owner-directed; see Documentation/UpgradePlan/README.md)
+| ID | Task | Diff | Prio | Status |
+|---|---|---|---|---|
+| UP-EP-1 (UpgradePlan) | Archive dead engine classes to attic/ | M | P0 | DONE-PUSHED 4827ac0f (zcode) |
+| UP-EP-2 (UpgradePlan) | Relocate live engine classes to target packages; remove engine/ | M | P0 | IN_PROGRESS (zcode) |
+| UP-EP-3 (UpgradePlan) | Rename phase0/* to behavior/* domain packages | L | P0 | TODO |
+| UP-EP-6 (UpgradePlan) | Security pass (passwords, dashboard auth, script lint) | M | P0 | TODO |
+| UP-GK-1 (UpgradePlan) | Datapack knowledge extractor skeleton | S | P1 | TODO |
+| UP-LW-1 (UpgradePlan) | Structured event file sink (events.jsonl) | M | P1 | TODO |
+| UP-LW-2 (UpgradePlan) | WATCHER_RULES.md + watcher template | S | P1 | TODO |
+
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |
 |---|---|---|

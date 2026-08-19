@@ -78,7 +78,7 @@ Renames are mechanical: `phase0.quest` → `behavior.quest`, `phase0.play` → `
 
 | ID | Task | Effort | Depends | Status |
 |---|---|---|---|---|
-| EP-1 | Archive 131 dead engine classes to non-compiled attic/ | M | – | TODO |
+| EP-1 | Archive 131 dead engine classes to non-compiled attic/ | M | – | DONE-PUSHED 4827ac0f (compile-true closure: 90 archived, 51 live remain — audit's "10" under-counted transitive deps; see RuntimeLog) |
 | EP-2 | Relocate the 10 live engine classes into target packages; remove engine/ | M | EP-1 | TODO |
 | EP-3 | Rename phase0/* to behavior/* domain packages; purge the "phase0" token repo-wide | L | EP-2 | TODO |
 | EP-4 | Split FleetPlay god class: BotLoop → core session class; thin launcher in cli/ | L | EP-3 | TODO |
