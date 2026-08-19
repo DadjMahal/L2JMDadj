@@ -73,7 +73,7 @@
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
 | S3-T01 | Live-prove quest ACCEPT (real giver, validated bypass, journal shows active) | H | P0 | DONE-PUSHED 90863993 (LIVE: quest 6 accepted, journal [[6,1]]) |
-| S3-T02 | Live-prove objective progress (kill/collect counters via QUEST_LIST) | H | P0 | BLOCKED (on S3-T01 accept) |
+| S3-T02 | Live-prove objective progress (kill/collect counters via QUEST_LIST) | H | P0 | IN_PROGRESS (quest persists [[6,1]]; dialog re-click works — next objective target TBS from live server) |
 | S3-T03 | Live-prove TURN-IN + reward receipt (exp/adena/item) | H | P0 | BLOCKED (on S3-T01/02) |
 | S3-T04 | Enable `phase0.quest.npcId` flow by default for Human newbies | M | P1 | IN_PROGRESS (config-driven + dialog engages live; default-on gated on S5) |
 | S3-T05 | Persist quest stepIndex across sessions (QuestProgressTracker) | M | P1 | IN_PROGRESS (depends on S3-T01..03 live flow) |
