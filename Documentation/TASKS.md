@@ -117,8 +117,8 @@
 | S6-T01 | Regression test for USE_SKILL→melee fallback (the L1-farming unblock) | E | P0 | DONE-PUSHED 99dc335f |
 | S6-T02 | Scale stale-target budget by level (L1 needs >15s) | E | P1 | DONE-PUSHED a3b3f04c |
 | S6-T03 | Retreat→camp-heal timing (bots over-retreat after low HP) | M | P1 | DONE-PUSHED a3b3f04c (regen hold after retreat) |
-| S6-T04 | HP-potion use when stocked (ConsumableManager wiring) | M | P1 | IN_PROGRESS (blocked: L2JProtocol.sendUseItem is a stub — needs wire-proven UseItem opcode) |
-| S6-T05 | Starter gear/soulshot provisioning for fresh chars | M | P0 | IN_PROGRESS (provision path pending; running fleet already leveled — applies to next spawn) |
+| S6-T04 | HP-potion use when stocked (ConsumableManager wiring) | M | P1 | DONE-PUSHED 1c044c5d/39ca9cce (UseItem 0x14 encoder + live low-HP sipping, gated 20s) |
+| S6-T05 | Starter gear/soulshot provisioning for fresh chars | M | P0 | DONE-PUSHED 1c044c5d (20x HP potion + 50x soulshot per new char) |
 | S6-T06 | Death-penalty handling + respawn position choice | M | P1 | DONE-PUSHED a3b3f04c (death tracking + guard) |
 | S6-T07 | Aggro cap: avoid pulling 33 mobs at once (leash/kite) | H | P1 | DONE-PUSHED a3b3f04c (overwhelm back-off: mobs>SURROUND_CAP + low HP) |
 | S6-T08 | Engage range per level/race tuning | M | P2 | DONE-PUSHED a3b3f04c (L1-3 use 0.6x ranges) |
