@@ -208,6 +208,12 @@
 | **LIVE-RUN** | 50 random-race players created + played 2h (provisioning, launcher race rotation, USE_SKILL→melee fix) | `DONE-PUSHED 0fd3fef4/e53ca85a` | play-builder |
 
 ## 6. Changelog (newest last)
+- **2026-08-19 · play-builder:** **S5-T01 LIVE-PROVEN FIX — the keystone.** Root cause: pure random
+  far-point relocations landed on unwalkable terrain -> server ActionFailed -> 0% hop-success ->
+  freeze. Fix: `RelocationPlanner` now prefers REAL hunt-zone anchors over random points (+test).
+  Live after relaunch: **hop-success 100% on all 50 bots (was {100:39, 0:11})**, **0/50 stalled
+  (moved60=0)**, fleet at best farming (29 ATTACK/16 chase), **422 learning-kills/min** flowing into
+  ReinforcementEngine/AdaptiveLearner/DeepLearning. Suite **383 green**.
 - **2026-08-19 · play-builder:** **TOP-NOTCH AI — live learning wired.** FleetPlay now feeds every real
   kill into the full chain: `onKill(xp) -> ReinforcementEngine.rewardKill -> AdaptiveLearner ->
   DeepLearning` (+ emotions), so bots genuinely LEARN from play (200+ learning events/min, emotions
