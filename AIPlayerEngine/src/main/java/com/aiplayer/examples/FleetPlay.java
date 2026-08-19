@@ -904,6 +904,7 @@ public final class FleetPlay
                                     // Arrived at this hop: complete the route, or advance to the next one.
                                     hopTimeouts = 0; // TIM-001: a reached hop is not stuck
                                     relocation.noteProgress(); // STEP 6: server moved us — not frozen
+                                    telemetry.recordHopResult(account, true); // S5-T06
                                     if (activeRoute.hasMoreHops())
                                     {
                                         pendingHop = activeRoute.nextHop();
@@ -927,6 +928,7 @@ public final class FleetPlay
                                     if (hopAction == HopGate.Action.RESEND)
                                     {
                                         hopTimeouts++;
+                                        telemetry.recordHopResult(account, false); // S5-T06
                                         resend = !ZoneRouter.isRouteStuck(hopTimeouts);
                                         if (!resend)
                                         {

@@ -187,6 +187,24 @@ class RelocationPlannerTest
         assertTrue(t.label.startsWith("reloc:"), "unexpected relocation label: " + t.label);
     }
 
+    @Test
+    void doesNotReHopToSameLandmark_antiOscillation()
+    {
+        // S5-T08: at the same spot again, prefer a REAL landmark but never re-hop the SAME one.
+        RelocationPlanner p = new RelocationPlanner("ai_combat_10");
+        QuestNode a = RaceGuide.idleAnchor(PlayerRace.HUMAN, 20);
+        Target first = p.choose(20, a.x + 20000, a.y, a.z, false,
+            nothing(), PlayerRace.HUMAN, 900, 30000);
+        Target second = p.choose(20, a.x + 20000, a.y, a.z, false,
+            nothing(), PlayerRace.HUMAN, 900, 30000);
+        assertNotNull(first);
+        assertNotNull(second);
+        assertTrue(first.label.startsWith("reloc:") && !first.label.contains("far-point"),
+            "first pick should be the real landmark, got " + first.label);
+        assertTrue(second.label.contains("far-point"),
+            "second pick must not re-hop the same landmark (anti-oscillation), got " + second.label);
+    }
+
     private static List<int[]> nothing()
     {
         return new ArrayList<>();

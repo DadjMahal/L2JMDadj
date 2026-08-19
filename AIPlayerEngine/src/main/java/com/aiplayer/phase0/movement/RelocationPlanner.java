@@ -138,6 +138,10 @@ public final class RelocationPlanner
         }
     }
 
+    // --- last guide-landmark chosen (S5-T08 anti-oscillation: don't re-hop to the same anchor) ---
+    private boolean haveAnchor = false;
+    private int lastAnchorX, lastAnchorY;
+
     /**
      * Pick an idle-relocation destination.
      *
@@ -180,6 +184,16 @@ public final class RelocationPlanner
         Target t = anchorTarget(level, fromX, fromY, fromZ, race, min, maxRadius);
         if (t != null)
         {
+            // S5-T08 anti-oscillation: never re-hop to the SAME guide landmark we just chose — a bot
+            // bouncing between a landmark and a far-point churns re-plans with zero movement. If this
+            // anchor equals the last one, prefer a fresh bounded far point instead.
+            if (haveAnchor && t.x == lastAnchorX && t.y == lastAnchorY)
+            {
+                return farPoint(fromX, fromY, fromZ, min, maxRadius);
+            }
+            haveAnchor = true;
+            lastAnchorX = t.x;
+            lastAnchorY = t.y;
             return t;
         }
 

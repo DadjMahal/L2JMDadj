@@ -76,6 +76,38 @@ public final class MoveTelemetry
         return INSTANCE;
     }
 
+    /** S5-T06: hop persistence telemetry — [acked, total] per account. */
+    private final java.util.concurrent.ConcurrentHashMap<String, long[]> hopStats =
+        new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Record whether the server actually walked us toward a hop (acked=true) or timed it out. */
+    public void recordHopResult(String account, boolean reached)
+    {
+        long[] s = hopStats.computeIfAbsent(account, k -> new long[2]);
+        synchronized (s)
+        {
+            s[1]++;
+            if (reached)
+            {
+                s[0]++;
+            }
+        }
+    }
+
+    /** Percentage of hops the server acknowledged (100 when no data yet). */
+    public int hopSuccessPct(String account)
+    {
+        long[] s = hopStats.get(account);
+        if (s == null || s[1] == 0)
+        {
+            return 100;
+        }
+        synchronized (s)
+        {
+            return (int) (s[0] * 100 / s[1]);
+        }
+    }
+
     /** Record a MoveToLocation frame we actually sent. Called by the fleet loop. */
     public void recordMove(String account, int fx, int fy, int fz, int tx, int ty, int tz, String label, String reason)
     {
