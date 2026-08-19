@@ -201,8 +201,23 @@ class RelocationPlannerTest
         assertNotNull(second);
         assertTrue(first.label.startsWith("reloc:") && !first.label.contains("far-point"),
             "first pick should be the real landmark, got " + first.label);
-        assertTrue(second.label.contains("far-point"),
+        assertFalse(first.label.equals(second.label),
             "second pick must not re-hop the same landmark (anti-oscillation), got " + second.label);
+    }
+
+    @Test
+    void farResortPrefersRealAnchorOverRandomPoint()
+    {
+        // S5-T01: pure random far points land on unwalkable terrain -> server rejects -> freeze.
+        // When a real walkable anchor (landmark or hunt zone) is in range, choose() must NOT pick
+        // a reloc:far-point.
+        RelocationPlanner p = new RelocationPlanner("ai_combat_11");
+        Target t = p.choose(20, -65000, 150000, -3000, false,
+            nothing(), PlayerRace.HUMAN, 1000, 60000);
+        assertNotNull(t);
+        assertFalse(t.label.contains("far-point"),
+            "must prefer a real walkable anchor over a random point, got " + t.label);
+        assertTrue(t.label.startsWith("reloc:"), "unexpected relocation label " + t.label);
     }
 
     private static List<int[]> nothing()

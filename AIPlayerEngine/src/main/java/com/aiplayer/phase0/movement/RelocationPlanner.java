@@ -189,7 +189,7 @@ public final class RelocationPlanner
             // anchor equals the last one, prefer a fresh bounded far point instead.
             if (haveAnchor && t.x == lastAnchorX && t.y == lastAnchorY)
             {
-                return farPoint(fromX, fromY, fromZ, min, maxRadius);
+                return farPointOrHuntZone(level, fromX, fromY, fromZ, min, maxRadius);
             }
             haveAnchor = true;
             lastAnchorX = t.x;
@@ -198,7 +198,29 @@ public final class RelocationPlanner
         }
 
         // 3) Bounded random far point (last resort), excluding a void/zero destination.
-        return farPoint(fromX, fromY, fromZ, min, maxRadius);
+        return farPointOrHuntZone(level, fromX, fromY, fromZ, min, maxRadius);
+    }
+
+    /**
+     * S5-T01: the "last resort" far point must PREFER a real hunt-zone anchor (walkable guide-map
+     * coordinates) over a pure random point — random points frequently land on unwalkable terrain
+     * (water/void/rock), which the server silently rejects (ActionFailed, no ValidateLocation), giving
+     * 0% hop-success and a frozen idle bot. Falls back to a bounded random point only when no zone is
+     * within range.
+     */
+    private Target farPointOrHuntZone(int level, int fx, int fy, int fz, double min, double max)
+    {
+        for (com.aiplayer.phase0.guide.HuntZone z
+                : RaceGuide.huntZones(Math.max(1, level - 5), level + 5))
+        {
+            double d = dist(fx, fy, z.x, z.y);
+            if (d >= min && d <= max)
+            {
+                return new Target(z.x, z.y, z.z, "reloc:zone:" + z.name,
+                    String.format("hunt-zone anchor %s (%.0f u)", z.name, d));
+            }
+        }
+        return farPoint(fx, fy, fz, min, max);
     }
 
     private Target lastXpTarget(int fx, int fy, int fz, double min, double max)
