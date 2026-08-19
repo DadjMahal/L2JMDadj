@@ -72,13 +72,13 @@
 ### Session 3 — Quest pillar — live accept/complete/turn-in (the ONE-goal gap)
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
-| S3-T01 | Live-prove quest ACCEPT (real giver, validated bypass, journal shows active) | H | P0 | TODO |
-| S3-T02 | Live-prove objective progress (kill/collect counters via QUEST_LIST) | H | P0 | TODO |
-| S3-T03 | Live-prove TURN-IN + reward receipt (exp/adena/item) | H | P0 | TODO |
-| S3-T04 | Enable `phase0.quest.npcId` flow by default for Human newbies | M | P1 | TODO |
-| S3-T05 | Persist quest stepIndex across sessions (QuestProgressTracker) | M | P1 | TODO |
-| S3-T06 | QuestDialogDriver: multi-quest journals + chain choice | M | P1 | TODO |
-| S3-T07 | Wire per-bot `varietySeed` into FleetPlay acquire pick (STEP 7) | M | P1 | TODO |
+| S3-T01 | Live-prove quest ACCEPT (real giver, validated bypass, journal shows active) | H | P0 | BLOCKED (on S5: bot routes to real giver + dialog engages, but solo far-hop can't hold position at the giver) |
+| S3-T02 | Live-prove objective progress (kill/collect counters via QUEST_LIST) | H | P0 | BLOCKED (on S3-T01 accept) |
+| S3-T03 | Live-prove TURN-IN + reward receipt (exp/adena/item) | H | P0 | BLOCKED (on S3-T01/02) |
+| S3-T04 | Enable `phase0.quest.npcId` flow by default for Human newbies | M | P1 | IN_PROGRESS (config-driven + dialog engages live; default-on gated on S5) |
+| S3-T05 | Persist quest stepIndex across sessions (QuestProgressTracker) | M | P1 | IN_PROGRESS (depends on S3-T01..03 live flow) |
+| S3-T06 | QuestDialogDriver: multi-quest journals + chain choice | M | P1 | IN_PROGRESS (depends on S3-T01..03 live flow) |
+| S3-T07 | Wire per-bot `varietySeed` into FleetPlay acquire pick (STEP 7) | M | P1 | DONE-PUSHED a21ab79e |
 | S3-T08 | AcquireCooldown tuning for L1 vs L20+ | E | P2 | DONE-PUSHED b72f182e |
 | S3-T09 | Newbie Q1–Q10 chain automation (per race) | H | P1 | TODO |
 | S3-T10 | Class-change Path quests (Q401–418) live loop | H | P2 | TODO |
