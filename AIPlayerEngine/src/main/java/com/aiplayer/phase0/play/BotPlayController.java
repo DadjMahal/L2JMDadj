@@ -70,6 +70,24 @@ public final class BotPlayController
             }
         }
 
+        // 1.5 QUEST-TALK (priority): if the bot is standing on its quest NPC, TALK to it even when
+        //    low-level mobs are around (a real player opens the NPC dialog). Compute the quest goal
+        //    early; if it is an NPC MOVE_TO within talkRange, emit BYPASS (the fleet loop drives the
+        //    dialog -> accept/turn-in). Otherwise fall through to combat/hunt/quest routing below.
+        GoalDecision earlyQuest = QuestGoalPlanner.decide(ctx.level, ctx.activeJournal,
+            ctx.x, ctx.y, ctx.z, ctx.stepIndex, c.varietySeed);
+        if (earlyQuest != null && earlyQuest.action == GoalAction.MOVE_TO
+                && (earlyQuest.goal == PlayerGoal.QUEST || earlyQuest.goal == PlayerGoal.ACQUIRE)
+                && earlyQuest.questTargetId != 0
+                && within(earlyQuest.targetX, earlyQuest.targetY, earlyQuest.targetZ,
+                    ctx.x, ctx.y, ctx.z, c.talkRange))
+        {
+            return GoalDecision.bypass(
+                earlyQuest.goal, "",
+                "quest-dialog:" + earlyQuest.questTargetId,
+                "at quest NPC " + earlyQuest.questTargetId + "; open dialog");
+        }
+
         // 1.5 RESTOCK: when inventory is too full to keep farming, walk to the town vendor and
         //    shop instead of engaging COMBAT/HUNT so the bot stops fighting and (later) restocks.
         if (ctx.inventoryPct >= c.restockThreshold)
