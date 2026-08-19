@@ -27,9 +27,9 @@ class QuestNpcNavigatorTest
 {
     /** Quest 40001 "Spider Silk Collection": step0 TALK to Trader, step1 COLLECT, step2 RETURN to Trader. */
     private static final int QUEST_ID = 40001;
-    private static final int NPC_X = -14440;
-    private static final int NPC_Y = 121064;
-    private static final int NPC_Z = -3000;
+    private static final int NPC_X = -86733;
+    private static final int NPC_Y = 242918;
+    private static final int NPC_Z = -3720;
     private static final long NOW = 2_000_000L;
 
     // ================================================================
@@ -87,9 +87,9 @@ class QuestNpcNavigatorTest
     @Test
     void farRouteToNpcDegradesIntoServerAcceptableHopsLandingExactlyOnNpc()
     {
-        // Talking Island -> Gludio Trader (~73k u): needs many hops.
+        // NE corner of Talking Island -> Jackson (~56k u): needs many hops.
         NpcTarget target = QuestNpcNavigator.resolveNpcTarget(QUEST_ID, 0);
-        NpcRoute r = QuestNpcNavigator.planRoute(-82759, 250149, -3600, target);
+        NpcRoute r = QuestNpcNavigator.planRoute(-35000, 265000, -3600, target);
 
         assertNotNull(r);
         assertTrue(r.totalHops() >= 3, "far NPC route splits into >=3 hops, got " + r.totalHops());
@@ -124,8 +124,8 @@ class QuestNpcNavigatorTest
     @Test
     void explicitTargetRouteHopsStayBelowServerCap()
     {
-        // Explicit coords input path: bot near TI heads to Gludio (~73k u away).
-        NpcRoute r = QuestNpcNavigator.planRoute(-82759, 250149, -3600, NPC_X, NPC_Y, NPC_Z, "npc:30002 Trader");
+        // Explicit coords input path: NE corner of Talking Island -> Jackson (~56k u).
+        NpcRoute r = QuestNpcNavigator.planRoute(-35000, 265000, -3600, NPC_X, NPC_Y, NPC_Z, "npc:30002 Trader");
         assertNotNull(r);
         assertTrue(r.label.startsWith("npc:"), "explicit-target label kept, got " + r.label);
 

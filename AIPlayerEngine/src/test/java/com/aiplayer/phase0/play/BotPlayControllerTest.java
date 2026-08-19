@@ -26,8 +26,8 @@ import com.aiplayer.phase0.guide.RaceGuide;
 class BotPlayControllerTest
 {
     private static final int QUEST_ID = 40001;
-    private static final int NPC_X = -14440;
-    private static final int NPC_Y = 121064;
+    private static final int NPC_X = -86733;
+    private static final int NPC_Y = 242918;
 
     /** Active-journal helper as {questId, state} pairs (same form as PacketLogger.getActiveQuestList). */
     private static List<int[]> journal(int... questIdState)
