@@ -976,8 +976,14 @@ public final class FleetPlay
                                             // the server never walks the char toward). Count the abort; once the
                                             // threshold is hit, ACQUIRE is suppressed below so the ZoneRouter.plan
                                             // fallback runs plain far-travel farming instead of re-issuing this route.
-                                            if (activeRoute.label != null && activeRoute.label.startsWith("goal:acquire:"))
+                                            if (activeRoute.label != null
+                                                    && activeRoute.label.startsWith("goal:acquire:")
+                                                    && info.mobs == 0)
                                             {
+                                                // Only a route abandoned with NO hostiles near is truly
+                                                // geo-unreachable (the ocean-hop loop). A combat
+                                                // interruption is NOT unreachable — the bot just needs
+                                                // to get back to the giver; don't arm the cooldown.
                                                 acquireCooldown.recordUnreachableAbort(now);
                                                 if (acquireCooldown.isSuppressed(now))
                                                 {
