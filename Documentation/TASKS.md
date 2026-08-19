@@ -100,15 +100,15 @@
 ### Session 5 — Movement & relocation (solo dead-end — top 50-bot log finding)
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
-| S5-T01 | Fix solo-bot relocation dead-end (far-hop doesn't persist server-side) | H | P0 | TODO |
+| S5-T01 | Fix solo-bot relocation dead-end (far-hop doesn't persist server-side) | H | P0 | IN_PROGRESS (instrumented via T06 hop-success telemetry; live fix next) |
 | S5-T02 | Frozen bot routes toward nearest hostile entity (not just last-XP/mate) | M | P0 | TODO |
-| S5-T03 | Hop persistence: require server-ack before re-issuing (kill 2-timeout churn) | M | P0 | TODO |
+| S5-T03 | Hop persistence: require server-ack before re-issuing (kill 2-timeout churn) | M | P0 | IN_PROGRESS (HopGate gating + T06 telemetry landed) |
 | S5-T04 | Escape-gate: after 3 abandons, short walk to nearest entity instead of 60s hold | M | P1 | TODO |
 | S5-T05 | ZoneRouter walkability heuristic (avoid ocean/void hops) | H | P1 | TODO |
-| S5-T06 | MoveTelemetry: per-bot move success rate on the dashboard | E | P1 | TODO |
+| S5-T06 | MoveTelemetry: per-bot move success rate on the dashboard | E | P1 | DONE-PUSHED 06ae36d5 (hop success-rate telemetry + test) |
 | S5-T07 | Per-race movement min/max radius (small near village) | E | P2 | TODO |
-| S5-T08 | Anti-oscillation (no bouncing between two landmarks) | M | P1 | TODO |
-| S5-T09 | Verify STEP 6 fix for SOLO bots (no-mates case) | M | P0 | TODO |
+| S5-T08 | Anti-oscillation (no bouncing between two landmarks) | M | P1 | DONE-PUSHED 06ae36d5 (same-landmark re-hop -> fresh far point) |
+| S5-T09 | Verify STEP 6 fix for SOLO bots (no-mates case) | M | P0 | IN_PROGRESS (T06 telemetry now makes the freeze visible live) |
 | S5-T10 | Position-sync drift watchdog (local vs server-ack) | M | P1 | TODO |
 
 ### Session 6 — Combat & survival polish
