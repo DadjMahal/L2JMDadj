@@ -466,6 +466,7 @@ public final class FleetPlay
                 info.itemCount = logger.getInventoryItems().size();
                 info.packetsRead = gs.packetsRead;   // S2-T04: refresh packet health each tick
                 info.idleTimeouts = gs.idleTimeouts;
+                info.hopSuccessPct = telemetry.hopSuccessPct(account); // S5-T06
                 info.items = topItems(logger);
                 info.mobs = logger.getHostileEntityCount();
                 info.npcs = logger.getEntityCountTotal();
@@ -505,10 +506,16 @@ public final class FleetPlay
                 // packet-level receipt of the same XP the server persisted to gameserver.characters.
                 if (prevExp >= 0 && info.exp > prevExp)
                 {
-                    System.out.println("[EVIDENCE-H5] " + account + " EXP +" + (info.exp - prevExp)
+                    long gained = info.exp - prevExp;
+                    System.out.println("[EVIDENCE-H5] " + account + " EXP +" + gained
                         + " (now " + info.exp + ", level=" + tickLevel + ")");
                     // S9-T06: count the kill (an EXP receipt == the server granted a kill's XP).
                     info.killCount++;
+                    // TOP-NOTCH AI: feed the real learning chain — rewardKill -> ReinforcementEngine
+                    // -> AdaptiveLearner -> DeepLearning (kills drive what the AI "learns to prefer").
+                    String targetName = (info.targetLabel != null && !info.targetLabel.isEmpty())
+                        ? info.targetLabel : ("mob#" + info.targetObjId);
+                    player.getCombatAI().onKill(targetName, gained);
                     // STEP 6: remember where this bot earned XP (hostiles live there) and clear any
                     // relocation-freeze counter — earning XP proves the char can move/fight here.
                     relocation.recordLastXp(info.x, info.y, info.z);

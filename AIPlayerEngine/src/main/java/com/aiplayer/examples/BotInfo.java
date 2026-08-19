@@ -36,6 +36,8 @@ public final class BotInfo
     /** S2-T04: per-bot packet health (fed from GameServerClient). */
     public volatile long packetsRead;
     public volatile int idleTimeouts;
+    /** S5-T06: % of relocation hops the server acked (100 = healthy, low = the CC/freeze problem). */
+    public volatile int hopSuccessPct = 100;
     public volatile int targetObjId;
     public volatile String targetLabel = "";
     public volatile int targetKind;

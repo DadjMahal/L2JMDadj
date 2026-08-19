@@ -581,7 +581,8 @@ public final class DashboardApi
           .append(",\"race\":\"").append(jsonEscape(b.race)).append('"')
           .append(",\"killCount\":").append(b.killCount)
           .append(",\"packetsRead\":").append(b.packetsRead)
-          .append(",\"idleTimeouts\":").append(b.idleTimeouts);
+          .append(",\"idleTimeouts\":").append(b.idleTimeouts)
+          .append(",\"hopSuccessPct\":").append(b.hopSuccessPct);
         appendRateFields(sb, b);
         sb.append(",\"items\":[");
         int[][] it = b.items;
