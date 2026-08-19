@@ -664,6 +664,15 @@ public final class FleetPlay
                     case ATTACK:
                     case ENGAGE_TARGET:
                     case USE_SKILL:
+                        // FINAL-MILE: while the quest dialog is open, HOLD (don't fight) — a real
+                        // player in a conversation doesn't run off to attack. Keeps the bot standing
+                        // at the giver through the multi-tick click -> html -> bypass -> accept flow.
+                        if (questDialogOpen)
+                        {
+                            info.state = "quest-dialog";
+                            info.thought = "in NPC dialog — holding (no combat while talking)";
+                            break;
+                        }
                         // TIM-001 H5: ATTACK/ENGAGE_TARGET decisions from CombatAI carry no explicit
                         // targetId (engageEnemy returns plain CombatDecision.attack()), so pass the
                         // target the CombatAI actually selected (getSelectedTargetObjId). Otherwise the
