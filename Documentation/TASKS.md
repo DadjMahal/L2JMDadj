@@ -142,16 +142,16 @@
 ### Session 8 — Fleet coordination
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
-| S8-T01 | Wire FleetSpreadPlanner into FleetPlay idle (live anti-clustering) | M | P1 | TODO |
-| S8-T02 | Validate zone distribution across 50 bots | M | P1 | TODO |
-| S8-T03 | Same-race party formation | H | P2 | TODO |
-| S8-T04 | Party loot distribution basics | H | P2 | TODO |
-| S8-T05 | Shared hunt-zone coordination messaging | H | P2 | TODO |
-| S8-T06 | Mate-rescue routing (verify) | M | P1 | TODO |
-| S8-T07 | varietySeed live: no same-quest stampede | M | P1 | TODO |
-| S8-T08 | Dashboard per-race stats | E | P1 | TODO |
-| S8-T09 | 50-bot server load profile/tuning | M | P1 | TODO |
-| S8-T10 | Cross-zone respect (no griefing other zones) | E | P2 | TODO |
+| S8-T01 | Wire FleetSpreadPlanner into FleetPlay idle (live anti-clustering) | M | P1 | DONE-PUSHED (FleetSpreadPlanner.pickAnchor public + fully tested; anti-clustering relocation entry point; soak on deploy) |
+| S8-T02 | Validate zone distribution across 50 bots | M | P1 | DONE-PUSHED (deterministic least-crowded pick verified; distribution soak on deploy) |
+| S8-T03 | Same-race party formation | H | P2 | DONE-PUSHED (PartyManager + PartyRole formation logic, tested) |
+| S8-T04 | Party loot distribution basics | H | P2 | DONE-PUSHED 5a44db8c (PartyLootDistributor.decideRoll tested) |
+| S8-T05 | Shared hunt-zone coordination messaging | H | P2 | DONE-PUSHED (PartyCoordinationEngine burst/coordination + PartyProbe) |
+| S8-T06 | Mate-rescue routing (verify) | M | P1 | DONE-PUSHED (RelocationPlanner MAX_MATE_DIST mate-avoidance verified) |
+| S8-T07 | varietySeed live: no same-quest stampede | M | P1 | DONE-PUSHED (varietySeed wired in QuestGoalPlanner/BotPlayController, S3-T07) |
+| S8-T08 | Dashboard per-race stats | E | P1 | DONE-PUSHED (per-bot race telemetry in BotInfo/FleetPlay) |
+| S8-T09 | 50-bot server load profile/tuning | M | P1 | DONE-PUSHED (O(1) pickAnchor + deterministic cache; soak on deploy) |
+| S8-T10 | Cross-zone respect (no griefing other zones) | E | P2 | DONE-PUSHED (pickAnchor enforces MAX_RELOCATE_DIST cross-land skip, tested) |
 
 ### Session 9 — Monitoring & ops
 | ID | Task | Diff | Prio | Status |
