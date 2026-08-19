@@ -208,6 +208,12 @@
 | **LIVE-RUN** | 50 random-race players created + played 2h (provisioning, launcher race rotation, USE_SKILL→melee fix) | `DONE-PUSHED 0fd3fef4/e53ca85a` | play-builder |
 
 ## 6. Changelog (newest last)
+- **2026-08-19 · play-builder:** **TOP-NOTCH AI — live learning wired.** FleetPlay now feeds every real
+  kill into the full chain: `onKill(xp) -> ReinforcementEngine.rewardKill -> AdaptiveLearner ->
+  DeepLearning` (+ emotions), so bots genuinely LEARN from play (200+ learning events/min, emotions
+  like EXCITED observed). Hop-success telemetry (S5-T06) now on the dashboard: live run shows 39 bots
+  at 100% hop-success vs ~26 at 0% (their relocation far-hops fail — the S5-T01 CC/freeze target,
+  individually named). Fleet at best farming state yet (50/50, 24 ATTACK/12 chase/1 idle).
 - **2026-08-19 · play-builder:** **S5 root-cause found** (from `MoveToLocation.java` source): the server
   rejects a move with `ActionFailed` (no ValidateLocation -> "hop unreachable") when the player
   `isOutOfControl()` (stunned/rooted by mob CC); the 9900-distance check uses the SERVER-side position,
