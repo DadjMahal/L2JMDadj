@@ -234,6 +234,9 @@ public final class FleetPlay
         // STEP 2: per-session quest-dialog driver state (only used when phase0.quest.npcId is set).
         private boolean questDialogOpen = false;
         private String questLastHtml = null;
+        private long lastQuestClickMs = 0;
+        /** S3-T02: after the dialog goes stale, re-click the giver to surface the quest's next step. */
+        private static final long QUEST_RECLICK_MS = 10_000L;
         private final Set<String> questSentLinks = new HashSet<>();
         // ACQUIRE-failure cooldown (per-bot, per-session state; reset() at each runSession start). Stops
         // the "re-plan the same geo-unreachable ACQUIRE giver forever" loop — e.g. Wolf Hunt at Gludio,
@@ -348,6 +351,7 @@ public final class FleetPlay
                 else
                 {
                     wiring.actionOn(giver.objectId, snapshot.x, snapshot.y, snapshot.z);
+                    lastQuestClickMs = System.currentTimeMillis();
                     LOGGER.info("[FleetPlay] " + account + " clicking quest NPC objId=" + giver.objectId);
                 }
                 return;
@@ -357,6 +361,12 @@ public final class FleetPlay
             String html = logger.getLastNpcHtml();
             if (html == null || html.equals(questLastHtml))
             {
+                // S3-T02: stale dialog -> re-click the giver to surface the quest's next step.
+                if (System.currentTimeMillis() - lastQuestClickMs > QUEST_RECLICK_MS)
+                {
+                    questDialogOpen = false;
+                    questLastHtml = null;
+                }
                 return; // no new dialog content yet -> pause for the server's next message
             }
             questLastHtml = html;
@@ -366,6 +376,12 @@ public final class FleetPlay
             String next = QuestDialogDriver.next(links, dialogDef, questSentLinks);
             if (next.isEmpty())
             {
+                // S3-T02: stale dialog -> re-click the giver to surface the quest's next step.
+                if (System.currentTimeMillis() - lastQuestClickMs > QUEST_RECLICK_MS)
+                {
+                    questDialogOpen = false;
+                    questLastHtml = null;
+                }
                 LOGGER.info("[FleetPlay] " + account + " quest dialog: no new validated bypass; pausing");
                 return;
             }
