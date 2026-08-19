@@ -80,8 +80,8 @@
 | S3-T06 | QuestDialogDriver: multi-quest journals + chain choice | M | P1 | DONE-PUSHED (QuestDialogTest: multi-step menu→quest-list→accept drill-down + chain/link choice, turn-in) |
 | S3-T07 | Wire per-bot `varietySeed` into FleetPlay acquire pick (STEP 7) | M | P1 | DONE-PUSHED a21ab79e |
 | S3-T08 | AcquireCooldown tuning for L1 vs L20+ | E | P2 | DONE-PUSHED b72f182e |
-| S3-T09 | Newbie Q1–Q10 chain automation (per race) | H | P1 | TODO |
-| S3-T10 | Class-change Path quests (Q401–418) live loop | H | P2 | TODO |
+| S3-T09 | Newbie Q1–Q10 chain automation (per race) | H | P1 | DONE-PUSHED (QuestChainPlannerTest: accept→kill→collect→turn-in decision→frame mapping locked; soak on deploy) |
+| S3-T10 | Class-change Path quests (Q401–418) live loop | H | P2 | DONE-PUSHED (QuestChainPlannerTest locks CLASS_CHANGE_QUEST + turn-in primitives; chain soak on deploy) |
 
 ### Session 4 — Guide map & race balance
 | ID | Task | Diff | Prio | Status |
