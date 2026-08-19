@@ -1,0 +1,1099 @@
+{
+  "AIPlayer": {
+    "total_refs": 264,
+    "entry_refs": {
+      "FleetPlay": 46,
+      "BotPlayController": 5,
+      "Phase0Wiring": 5,
+      "Phase0Integration": 5,
+      "CombatAI": 5,
+      "AIPlayerEngine": 5,
+      "AIPlayer": 5
+    },
+    "impl_lines": 369,
+    "stub_indicators": 0,
+    "file_size": 21939
+  },
+  "CombatAI": {
+    "total_refs": 153,
+    "entry_refs": {
+      "FleetPlay": 40,
+      "BotPlayController": 16,
+      "Phase0Wiring": 16,
+      "Phase0Integration": 16,
+      "CombatAI": 16,
+      "AIPlayerEngine": 16,
+      "AIPlayer": 16
+    },
+    "impl_lines": 467,
+    "stub_indicators": 3,
+    "file_size": 30870
+  },
+  "CombatDecision": {
+    "total_refs": 104,
+    "entry_refs": {
+      "FleetPlay": 24,
+      "BotPlayController": 4,
+      "Phase0Wiring": 4,
+      "Phase0Integration": 4,
+      "CombatAI": 4,
+      "AIPlayerEngine": 4,
+      "AIPlayer": 4
+    },
+    "impl_lines": 90,
+    "stub_indicators": 0,
+    "file_size": 4084
+  },
+  "AIDecision": {
+    "total_refs": 51,
+    "entry_refs": {},
+    "impl_lines": 34,
+    "stub_indicators": 0,
+    "file_size": 1247
+  },
+  "CombatFramePlanner": {
+    "total_refs": 50,
+    "entry_refs": {
+      "FleetPlay": 17,
+      "BotPlayController": 9,
+      "Phase0Wiring": 9,
+      "Phase0Integration": 9,
+      "CombatAI": 9,
+      "AIPlayerEngine": 9,
+      "AIPlayer": 9
+    },
+    "impl_lines": 73,
+    "stub_indicators": 0,
+    "file_size": 4894
+  },
+  "AIAction": {
+    "total_refs": 43,
+    "entry_refs": {},
+    "impl_lines": 59,
+    "stub_indicators": 0,
+    "file_size": 1580
+  },
+  "AIConfiguration": {
+    "total_refs": 40,
+    "entry_refs": {
+      "FleetPlay": 20
+    },
+    "impl_lines": 92,
+    "stub_indicators": 0,
+    "file_size": 3814
+  },
+  "QuestGoal": {
+    "total_refs": 40,
+    "entry_refs": {
+      "BotPlayController": 5,
+      "Phase0Wiring": 5,
+      "Phase0Integration": 5,
+      "CombatAI": 5,
+      "AIPlayerEngine": 5,
+      "AIPlayer": 5
+    },
+    "impl_lines": 57,
+    "stub_indicators": 0,
+    "file_size": 1937
+  },
+  "QuestState": {
+    "total_refs": 37,
+    "entry_refs": {
+      "BotPlayController": 17,
+      "Phase0Wiring": 17,
+      "Phase0Integration": 17,
+      "CombatAI": 17,
+      "AIPlayerEngine": 17,
+      "AIPlayer": 17
+    },
+    "impl_lines": 50,
+    "stub_indicators": 0,
+    "file_size": 2086
+  },
+  "GameServerClient": {
+    "total_refs": 36,
+    "entry_refs": {
+      "FleetPlay": 20,
+      "BotPlayController": 4,
+      "Phase0Wiring": 4,
+      "Phase0Integration": 4,
+      "CombatAI": 4,
+      "AIPlayerEngine": 4,
+      "AIPlayer": 4
+    },
+    "impl_lines": 283,
+    "stub_indicators": 0,
+    "file_size": 14097
+  },
+  "QuestDecision": {
+    "total_refs": 36,
+    "entry_refs": {
+      "FleetPlay": 2
+    },
+    "impl_lines": 86,
+    "stub_indicators": 0,
+    "file_size": 3971
+  },
+  "MerchantDecision": {
+    "total_refs": 29,
+    "entry_refs": {},
+    "impl_lines": 62,
+    "stub_indicators": 0,
+    "file_size": 2857
+  },
+  "SocialDecision": {
+    "total_refs": 28,
+    "entry_refs": {},
+    "impl_lines": 76,
+    "stub_indicators": 0,
+    "file_size": 3206
+  },
+  "GoalTree": {
+    "total_refs": 28,
+    "entry_refs": {
+      "FleetPlay": 4
+    },
+    "impl_lines": 91,
+    "stub_indicators": 0,
+    "file_size": 5282
+  },
+  "AIBrain": {
+    "total_refs": 22,
+    "entry_refs": {
+      "FleetPlay": 1,
+      "BotPlayController": 16,
+      "Phase0Wiring": 16,
+      "Phase0Integration": 16,
+      "CombatAI": 16,
+      "AIPlayerEngine": 16,
+      "AIPlayer": 16
+    },
+    "impl_lines": 199,
+    "stub_indicators": 0,
+    "file_size": 10507
+  },
+  "LongTermGoalsAI": {
+    "total_refs": 20,
+    "entry_refs": {},
+    "impl_lines": 18,
+    "stub_indicators": 0,
+    "file_size": 968
+  },
+  "SocialAI": {
+    "total_refs": 19,
+    "entry_refs": {},
+    "impl_lines": 159,
+    "stub_indicators": 0,
+    "file_size": 9467
+  },
+  "Phase0Integration": {
+    "total_refs": 18,
+    "entry_refs": {
+      "FleetPlay": 2,
+      "BotPlayController": 1,
+      "Phase0Wiring": 1,
+      "Phase0Integration": 1,
+      "CombatAI": 1,
+      "AIPlayerEngine": 1,
+      "AIPlayer": 1
+    },
+    "impl_lines": 205,
+    "stub_indicators": 1,
+    "file_size": 9257
+  },
+  "ActivityScheduler": {
+    "total_refs": 18,
+    "entry_refs": {
+      "FleetPlay": 3
+    },
+    "impl_lines": 54,
+    "stub_indicators": 0,
+    "file_size": 4439
+  },
+  "PvPSkillRotation": {
+    "total_refs": 16,
+    "entry_refs": {},
+    "impl_lines": 44,
+    "stub_indicators": 0,
+    "file_size": 2625
+  },
+  "AIPlayerManager": {
+    "total_refs": 16,
+    "entry_refs": {
+      "FleetPlay": 2
+    },
+    "impl_lines": 175,
+    "stub_indicators": 0,
+    "file_size": 10317
+  },
+  "Phase0Config": {
+    "total_refs": 14,
+    "entry_refs": {
+      "FleetPlay": 5
+    },
+    "impl_lines": 80,
+    "stub_indicators": 0,
+    "file_size": 4297
+  },
+  "PKDecision": {
+    "total_refs": 14,
+    "entry_refs": {},
+    "impl_lines": 70,
+    "stub_indicators": 0,
+    "file_size": 4042
+  },
+  "ManorAI": {
+    "total_refs": 13,
+    "entry_refs": {},
+    "impl_lines": 38,
+    "stub_indicators": 0,
+    "file_size": 1700
+  },
+  "QuestAI": {
+    "total_refs": 13,
+    "entry_refs": {
+      "FleetPlay": 2
+    },
+    "impl_lines": 179,
+    "stub_indicators": 0,
+    "file_size": 10739
+  },
+  "MerchantAI": {
+    "total_refs": 13,
+    "entry_refs": {},
+    "impl_lines": 113,
+    "stub_indicators": 1,
+    "file_size": 9229
+  },
+  "RangedKiteAI": {
+    "total_refs": 10,
+    "entry_refs": {
+      "FleetPlay": 3
+    },
+    "impl_lines": 12,
+    "stub_indicators": 0,
+    "file_size": 627
+  },
+  "CombatState": {
+    "total_refs": 10,
+    "entry_refs": {},
+    "impl_lines": 129,
+    "stub_indicators": 0,
+    "file_size": 5962
+  },
+  "EventCalendarAI": {
+    "total_refs": 9,
+    "entry_refs": {},
+    "impl_lines": 22,
+    "stub_indicators": 0,
+    "file_size": 1000
+  },
+  "CombatConfig": {
+    "total_refs": 9,
+    "entry_refs": {},
+    "impl_lines": 133,
+    "stub_indicators": 0,
+    "file_size": 5581
+  },
+  "LiveFeedbackBridge": {
+    "total_refs": 8,
+    "entry_refs": {
+      "FleetPlay": 3
+    },
+    "impl_lines": 51,
+    "stub_indicators": 0,
+    "file_size": 3991
+  },
+  "MovementPatternAI": {
+    "total_refs": 8,
+    "entry_refs": {},
+    "impl_lines": 22,
+    "stub_indicators": 0,
+    "file_size": 1030
+  },
+  "ResourceHoardingAI": {
+    "total_refs": 8,
+    "entry_refs": {},
+    "impl_lines": 17,
+    "stub_indicators": 0,
+    "file_size": 755
+  },
+  "HeroTitleAI": {
+    "total_refs": 8,
+    "entry_refs": {},
+    "impl_lines": 22,
+    "stub_indicators": 0,
+    "file_size": 989
+  },
+  "MerchantNPC": {
+    "total_refs": 8,
+    "entry_refs": {},
+    "impl_lines": 37,
+    "stub_indicators": 0,
+    "file_size": 1418
+  },
+  "AIPlayerState": {
+    "total_refs": 7,
+    "entry_refs": {
+      "FleetPlay": 1
+    },
+    "impl_lines": 23,
+    "stub_indicators": 0,
+    "file_size": 660
+  },
+  "BehaviorSeeder": {
+    "total_refs": 7,
+    "entry_refs": {},
+    "impl_lines": 26,
+    "stub_indicators": 0,
+    "file_size": 1332
+  },
+  "AchievementAI": {
+    "total_refs": 7,
+    "entry_refs": {},
+    "impl_lines": 25,
+    "stub_indicators": 0,
+    "file_size": 1202
+  },
+  "QuestFramePlanner": {
+    "total_refs": 7,
+    "entry_refs": {
+      "FleetPlay": 4
+    },
+    "impl_lines": 47,
+    "stub_indicators": 0,
+    "file_size": 2701
+  },
+  "AIPlayerSimple": {
+    "total_refs": 6,
+    "entry_refs": {
+      "FleetPlay": 6
+    },
+    "impl_lines": 75,
+    "stub_indicators": 0,
+    "file_size": 3562
+  },
+  "AntiGriefing": {
+    "total_refs": 5,
+    "entry_refs": {},
+    "impl_lines": 8,
+    "stub_indicators": 0,
+    "file_size": 468
+  },
+  "SkillAllocator": {
+    "total_refs": 5,
+    "entry_refs": {},
+    "impl_lines": 20,
+    "stub_indicators": 0,
+    "file_size": 922
+  },
+  "AggroManager": {
+    "total_refs": 5,
+    "entry_refs": {},
+    "impl_lines": 162,
+    "stub_indicators": 1,
+    "file_size": 11325
+  },
+  "AIPlayerConnection": {
+    "total_refs": 4,
+    "entry_refs": {},
+    "impl_lines": 103,
+    "stub_indicators": 0,
+    "file_size": 5831
+  },
+  "AIPlayerReal": {
+    "total_refs": 4,
+    "entry_refs": {
+      "FleetPlay": 4
+    },
+    "impl_lines": 198,
+    "stub_indicators": 0,
+    "file_size": 8544
+  },
+  "HumanReactionSimulator": {
+    "total_refs": 3,
+    "entry_refs": {},
+    "impl_lines": 23,
+    "stub_indicators": 0,
+    "file_size": 1065
+  },
+  "PartyState": {
+    "total_refs": 3,
+    "entry_refs": {},
+    "impl_lines": 41,
+    "stub_indicators": 1,
+    "file_size": 1422
+  },
+  "AIModuleLoader": {
+    "total_refs": 3,
+    "entry_refs": {},
+    "impl_lines": 23,
+    "stub_indicators": 0,
+    "file_size": 1438
+  },
+  "AIPlayerEngine": {
+    "total_refs": 3,
+    "entry_refs": {
+      "BotPlayController": 1,
+      "Phase0Wiring": 1,
+      "Phase0Integration": 1,
+      "CombatAI": 1,
+      "AIPlayerEngine": 1,
+      "AIPlayer": 1
+    },
+    "impl_lines": 86,
+    "stub_indicators": 2,
+    "file_size": 4816
+  },
+  "PersistenceManager": {
+    "total_refs": 3,
+    "entry_refs": {},
+    "impl_lines": 23,
+    "stub_indicators": 0,
+    "file_size": 1417
+  },
+  "AIActionQueue": {
+    "total_refs": 3,
+    "entry_refs": {},
+    "impl_lines": 34,
+    "stub_indicators": 0,
+    "file_size": 1517
+  },
+  "ClanState": {
+    "total_refs": 3,
+    "entry_refs": {
+      "BotPlayController": 1,
+      "Phase0Wiring": 1,
+      "Phase0Integration": 1,
+      "CombatAI": 1,
+      "AIPlayerEngine": 1,
+      "AIPlayer": 1
+    },
+    "impl_lines": 45,
+    "stub_indicators": 0,
+    "file_size": 1541
+  },
+  "QuestConfig": {
+    "total_refs": 2,
+    "entry_refs": {},
+    "impl_lines": 83,
+    "stub_indicators": 0,
+    "file_size": 3369
+  },
+  "SocialConfig": {
+    "total_refs": 2,
+    "entry_refs": {},
+    "impl_lines": 111,
+    "stub_indicators": 0,
+    "file_size": 4477
+  },
+  "MerchantConfig": {
+    "total_refs": 2,
+    "entry_refs": {},
+    "impl_lines": 97,
+    "stub_indicators": 0,
+    "file_size": 3968
+  },
+  "SeasonalScheduler": {
+    "total_refs": 1,
+    "entry_refs": {},
+    "impl_lines": 23,
+    "stub_indicators": 0,
+    "file_size": 1178
+  },
+  "CastleStrategy": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 23,
+    "stub_indicators": 0,
+    "file_size": 1300
+  },
+  "ClanMateAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 19,
+    "stub_indicators": 0,
+    "file_size": 846
+  },
+  "PvPVendettaAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 13,
+    "stub_indicators": 0,
+    "file_size": 660
+  },
+  "VendettaTracker": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 11,
+    "stub_indicators": 0,
+    "file_size": 642
+  },
+  "BehavioralSimulator": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 27,
+    "stub_indicators": 0,
+    "file_size": 1349
+  },
+  "ZoneBuffManager": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 11,
+    "stub_indicators": 0,
+    "file_size": 593
+  },
+  "CastleManagement": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 29,
+    "stub_indicators": 0,
+    "file_size": 1600
+  },
+  "RaidBossAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 34,
+    "stub_indicators": 0,
+    "file_size": 2055
+  },
+  "TerritoryNPCDefense": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 16,
+    "stub_indicators": 0,
+    "file_size": 740
+  },
+  "AIPlayerSpawnController": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 54,
+    "stub_indicators": 0,
+    "file_size": 2984
+  },
+  "SafeZoneManager": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 70,
+    "stub_indicators": 0,
+    "file_size": 3873
+  },
+  "ThreadMonitor": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 18,
+    "stub_indicators": 0,
+    "file_size": 966
+  },
+  "CommunityChatAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 19,
+    "stub_indicators": 0,
+    "file_size": 1002
+  },
+  "AttributeOptimizer": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 21,
+    "stub_indicators": 0,
+    "file_size": 1074
+  },
+  "SepulchersAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 6,
+    "stub_indicators": 0,
+    "file_size": 379
+  },
+  "HealerSacrificeAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 11,
+    "stub_indicators": 0,
+    "file_size": 596
+  },
+  "DungeonPathfinder": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 7,
+    "stub_indicators": 0,
+    "file_size": 413
+  },
+  "ClassDecisionTree": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 25,
+    "stub_indicators": 0,
+    "file_size": 1261
+  },
+  "ContentUnlocker": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 37,
+    "stub_indicators": 0,
+    "file_size": 1901
+  },
+  "DuelAnalyzer": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 21,
+    "stub_indicators": 0,
+    "file_size": 984
+  },
+  "OlympiadAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 12,
+    "stub_indicators": 0,
+    "file_size": 677
+  },
+  "SiegeExitManager": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 9,
+    "stub_indicators": 0,
+    "file_size": 430
+  },
+  "IdleEmoteAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 17,
+    "stub_indicators": 0,
+    "file_size": 813
+  },
+  "AcademyAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 21,
+    "stub_indicators": 0,
+    "file_size": 1189
+  },
+  "AntiStuckDetection": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 7,
+    "stub_indicators": 0,
+    "file_size": 607
+  },
+  "BossTactics": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 7,
+    "stub_indicators": 0,
+    "file_size": 459
+  },
+  "RiftAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 8,
+    "stub_indicators": 0,
+    "file_size": 670
+  },
+  "SkillLearningAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 28,
+    "stub_indicators": 0,
+    "file_size": 1250
+  },
+  "TaxCalculator": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 16,
+    "stub_indicators": 0,
+    "file_size": 800
+  },
+  "SiegeLoreAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 23,
+    "stub_indicators": 0,
+    "file_size": 1167
+  },
+  "SiegeWeaponAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 30,
+    "stub_indicators": 0,
+    "file_size": 1375
+  },
+  "EventAwareAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 28,
+    "stub_indicators": 0,
+    "file_size": 1545
+  },
+  "StateMonitor": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 15,
+    "stub_indicators": 0,
+    "file_size": 890
+  },
+  "BuddySystemAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 20,
+    "stub_indicators": 0,
+    "file_size": 967
+  },
+  "SiegePositioning": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 10,
+    "stub_indicators": 0,
+    "file_size": 637
+  },
+  "MentorSystemAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 13,
+    "stub_indicators": 0,
+    "file_size": 709
+  },
+  "CrossServerAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 23,
+    "stub_indicators": 0,
+    "file_size": 1053
+  },
+  "AIDiagnostics": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 13,
+    "stub_indicators": 0,
+    "file_size": 681
+  },
+  "FishingTournamentAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 20,
+    "stub_indicators": 0,
+    "file_size": 1046
+  },
+  "DifficultyScaler": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 19,
+    "stub_indicators": 0,
+    "file_size": 860
+  },
+  "GuildResponseAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 14,
+    "stub_indicators": 0,
+    "file_size": 670
+  },
+  "NoblesseAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 19,
+    "stub_indicators": 0,
+    "file_size": 1034
+  },
+  "PvPTargetPrioritizer": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 37,
+    "stub_indicators": 0,
+    "file_size": 1550
+  },
+  "SubclassAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 23,
+    "stub_indicators": 0,
+    "file_size": 875
+  },
+  "SiegeRegistrationAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 55,
+    "stub_indicators": 0,
+    "file_size": 2934
+  },
+  "HeroTitleOptimizer": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 10,
+    "stub_indicators": 0,
+    "file_size": 528
+  },
+  "ClassQuestAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 36,
+    "stub_indicators": 0,
+    "file_size": 1942
+  },
+  "SoloGroupAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 14,
+    "stub_indicators": 0,
+    "file_size": 685
+  },
+  "PostSiegeCleanup": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 13,
+    "stub_indicators": 0,
+    "file_size": 579
+  },
+  "KarmaManager": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 9,
+    "stub_indicators": 0,
+    "file_size": 531
+  },
+  "ClanHallSiegeAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 27,
+    "stub_indicators": 0,
+    "file_size": 1302
+  },
+  "InstanceManager": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 5,
+    "stub_indicators": 0,
+    "file_size": 398
+  },
+  "SiegeTiming": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 16,
+    "stub_indicators": 0,
+    "file_size": 874
+  },
+  "ExpansionHooksAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 14,
+    "stub_indicators": 0,
+    "file_size": 732
+  },
+  "CastleTaxPlanner": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 11,
+    "stub_indicators": 0,
+    "file_size": 560
+  },
+  "LevelCappedAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 18,
+    "stub_indicators": 0,
+    "file_size": 944
+  },
+  "SiegeBuffCoordinator": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 32,
+    "stub_indicators": 0,
+    "file_size": 1545
+  },
+  "ArmorProficiency": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 18,
+    "stub_indicators": 0,
+    "file_size": 1011
+  },
+  "ControlRoomAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 29,
+    "stub_indicators": 0,
+    "file_size": 1558
+  },
+  "LineOfSight": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 112,
+    "stub_indicators": 0,
+    "file_size": 7131
+  },
+  "WhisperResponseAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 16,
+    "stub_indicators": 0,
+    "file_size": 1043
+  },
+  "AuctionAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 27,
+    "stub_indicators": 0,
+    "file_size": 1214
+  },
+  "ColiseumAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 5,
+    "stub_indicators": 0,
+    "file_size": 346
+  },
+  "PluginManager": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 14,
+    "stub_indicators": 0,
+    "file_size": 662
+  },
+  "HumanBehaviorSimulator": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 19,
+    "stub_indicators": 0,
+    "file_size": 940
+  },
+  "MovementOptimizer": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 5,
+    "stub_indicators": 0,
+    "file_size": 463
+  },
+  "SeedRegistry": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 26,
+    "stub_indicators": 0,
+    "file_size": 1263
+  },
+  "VendettaTrackingAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 21,
+    "stub_indicators": 0,
+    "file_size": 1051
+  },
+  "VillageMasterAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 27,
+    "stub_indicators": 0,
+    "file_size": 1404
+  },
+  "ExternalAPI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 18,
+    "stub_indicators": 0,
+    "file_size": 828
+  },
+  "ClanHallRegister": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 16,
+    "stub_indicators": 0,
+    "file_size": 716
+  },
+  "NewbieGuideAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 24,
+    "stub_indicators": 0,
+    "file_size": 1258
+  },
+  "ClanHallDefense": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 7,
+    "stub_indicators": 0,
+    "file_size": 363
+  },
+  "AIProfiler": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 14,
+    "stub_indicators": 0,
+    "file_size": 717
+  },
+  "TradePersonalityAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 22,
+    "stub_indicators": 0,
+    "file_size": 1230
+  },
+  "EmergencyEscapeAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 27,
+    "stub_indicators": 0,
+    "file_size": 1223
+  },
+  "EscortAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 5,
+    "stub_indicators": 0,
+    "file_size": 351
+  },
+  "ManorManager": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 14,
+    "stub_indicators": 0,
+    "file_size": 893
+  },
+  "KamaelAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 15,
+    "stub_indicators": 0,
+    "file_size": 855
+  },
+  "VitalityManager": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 19,
+    "stub_indicators": 0,
+    "file_size": 979
+  },
+  "HuntingPreferenceAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 17,
+    "stub_indicators": 0,
+    "file_size": 1075
+  },
+  "LootDistributor": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 9,
+    "stub_indicators": 0,
+    "file_size": 358
+  },
+  "AIPlayerActionExecutor": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 73,
+    "stub_indicators": 0,
+    "file_size": 4352
+  },
+  "DeathPenaltyAI": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 16,
+    "stub_indicators": 0,
+    "file_size": 929
+  },
+  "HuntingRotation": {
+    "total_refs": 0,
+    "entry_refs": {},
+    "impl_lines": 8,
+    "stub_indicators": 0,
+    "file_size": 375
+  }
+}

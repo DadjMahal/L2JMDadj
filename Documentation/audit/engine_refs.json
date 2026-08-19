@@ -1,0 +1,1039 @@
+{
+  "QuestConfig": {
+    "caller_count": 2,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:    private final QuestConfig config;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:        this.config = QuestConfig.getInstance();"
+    ]
+  },
+  "CastleStrategy": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIPlayerState": {
+    "caller_count": 6,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private AIPlayerState state;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:        this.state = AIPlayerState.OFFLINE;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:                this.state = AIPlayerState.IN_GAME;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:        this.state = AIPlayerState.OFFLINE;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public AIPlayerState getState() { return state; }",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:            this.state = AIPlayerState.valueOf(stateStr);"
+    ]
+  },
+  "LiveFeedbackBridge": {
+    "caller_count": 6,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/LiveFeedbackBridgeTest.java: * Stream G (G-Live) tests \u2014 LiveFeedbackBridge transition detection.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/LiveFeedbackBridgeTest.java:        LiveFeedbackBridge bridge = new LiveFeedbackBridge(p, log);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/LiveFeedbackBridgeTest.java:        LiveFeedbackBridge bridge = new LiveFeedbackBridge(p, log);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/LiveFeedbackBridgeTest.java:        LiveFeedbackBridge bridge = new LiveFeedbackBridge(p, log);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/GoalDrivenLoop.java: *     -&gt; LiveFeedbackBridge (fires D/E/F onKill/onLevelUp/onDeath/respawn on real packet deltas)",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/GoalDrivenLoop.java:        LiveFeedbackBridge bridge = new LiveFeedbackBridge(player, gs.getPacketLogger());"
+    ]
+  },
+  "ManorAI": {
+    "caller_count": 13,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SeasonalScheduler.java:    public static Map<ManorAI.ManorSeason, Integer> getSeasonModifier() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SeasonalScheduler.java:        Map<ManorAI.ManorSeason, Integer> mods = new HashMap<>();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SeasonalScheduler.java:        mods.put(ManorAI.ManorSeason.SPRING, 120);  // Best growth",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SeasonalScheduler.java:        mods.put(ManorAI.ManorSeason.SUMMER, 100);  // Normal",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SeasonalScheduler.java:        mods.put(ManorAI.ManorSeason.AUTUMN, 150);  // Harvest bonus",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SeasonalScheduler.java:        mods.put(ManorAI.ManorSeason.WINTER, 80);   // Slow growth",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SeasonalScheduler.java:    public static int calculateAdjustedProduction(int base, ManorAI.ManorSeason season) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SeasonalScheduler.java:    public static String getOptimalPlantingTime(ManorAI.ManorSeason season) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/ManorManager.java:    private final Map<Integer, ManorAI.PlantingPlan> plans = new HashMap<>();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/ManorManager.java:    public void setPlantingPlan(int castleId, ManorAI.PlantingPlan plan) {"
+    ]
+  },
+  "QuestAI": {
+    "caller_count": 13,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        p.getQuestAI().onQuestCompleted(\"Q00101_SwordOfSolidarity\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/QuestFlowLoop.java:        player.getQuestAI().setPacketLogger(pl);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/QuestLoop.java: * Wires: Login -> EnterWorld -> setSelfObjectId -> QuestAI.makeDecision() -> QuestFramePlanner.plan()",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/LiveFeedbackBridge.java: * firing the corresponding {@link CombatAI} / {@link QuestAI} hooks:",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java: * Orchestrates all AI modules: CombatAI, QuestAI, MerchantAI, SocialAI",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:    private QuestAI questAI;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:        this.questAI = new QuestAI(aiPlayer);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:        QuestDecision decision = getQuestAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:    public QuestAI getQuestAI() { return questAI; }",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final QuestAI questAI;"
+    ]
+  },
+  "ClanMateAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "MerchantDecision": {
+    "caller_count": 29,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:        MerchantDecision d = m.makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:        assertTrue(d.getAction() == MerchantDecision.Action.SELL_ITEM",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:                        || d.getAction() == MerchantDecision.Action.EMERGENCY_SELL",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:                        || d.getAction() == MerchantDecision.Action.INTERACT_MERCHANT",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:                        || d.getAction() == MerchantDecision.Action.FIND_MERCHANT,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:        MerchantDecision d = m.makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:        assertNotEquals(MerchantDecision.Action.IDLE, d.getAction(),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:        assertTrue(d.getAction() == MerchantDecision.Action.BUY_ITEM",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:                        || d.getAction() == MerchantDecision.Action.INTERACT_MERCHANT",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:                        || d.getAction() == MerchantDecision.Action.FIND_MERCHANT,"
+    ]
+  },
+  "AIBrain": {
+    "caller_count": 22,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/Phase0Driver.java: * CombatAI/AIPlayer/AIBrain directly.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/Phase0Config.java: * CombatAI / AIPlayer / AIBrain behavior is byte-for-byte unchanged unless the",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final AIBrain brain;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:        this.brain = new AIBrain(this);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public AIBrain getBrain() { return brain; }",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/phase0/brain/Phase0Brain.java: * Phase 0 Brain \u2014 replaces the over-engineered AIBrain for bootstrap.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/phase0/farm/FarmZoneScorer.java: * Integration: AIBrain calls calculateScores() every 30s.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/phase0/farm/FarmZoneScorer.java:     * Call every 30s from AIBrain.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/phase0/farm/OptimalSpotSelector.java: * a zone. AIBrain calls evaluateCurrentSpot() every 10s to decide",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/phase0/farm/ZoneDensityTracker.java: * Integration: AIBrain polls every 5s. ZoneRecommender uses"
+    ]
+  },
+  "HumanReactionSimulator": {
+    "caller_count": 3,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java: * Stream G (G-Behavior): proves HumanReactionSimulator / BehaviorSeeder / MovementPatternAI /",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final HumanReactionSimulator humanReaction = new HumanReactionSimulator();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public HumanReactionSimulator getHumanReaction() { return humanReaction; }"
+    ]
+  },
+  "PvPVendettaAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "VendettaTracker": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "RangedKiteAI": {
+    "caller_count": 10,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java: * the live path. Before G, RangedKiteAI / PvPSkillRotation / AntiGriefing / AggroManager /",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java:        // Direct helper call still resolves sensibly (RangedKiteAI stays in package).",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java:        assertTrue(RangedKiteAI.shouldKite(20, 500, 400));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java:        assertFalse(RangedKiteAI.shouldKite(90, 100, 400));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/GoalDrivenLoop.java: *       -&gt; RangedKiteAI.applyKiteBehavior() may override with a FLEE kite decision",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/GoalDrivenLoop.java:            // G-Combat: RangedKiteAI may override with a FLEE kite decision when low HP + far.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/GoalDrivenLoop.java:                System.out.println(\"[GoalLoop] KITING \u2014 low HP + beyond safe range (RangedKiteAI)\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:     * RangedKiteAI: should this bot kite instead of trading damage, given current HP% and the",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        return RangedKiteAI.shouldKite(getCurrentHPPercentage(), (int) dist,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    /** RangedKiteAI: if kiting is warranted, emit a flee decision (else null to keep kiting). */"
+    ]
+  },
+  "BehavioralSimulator": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ZoneBuffManager": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "EventCalendarAI": {
+    "caller_count": 9,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java: * Stream G (G-Content): proves EventCalendarAI / AchievementAI / HeroTitleAI are wired into",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertNotNull(p.getEventCalendarAI());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        EventCalendarAI.CalendarEvent top = p.getEventCalendarAI().getHighestPriorityEvent(1);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertTrue(EventCalendarAI.shouldParticipate(",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:            new EventCalendarAI.CalendarEvent(\"X\", 3, 5), 3));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertFalse(EventCalendarAI.shouldParticipate(",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:            new EventCalendarAI.CalendarEvent(\"X\", 3, 5), 4));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final EventCalendarAI eventCalendarAI = new EventCalendarAI();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public EventCalendarAI getEventCalendarAI() { return eventCalendarAI; }"
+    ]
+  },
+  "CastleManagement": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AntiGriefing": {
+    "caller_count": 5,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java: * the live path. Before G, RangedKiteAI / PvPSkillRotation / AntiGriefing / AggroManager /",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java:        AntiGriefing ag = p.getCombatAI().getAntiGriefing();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    private final AntiGriefing antiGriefing = new AntiGriefing();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    /** AntiGriefing: whether this bot may escalate a PvP engagement given its grief counter. */",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    public AntiGriefing getAntiGriefing() { return antiGriefing; }"
+    ]
+  },
+  "RaidBossAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "TerritoryNPCDefense": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "PvPSkillRotation": {
+    "caller_count": 16,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:    public void testPvPSkillRotation() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        int burstSkill = PvPSkillRotation.getHighestBurstSkill();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        int highSkill = PvPSkillRotation.getHighSkill();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        int defensiveSkill = PvPSkillRotation.getDefensiveSkill();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        int skillLowMP = PvPSkillRotation.getSkillForClass(\"Warrior\", 5);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        int skillMedMP = PvPSkillRotation.getSkillForClass(\"Warrior\", 50);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        int skillHighMP = PvPSkillRotation.getSkillForClass(\"Warrior\", 75);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertTrue(PvPSkillRotation.isSkillAvailable(0, 5000),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertFalse(PvPSkillRotation.isSkillAvailable(twoSecondsAgo, 5000),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java: * the live path. Before G, RangedKiteAI / PvPSkillRotation / AntiGriefing / AggroManager /"
+    ]
+  },
+  "AIPlayerSpawnController": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "PartyState": {
+    "caller_count": 3,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SocialAI.java:    private PartyState partyState;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SocialAI.java:        this.partyState = new PartyState();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SocialAI.java:    public PartyState getPartyState() { return partyState; }"
+    ]
+  },
+  "SafeZoneManager": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ThreadMonitor": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "QuestState": {
+    "caller_count": 37,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:    private QuestState currentQuestState;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:        this.currentQuestState = new QuestState();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:            + currentQuestState.getQuestId() + \" cond=\" + currentQuestState.getCond());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:                LOGGER.info(\"[QUEST-LOG] [\" + aiPlayer.getName() + \"] QUEST_STEP: COLLECT_ITEMS questId=\" + currentQuestState.getQuestId());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:                LOGGER.info(\"[QUEST-LOG] [\" + aiPlayer.getName() + \"] QUEST_STEP: KILL_MONSTERS questId=\" + currentQuestState.getQuestId());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:                LOGGER.info(\"[QUEST-LOG] [\" + aiPlayer.getName() + \"] QUEST_STEP: TALK_TO_NPC questId=\" + currentQuestState.getQuestId());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:                LOGGER.info(\"[QUEST-LOG] [\" + aiPlayer.getName() + \"] QUEST_STEP: CONDITION_CHECK questId=\" + currentQuestState.getQuestId());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:                LOGGER.info(\"[QUEST-LOG] [\" + aiPlayer.getName() + \"] QUEST_STEP: TURN_IN questId=\" + currentQuestState.getQuestId());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:        boolean locallyActive = currentQuestState.isActive();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:        return currentQuestState.canAcceptNew();"
+    ]
+  },
+  "CommunityChatAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIConfiguration": {
+    "caller_count": 38,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/Phase0IntegrationTest.java:        AIConfiguration cfg = AIConfiguration.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAIPhase0Test.java:        AIConfiguration.getInstance().setProperty(\"phase0.enabled\", \"false\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAIPhase0Test.java:        AIConfiguration.getInstance().setProperty(\"phase0.enabled\", \"false\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAIPhase0Test.java:        AIConfiguration.getInstance().setProperty(\"phase0.enabled\", \"true\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/movement/Phase0MovementConfigTest.java:        AIConfiguration cfg = AIConfiguration.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/movement/Phase0MovementConfigTest.java:        AIConfiguration cfg = AIConfiguration.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/movement/Phase0MovementConfigTest.java:        AIConfiguration cfg = AIConfiguration.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FleetPlay.java:        return AIConfiguration.getInstance().getProperty(\"ai.account.password\", \"ai123pass\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FleetPlay.java:    // S1-T08: live-loop tuning knobs read from AIConfiguration (defaults = the proven live values)",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FleetPlay.java:    private static final long TICK_MS = AIConfiguration.getInstance().getLongProperty(\"bot.tickMs\", 300);"
+    ]
+  },
+  "AttributeOptimizer": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SepulchersAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SeasonalScheduler": {
+    "caller_count": 1,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/ManorManager.java:        return SeasonalScheduler.calculateAdjustedProduction(plan.totalProduction, season);"
+    ]
+  },
+  "HealerSacrificeAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "DungeonPathfinder": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ClassDecisionTree": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ContentUnlocker": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "BehaviorSeeder": {
+    "caller_count": 7,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java: * Stream G (G-Behavior): proves HumanReactionSimulator / BehaviorSeeder / MovementPatternAI /",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        assertNotNull(p.getBehaviorSeeder());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        BehaviorSeeder.BehaviorStyle s1 = p1.getBehaviorSeeder().seedUniqueBehavior(p1.getName());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        BehaviorSeeder.BehaviorStyle s2 = p2.getBehaviorSeeder().seedUniqueBehavior(p2.getName());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        assertNotNull(p1.getBehaviorSeeder().getDefaults());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final BehaviorSeeder behaviorSeeder = new BehaviorSeeder();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public BehaviorSeeder getBehaviorSeeder() { return behaviorSeeder; }"
+    ]
+  },
+  "DuelAnalyzer": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "OlympiadAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SiegeExitManager": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIModuleLoader": {
+    "caller_count": 3,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:    private final AIModuleLoader moduleLoader;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:        this.moduleLoader = new AIModuleLoader();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerEngine.java:        AIModuleLoader moduleLoader = new AIModuleLoader();"
+    ]
+  },
+  "IdleEmoteAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AcademyAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AntiStuckDetection": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "BossTactics": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "RiftAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIPlayerEngine": {
+    "caller_count": 3,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/protocol/DatapackNames.java: * the engine runs from {@code AIPlayerEngine/}). It is a separate small class so it can be unit",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/protocol/LoginCrypt.java: * (Blowfish/ECB/NoPadding, RSA/ECB/NoPadding) so the AIPlayerEngine can speak the",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/phase0/party/PartyManager.java:        // state sync would need a real reason (multiple AIPlayerEngine"
+    ]
+  },
+  "SkillLearningAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "TaxCalculator": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIDecision": {
+    "caller_count": 51,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:    public AIDecision makeDecision() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:            AIDecision emergency = handleEmergency();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                AIDecision combat = handleCombat();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                AIDecision quest = handleQuest();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                AIDecision trade = handleMerchant();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                AIDecision social = handleSocial();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:            return new AIDecision(false);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:    private AIDecision handleEmergency() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:            return new AIDecision(true, AIAction.ActionType.USE_ITEM, \"HEAL_POTION\", 1);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:        return new AIDecision(false);"
+    ]
+  },
+  "SiegeLoreAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SiegeWeaponAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "EventAwareAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "StateMonitor": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SocialAI": {
+    "caller_count": 19,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java: * <p>Proves the social wiring is genuine: SocialAI makes DETERMINISTIC personality/emotion-driven",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        // Attach a shared logger so SocialAI sees real nearby entities.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        p.getSocialAI().setPacketLogger(logger);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        SocialDecision d = p.getSocialAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        p.getSocialAI().setPacketLogger(logger);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        SocialDecision d = p.getSocialAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        p.getSocialAI().onPartyJoined(\"party-xyz\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        assertTrue(p.getSocialAI().isInParty(), \"onPartyJoined must set in-party state\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        SocialDecision d = p.getSocialAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        SocialDecision d = p.getSocialAI().makeDecision();"
+    ]
+  },
+  "CombatState": {
+    "caller_count": 10,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:    public void testCombatStateTransitions() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        CombatState state = new CombatState();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertTrue(ai.getCombatState().isInCombat(), \"engaged target must be in combat\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertFalse(ai.getCombatState().isInCombat(), \"abandoned target must exit combat\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertTrue(ai.getCombatState().isInCombat(), \"progressing fight stays in combat\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/LiveFeedbackBridgeTest.java:        int killsBefore = p.getCombatAI().getCombatState().getKillCount();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/LiveFeedbackBridgeTest.java:        assertEquals(killsBefore + 1, p.getCombatAI().getCombatState().getKillCount(),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    private CombatState combatState;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        this.combatState = new CombatState();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    public CombatState getCombatState() {"
+    ]
+  },
+  "BuddySystemAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SiegePositioning": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "QuestGoal": {
+    "caller_count": 38,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/guide/RaceGuideTest.java:    public void nextQuestGoalWalksTheWholeChain()",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/guide/RaceGuideTest.java:        Optional<QuestNode> g = RaceGuide.nextQuestGoal(PlayerRace.HUMAN, 0, 1, setOf());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/guide/RaceGuideTest.java:        g = RaceGuide.nextQuestGoal(PlayerRace.HUMAN, 0, 10, setOf(999, 1));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/guide/RaceGuideTest.java:        g = RaceGuide.nextQuestGoal(PlayerRace.HUMAN, 0, 25, setOf(999, 1, 6));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/guide/RaceGuideTest.java:        g = RaceGuide.nextQuestGoal(PlayerRace.HUMAN, 1, 40, setOf(999, 1, 6, 401));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/guide/RaceGuideTest.java:        g = RaceGuide.nextQuestGoal(PlayerRace.HUMAN, 2, 40, setOf(999, 1, 6, 401, 211));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/play/QuestGoalPlannerTest.java: * QuestGoalPlanner (STEP 1) tests \u2014 the pure planner must turn the real quest journal",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/play/QuestGoalPlannerTest.java:        GoalDecision d = QuestGoalPlanner.decide(10, journal(QUEST_ID, 1), 0, 0, 0, 0);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/play/QuestGoalPlannerTest.java:        GoalDecision d = QuestGoalPlanner.decide(10, journal(QUEST_ID, 3), 0, 0, 0, 2);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/play/QuestGoalPlannerTest.java:        GoalDecision d = QuestGoalPlanner.decide(10, journal(QUEST_ID, 2), 0, 0, 0, 1);"
+    ]
+  },
+  "LongTermGoalsAI": {
+    "caller_count": 20,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        int goalProgressBefore = p.getLongTermGoals().getGoalProgress(LongTermGoalsAI.Goal.MAX_LEVEL);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        assertEquals(goalProgressBefore + 1, p.getLongTermGoals().getGoalProgress(LongTermGoalsAI.Goal.MAX_LEVEL),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        LongTermGoalsAI.Goal g = p.getLongTermGoals().getPrimaryGoal(1, 0, false);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        assertEquals(LongTermGoalsAI.Goal.MAX_LEVEL, g,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        LongTermGoalsAI.Goal high = p.getLongTermGoals().getPrimaryGoal(81, 0, false);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        assertEquals(LongTermGoalsAI.Goal.ACHIEVEMENT_RAID, high,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/LiveFeedbackBridgeTest.java:        int goalBefore = p.getLongTermGoals().getGoalProgress(LongTermGoalsAI.Goal.MAX_LEVEL);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/LiveFeedbackBridgeTest.java:        assertEquals(goalBefore + 1, p.getLongTermGoals().getGoalProgress(LongTermGoalsAI.Goal.MAX_LEVEL),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertEquals(1, p.getLongTermGoals().getGoalProgress(LongTermGoalsAI.Goal.ACHIEVEMENT_RAID));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java:        p.getLongTermGoals().advanceGoal(LongTermGoalsAI.Goal.MAX_LEVEL, 3);"
+    ]
+  },
+  "MentorSystemAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "CrossServerAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIDiagnostics": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "FishingTournamentAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "DifficultyScaler": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "GuildResponseAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "NoblesseAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIPlayerManager": {
+    "caller_count": 14,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        AIPlayerManager mgr = AIPlayerManager.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/Phase0Driver.java: * demonstrates the correct wiring pattern. AIPlayerManager already handles",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerSpawnController.java:    private final AIPlayerManager manager;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerSpawnController.java:        this.manager = AIPlayerManager.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerEngine.java:    private final AIPlayerManager playerManager;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerEngine.java:        this.playerManager = AIPlayerManager.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerEngine.java:            LOGGER.info(\"Connected AI Players: \" + AIPlayerManager.getInstance().getAIPlayerCount());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerEngine.java:            LOGGER.info(\"  AIPlayerManager.getInstance().spawnAIPlayer(name, accountId, classId, race, charId)\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerEngine.java:            LOGGER.info(\"  AIPlayerManager.getInstance().spawnCombatPlayer()\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerEngine.java:            LOGGER.info(\"  AIPlayerManager.getInstance().spawnQuestPlayer()\");"
+    ]
+  },
+  "PvPTargetPrioritizer": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SubclassAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SiegeRegistrationAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIPlayerConnection": {
+    "caller_count": 4,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/GameServerClient.java: * an {@link AIPlayerConnection} via {@link #attachToConnection} so {@link CombatFramePlanner} frames are",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/GameServerClient.java:    public void attachToConnection(AIPlayerConnection connection)",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerActionExecutor.java:    private final AIPlayerConnection connection;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayerActionExecutor.java:    public AIPlayerActionExecutor(AIPlayer aiPlayer, AIPlayerConnection connection) {"
+    ]
+  },
+  "GameServerClient": {
+    "caller_count": 27,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        // Slice 5: CombatAI must decide from the SAME buffer the live GameServerClient reader feeds,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GameServerClientTest.java: * Stream C: in-process integration test for the reusable {@link GameServerClient} handshake",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GameServerClientTest.java:            GameServerClient client = new GameServerClient(player, \"127.0.0.1\", port);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GameServerClientTest.java:        GameServerClient client = new GameServerClient(player, \"127.0.0.1\", 7777);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GameServerClientTest.java:            GameServerClient client = new GameServerClient(player, \"127.0.0.1\", port);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/protocol/PacketLoggerCharSelectTest.java:      // GameServerClient hands the raw payload (opcode first, no size header) to recordCharSelectInfo.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/BotInfo.java:    /** S2-T04: per-bot packet health (fed from GameServerClient). */",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FleetPlay.java:            GameServerClient gs = new GameServerClient(player, host, gamePort);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/Phase0Driver.java: * GameServerClient, PacketLogger \u2014 without editing any of them. This is the",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/Phase0Driver.java:        GameServerClient gs = new GameServerClient(player, host, gamePort);"
+    ]
+  },
+  "HeroTitleOptimizer": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ClassQuestAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SoloGroupAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "Phase0Config": {
+    "caller_count": 11,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/movement/Phase0MovementConfigTest.java:        Phase0Config c = Phase0Config.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/phase0/movement/Phase0MovementConfigTest.java:        Phase0Config c = Phase0Config.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FleetPlay.java:            Phase0Config phase0 = Phase0Config.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/Phase0Driver.java:                String deathNote = phase0 != null && Phase0Config.getInstance().isDeathRecoveryEnabled()",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/Phase0Driver.java:                    int newTarget = (phase0 != null && Phase0Config.getInstance().isTargetingEnabled())",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        this.phase0 = Phase0Config.getInstance().isEnabled()",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        if (phase0 != null && Phase0Config.getInstance().isCombatRotationEnabled() && phase0.shouldKite()) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        if (phase0 != null && Phase0Config.getInstance().isCombatRotationEnabled()",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        if (phase0 != null && Phase0Config.getInstance().isCombatRotationEnabled()) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        if (phase0 != null && Phase0Config.getInstance().isCombatRotationEnabled() && pendingPhase0Skill > 0) {"
+    ]
+  },
+  "PostSiegeCleanup": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AchievementAI": {
+    "caller_count": 7,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java: * Stream G (G-Content): proves EventCalendarAI / AchievementAI / HeroTitleAI are wired into",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertNotNull(p.getAchievementAI());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertFalse(p.getAchievementAI().hasAchievement(\"KILL_BOSS\"));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertTrue(p.getAchievementAI().hasAchievement(\"KILL_BOSS\"));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final AchievementAI achievementAI = new AchievementAI();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public AchievementAI getAchievementAI() { return achievementAI; }",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:     * ACHIEVEMENT_RAID long-term goal (wiring AchievementAI into the goal system)."
+    ]
+  },
+  "PersistenceManager": {
+    "caller_count": 3,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:        this.persist = new PersistenceManager(\"aiplayer-\" + name + \".state\"); // Stream E 89",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    // Uses the (previously dead) PersistenceManager to save/restore the bot's persistent state so",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private PersistenceManager persist; // Stream E 89: initialized in ctor (needs `name`)"
+    ]
+  },
+  "KarmaManager": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ClanHallSiegeAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SocialDecision": {
+    "caller_count": 28,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        SocialDecision d = p.getSocialAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        assertEquals(SocialDecision.Action.INVITE_TO_PARTY, d.getAction(),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        SocialDecision d = p.getSocialAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        assertNotEquals(SocialDecision.Action.INVITE_TO_PARTY, d.getAction(),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        SocialDecision d = p.getSocialAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        assertNotEquals(SocialDecision.Action.CHAT, d.getAction(),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        SocialDecision d = p.getSocialAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESocialTest.java:        assertNotEquals(SocialDecision.Action.IDLE, d.getAction(),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:        SocialDecision decision = getSocialAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SocialAI.java:    public SocialDecision makeDecision() {"
+    ]
+  },
+  "InstanceManager": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SkillAllocator": {
+    "caller_count": 5,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java: * SkillAllocator each had ZERO external references \u2014 the recurring instantiated-but-uncalled defect.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        // Stream G (G-Combat): allocate SP/level skill points on level-up (SkillAllocator).",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    /** SkillAllocator: distribute SP by level+class; wired into onLevelUp. */",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        return SkillAllocator.allocateSkillPoints(level, classId, sp);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    /** The most recent SkillAllocator output (set on every onLevelUp), for telemetry/tests. */"
+    ]
+  },
+  "SiegeTiming": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ExpansionHooksAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "CombatAI": {
+    "caller_count": 151,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        a.getCombatAI().onDeath();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        a.getCombatAI().onKill(\"Wolf\", 100L);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:                        bot.getCombatAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java: * combat + quest outcomes. Before Stream D, CombatAI.onKill/onDeath/onLevelUp only logged and the",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        p.getCombatAI().onKill(\"Wolf\", 105L);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        p.getCombatAI().onDeath();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        p.getCombatAI().onLevelUp(2);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamDFeedbackTest.java:        p.getCombatAI().onDeath();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/PerceptionAccuracyTest.java:    public void testPositionTrackingInCombatAI() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/PerceptionAccuracyTest.java:        assertEquals(10000, px, \"CombatAI should read player X\");"
+    ]
+  },
+  "CastleTaxPlanner": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "LevelCappedAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "MovementPatternAI": {
+    "caller_count": 8,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java: * Stream G (G-Behavior): proves HumanReactionSimulator / BehaviorSeeder / MovementPatternAI /",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        assertNotNull(p.getMovementPatternAI());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        double[] hurried = p.getMovementPatternAI().getMovementVector(100.0,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:            MovementPatternAI.WalkStyle.HURRIED);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        double[] cautious = p.getMovementPatternAI().getMovementVector(100.0,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:            MovementPatternAI.WalkStyle.CAUTIOUS);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final MovementPatternAI movementPatternAI = new MovementPatternAI();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public MovementPatternAI getMovementPatternAI() { return movementPatternAI; }"
+    ]
+  },
+  "AIPlayer": {
+    "caller_count": 232,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java: * <p>Spawns N real {@link AIPlayer} instances concurrently and asserts per-instance isolation",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:    private List<AIPlayer> spawnBots(int n) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        List<AIPlayer> bots = new ArrayList<>();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:            bots.add(new AIPlayer(\"IsoBot_\" + i, 1000 + i, 1, 0));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        List<AIPlayer> bots = spawnBots(N_BOTS);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        for (AIPlayer b : bots) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        List<AIPlayer> bots = spawnBots(2);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        AIPlayer a = bots.get(0);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        AIPlayer b = bots.get(1);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        List<AIPlayer> bots = spawnBots(2);"
+    ]
+  },
+  "Phase0Integration": {
+    "caller_count": 16,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/Phase0IntegrationTest.java: * Decision-level tests for the Phase-0 runtime seam ({@link Phase0Integration}).",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/Phase0IntegrationTest.java:    private static Phase0Integration integration()",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/Phase0IntegrationTest.java:        return new Phase0Integration(new AIPlayer(\"phase0test\", 1, 0, 0)); // Human Fighter",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/Phase0IntegrationTest.java:        Phase0Integration p = integration();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/Phase0IntegrationTest.java:        Phase0Integration p = integration();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/Phase0IntegrationTest.java:        Phase0Integration p = integration();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/Phase0IntegrationTest.java:        Phase0Integration p = integration();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAIPhase0Test.java: * previous behavior) and only build the Phase0Integration seam when explicitly enabled.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAIPhase0Test.java:        assertNull(ai.getPhase0Integration(), \"phase0 seam must be absent with default config\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAIPhase0Test.java:        assertNotNull(ai.getPhase0Integration(), \"phase0 seam must be present when enabled\");"
+    ]
+  },
+  "PKDecision": {
+    "caller_count": 14,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        PKDecision.PKBot goodPlayer = new PKDecision.PKBot(-5000, false, false, 1000, 1000);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        PKDecision.PKBot evilPlayer = new PKDecision.PKBot(-20000, false, false, 1500, 1500);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        PKDecision.PKBot neutralPlayer = new PKDecision.PKBot(0, false, false, 2000, 2000);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        PKDecision.Decision decision;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        decision = PKDecision.makeDecision(goodPlayer, evilPlayer);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertEquals(PKDecision.DecisionType.ATTACK, decision.type);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        decision = PKDecision.makeDecision(neutralPlayer, evilPlayer);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertEquals(PKDecision.DecisionType.ATTACK, decision.type);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        PKDecision.PKBot protectedPlayer = new PKDecision.PKBot(-5000, false, true, 1000, 1000);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        decision = PKDecision.makeDecision(goodPlayer, protectedPlayer);"
+    ]
+  },
+  "CombatConfig": {
+    "caller_count": 9,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:    public void testCombatConfigAttackRange() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        CombatConfig config = CombatConfig.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:    public void testCombatConfigDetectRange() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        CombatConfig config = CombatConfig.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:    public void testCombatConfigPvP() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        CombatConfig config = CombatConfig.getInstance();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        int threshold = CombatConfig.getInstance().getHealthThreshold();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    private final CombatConfig config;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:        this.config = CombatConfig.getInstance();"
+    ]
+  },
+  "QuestFramePlanner": {
+    "caller_count": 6,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/QuestLoop.java: * Wires: Login -> EnterWorld -> setSelfObjectId -> QuestAI.makeDecision() -> QuestFramePlanner.plan()",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/QuestLoop.java:        QuestFramePlanner.QuestFrame[] bypassFrames = QuestFramePlanner.plan(bypass);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/QuestLoop.java:        for (QuestFramePlanner.QuestFrame f : bypassFrames) { gs.sendGameFrame(f.frame); System.out.println(\"[QuestLoop] SENT opcode=0x21 frame=RequestBypassToServer\"); System.out.println(\"[QuestLoop] BYPASS_SENT\"); }",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java: * which QuestFramePlanner.plan() maps to wire packets.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java: * Stream C7 wiring: QuestAI.makeDecision() -> QuestFramePlanner.plan() ->",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java: *   QuestFramePlanner.QuestFrame[] -> GameServerClient.sendGameFrame()."
+    ]
+  },
+  "CombatDecision": {
+    "caller_count": 98,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:    public void testCombatDecisionNotNull() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        // non-null CombatDecision with a valid action after exercising the decision path.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        CombatDecision decision = ai.makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:    public void testCombatDecisionFactoryMethods() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        CombatDecision decision = CombatDecision.idle();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertEquals(CombatDecision.Action.IDLE, decision.getAction());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        decision = CombatDecision.attack();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertEquals(CombatDecision.Action.ATTACK, decision.getAction());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        decision = CombatDecision.heal();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatAITest.java:        assertEquals(CombatDecision.Action.HEAL, decision.getAction());"
+    ]
+  },
+  "CombatFramePlanner": {
+    "caller_count": 42,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java: * Stream C: tests the {@link CombatFramePlanner} decision \u2192 ordered wire-frame mapping.",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java:    private final CombatFramePlanner planner = new CombatFramePlanner();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java:        List<CombatFramePlanner.FrameStep> steps =",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java:        assertEquals(CombatFramePlanner.FLOOD_PROTECTOR_DELAY_MS, steps.get(0).delayAfterMs,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java:        List<CombatFramePlanner.FrameStep> steps = planner.plan(decision, 0, 0, 0, -1);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java:        List<CombatFramePlanner.FrameStep> steps =",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java:        List<CombatFramePlanner.FrameStep> steps = planner.plan(decision, 100, 200, -30, 0);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java:        List<CombatFramePlanner.FrameStep> steps =",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java:        List<CombatFramePlanner.FrameStep> steps =",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/CombatFramePlannerTest.java:        List<CombatFramePlanner.FrameStep> steps ="
+    ]
+  },
+  "SiegeBuffCoordinator": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ArmorProficiency": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ControlRoomAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "GoalTree": {
+    "caller_count": 26,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:            assertNotNull(b.getGoalTree(), \"goalTree must exist\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:        assertNotSame(bots.get(0).getGoalTree(), bots.get(1).getGoalTree(),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:                \"two bots must NOT share a GoalTree\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:                        bot.getGoalTree().selectActiveGoal();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GoalTreeTest.java: * <p>Proves the GoalTree schedules the right short-term goal by priority + personality weights,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GoalTreeTest.java:        GoalTree tree = p.getGoalTree();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GoalTreeTest.java:        GoalTree.ShortTermGoal g = tree.selectActiveGoal();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GoalTreeTest.java:        assertEquals(GoalTree.ShortTermGoal.GRIND_XP, g,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GoalTreeTest.java:        GoalTree.ShortTermGoal g = p.getGoalTree().selectActiveGoal();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/GoalTreeTest.java:        assertEquals(GoalTree.ShortTermGoal.SURVIVE, g,"
+    ]
+  },
+  "LineOfSight": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "WhisperResponseAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AuctionAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "SocialConfig": {
+    "caller_count": 2,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SocialAI.java:    private final SocialConfig config;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SocialAI.java:        this.config = SocialConfig.getInstance();"
+    ]
+  },
+  "ColiseumAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "PluginManager": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ActivityScheduler": {
+    "caller_count": 17,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/MultiAgentIntegrationTest.java:            assertNotNull(b.getActivityScheduler(), \"scheduler must exist\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java: * <p>Proves the ActivityScheduler rotates activities on a schedule (with goal-aware selection),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java:        ActivityScheduler s = p.getActivityScheduler();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java:        for (ActivityScheduler.Activity a : ActivityScheduler.Activity.values()) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java:        ActivityScheduler s = p.getActivityScheduler();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java:        s.markDone(ActivityScheduler.Activity.GRIND);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java:        assertFalse(s.isDue(ActivityScheduler.Activity.GRIND),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java:        ActivityScheduler s = p.getActivityScheduler();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java:        assertEquals(ActivityScheduler.Activity.GRIND, s.nextActivity(),",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamESchedulerTest.java:        s.markDone(ActivityScheduler.Activity.GRIND);"
+    ]
+  },
+  "HumanBehaviorSimulator": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "MovementOptimizer": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ResourceHoardingAI": {
+    "caller_count": 8,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java: * ResourceHoardingAI are wired into AIPlayer (getters + deterministic-consultation points).",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        assertNotNull(p.getResourceHoardingAI());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        ResourceHoardingAI hoard = p.getResourceHoardingAI();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        assertTrue(hoard.shouldSave(5000, 100, ResourceHoardingAI.HoardingStyle.SAVE));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        assertFalse(hoard.shouldSave(500, 100, ResourceHoardingAI.HoardingStyle.SPEND_BALANCED));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGBehaviorTest.java:        assertTrue(hoard.shouldSave(5000, 100, ResourceHoardingAI.HoardingStyle.SPEND_BALANCED));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final ResourceHoardingAI resourceHoardingAI = new ResourceHoardingAI();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public ResourceHoardingAI getResourceHoardingAI() { return resourceHoardingAI; }"
+    ]
+  },
+  "AIPlayerSimple": {
+    "caller_count": 5,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FivePlayerMagicShow.java:        List<AIPlayerSimple> players = new ArrayList<>();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FivePlayerMagicShow.java:            AIPlayerSimple player = new AIPlayerSimple(names[i], accountIds[i]);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FivePlayerMagicShow.java:        for (AIPlayerSimple player : players) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FivePlayerMagicShow.java:            for (AIPlayerSimple player : players) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/FivePlayerMagicShow.java:            for (AIPlayerSimple player : players) {"
+    ]
+  },
+  "SeedRegistry": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "VendettaTrackingAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "VillageMasterAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ExternalAPI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "QuestDecision": {
+    "caller_count": 35,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/QuestLoop.java:        QuestDecision bypass = QuestDecision.acceptQuest(\"Q00255_Tutorial\", \"30530\", seedX, seedY, seedZ);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java: * The decision flow mirrors CombatAI: makeDecision() returns a QuestDecision,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:    public QuestDecision makeDecision() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:            return QuestDecision.idle();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:            return QuestDecision.idle();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:            return QuestDecision.idle();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:    private QuestDecision manageActiveQuest() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:                return QuestDecision.idle();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:    private QuestDecision findAndAcceptQuest() {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/QuestAI.java:            return QuestDecision.acceptQuest(questId, \"30530\", -84058, 243239, -3730);"
+    ]
+  },
+  "ClanHallRegister": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "HeroTitleAI": {
+    "caller_count": 8,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java: * Stream G (G-Content): proves EventCalendarAI / AchievementAI / HeroTitleAI are wired into",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertNotNull(p.getHeroTitleAI());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        var buffs = p.getHeroTitleAI().calculateHeroBuffs(60, true);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertTrue(buffs.containsKey(HeroTitleAI.HeroBuff.HERO_COMMAND)); // siege aura",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertTrue(buffs.containsKey(HeroTitleAI.HeroBuff.BLADE_DANCE)); // high hero level",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGContentTest.java:        assertFalse(p.getHeroTitleAI().shouldUseHeroBuff(HeroTitleAI.HeroBuff.BLADE_DANCE, 1000, false));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final HeroTitleAI heroTitleAI = new HeroTitleAI();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public HeroTitleAI getHeroTitleAI() { return heroTitleAI; }"
+    ]
+  },
+  "NewbieGuideAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ClanHallDefense": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIProfiler": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "TradePersonalityAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "EmergencyEscapeAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "EscortAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "ManorManager": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "KamaelAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIActionQueue": {
+    "caller_count": 3,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final AIActionQueue actionQueue;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:        this.actionQueue = new AIActionQueue();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    public AIActionQueue getActionQueue() { return actionQueue; }"
+    ]
+  },
+  "VitalityManager": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIAction": {
+    "caller_count": 42,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:            return new AIDecision(true, AIAction.ActionType.USE_ITEM, \"HEAL_POTION\", 1);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    return new AIDecision(true, AIAction.ActionType.ATTACK,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    return new AIDecision(true, AIAction.ActionType.USE_ITEM,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    return new AIDecision(true, AIAction.ActionType.STAND, true);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    return new AIDecision(true, AIAction.ActionType.MOVE, 15000, 15000, 434);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    return new AIDecision(true, AIAction.ActionType.ATTACK, decision.getTargetId());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    return new AIDecision(true, AIAction.ActionType.STOP_ATTACK);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    return new AIDecision(true, AIAction.ActionType.ATTACK, \"AUTO_TARGET\");",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    return new AIDecision(true, AIAction.ActionType.INTERACT_NPC,",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    return new AIDecision(true, AIAction.ActionType.HUNT,"
+    ]
+  },
+  "HuntingPreferenceAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIPlayerReal": {
+    "caller_count": 3,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/TenMorePlayersDemo.java:        List<AIPlayerReal> players = new ArrayList<>();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/TenMorePlayersDemo.java:            AIPlayerReal player = new AIPlayerReal(data[0], Integer.parseInt(data[1]));",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/examples/TenMorePlayersDemo.java:        for (AIPlayerReal player : players) {"
+    ]
+  },
+  "AggroManager": {
+    "caller_count": 5,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java: * the live path. Before G, RangedKiteAI / PvPSkillRotation / AntiGriefing / AggroManager /",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java:        AggroManager am = p.getCombatAI().getAggroManager();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamGCombatTest.java:        assertEquals(AggroManager.EMOTION_NONE, am.getCurrentEmotion());",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    private final AggroManager aggroManager = new AggroManager();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/CombatAI.java:    public AggroManager getAggroManager() { return aggroManager; }"
+    ]
+  },
+  "MerchantConfig": {
+    "caller_count": 2,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/MerchantAI.java:    private final MerchantConfig config;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/MerchantAI.java:        this.config = MerchantConfig.getInstance();"
+    ]
+  },
+  "ClanState": {
+    "caller_count": 3,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SocialAI.java:    private ClanState clanState;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/SocialAI.java:        this.clanState = new ClanState();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/phase0/party/ClanChatHandler.java:    public void updateClanState(int clanId, String clanName, int clanLevel, boolean hasCastle) {"
+    ]
+  },
+  "LootDistributor": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "AIPlayerActionExecutor": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "MerchantNPC": {
+    "caller_count": 8,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/MerchantDecision.java:    private final MerchantNPC merchant;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/MerchantDecision.java:                            MerchantNPC merchant, boolean shouldExecute) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/MerchantDecision.java:    public static MerchantDecision interact(MerchantNPC merchant) {",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/MerchantDecision.java:        MerchantNPC merchant = new MerchantNPC(npcId, x, y, z);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/MerchantDecision.java:    public MerchantNPC getMerchant() { return merchant; }",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:                    MerchantNPC merchant = decision.getMerchant();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/MerchantAI.java:            MerchantNPC nearbyMerchant = findNearbyMerchant();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/MerchantAI.java:    private MerchantNPC findNearbyMerchant() {"
+    ]
+  },
+  "DeathPenaltyAI": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "HuntingRotation": {
+    "caller_count": 0,
+    "callers": []
+  },
+  "MerchantAI": {
+    "caller_count": 13,
+    "callers": [
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java: * items before), and MerchantAI decides on REAL inventory/adena instead of the removed",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:        MerchantAI m = p.getMerchantAI();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:        MerchantAI m = p.getMerchantAI();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/test/java/com/aiplayer/engine/StreamETradeTest.java:        MerchantAI m = p.getMerchantAI();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java: * Orchestrates all AI modules: CombatAI, QuestAI, MerchantAI, SocialAI",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:    private MerchantAI merchantAI;",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:        this.merchantAI = new MerchantAI(aiPlayer);",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:        MerchantDecision decision = getMerchantAI().makeDecision();",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIBrain.java:    public MerchantAI getMerchantAI() { return merchantAI; }",
+      "/home/dadj/Projects/l24lude/AIPlayerEngine/src/main/java/com/aiplayer/engine/AIPlayer.java:    private final MerchantAI merchantAI;"
+    ]
+  }
+}

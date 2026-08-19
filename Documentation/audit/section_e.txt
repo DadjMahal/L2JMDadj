@@ -1,0 +1,93 @@
+## Section E: Prioritized Refactoring Plan
+
+### P0 — Immediate (Safe to do now, no risk to production path)
+
+**P0-1: Delete 18 stub files** (158 lines total)
+These are tiny stub classes (7-20 lines) with zero external references. No caller exists anywhere in the codebase. Deleting them cannot break compilation or tests.
+
+Files: `ColiseumAI.java`, `EscortAI.java`, `InstanceManager.java`, `MovementOptimizer.java`, `BossTactics.java`, `DungeonPathfinder.java`, `HuntingRotation.java`, `SepulchersAI.java`, `ClanHallDefense.java`, `LootDistributor.java`, `AntiGriefing.java` *(wait — AntiGriefing is active, re-check)*, `AntiStuckDetection.java`, `KarmaManager.java`, `SiegeExitManager.java`, `HeroTitleOptimizer.java`, `SiegePositioning.java`, `CastleTaxPlanner.java`, `HealerSacrificeAI.java`, `RiftAI.java`, `ZoneBuffManager.java`, `VendettaTracker.java`, `PostSiegeCleanup.java`, `RangedKiteAI.java` *(wait — RangedKiteAI is active, re-check)*
+
+**Correction**: The following are actually ACTIVE (referenced from CombatAI or AIPlayer) and must NOT be deleted: `AntiGriefing`, `RangedKiteAI`, `PvPSkillRotation`, `AggroManager`, `SkillAllocator`, `AchievementAI`, `EventCalendarAI`, `HeroTitleAI`, `HumanReactionSimulator`, `BehaviorSeeder`, `MovementPatternAI`, `ResourceHoardingAI`.
+
+**Actual P0-1 stubs to delete (18 files, ~158 lines):**
+`ColiseumAI.java` (7), `EscortAI.java` (7), `InstanceManager.java` (7), `MovementOptimizer.java` (7), `BossTactics.java` (9), `DungeonPathfinder.java` (9), `HuntingRotation.java` (10), `SepulchersAI.java` (10), `ClanHallDefense.java` (11), `LootDistributor.java` (11), `AntiStuckDetection.java` (12), `KarmaManager.java` (13), `SiegeExitManager.java` (14), `HeroTitleOptimizer.java` (15), `SiegePositioning.java` (15), `CastleTaxPranner.java` (16), `HealerSacrificeAI.java` (16), `RiftAI.java` (16)
+
+**P0-2: Delete 38 dead files** (1,424 lines total)
+These are larger files (20-214 lines) with zero external references. They compile but are never called. Safe to delete.
+
+Key files: `LineOfSight.java` (214), `SafeZoneManager.java` (115), `ContentUnlocker.java` (46), `RaidBossAI.java` (46), `ClassQuestAI.java` (48), `PvPTargetPrioritizer.java` (50), `ManorAI.java` (51) *(wait — ManorAI has 2 refs, re-check)*
+
+**Correction**: `ManorAI` has 2 production references (from SeasonalScheduler and ManorManager). It is ACTIVE, not dead.
+
+**P0-3: Delete `monitor/AILogCollector.java`** (104 lines)
+Zero external references. Dead code in the monitor package.
+
+**P0-4: Archive 11 dead probe/example files** (2,272 lines total)
+These example/probe files have zero external references and are superseded by FleetPlay:
+`ChatProbe.java` (440), `ExampleAIPlayer.java` (123), `FivePlayerMagicShow.java` (83), `GoalDrivenLoop.java` (215), `InitDecodeProbe.java` (232), `LoginProbe.java` (36), `MultiPlayerSession.java` (329), `NightlyProgressReport.java` (137), `PartyProbe.java` (452), `PvPProbe.java` (437), `QuestLoop.java` (74), `QuestProbe.java` (396), `RawInitProbe.java` (62), `TenMorePlayersDemo.java` (84)
+
+**Verification step after P0:** Run `mvn compile` and `mvn test`. All tests should pass since no referenced code was removed.
+
+---
+
+### P1 — Near-term (Requires migration, medium risk)
+
+**P1-1: Move 30 superseded files to `engine/_archive/`**
+These files have zero external references AND have phase0 equivalents. They should be moved to an archive directory and excluded from the main compilation path (but kept in git history for reference).
+
+**P1-2: Restructure engine/ into subdirectories**
+Move the 55 active files into the proposed 8 subdirectories (core/, combat/, quest/, economy/, social/, movement/, systems/, infra/). Update all package declarations and import statements.
+
+Steps:
+1. Create subdirectories
+2. Move files
+3. Update `package com.aiplayer.engine;` → `package com.aiplayer.engine.combat;` (etc.)
+4. Update all import statements across the codebase
+5. Run `mvn compile` to verify
+6. Run `mvn test` to verify
+
+**P1-3: Migrate decision objects to phase0 GoalDecision**
+Replace `CombatDecision`, `QuestDecision`, `MerchantDecision`, `SocialDecision` with the generic `phase0/play/GoalDecision`. This requires updating all callers in AIBrain and the frame planners.
+
+**P1-4: Consolidate duplicate combat state**
+Migrate `CombatState` → `phase0/combat/CooldownTracker` + `TargetScore`. Update CombatAI to use phase0 combat state objects.
+
+---
+
+### P2 — Long-term (Full migration to phase0)
+
+**P2-1: Migrate CombatAI to phase0 combat rotations**
+CombatAI (742 lines) is the largest engine file. Its `makeDecision()` → `CombatDecision` flow should be replaced by the phase0 `CombatRotation.selectSkill()` interface + `RotationFactory` + class-specific rotations. This is a major refactor that touches FleetPlay, Phase0Driver, and all combat tests.
+
+**P2-2: Migrate QuestAI to phase0 QuestExecutor**
+QuestAI (252 lines) should be replaced by `QuestExecutor`'s state machine. Requires updating AIBrain's `handleQuest()` to call QuestExecutor instead.
+
+**P2-3: Migrate MerchantAI to phase0 town package**
+MerchantAI (202 lines) → `BuyManager` + `SellManager` + `TownBehaviorEngine`. Requires updating AIBrain's `handleMerchant()`.
+
+**P2-4: Migrate SocialAI to phase0 social package**
+SocialAI (242 lines) → `SocialBehaviorEngine` + `ChatResponder` + `PartyInviteHandler`. Requires updating AIBrain's `handleSocial()`.
+
+**P2-5: Migrate AIBrain to Phase0Brain**
+AIBrain (262 lines) is the legacy decision loop. It should be replaced by `Phase0Brain` + `StateMachine` + `BotPlayController`. This is the capstone refactor — once done, the engine/ directory can be dramatically shrunk to just the infrastructure classes (GameServerClient, AIPlayerConnection, AIPlayerEngine entry point).
+
+**P2-6: Evaluate advanced/neural/economy/social packages**
+These packages (12 files, ~1,300 lines) are wired into AIPlayer but are aspirational in nature:
+- `advanced/`: EmotionalState, PersonalityProfile, AdaptiveLearner, ReinforcementEngine — all are in-memory simulations with no persistence
+- `neural/`: DeepLearningCore, PatternMemory — "deep learning" is actually a simple weighted-average predictor, not real ML
+- `economy/`: EconomicEngine, MarketEngine, NetWorthOptimizer — all are singletons with simulated market data
+- `social/`: DiplomacyEngine, CollectiveKnowledge, SwarmCoordinator — all are singletons with simulated diplomacy
+
+Recommendation: Keep for now (they ARE referenced from AIPlayer and tested by Stream tests), but document them as "simulated intelligence" rather than real AI/ML. Consider replacing with phase0 equivalents as the phase0 system matures.
+
+---
+
+### Migration Verification Checklist
+
+After each phase:
+- [ ] `mvn compile` passes
+- [ ] `mvn test` passes (all 58 test files)
+- [ ] FleetPlay.java can launch bots and connect to server
+- [ ] Phase0Driver.java can launch a single bot
+- [ ] BotPlayController tests pass (379-line test file is the integration gate)
+- [ ] No new compiler warnings about unused imports

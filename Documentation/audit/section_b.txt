@@ -1,0 +1,23 @@
+```
+engine/
+├── core/           (15 files) — AIPlayer, AIBrain, AIConfiguration, AIAction*, AIPlayerManager, etc.
+├── combat/         (35 files) — CombatAI, AggroManager, PvP*, Siege*, BossTactics, etc.
+├── quest/          (21 files) — QuestAI, QuestConfig, ClassQuestAI, VillageMasterAI, Instance*, etc.
+├── economy/        (14 files) — MerchantAI, ManorAI, AuctionAI, TaxCalculator, LootDistributor, etc.
+├── social/         (13 files) — SocialAI, ClanState, PartyState, Chat*, BuddySystem, etc.
+├── movement/       (7 files)  — MovementOptimizer, AntiStuck, HuntingRotation, SafeZone, etc.
+├── systems/        (14 files) — Karma, DeathPenalty, HeroTitle, Noblesse, Achievement, Event*, etc.
+├── infra/          (22 files) — Phase0Integration, GameServerClient, Persistence, Monitor*, etc.
+└── _archive/       (30 files) — Superseded files kept for reference (dead w/ phase0 equivalent)
+```
+
+**Rationale:** The flat 141-file directory is navigable only via search. Grouping by domain:
+- `core/` — The AI player lifecycle: instantiation, state, action queue, brain, configuration
+- `combat/` — All PvP/PvE/siege combat logic and helpers
+- `quest/` — Quest acceptance, class change, instance/dungeon navigation
+- `economy/` — Trading, manor, auction, loot, resource management
+- `social/` — Party, clan, chat, buddy, social interactions
+- `movement/` — Pathfinding, anti-stuck, hunting rotation, safe zones
+- `systems/` — Game systems: karma, death penalty, hero/noblesse, achievements, events
+- `infra/` — Infrastructure: phase0 bridge, server client, persistence, monitoring, profilers
+- `_archive/` — Superseded files (kept for reference but not compiled into main path)

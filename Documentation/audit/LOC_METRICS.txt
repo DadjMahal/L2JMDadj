@@ -1,0 +1,19 @@
+LOC per directory:
+AIPlayerEngine:   54590 total
+SourceCode:  24338 total
+AIWebDashboard:   266 total
+
+Technical Debt Markers:
+565
+
+Largest 10 files:
+ 269212 total
+ 233395 total
+ 182641 total
+  42706 total
+  14096 /home/dadj/Projects/l24lude/SourceCode/java/org/l2jmobius/gameserver/model/actor/Player.java
+   7209 /home/dadj/Projects/l24lude/SourceCode/java/org/l2jmobius/gameserver/model/actor/Creature.java
+   6582 /home/dadj/Projects/l24lude/SourceCode/java/org/l2jmobius/gameserver/network/SystemMessageId.java
+   5644 /home/dadj/Projects/l24lude/SourceCode/java/org/l2jmobius/gameserver/model/script/Quest.java
+   2958 /home/dadj/Projects/l24lude/SourceCode/java/org/l2jmobius/gameserver/model/clan/Clan.java
+   2705 /home/dadj/Projects/l24lude/SourceCode/java/org/l2jmobius/gameserver/ai/AttackableAI.java

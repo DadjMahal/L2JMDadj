@@ -1,0 +1,1182 @@
+{
+  "line_counts": {
+    "AcademyAI": 29,
+    "AchievementAI": 35,
+    "ActivityScheduler": 100,
+    "AggroManager": 344,
+    "AIAction": 70,
+    "AIActionQueue": 66,
+    "AIBrain": 262,
+    "AIConfiguration": 129,
+    "AIDecision": 47,
+    "AIDiagnostics": 20,
+    "AIModuleLoader": 49,
+    "AIPlayerActionExecutor": 122,
+    "AIPlayerConnection": 165,
+    "AIPlayerEngine": 157,
+    "AIPlayer": 497,
+    "AIPlayerManager": 270,
+    "AIPlayerReal": 244,
+    "AIPlayerSimple": 107,
+    "AIPlayerSpawnController": 80,
+    "AIPlayerState": 31,
+    "AIProfiler": 24,
+    "AntiGriefing": 12,
+    "AntiStuckDetection": 12,
+    "ArmorProficiency": 24,
+    "AttributeOptimizer": 28,
+    "AuctionAI": 35,
+    "BehavioralSimulator": 38,
+    "BehaviorSeeder": 36,
+    "BossTactics": 9,
+    "BuddySystemAI": 30,
+    "CastleManagement": 39,
+    "CastleStrategy": 30,
+    "CastleTaxPlanner": 16,
+    "ClanHallDefense": 11,
+    "ClanHallRegister": 22,
+    "ClanHallSiegeAI": 34,
+    "ClanMateAI": 28,
+    "ClanState": 56,
+    "ClassDecisionTree": 36,
+    "ClassQuestAI": 48,
+    "ColiseumAI": 7,
+    "CombatAI": 742,
+    "CombatConfig": 191,
+    "CombatDecision": 120,
+    "CombatFramePlanner": 120,
+    "CombatState": 199,
+    "CommunityChatAI": 28,
+    "ContentUnlocker": 46,
+    "ControlRoomAI": 40,
+    "CrossServerAI": 31,
+    "DeathPenaltyAI": 22,
+    "DifficultyScaler": 25,
+    "DuelAnalyzer": 28,
+    "DungeonPathfinder": 9,
+    "EmergencyEscapeAI": 37,
+    "EscortAI": 7,
+    "EventAwareAI": 39,
+    "EventCalendarAI": 31,
+    "ExpansionHooksAI": 23,
+    "ExternalAPI": 26,
+    "FishingTournamentAI": 28,
+    "GameServerClient": 382,
+    "GoalTree": 126,
+    "GuildResponseAI": 20,
+    "HealerSacrificeAI": 16,
+    "HeroTitleAI": 33,
+    "HeroTitleOptimizer": 15,
+    "HumanBehaviorSimulator": 29,
+    "HumanReactionSimulator": 33,
+    "HuntingPreferenceAI": 23,
+    "HuntingRotation": 10,
+    "IdleEmoteAI": 24,
+    "InstanceManager": 7,
+    "KamaelAI": 20,
+    "KarmaManager": 13,
+    "LevelCappedAI": 24,
+    "LineOfSight": 214,
+    "LiveFeedbackBridge": 94,
+    "LongTermGoalsAI": 28,
+    "LootDistributor": 11,
+    "ManorAI": 51,
+    "ManorManager": 22,
+    "MentorSystemAI": 19,
+    "MerchantAI": 202,
+    "MerchantConfig": 134,
+    "MerchantDecision": 81,
+    "MerchantNPC": 47,
+    "MovementOptimizer": 7,
+    "MovementPatternAI": 30,
+    "NewbieGuideAI": 34,
+    "NoblesseAI": 28,
+    "OlympiadAI": 21,
+    "PartyState": 53,
+    "PersistenceManager": 38,
+    "Phase0Config": 127,
+    "Phase0Integration": 288,
+    "PKDecision": 112,
+    "PluginManager": 22,
+    "PostSiegeCleanup": 18,
+    "PvPSkillRotation": 72,
+    "PvPTargetPrioritizer": 50,
+    "PvPVendettaAI": 21,
+    "QuestAI": 252,
+    "QuestConfig": 117,
+    "QuestDecision": 112,
+    "QuestFramePlanner": 58,
+    "QuestGoal": 77,
+    "QuestState": 72,
+    "RaidBossAI": 46,
+    "RangedKiteAI": 18,
+    "ResourceHoardingAI": 24,
+    "RiftAI": 16,
+    "SafeZoneManager": 115,
+    "SeasonalScheduler": 31,
+    "SeedRegistry": 34,
+    "SepulchersAI": 10,
+    "SiegeBuffCoordinator": 40,
+    "SiegeExitManager": 14,
+    "SiegeLoreAI": 33,
+    "SiegePositioning": 15,
+    "SiegeRegistrationAI": 75,
+    "SiegeTiming": 22,
+    "SiegeWeaponAI": 38,
+    "SkillAllocator": 26,
+    "SkillLearningAI": 35,
+    "SocialAI": 242,
+    "SocialConfig": 151,
+    "SocialDecision": 99,
+    "SoloGroupAI": 20,
+    "StateMonitor": 25,
+    "SubclassAI": 29,
+    "TaxCalculator": 22,
+    "TerritoryNPCDefense": 23,
+    "ThreadMonitor": 26,
+    "TradePersonalityAI": 29,
+    "VendettaTracker": 17,
+    "VendettaTrackingAI": 31,
+    "VillageMasterAI": 35,
+    "VitalityManager": 27,
+    "WhisperResponseAI": 24,
+    "ZoneBuffManager": 16
+  },
+  "ref_data": {
+    "AIAction": {
+      "ref_count": 4,
+      "ref_files": [
+        "engine/AIBrain.java",
+        "engine/AIDecision.java",
+        "engine/AIPlayer.java",
+        "engine/AIActionQueue.java"
+      ]
+    },
+    "AIActionQueue": {
+      "ref_count": 1,
+      "ref_files": [
+        "engine/AIPlayer.java"
+      ]
+    },
+    "AIBrain": {
+      "ref_count": 14,
+      "ref_files": [
+        "examples/Phase0Driver.java",
+        "engine/Phase0Config.java",
+        "engine/AIPlayer.java",
+        "phase0/brain/Phase0Brain.java",
+        "phase0/farm/FarmZoneScorer.java",
+        "phase0/farm/OptimalSpotSelector.java",
+        "phase0/farm/ZoneDensityTracker.java",
+        "phase0/farm/DynamicZoneManager.java",
+        "phase0/farm/FarmSessionRecorder.java",
+        "phase0/humanize/AntiDetectionEngine.java",
+        "phase0/quest/LevelingPlanner.java",
+        "phase0/quest/QuestExecutor.java",
+        "phase0/party/PartyManager.java",
+        "advanced/PersonalityProfile.java"
+      ]
+    },
+    "AIConfiguration": {
+      "ref_count": 9,
+      "ref_files": [
+        "engine/Phase0IntegrationTest.java",
+        "engine/CombatAIPhase0Test.java",
+        "phase0/movement/Phase0MovementConfigTest.java",
+        "examples/FleetPlay.java",
+        "engine/AIBrain.java",
+        "engine/AIModuleLoader.java",
+        "engine/AIPlayerEngine.java",
+        "engine/Phase0Config.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "AIDecision": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/AIBrain.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "AIDiagnostics": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "AIModuleLoader": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/AIBrain.java",
+        "engine/AIPlayerEngine.java"
+      ]
+    },
+    "AIPlayer": {
+      "ref_count": 53,
+      "ref_files": [
+        "engine/MultiAgentIntegrationTest.java",
+        "engine/StreamDFeedbackTest.java",
+        "engine/StreamETradeTest.java",
+        "engine/Phase0IntegrationTest.java",
+        "engine/GoalTreeTest.java",
+        "engine/CombatAITest.java",
+        "engine/LiveFeedbackBridgeTest.java",
+        "engine/AgentLoadTest.java",
+        "engine/StreamESocialTest.java",
+        "engine/CombatAIPhase0Test.java",
+        "engine/StreamGBehaviorTest.java",
+        "engine/StreamGContentTest.java",
+        "engine/StreamESchedulerTest.java",
+        "engine/StreamGCombatTest.java",
+        "engine/GameServerClientTest.java",
+        "examples/CombatProbe.java",
+        "examples/PartyProbe.java",
+        "examples/MoveProbe.java",
+        "examples/LoginProbe.java",
+        "examples/QuestProbe.java",
+        "examples/FleetPlay.java",
+        "examples/Phase0Driver.java",
+        "examples/QuestFlowLoop.java",
+        "examples/QuestLoop.java",
+        "examples/TradeProbe.java",
+        "examples/ExampleAIPlayer.java",
+        "examples/GoalDrivenLoop.java",
+        "examples/EnterWorldProbe.java",
+        "examples/CombatLoop.java",
+        "examples/PvPProbe.java",
+        "examples/MultiPlayerSession.java",
+        "examples/ChatProbe.java",
+        "engine/LiveFeedbackBridge.java",
+        "engine/QuestAI.java",
+        "engine/AIBrain.java",
+        "engine/AIPlayerSpawnController.java",
+        "engine/SocialAI.java",
+        "engine/AIPlayerManager.java",
+        "engine/AIPlayerConnection.java",
+        "engine/GameServerClient.java",
+        "engine/Phase0Config.java",
+        "engine/CombatAI.java",
+        "engine/Phase0Integration.java",
+        "engine/GoalTree.java",
+        "engine/ActivityScheduler.java",
+        "engine/AIPlayerActionExecutor.java",
+        "engine/MerchantAI.java",
+        "protocol/L2JProtocol.java",
+        "protocol/L2ProtocolHandler.java",
+        "protocol/ProtocolFactory.java",
+        "phase0/humanize/AntiDetectionEngine.java",
+        "phase0/combat/ShotManager.java",
+        "monitor/AIMonitorDashboard.java"
+      ]
+    },
+    "AIPlayerActionExecutor": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "AIPlayerConnection": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/GameServerClient.java",
+        "engine/AIPlayerActionExecutor.java"
+      ]
+    },
+    "AIPlayerEngine": {
+      "ref_count": 3,
+      "ref_files": [
+        "protocol/DatapackNames.java",
+        "protocol/LoginCrypt.java",
+        "phase0/party/PartyManager.java"
+      ]
+    },
+    "AIPlayerManager": {
+      "ref_count": 6,
+      "ref_files": [
+        "engine/MultiAgentIntegrationTest.java",
+        "examples/Phase0Driver.java",
+        "examples/ExampleAIPlayer.java",
+        "engine/AIPlayerSpawnController.java",
+        "engine/AIPlayerEngine.java",
+        "monitor/AIMonitorDashboard.java"
+      ]
+    },
+    "AIPlayerReal": {
+      "ref_count": 1,
+      "ref_files": [
+        "examples/TenMorePlayersDemo.java"
+      ]
+    },
+    "AIPlayerSimple": {
+      "ref_count": 1,
+      "ref_files": [
+        "examples/FivePlayerMagicShow.java"
+      ]
+    },
+    "AIPlayerSpawnController": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "AIPlayerState": {
+      "ref_count": 2,
+      "ref_files": [
+        "examples/ExampleAIPlayer.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "AIProfiler": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "AcademyAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "AchievementAI": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGContentTest.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "ActivityScheduler": {
+      "ref_count": 3,
+      "ref_files": [
+        "engine/StreamESchedulerTest.java",
+        "examples/GoalDrivenLoop.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "AggroManager": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGCombatTest.java",
+        "engine/CombatAI.java"
+      ]
+    },
+    "AntiGriefing": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGCombatTest.java",
+        "engine/CombatAI.java"
+      ]
+    },
+    "AntiStuckDetection": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ArmorProficiency": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "AttributeOptimizer": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "AuctionAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "BehaviorSeeder": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGBehaviorTest.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "BehavioralSimulator": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "BossTactics": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "BuddySystemAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "CastleManagement": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "CastleStrategy": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "CastleTaxPlanner": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ClanHallDefense": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ClanHallRegister": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ClanHallSiegeAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ClanMateAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ClanState": {
+      "ref_count": 1,
+      "ref_files": [
+        "engine/SocialAI.java"
+      ]
+    },
+    "ClassDecisionTree": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ClassQuestAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ColiseumAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "CombatAI": {
+      "ref_count": 31,
+      "ref_files": [
+        "engine/StreamDFeedbackTest.java",
+        "engine/PerceptionAccuracyTest.java",
+        "engine/GoalTreeTest.java",
+        "engine/CombatAITest.java",
+        "engine/CombatAIPhase0Test.java",
+        "engine/CombatFramePlannerTest.java",
+        "engine/CombatFramePlannerUseSkillTest.java",
+        "examples/FleetPlay.java",
+        "examples/Phase0Driver.java",
+        "examples/GoalDrivenLoop.java",
+        "examples/CombatLoop.java",
+        "examples/MultiPlayerSession.java",
+        "engine/LiveFeedbackBridge.java",
+        "engine/QuestAI.java",
+        "engine/AIBrain.java",
+        "engine/Phase0Config.java",
+        "engine/AIPlayer.java",
+        "engine/Phase0Integration.java",
+        "protocol/PacketLogger.java",
+        "phase0/farm/RespawnTimer.java",
+        "phase0/farm/DynamicZoneManager.java",
+        "phase0/humanize/AntiDetectionEngine.java",
+        "phase0/quest/LevelingPlanner.java",
+        "phase0/quest/QuestExecutor.java",
+        "phase0/death/DeathHandler.java",
+        "phase0/death/RecoveryFlow.java",
+        "phase0/party/PartyCoordinationEngine.java",
+        "phase0/party/PartyManager.java",
+        "phase0/party/SiegeParticipationStub.java",
+        "phase0/combat/SkillDatabase.java",
+        "phase0/combat/CooldownTracker.java"
+      ]
+    },
+    "CombatConfig": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/CombatAITest.java",
+        "engine/CombatAI.java"
+      ]
+    },
+    "CombatDecision": {
+      "ref_count": 14,
+      "ref_files": [
+        "engine/CombatAITest.java",
+        "engine/CombatAIPhase0Test.java",
+        "engine/CombatFramePlannerTest.java",
+        "engine/CombatFramePlannerUseSkillTest.java",
+        "examples/FleetPlay.java",
+        "examples/Phase0Driver.java",
+        "examples/GoalDrivenLoop.java",
+        "examples/CombatLoop.java",
+        "examples/MultiPlayerSession.java",
+        "engine/AIBrain.java",
+        "engine/AIPlayerConnection.java",
+        "engine/CombatAI.java",
+        "engine/CombatFramePlanner.java",
+        "phase0/Phase0Wiring.java"
+      ]
+    },
+    "CombatFramePlanner": {
+      "ref_count": 10,
+      "ref_files": [
+        "engine/CombatFramePlannerTest.java",
+        "engine/CombatFramePlannerUseSkillTest.java",
+        "examples/FleetPlay.java",
+        "examples/Phase0Driver.java",
+        "examples/GoalDrivenLoop.java",
+        "examples/CombatLoop.java",
+        "examples/MultiPlayerSession.java",
+        "engine/AIPlayerConnection.java",
+        "engine/GameServerClient.java",
+        "phase0/Phase0Wiring.java"
+      ]
+    },
+    "CombatState": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/CombatAITest.java",
+        "engine/CombatAI.java"
+      ]
+    },
+    "CommunityChatAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ContentUnlocker": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ControlRoomAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "CrossServerAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "DeathPenaltyAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "DifficultyScaler": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "DuelAnalyzer": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "DungeonPathfinder": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "EmergencyEscapeAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "EscortAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "EventAwareAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "EventCalendarAI": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGContentTest.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "ExpansionHooksAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ExternalAPI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "FishingTournamentAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "GameServerClient": {
+      "ref_count": 16,
+      "ref_files": [
+        "engine/CombatAITest.java",
+        "engine/GameServerClientTest.java",
+        "protocol/PacketLoggerCharSelectTest.java",
+        "examples/BotInfo.java",
+        "examples/FleetPlay.java",
+        "examples/Phase0Driver.java",
+        "examples/QuestFlowLoop.java",
+        "examples/QuestLoop.java",
+        "examples/GoalDrivenLoop.java",
+        "examples/CombatLoop.java",
+        "examples/MultiPlayerSession.java",
+        "engine/QuestAI.java",
+        "engine/CombatAI.java",
+        "protocol/PacketCodec.java",
+        "protocol/PacketLogger.java",
+        "phase0/Phase0Wiring.java"
+      ]
+    },
+    "GoalTree": {
+      "ref_count": 5,
+      "ref_files": [
+        "engine/MultiAgentIntegrationTest.java",
+        "engine/GoalTreeTest.java",
+        "examples/GoalDrivenLoop.java",
+        "engine/AIPlayer.java",
+        "engine/ActivityScheduler.java"
+      ]
+    },
+    "GuildResponseAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "HealerSacrificeAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "HeroTitleAI": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGContentTest.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "HeroTitleOptimizer": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "HumanBehaviorSimulator": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "HumanReactionSimulator": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGBehaviorTest.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "HuntingPreferenceAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "HuntingRotation": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "IdleEmoteAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "InstanceManager": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "KamaelAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "KarmaManager": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "LevelCappedAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "LineOfSight": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "LiveFeedbackBridge": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/LiveFeedbackBridgeTest.java",
+        "examples/GoalDrivenLoop.java"
+      ]
+    },
+    "LongTermGoalsAI": {
+      "ref_count": 8,
+      "ref_files": [
+        "engine/StreamDFeedbackTest.java",
+        "engine/LiveFeedbackBridgeTest.java",
+        "engine/StreamGContentTest.java",
+        "engine/StreamESchedulerTest.java",
+        "engine/QuestAI.java",
+        "engine/CombatAI.java",
+        "engine/AIPlayer.java",
+        "engine/GoalTree.java"
+      ]
+    },
+    "LootDistributor": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ManorAI": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/SeasonalScheduler.java",
+        "engine/ManorManager.java"
+      ]
+    },
+    "ManorManager": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "MentorSystemAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "MerchantAI": {
+      "ref_count": 3,
+      "ref_files": [
+        "engine/StreamETradeTest.java",
+        "engine/AIBrain.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "MerchantConfig": {
+      "ref_count": 1,
+      "ref_files": [
+        "engine/MerchantAI.java"
+      ]
+    },
+    "MerchantDecision": {
+      "ref_count": 3,
+      "ref_files": [
+        "engine/StreamETradeTest.java",
+        "engine/AIBrain.java",
+        "engine/MerchantAI.java"
+      ]
+    },
+    "MerchantNPC": {
+      "ref_count": 3,
+      "ref_files": [
+        "engine/MerchantDecision.java",
+        "engine/AIBrain.java",
+        "engine/MerchantAI.java"
+      ]
+    },
+    "MovementOptimizer": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "MovementPatternAI": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGBehaviorTest.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "NewbieGuideAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "NoblesseAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "OlympiadAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "PKDecision": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/CombatAITest.java",
+        "engine/AIBrain.java"
+      ]
+    },
+    "PartyState": {
+      "ref_count": 1,
+      "ref_files": [
+        "engine/SocialAI.java"
+      ]
+    },
+    "PersistenceManager": {
+      "ref_count": 1,
+      "ref_files": [
+        "engine/AIPlayer.java"
+      ]
+    },
+    "Phase0Config": {
+      "ref_count": 5,
+      "ref_files": [
+        "phase0/movement/Phase0MovementConfigTest.java",
+        "examples/FleetPlay.java",
+        "examples/Phase0Driver.java",
+        "engine/CombatAI.java",
+        "engine/Phase0Integration.java"
+      ]
+    },
+    "Phase0Integration": {
+      "ref_count": 6,
+      "ref_files": [
+        "engine/Phase0IntegrationTest.java",
+        "engine/CombatAIPhase0Test.java",
+        "examples/Phase0Driver.java",
+        "engine/Phase0Config.java",
+        "engine/CombatAI.java",
+        "phase0/combat/SkillDatabase.java"
+      ]
+    },
+    "PluginManager": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "PostSiegeCleanup": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "PvPSkillRotation": {
+      "ref_count": 3,
+      "ref_files": [
+        "engine/CombatAITest.java",
+        "engine/StreamGCombatTest.java",
+        "engine/CombatAI.java"
+      ]
+    },
+    "PvPTargetPrioritizer": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "PvPVendettaAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "QuestAI": {
+      "ref_count": 4,
+      "ref_files": [
+        "examples/QuestLoop.java",
+        "engine/LiveFeedbackBridge.java",
+        "engine/AIBrain.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "QuestConfig": {
+      "ref_count": 1,
+      "ref_files": [
+        "engine/QuestAI.java"
+      ]
+    },
+    "QuestDecision": {
+      "ref_count": 5,
+      "ref_files": [
+        "examples/QuestLoop.java",
+        "engine/QuestAI.java",
+        "engine/AIBrain.java",
+        "engine/QuestGoal.java",
+        "engine/QuestFramePlanner.java"
+      ]
+    },
+    "QuestFramePlanner": {
+      "ref_count": 2,
+      "ref_files": [
+        "examples/QuestLoop.java",
+        "engine/QuestAI.java"
+      ]
+    },
+    "QuestGoal": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "QuestState": {
+      "ref_count": 1,
+      "ref_files": [
+        "engine/QuestAI.java"
+      ]
+    },
+    "RaidBossAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "RangedKiteAI": {
+      "ref_count": 3,
+      "ref_files": [
+        "engine/StreamGCombatTest.java",
+        "examples/GoalDrivenLoop.java",
+        "engine/CombatAI.java"
+      ]
+    },
+    "ResourceHoardingAI": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGBehaviorTest.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "RiftAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SafeZoneManager": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SeasonalScheduler": {
+      "ref_count": 1,
+      "ref_files": [
+        "engine/ManorManager.java"
+      ]
+    },
+    "SeedRegistry": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SepulchersAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SiegeBuffCoordinator": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SiegeExitManager": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SiegeLoreAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SiegePositioning": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SiegeRegistrationAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SiegeTiming": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SiegeWeaponAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SkillAllocator": {
+      "ref_count": 2,
+      "ref_files": [
+        "engine/StreamGCombatTest.java",
+        "engine/CombatAI.java"
+      ]
+    },
+    "SkillLearningAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SocialAI": {
+      "ref_count": 3,
+      "ref_files": [
+        "engine/StreamESocialTest.java",
+        "engine/AIBrain.java",
+        "engine/AIPlayer.java"
+      ]
+    },
+    "SocialConfig": {
+      "ref_count": 1,
+      "ref_files": [
+        "engine/SocialAI.java"
+      ]
+    },
+    "SocialDecision": {
+      "ref_count": 3,
+      "ref_files": [
+        "engine/StreamESocialTest.java",
+        "engine/AIBrain.java",
+        "engine/SocialAI.java"
+      ]
+    },
+    "SoloGroupAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "StateMonitor": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "SubclassAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "TaxCalculator": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "TerritoryNPCDefense": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ThreadMonitor": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "TradePersonalityAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "VendettaTracker": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "VendettaTrackingAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "VillageMasterAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "VitalityManager": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "WhisperResponseAI": {
+      "ref_count": 0,
+      "ref_files": []
+    },
+    "ZoneBuffManager": {
+      "ref_count": 0,
+      "ref_files": []
+    }
+  },
+  "categories": {
+    "active_prod": [
+      "AIAction",
+      "AIActionQueue",
+      "AIBrain",
+      "AIConfiguration",
+      "AIDecision",
+      "AIModuleLoader",
+      "AIPlayer",
+      "AIPlayerConnection",
+      "AIPlayerEngine",
+      "AIPlayerManager",
+      "AIPlayerReal",
+      "AIPlayerSimple",
+      "AIPlayerState",
+      "AchievementAI",
+      "ActivityScheduler",
+      "AggroManager",
+      "AntiGriefing",
+      "BehaviorSeeder",
+      "ClanState",
+      "CombatAI",
+      "CombatConfig",
+      "CombatDecision",
+      "CombatFramePlanner",
+      "CombatState",
+      "EventCalendarAI",
+      "GameServerClient",
+      "GoalTree",
+      "HeroTitleAI",
+      "HumanReactionSimulator",
+      "LiveFeedbackBridge",
+      "LongTermGoalsAI",
+      "ManorAI",
+      "MerchantAI",
+      "MerchantConfig",
+      "MerchantDecision",
+      "MerchantNPC",
+      "MovementPatternAI",
+      "PKDecision",
+      "PartyState",
+      "PersistenceManager",
+      "Phase0Config",
+      "Phase0Integration",
+      "PvPSkillRotation",
+      "QuestAI",
+      "QuestConfig",
+      "QuestDecision",
+      "QuestFramePlanner",
+      "QuestState",
+      "RangedKiteAI",
+      "ResourceHoardingAI",
+      "SeasonalScheduler",
+      "SkillAllocator",
+      "SocialAI",
+      "SocialConfig",
+      "SocialDecision"
+    ],
+    "test_only": [],
+    "dead": [
+      "AIDiagnostics",
+      "AIPlayerActionExecutor",
+      "AIPlayerSpawnController",
+      "AIProfiler",
+      "AcademyAI",
+      "AntiStuckDetection",
+      "ArmorProficiency",
+      "AttributeOptimizer",
+      "AuctionAI",
+      "BehavioralSimulator",
+      "BossTactics",
+      "BuddySystemAI",
+      "CastleManagement",
+      "CastleStrategy",
+      "CastleTaxPlanner",
+      "ClanHallDefense",
+      "ClanHallRegister",
+      "ClanHallSiegeAI",
+      "ClanMateAI",
+      "ClassDecisionTree",
+      "ClassQuestAI",
+      "ColiseumAI",
+      "CommunityChatAI",
+      "ContentUnlocker",
+      "ControlRoomAI",
+      "CrossServerAI",
+      "DeathPenaltyAI",
+      "DifficultyScaler",
+      "DuelAnalyzer",
+      "DungeonPathfinder",
+      "EmergencyEscapeAI",
+      "EscortAI",
+      "EventAwareAI",
+      "ExpansionHooksAI",
+      "ExternalAPI",
+      "FishingTournamentAI",
+      "GuildResponseAI",
+      "HealerSacrificeAI",
+      "HeroTitleOptimizer",
+      "HumanBehaviorSimulator",
+      "HuntingPreferenceAI",
+      "HuntingRotation",
+      "IdleEmoteAI",
+      "InstanceManager",
+      "KamaelAI",
+      "KarmaManager",
+      "LevelCappedAI",
+      "LineOfSight",
+      "LootDistributor",
+      "ManorManager",
+      "MentorSystemAI",
+      "MovementOptimizer",
+      "NewbieGuideAI",
+      "NoblesseAI",
+      "OlympiadAI",
+      "PluginManager",
+      "PostSiegeCleanup",
+      "PvPTargetPrioritizer",
+      "PvPVendettaAI",
+      "QuestGoal",
+      "RaidBossAI",
+      "RiftAI",
+      "SafeZoneManager",
+      "SeedRegistry",
+      "SepulchersAI",
+      "SiegeBuffCoordinator",
+      "SiegeExitManager",
+      "SiegeLoreAI",
+      "SiegePositioning",
+      "SiegeRegistrationAI",
+      "SiegeTiming",
+      "SiegeWeaponAI",
+      "SkillLearningAI",
+      "SoloGroupAI",
+      "StateMonitor",
+      "SubclassAI",
+      "TaxCalculator",
+      "TerritoryNPCDefense",
+      "ThreadMonitor",
+      "TradePersonalityAI",
+      "VendettaTracker",
+      "VendettaTrackingAI",
+      "VillageMasterAI",
+      "VitalityManager",
+      "WhisperResponseAI",
+      "ZoneBuffManager"
+    ]
+  }
+}

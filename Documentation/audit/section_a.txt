@@ -1,0 +1,143 @@
+| # | Filename | Lines | Status | Refs | Prod | Test | Recommendation | Phase0 Equivalent | Key Referrers |
+|---|----------|-------|--------|------|------|------|----------------|-----------------|----------------|
+| 1 | AIAction.java | 70 | active | 4 | 4 | 0 | keep | — | engine/AIBrain.java, engine/AIDecision.java, engine/AIPlayer.java (+1 more) |
+| 2 | AIActionQueue.java | 66 | active | 1 | 1 | 0 | keep | — | engine/AIPlayer.java |
+| 3 | AIBrain.java | 262 | active-superseded | 14 | 14 | 0 | keep (transition) | phase0/brain/Phase0Brain + StateMachine | examples/Phase0Driver.java, engine/Phase0Config.java, engine/AIPlayer.java (+11 more) |
+| 4 | AIConfiguration.java | 129 | active | 9 | 6 | 3 | keep | — | engine/Phase0IntegrationTest.java, engine/CombatAIPhase0Test.java, phase0/movement/Phase0MovementConfigTest.java (+6 more) |
+| 5 | AIDecision.java | 47 | active | 2 | 2 | 0 | keep | — | engine/AIBrain.java, engine/AIPlayer.java |
+| 6 | AIDiagnostics.java | 20 | superseded | 0 | 0 | 0 | archive | metrics/PerformanceMetrics (diagnostics) | — |
+| 7 | AIModuleLoader.java | 49 | active | 2 | 2 | 0 | keep | — | engine/AIBrain.java, engine/AIPlayerEngine.java |
+| 8 | AIPlayer.java | 497 | active-superseded | 53 | 38 | 15 | keep (transition) | phase0/BotSnapshot + BotPlayController (different roles) | engine/MultiAgentIntegrationTest.java, engine/StreamDFeedbackTest.java, engine/StreamETradeTest.java (+50 more) |
+| 9 | AIPlayerActionExecutor.java | 122 | dead | 0 | 0 | 0 | delete | — | — |
+| 10 | AIPlayerConnection.java | 165 | active | 2 | 2 | 0 | keep | — | engine/GameServerClient.java, engine/AIPlayerActionExecutor.java |
+| 11 | AIPlayerEngine.java | 157 | active | 3 | 3 | 0 | keep | — | protocol/DatapackNames.java, protocol/LoginCrypt.java, phase0/party/PartyManager.java |
+| 12 | AIPlayerManager.java | 270 | active | 6 | 5 | 1 | keep | — | engine/MultiAgentIntegrationTest.java, examples/Phase0Driver.java, examples/ExampleAIPlayer.java (+3 more) |
+| 13 | AIPlayerReal.java | 244 | active | 1 | 1 | 0 | keep | — | examples/TenMorePlayersDemo.java |
+| 14 | AIPlayerSimple.java | 107 | active | 1 | 1 | 0 | keep | — | examples/FivePlayerMagicShow.java |
+| 15 | AIPlayerSpawnController.java | 80 | dead | 0 | 0 | 0 | delete | — | — |
+| 16 | AIPlayerState.java | 31 | active | 2 | 2 | 0 | keep | — | examples/ExampleAIPlayer.java, engine/AIPlayer.java |
+| 17 | AIProfiler.java | 24 | superseded | 0 | 0 | 0 | archive | metrics/PerformanceMetrics (profiling) | — |
+| 18 | AcademyAI.java | 29 | dead | 0 | 0 | 0 | delete | — | — |
+| 19 | AchievementAI.java | 35 | active | 2 | 1 | 1 | keep | — | engine/StreamGContentTest.java, engine/AIPlayer.java |
+| 20 | ActivityScheduler.java | 100 | active-superseded | 3 | 2 | 1 | keep (transition) | phase0/play/BotPlayController (activity rotation role) | engine/StreamESchedulerTest.java, examples/GoalDrivenLoop.java, engine/AIPlayer.java |
+| 21 | AggroManager.java | 344 | active-superseded | 2 | 1 | 1 | keep (transition) | phase0/combat/AggroTracker | engine/StreamGCombatTest.java, engine/CombatAI.java |
+| 22 | AntiGriefing.java | 12 | stub-active | 2 | 1 | 1 | keep (shallow) | — | engine/StreamGCombatTest.java, engine/CombatAI.java |
+| 23 | AntiStuckDetection.java | 12 | superseded | 0 | 0 | 0 | archive | phase0/movement/StuckDetector | — |
+| 24 | ArmorProficiency.java | 24 | dead | 0 | 0 | 0 | delete | — | — |
+| 25 | AttributeOptimizer.java | 28 | dead | 0 | 0 | 0 | delete | — | — |
+| 26 | AuctionAI.java | 35 | dead | 0 | 0 | 0 | delete | — | — |
+| 27 | BehaviorSeeder.java | 36 | active | 2 | 1 | 1 | keep | — | engine/StreamGBehaviorTest.java, engine/AIPlayer.java |
+| 28 | BehavioralSimulator.java | 38 | dead | 0 | 0 | 0 | delete | — | — |
+| 29 | BossTactics.java | 9 | stub | 0 | 0 | 0 | delete | — | — |
+| 30 | BuddySystemAI.java | 30 | dead | 0 | 0 | 0 | delete | — | — |
+| 31 | CastleManagement.java | 39 | dead | 0 | 0 | 0 | delete | — | — |
+| 32 | CastleStrategy.java | 30 | dead | 0 | 0 | 0 | delete | — | — |
+| 33 | CastleTaxPlanner.java | 16 | stub | 0 | 0 | 0 | delete | — | — |
+| 34 | ClanHallDefense.java | 11 | stub | 0 | 0 | 0 | delete | — | — |
+| 35 | ClanHallRegister.java | 22 | dead | 0 | 0 | 0 | delete | — | — |
+| 36 | ClanHallSiegeAI.java | 34 | dead | 0 | 0 | 0 | delete | — | — |
+| 37 | ClanMateAI.java | 28 | dead | 0 | 0 | 0 | delete | — | — |
+| 38 | ClanState.java | 56 | active | 1 | 1 | 0 | keep | — | engine/SocialAI.java |
+| 39 | ClassDecisionTree.java | 36 | dead | 0 | 0 | 0 | delete | — | — |
+| 40 | ClassQuestAI.java | 48 | superseded | 0 | 0 | 0 | archive | phase0/quest/ClassChangeManager | — |
+| 41 | ColiseumAI.java | 7 | stub | 0 | 0 | 0 | delete | — | — |
+| 42 | CombatAI.java | 742 | active-superseded | 31 | 24 | 7 | keep (transition) | phase0/combat/CombatRotation + RotationFactory + class-specific rotations | engine/StreamDFeedbackTest.java, engine/PerceptionAccuracyTest.java, engine/GoalTreeTest.java (+28 more) |
+| 43 | CombatConfig.java | 191 | active | 2 | 1 | 1 | keep | — | engine/CombatAITest.java, engine/CombatAI.java |
+| 44 | CombatDecision.java | 120 | active-superseded | 14 | 10 | 4 | keep (transition) | phase0/play/GoalDecision (decision object role) | engine/CombatAITest.java, engine/CombatAIPhase0Test.java, engine/CombatFramePlannerTest.java (+11 more) |
+| 45 | CombatFramePlanner.java | 120 | active-superseded | 10 | 8 | 2 | keep (transition) | phase0/play/BotPlayController (frame planning role) | engine/CombatFramePlannerTest.java, engine/CombatFramePlannerUseSkillTest.java, examples/FleetPlay.java (+7 more) |
+| 46 | CombatState.java | 199 | active-superseded | 2 | 1 | 1 | keep (transition) | phase0/combat/CooldownTracker + TargetScore (state roles) | engine/CombatAITest.java, engine/CombatAI.java |
+| 47 | CommunityChatAI.java | 28 | dead | 0 | 0 | 0 | delete | — | — |
+| 48 | ContentUnlocker.java | 46 | superseded | 0 | 0 | 0 | archive | phase0/quest/LevelingPlanner (level-gated content) | — |
+| 49 | ControlRoomAI.java | 40 | superseded | 0 | 0 | 0 | archive | monitor/AIMonitorDashboard (control room role) | — |
+| 50 | CrossServerAI.java | 31 | dead | 0 | 0 | 0 | delete | — | — |
+| 51 | DeathPenaltyAI.java | 22 | superseded | 0 | 0 | 0 | archive | phase0/death/DeathHandler | — |
+| 52 | DifficultyScaler.java | 25 | dead | 0 | 0 | 0 | delete | — | — |
+| 53 | DuelAnalyzer.java | 28 | dead | 0 | 0 | 0 | delete | — | — |
+| 54 | DungeonPathfinder.java | 9 | stub | 0 | 0 | 0 | delete | — | — |
+| 55 | EmergencyEscapeAI.java | 37 | dead | 0 | 0 | 0 | delete | — | — |
+| 56 | EscortAI.java | 7 | stub | 0 | 0 | 0 | delete | — | — |
+| 57 | EventAwareAI.java | 39 | superseded | 0 | 0 | 0 | archive | phase0/director/DirectorAI (event awareness) | — |
+| 58 | EventCalendarAI.java | 31 | active | 2 | 1 | 1 | keep | phase0/director/DirectorAI (event scheduling) — partially active | engine/StreamGContentTest.java, engine/AIPlayer.java |
+| 59 | ExpansionHooksAI.java | 23 | dead | 0 | 0 | 0 | delete | — | — |
+| 60 | ExternalAPI.java | 26 | superseded | 0 | 0 | 0 | archive | web/DashboardApi (external API surface) | — |
+| 61 | FishingTournamentAI.java | 28 | dead | 0 | 0 | 0 | delete | — | — |
+| 62 | GameServerClient.java | 382 | active | 16 | 13 | 3 | keep | — | engine/CombatAITest.java, engine/GameServerClientTest.java, protocol/PacketLoggerCharSelectTest.java (+13 more) |
+| 63 | GoalTree.java | 126 | active-superseded | 5 | 3 | 2 | keep (transition) | phase0/play/GoalDecision + GoalAction + PlayerGoal | engine/MultiAgentIntegrationTest.java, engine/GoalTreeTest.java, examples/GoalDrivenLoop.java (+2 more) |
+| 64 | GuildResponseAI.java | 20 | stub | 0 | 0 | 0 | delete | — | — |
+| 65 | HealerSacrificeAI.java | 16 | stub | 0 | 0 | 0 | delete | — | — |
+| 66 | HeroTitleAI.java | 33 | active | 2 | 1 | 1 | keep | — | engine/StreamGContentTest.java, engine/AIPlayer.java |
+| 67 | HeroTitleOptimizer.java | 15 | stub | 0 | 0 | 0 | delete | — | — |
+| 68 | HumanBehaviorSimulator.java | 29 | dead | 0 | 0 | 0 | delete | — | — |
+| 69 | HumanReactionSimulator.java | 33 | active | 2 | 1 | 1 | keep | — | engine/StreamGBehaviorTest.java, engine/AIPlayer.java |
+| 70 | HuntingPreferenceAI.java | 23 | superseded | 0 | 0 | 0 | archive | phase0/farm/ZoneDensityTracker | — |
+| 71 | HuntingRotation.java | 10 | superseded | 0 | 0 | 0 | archive | phase0/farm/OptimalSpotSelector | — |
+| 72 | IdleEmoteAI.java | 24 | dead | 0 | 0 | 0 | delete | — | — |
+| 73 | InstanceManager.java | 7 | stub | 0 | 0 | 0 | delete | — | — |
+| 74 | KamaelAI.java | 20 | stub | 0 | 0 | 0 | delete | — | — |
+| 75 | KarmaManager.java | 13 | superseded | 0 | 0 | 0 | archive | phase0/combat/TargetSelector (moral targeting) | — |
+| 76 | LevelCappedAI.java | 24 | dead | 0 | 0 | 0 | delete | — | — |
+| 77 | LineOfSight.java | 214 | superseded | 0 | 0 | 0 | archive | phase0/movement/GeoPathfinder (geometry checks) | — |
+| 78 | LiveFeedbackBridge.java | 94 | active | 2 | 1 | 1 | keep | — | engine/LiveFeedbackBridgeTest.java, examples/GoalDrivenLoop.java |
+| 79 | LongTermGoalsAI.java | 28 | active | 8 | 4 | 4 | keep | — | engine/StreamDFeedbackTest.java, engine/LiveFeedbackBridgeTest.java, engine/StreamGContentTest.java (+5 more) |
+| 80 | LootDistributor.java | 11 | superseded | 0 | 0 | 0 | archive | phase0/party/PartyLootDistributor + phase0/inventory/AutoLootHandler | — |
+| 81 | ManorAI.java | 51 | active | 2 | 2 | 0 | keep | — | engine/SeasonalScheduler.java, engine/ManorManager.java |
+| 82 | ManorManager.java | 22 | superseded | 0 | 0 | 0 | archive | phase0/town/TownBehaviorEngine (manor interaction) | — |
+| 83 | MentorSystemAI.java | 19 | stub | 0 | 0 | 0 | delete | — | — |
+| 84 | MerchantAI.java | 202 | active-superseded | 3 | 2 | 1 | keep (transition) | phase0/town/BuyManager + SellManager + TownBehaviorEngine | engine/StreamETradeTest.java, engine/AIBrain.java, engine/AIPlayer.java |
+| 85 | MerchantConfig.java | 134 | active | 1 | 1 | 0 | keep | — | engine/MerchantAI.java |
+| 86 | MerchantDecision.java | 81 | active-superseded | 3 | 2 | 1 | keep (transition) | phase0/play/GoalDecision (decision object role) | engine/StreamETradeTest.java, engine/AIBrain.java, engine/MerchantAI.java |
+| 87 | MerchantNPC.java | 47 | active | 3 | 3 | 0 | keep | — | engine/MerchantDecision.java, engine/AIBrain.java, engine/MerchantAI.java |
+| 88 | MovementOptimizer.java | 7 | superseded | 0 | 0 | 0 | archive | phase0/movement/MovementController + GeoPathfinder | — |
+| 89 | MovementPatternAI.java | 30 | active | 2 | 1 | 1 | keep | — | engine/StreamGBehaviorTest.java, engine/AIPlayer.java |
+| 90 | NewbieGuideAI.java | 34 | superseded | 0 | 0 | 0 | archive | phase0/guide/RaceGuide + HuntZone | — |
+| 91 | NoblesseAI.java | 28 | dead | 0 | 0 | 0 | delete | — | — |
+| 92 | OlympiadAI.java | 21 | dead | 0 | 0 | 0 | delete | — | — |
+| 93 | PKDecision.java | 112 | active-superseded | 2 | 1 | 1 | keep (transition) | phase0/combat/TargetSelector (target selection role) | engine/CombatAITest.java, engine/AIBrain.java |
+| 94 | PartyState.java | 53 | active | 1 | 1 | 0 | keep | — | engine/SocialAI.java |
+| 95 | PersistenceManager.java | 38 | active | 1 | 1 | 0 | keep | — | engine/AIPlayer.java |
+| 96 | Phase0Config.java | 127 | active | 5 | 4 | 1 | keep | — | phase0/movement/Phase0MovementConfigTest.java, examples/FleetPlay.java, examples/Phase0Driver.java (+2 more) |
+| 97 | Phase0Integration.java | 288 | active | 6 | 4 | 2 | keep | — | engine/Phase0IntegrationTest.java, engine/CombatAIPhase0Test.java, examples/Phase0Driver.java (+3 more) |
+| 98 | PluginManager.java | 22 | superseded | 0 | 0 | 0 | archive | phase0/Phase0Wiring (plugin/wiring management) | — |
+| 99 | PostSiegeCleanup.java | 18 | superseded | 0 | 0 | 0 | archive | phase0/party/SiegeParticipationStub | — |
+| 100 | PvPSkillRotation.java | 72 | active | 3 | 1 | 2 | keep | — | engine/CombatAITest.java, engine/StreamGCombatTest.java, engine/CombatAI.java |
+| 101 | PvPTargetPrioritizer.java | 50 | dead | 0 | 0 | 0 | delete | — | — |
+| 102 | PvPVendettaAI.java | 21 | dead | 0 | 0 | 0 | delete | — | — |
+| 103 | QuestAI.java | 252 | active-superseded | 4 | 4 | 0 | keep (transition) | phase0/quest/QuestExecutor + QuestProgressTracker | examples/QuestLoop.java, engine/LiveFeedbackBridge.java, engine/AIBrain.java (+1 more) |
+| 104 | QuestConfig.java | 117 | active | 1 | 1 | 0 | keep | — | engine/QuestAI.java |
+| 105 | QuestDecision.java | 112 | active-superseded | 5 | 5 | 0 | keep (transition) | phase0/play/GoalDecision (decision object role) | examples/QuestLoop.java, engine/QuestAI.java, engine/AIBrain.java (+2 more) |
+| 106 | QuestFramePlanner.java | 58 | active-superseded | 2 | 2 | 0 | keep (transition) | phase0/play/QuestDialogDriver | examples/QuestLoop.java, engine/QuestAI.java |
+| 107 | QuestGoal.java | 77 | dead | 0 | 0 | 0 | delete | phase0/play/QuestGoalPlanner | — |
+| 108 | QuestState.java | 72 | active-superseded | 1 | 1 | 0 | keep (transition) | phase0/quest/QuestProgressTracker | engine/QuestAI.java |
+| 109 | RaidBossAI.java | 46 | dead | 0 | 0 | 0 | delete | — | — |
+| 110 | RangedKiteAI.java | 18 | active | 3 | 2 | 1 | keep | — | engine/StreamGCombatTest.java, examples/GoalDrivenLoop.java, engine/CombatAI.java |
+| 111 | ResourceHoardingAI.java | 24 | active | 2 | 1 | 1 | keep | — | engine/StreamGBehaviorTest.java, engine/AIPlayer.java |
+| 112 | RiftAI.java | 16 | stub | 0 | 0 | 0 | delete | — | — |
+| 113 | SafeZoneManager.java | 115 | superseded | 0 | 0 | 0 | archive | phase0/death/RecoveryFlow + RespawnManager | — |
+| 114 | SeasonalScheduler.java | 31 | active | 1 | 1 | 0 | keep | — | engine/ManorManager.java |
+| 115 | SeedRegistry.java | 34 | superseded | 0 | 0 | 0 | archive | phase0/farm/ZoneDensityTracker (zone seeding) | — |
+| 116 | SepulchersAI.java | 10 | stub | 0 | 0 | 0 | delete | — | — |
+| 117 | SiegeBuffCoordinator.java | 40 | dead | 0 | 0 | 0 | delete | — | — |
+| 118 | SiegeExitManager.java | 14 | stub | 0 | 0 | 0 | delete | — | — |
+| 119 | SiegeLoreAI.java | 33 | dead | 0 | 0 | 0 | delete | — | — |
+| 120 | SiegePositioning.java | 15 | stub | 0 | 0 | 0 | delete | — | — |
+| 121 | SiegeRegistrationAI.java | 75 | superseded | 0 | 0 | 0 | archive | phase0/party/SiegeParticipationStub | — |
+| 122 | SiegeTiming.java | 22 | dead | 0 | 0 | 0 | delete | — | — |
+| 123 | SiegeWeaponAI.java | 38 | dead | 0 | 0 | 0 | delete | — | — |
+| 124 | SkillAllocator.java | 26 | active | 2 | 1 | 1 | keep | — | engine/StreamGCombatTest.java, engine/CombatAI.java |
+| 125 | SkillLearningAI.java | 35 | superseded | 0 | 0 | 0 | archive | phase0/quest/LevelingPlanner (skill learning path) | — |
+| 126 | SocialAI.java | 242 | active-superseded | 3 | 2 | 1 | keep (transition) | phase0/social/SocialBehaviorEngine + ChatResponder | engine/StreamESocialTest.java, engine/AIBrain.java, engine/AIPlayer.java |
+| 127 | SocialConfig.java | 151 | active | 1 | 1 | 0 | keep | — | engine/SocialAI.java |
+| 128 | SocialDecision.java | 99 | active-superseded | 3 | 2 | 1 | keep (transition) | phase0/play/GoalDecision (decision object role) | engine/StreamESocialTest.java, engine/AIBrain.java, engine/SocialAI.java |
+| 129 | SoloGroupAI.java | 20 | stub | 0 | 0 | 0 | delete | — | — |
+| 130 | StateMonitor.java | 25 | superseded | 0 | 0 | 0 | archive | phase0/GameStateMirror (state mirroring) | — |
+| 131 | SubclassAI.java | 29 | superseded | 0 | 0 | 0 | archive | phase0/quest/ClassChangeManager | — |
+| 132 | TaxCalculator.java | 22 | dead | 0 | 0 | 0 | delete | — | — |
+| 133 | TerritoryNPCDefense.java | 23 | superseded | 0 | 0 | 0 | archive | phase0/party/SiegeParticipationStub | — |
+| 134 | ThreadMonitor.java | 26 | superseded | 0 | 0 | 0 | archive | metrics/PerformanceMetrics (monitoring) | — |
+| 135 | TradePersonalityAI.java | 29 | dead | 0 | 0 | 0 | delete | — | — |
+| 136 | VendettaTracker.java | 17 | stub | 0 | 0 | 0 | delete | — | — |
+| 137 | VendettaTrackingAI.java | 31 | dead | 0 | 0 | 0 | delete | — | — |
+| 138 | VillageMasterAI.java | 35 | superseded | 0 | 0 | 0 | archive | phase0/quest/ClassChangeManager | — |
+| 139 | VitalityManager.java | 27 | superseded | 0 | 0 | 0 | archive | phase0/farm/RespawnTimer (vitality/regen cycle) | — |
+| 140 | WhisperResponseAI.java | 24 | dead | 0 | 0 | 0 | delete | — | — |
+| 141 | ZoneBuffManager.java | 16 | superseded | 0 | 0 | 0 | archive | phase0/inventory/ConsumableManager (buff items) | — |

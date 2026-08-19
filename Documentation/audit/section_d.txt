@@ -1,0 +1,102 @@
+### D.1: Stub Files (18 files — tiny stubs with 0 external references)
+
+| # | File | Lines | Phase0 Equivalent |
+|---|------|-------|-------------------|
+| 1 | BossTactics.java | 9 | no phase0 equivalent |
+| 2 | CastleTaxPlanner.java | 16 | no phase0 equivalent |
+| 3 | ClanHallDefense.java | 11 | no phase0 equivalent |
+| 4 | ColiseumAI.java | 7 | no phase0 equivalent |
+| 5 | DungeonPathfinder.java | 9 | no phase0 equivalent |
+| 6 | EscortAI.java | 7 | no phase0 equivalent |
+| 7 | GuildResponseAI.java | 20 | no phase0 equivalent |
+| 8 | HealerSacrificeAI.java | 16 | no phase0 equivalent |
+| 9 | HeroTitleOptimizer.java | 15 | no phase0 equivalent |
+| 10 | InstanceManager.java | 7 | no phase0 equivalent |
+| 11 | KamaelAI.java | 20 | no phase0 equivalent |
+| 12 | MentorSystemAI.java | 19 | no phase0 equivalent |
+| 13 | RiftAI.java | 16 | no phase0 equivalent |
+| 14 | SepulchersAI.java | 10 | no phase0 equivalent |
+| 15 | SiegeExitManager.java | 14 | no phase0 equivalent |
+| 16 | SiegePositioning.java | 15 | no phase0 equivalent |
+| 17 | SoloGroupAI.java | 20 | no phase0 equivalent |
+| 18 | VendettaTracker.java | 17 | no phase0 equivalent |
+
+### D.2: Dead Files (38 files — non-trivial size but 0 external references)
+
+| # | File | Lines | Phase0 Equivalent |
+|---|------|-------|-------------------|
+| 1 | AIPlayerActionExecutor.java | 122 | no phase0 equivalent |
+| 2 | AIPlayerSpawnController.java | 80 | no phase0 equivalent |
+| 3 | AcademyAI.java | 29 | no phase0 equivalent |
+| 4 | ArmorProficiency.java | 24 | no phase0 equivalent |
+| 5 | AttributeOptimizer.java | 28 | no phase0 equivalent |
+| 6 | AuctionAI.java | 35 | no phase0 equivalent |
+| 7 | BehavioralSimulator.java | 38 | no phase0 equivalent |
+| 8 | BuddySystemAI.java | 30 | no phase0 equivalent |
+| 9 | CastleManagement.java | 39 | no phase0 equivalent |
+| 10 | CastleStrategy.java | 30 | no phase0 equivalent |
+| 11 | ClanHallRegister.java | 22 | no phase0 equivalent |
+| 12 | ClanHallSiegeAI.java | 34 | no phase0 equivalent |
+| 13 | ClanMateAI.java | 28 | no phase0 equivalent |
+| 14 | ClassDecisionTree.java | 36 | no phase0 equivalent |
+| 15 | CommunityChatAI.java | 28 | no phase0 equivalent |
+| 16 | CrossServerAI.java | 31 | no phase0 equivalent |
+| 17 | DifficultyScaler.java | 25 | no phase0 equivalent |
+| 18 | DuelAnalyzer.java | 28 | no phase0 equivalent |
+| 19 | EmergencyEscapeAI.java | 37 | no phase0 equivalent |
+| 20 | ExpansionHooksAI.java | 23 | no phase0 equivalent |
+| 21 | FishingTournamentAI.java | 28 | no phase0 equivalent |
+| 22 | HumanBehaviorSimulator.java | 29 | no phase0 equivalent |
+| 23 | IdleEmoteAI.java | 24 | no phase0 equivalent |
+| 24 | LevelCappedAI.java | 24 | no phase0 equivalent |
+| 25 | NoblesseAI.java | 28 | no phase0 equivalent |
+| 26 | OlympiadAI.java | 21 | no phase0 equivalent |
+| 27 | PvPTargetPrioritizer.java | 50 | no phase0 equivalent |
+| 28 | PvPVendettaAI.java | 21 | no phase0 equivalent |
+| 29 | QuestGoal.java | 77 | phase0/play/QuestGoalPlanner |
+| 30 | RaidBossAI.java | 46 | no phase0 equivalent |
+| 31 | SiegeBuffCoordinator.java | 40 | no phase0 equivalent |
+| 32 | SiegeLoreAI.java | 33 | no phase0 equivalent |
+| 33 | SiegeTiming.java | 22 | no phase0 equivalent |
+| 34 | SiegeWeaponAI.java | 38 | no phase0 equivalent |
+| 35 | TaxCalculator.java | 22 | no phase0 equivalent |
+| 36 | TradePersonalityAI.java | 29 | no phase0 equivalent |
+| 37 | VendettaTrackingAI.java | 31 | no phase0 equivalent |
+| 38 | WhisperResponseAI.java | 24 | no phase0 equivalent |
+
+### D.3: Superseded Files (30 files — 0 refs, have phase0 equivalents, archive for reference)
+
+| # | File | Lines | Phase0 Equivalent |
+|---|------|-------|-------------------|
+| 1 | AIDiagnostics.java | 20 | metrics/PerformanceMetrics (diagnostics) |
+| 2 | AIProfiler.java | 24 | metrics/PerformanceMetrics (profiling) |
+| 3 | AntiStuckDetection.java | 12 | phase0/movement/StuckDetector |
+| 4 | ClassQuestAI.java | 48 | phase0/quest/ClassChangeManager |
+| 5 | ContentUnlocker.java | 46 | phase0/quest/LevelingPlanner (level-gated content) |
+| 6 | ControlRoomAI.java | 40 | monitor/AIMonitorDashboard (control room role) |
+| 7 | DeathPenaltyAI.java | 22 | phase0/death/DeathHandler |
+| 8 | EventAwareAI.java | 39 | phase0/director/DirectorAI (event awareness) |
+| 9 | ExternalAPI.java | 26 | web/DashboardApi (external API surface) |
+| 10 | HuntingPreferenceAI.java | 23 | phase0/farm/ZoneDensityTracker |
+| 11 | HuntingRotation.java | 10 | phase0/farm/OptimalSpotSelector |
+| 12 | KarmaManager.java | 13 | phase0/combat/TargetSelector (moral targeting) |
+| 13 | LineOfSight.java | 214 | phase0/movement/GeoPathfinder (geometry checks) |
+| 14 | LootDistributor.java | 11 | phase0/party/PartyLootDistributor + phase0/inventory/AutoLootHandler |
+| 15 | ManorManager.java | 22 | phase0/town/TownBehaviorEngine (manor interaction) |
+| 16 | MovementOptimizer.java | 7 | phase0/movement/MovementController + GeoPathfinder |
+| 17 | NewbieGuideAI.java | 34 | phase0/guide/RaceGuide + HuntZone |
+| 18 | PluginManager.java | 22 | phase0/Phase0Wiring (plugin/wiring management) |
+| 19 | PostSiegeCleanup.java | 18 | phase0/party/SiegeParticipationStub |
+| 20 | SafeZoneManager.java | 115 | phase0/death/RecoveryFlow + RespawnManager |
+| 21 | SeedRegistry.java | 34 | phase0/farm/ZoneDensityTracker (zone seeding) |
+| 22 | SiegeRegistrationAI.java | 75 | phase0/party/SiegeParticipationStub |
+| 23 | SkillLearningAI.java | 35 | phase0/quest/LevelingPlanner (skill learning path) |
+| 24 | StateMonitor.java | 25 | phase0/GameStateMirror (state mirroring) |
+| 25 | SubclassAI.java | 29 | phase0/quest/ClassChangeManager |
+| 26 | TerritoryNPCDefense.java | 23 | phase0/party/SiegeParticipationStub |
+| 27 | ThreadMonitor.java | 26 | metrics/PerformanceMetrics (monitoring) |
+| 28 | VillageMasterAI.java | 35 | phase0/quest/ClassChangeManager |
+| 29 | VitalityManager.java | 27 | phase0/farm/RespawnTimer (vitality/regen cycle) |
+| 30 | ZoneBuffManager.java | 16 | phase0/inventory/ConsumableManager (buff items) |
+
+**Summary:** 56 dead/stub files (1582 lines) safe to delete. 30 superseded files (1091 lines) to archive.

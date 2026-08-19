@@ -1,0 +1,1876 @@
+{
+  "AIAction": {
+    "filename": "AIAction.java",
+    "line_count": 70,
+    "ref_count": 4,
+    "prod_refs": 4,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/AIBrain.java",
+      "engine/AIDecision.java",
+      "engine/AIPlayer.java",
+      "engine/AIActionQueue.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIActionQueue": {
+    "filename": "AIActionQueue.java",
+    "line_count": 66,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIBrain": {
+    "filename": "AIBrain.java",
+    "line_count": 262,
+    "ref_count": 14,
+    "prod_refs": 14,
+    "test_refs": 0,
+    "ref_files": [
+      "examples/Phase0Driver.java",
+      "engine/Phase0Config.java",
+      "engine/AIPlayer.java",
+      "phase0/brain/Phase0Brain.java",
+      "phase0/farm/FarmZoneScorer.java",
+      "phase0/farm/OptimalSpotSelector.java",
+      "phase0/farm/ZoneDensityTracker.java",
+      "phase0/farm/DynamicZoneManager.java",
+      "phase0/farm/FarmSessionRecorder.java",
+      "phase0/humanize/AntiDetectionEngine.java",
+      "phase0/quest/LevelingPlanner.java",
+      "phase0/quest/QuestExecutor.java",
+      "phase0/party/PartyManager.java",
+      "advanced/PersonalityProfile.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/brain/Phase0Brain + StateMachine"
+  },
+  "AIConfiguration": {
+    "filename": "AIConfiguration.java",
+    "line_count": 129,
+    "ref_count": 9,
+    "prod_refs": 6,
+    "test_refs": 3,
+    "ref_files": [
+      "engine/Phase0IntegrationTest.java",
+      "engine/CombatAIPhase0Test.java",
+      "phase0/movement/Phase0MovementConfigTest.java",
+      "examples/FleetPlay.java",
+      "engine/AIBrain.java",
+      "engine/AIModuleLoader.java",
+      "engine/AIPlayerEngine.java",
+      "engine/Phase0Config.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIDecision": {
+    "filename": "AIDecision.java",
+    "line_count": 47,
+    "ref_count": 2,
+    "prod_refs": 2,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/AIBrain.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIDiagnostics": {
+    "filename": "AIDiagnostics.java",
+    "line_count": 20,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "metrics/PerformanceMetrics (diagnostics)"
+  },
+  "AIModuleLoader": {
+    "filename": "AIModuleLoader.java",
+    "line_count": 49,
+    "ref_count": 2,
+    "prod_refs": 2,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/AIBrain.java",
+      "engine/AIPlayerEngine.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIPlayer": {
+    "filename": "AIPlayer.java",
+    "line_count": 497,
+    "ref_count": 53,
+    "prod_refs": 38,
+    "test_refs": 15,
+    "ref_files": [
+      "engine/MultiAgentIntegrationTest.java",
+      "engine/StreamDFeedbackTest.java",
+      "engine/StreamETradeTest.java",
+      "engine/Phase0IntegrationTest.java",
+      "engine/GoalTreeTest.java",
+      "engine/CombatAITest.java",
+      "engine/LiveFeedbackBridgeTest.java",
+      "engine/AgentLoadTest.java",
+      "engine/StreamESocialTest.java",
+      "engine/CombatAIPhase0Test.java",
+      "engine/StreamGBehaviorTest.java",
+      "engine/StreamGContentTest.java",
+      "engine/StreamESchedulerTest.java",
+      "engine/StreamGCombatTest.java",
+      "engine/GameServerClientTest.java",
+      "examples/CombatProbe.java",
+      "examples/PartyProbe.java",
+      "examples/MoveProbe.java",
+      "examples/LoginProbe.java",
+      "examples/QuestProbe.java",
+      "examples/FleetPlay.java",
+      "examples/Phase0Driver.java",
+      "examples/QuestFlowLoop.java",
+      "examples/QuestLoop.java",
+      "examples/TradeProbe.java",
+      "examples/ExampleAIPlayer.java",
+      "examples/GoalDrivenLoop.java",
+      "examples/EnterWorldProbe.java",
+      "examples/CombatLoop.java",
+      "examples/PvPProbe.java",
+      "examples/MultiPlayerSession.java",
+      "examples/ChatProbe.java",
+      "engine/LiveFeedbackBridge.java",
+      "engine/QuestAI.java",
+      "engine/AIBrain.java",
+      "engine/AIPlayerSpawnController.java",
+      "engine/SocialAI.java",
+      "engine/AIPlayerManager.java",
+      "engine/AIPlayerConnection.java",
+      "engine/GameServerClient.java",
+      "engine/Phase0Config.java",
+      "engine/CombatAI.java",
+      "engine/Phase0Integration.java",
+      "engine/GoalTree.java",
+      "engine/ActivityScheduler.java",
+      "engine/AIPlayerActionExecutor.java",
+      "engine/MerchantAI.java",
+      "protocol/L2JProtocol.java",
+      "protocol/L2ProtocolHandler.java",
+      "protocol/ProtocolFactory.java",
+      "phase0/humanize/AntiDetectionEngine.java",
+      "phase0/combat/ShotManager.java",
+      "monitor/AIMonitorDashboard.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/BotSnapshot + BotPlayController (different roles)"
+  },
+  "AIPlayerActionExecutor": {
+    "filename": "AIPlayerActionExecutor.java",
+    "line_count": 122,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "AIPlayerConnection": {
+    "filename": "AIPlayerConnection.java",
+    "line_count": 165,
+    "ref_count": 2,
+    "prod_refs": 2,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/GameServerClient.java",
+      "engine/AIPlayerActionExecutor.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIPlayerEngine": {
+    "filename": "AIPlayerEngine.java",
+    "line_count": 157,
+    "ref_count": 3,
+    "prod_refs": 3,
+    "test_refs": 0,
+    "ref_files": [
+      "protocol/DatapackNames.java",
+      "protocol/LoginCrypt.java",
+      "phase0/party/PartyManager.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIPlayerManager": {
+    "filename": "AIPlayerManager.java",
+    "line_count": 270,
+    "ref_count": 6,
+    "prod_refs": 5,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/MultiAgentIntegrationTest.java",
+      "examples/Phase0Driver.java",
+      "examples/ExampleAIPlayer.java",
+      "engine/AIPlayerSpawnController.java",
+      "engine/AIPlayerEngine.java",
+      "monitor/AIMonitorDashboard.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIPlayerReal": {
+    "filename": "AIPlayerReal.java",
+    "line_count": 244,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "examples/TenMorePlayersDemo.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIPlayerSimple": {
+    "filename": "AIPlayerSimple.java",
+    "line_count": 107,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "examples/FivePlayerMagicShow.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIPlayerSpawnController": {
+    "filename": "AIPlayerSpawnController.java",
+    "line_count": 80,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "AIPlayerState": {
+    "filename": "AIPlayerState.java",
+    "line_count": 31,
+    "ref_count": 2,
+    "prod_refs": 2,
+    "test_refs": 0,
+    "ref_files": [
+      "examples/ExampleAIPlayer.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "AIProfiler": {
+    "filename": "AIProfiler.java",
+    "line_count": 24,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "metrics/PerformanceMetrics (profiling)"
+  },
+  "AcademyAI": {
+    "filename": "AcademyAI.java",
+    "line_count": 29,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "AchievementAI": {
+    "filename": "AchievementAI.java",
+    "line_count": 35,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGContentTest.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "ActivityScheduler": {
+    "filename": "ActivityScheduler.java",
+    "line_count": 100,
+    "ref_count": 3,
+    "prod_refs": 2,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamESchedulerTest.java",
+      "examples/GoalDrivenLoop.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/play/BotPlayController (activity rotation role)"
+  },
+  "AggroManager": {
+    "filename": "AggroManager.java",
+    "line_count": 344,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGCombatTest.java",
+      "engine/CombatAI.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/combat/AggroTracker"
+  },
+  "AntiGriefing": {
+    "filename": "AntiGriefing.java",
+    "line_count": 12,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGCombatTest.java",
+      "engine/CombatAI.java"
+    ],
+    "status": "stub-active",
+    "recommendation": "keep (shallow)",
+    "phase0_equiv": ""
+  },
+  "AntiStuckDetection": {
+    "filename": "AntiStuckDetection.java",
+    "line_count": 12,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/movement/StuckDetector"
+  },
+  "ArmorProficiency": {
+    "filename": "ArmorProficiency.java",
+    "line_count": 24,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "AttributeOptimizer": {
+    "filename": "AttributeOptimizer.java",
+    "line_count": 28,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "AuctionAI": {
+    "filename": "AuctionAI.java",
+    "line_count": 35,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "BehaviorSeeder": {
+    "filename": "BehaviorSeeder.java",
+    "line_count": 36,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGBehaviorTest.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "BehavioralSimulator": {
+    "filename": "BehavioralSimulator.java",
+    "line_count": 38,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "BossTactics": {
+    "filename": "BossTactics.java",
+    "line_count": 9,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "BuddySystemAI": {
+    "filename": "BuddySystemAI.java",
+    "line_count": 30,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "CastleManagement": {
+    "filename": "CastleManagement.java",
+    "line_count": 39,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "CastleStrategy": {
+    "filename": "CastleStrategy.java",
+    "line_count": 30,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "CastleTaxPlanner": {
+    "filename": "CastleTaxPlanner.java",
+    "line_count": 16,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "ClanHallDefense": {
+    "filename": "ClanHallDefense.java",
+    "line_count": 11,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "ClanHallRegister": {
+    "filename": "ClanHallRegister.java",
+    "line_count": 22,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "ClanHallSiegeAI": {
+    "filename": "ClanHallSiegeAI.java",
+    "line_count": 34,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "ClanMateAI": {
+    "filename": "ClanMateAI.java",
+    "line_count": 28,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "ClanState": {
+    "filename": "ClanState.java",
+    "line_count": 56,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/SocialAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "ClassDecisionTree": {
+    "filename": "ClassDecisionTree.java",
+    "line_count": 36,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "ClassQuestAI": {
+    "filename": "ClassQuestAI.java",
+    "line_count": 48,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/quest/ClassChangeManager"
+  },
+  "ColiseumAI": {
+    "filename": "ColiseumAI.java",
+    "line_count": 7,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "CombatAI": {
+    "filename": "CombatAI.java",
+    "line_count": 742,
+    "ref_count": 31,
+    "prod_refs": 24,
+    "test_refs": 7,
+    "ref_files": [
+      "engine/StreamDFeedbackTest.java",
+      "engine/PerceptionAccuracyTest.java",
+      "engine/GoalTreeTest.java",
+      "engine/CombatAITest.java",
+      "engine/CombatAIPhase0Test.java",
+      "engine/CombatFramePlannerTest.java",
+      "engine/CombatFramePlannerUseSkillTest.java",
+      "examples/FleetPlay.java",
+      "examples/Phase0Driver.java",
+      "examples/GoalDrivenLoop.java",
+      "examples/CombatLoop.java",
+      "examples/MultiPlayerSession.java",
+      "engine/LiveFeedbackBridge.java",
+      "engine/QuestAI.java",
+      "engine/AIBrain.java",
+      "engine/Phase0Config.java",
+      "engine/AIPlayer.java",
+      "engine/Phase0Integration.java",
+      "protocol/PacketLogger.java",
+      "phase0/farm/RespawnTimer.java",
+      "phase0/farm/DynamicZoneManager.java",
+      "phase0/humanize/AntiDetectionEngine.java",
+      "phase0/quest/LevelingPlanner.java",
+      "phase0/quest/QuestExecutor.java",
+      "phase0/death/DeathHandler.java",
+      "phase0/death/RecoveryFlow.java",
+      "phase0/party/PartyCoordinationEngine.java",
+      "phase0/party/PartyManager.java",
+      "phase0/party/SiegeParticipationStub.java",
+      "phase0/combat/SkillDatabase.java",
+      "phase0/combat/CooldownTracker.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/combat/CombatRotation + RotationFactory + class-specific rotations"
+  },
+  "CombatConfig": {
+    "filename": "CombatConfig.java",
+    "line_count": 191,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/CombatAITest.java",
+      "engine/CombatAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "CombatDecision": {
+    "filename": "CombatDecision.java",
+    "line_count": 120,
+    "ref_count": 14,
+    "prod_refs": 10,
+    "test_refs": 4,
+    "ref_files": [
+      "engine/CombatAITest.java",
+      "engine/CombatAIPhase0Test.java",
+      "engine/CombatFramePlannerTest.java",
+      "engine/CombatFramePlannerUseSkillTest.java",
+      "examples/FleetPlay.java",
+      "examples/Phase0Driver.java",
+      "examples/GoalDrivenLoop.java",
+      "examples/CombatLoop.java",
+      "examples/MultiPlayerSession.java",
+      "engine/AIBrain.java",
+      "engine/AIPlayerConnection.java",
+      "engine/CombatAI.java",
+      "engine/CombatFramePlanner.java",
+      "phase0/Phase0Wiring.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/play/GoalDecision (decision object role)"
+  },
+  "CombatFramePlanner": {
+    "filename": "CombatFramePlanner.java",
+    "line_count": 120,
+    "ref_count": 10,
+    "prod_refs": 8,
+    "test_refs": 2,
+    "ref_files": [
+      "engine/CombatFramePlannerTest.java",
+      "engine/CombatFramePlannerUseSkillTest.java",
+      "examples/FleetPlay.java",
+      "examples/Phase0Driver.java",
+      "examples/GoalDrivenLoop.java",
+      "examples/CombatLoop.java",
+      "examples/MultiPlayerSession.java",
+      "engine/AIPlayerConnection.java",
+      "engine/GameServerClient.java",
+      "phase0/Phase0Wiring.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/play/BotPlayController (frame planning role)"
+  },
+  "CombatState": {
+    "filename": "CombatState.java",
+    "line_count": 199,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/CombatAITest.java",
+      "engine/CombatAI.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/combat/CooldownTracker + TargetScore (state roles)"
+  },
+  "CommunityChatAI": {
+    "filename": "CommunityChatAI.java",
+    "line_count": 28,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "ContentUnlocker": {
+    "filename": "ContentUnlocker.java",
+    "line_count": 46,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/quest/LevelingPlanner (level-gated content)"
+  },
+  "ControlRoomAI": {
+    "filename": "ControlRoomAI.java",
+    "line_count": 40,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "monitor/AIMonitorDashboard (control room role)"
+  },
+  "CrossServerAI": {
+    "filename": "CrossServerAI.java",
+    "line_count": 31,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "DeathPenaltyAI": {
+    "filename": "DeathPenaltyAI.java",
+    "line_count": 22,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/death/DeathHandler"
+  },
+  "DifficultyScaler": {
+    "filename": "DifficultyScaler.java",
+    "line_count": 25,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "DuelAnalyzer": {
+    "filename": "DuelAnalyzer.java",
+    "line_count": 28,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "DungeonPathfinder": {
+    "filename": "DungeonPathfinder.java",
+    "line_count": 9,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "EmergencyEscapeAI": {
+    "filename": "EmergencyEscapeAI.java",
+    "line_count": 37,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "EscortAI": {
+    "filename": "EscortAI.java",
+    "line_count": 7,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "EventAwareAI": {
+    "filename": "EventAwareAI.java",
+    "line_count": 39,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/director/DirectorAI (event awareness)"
+  },
+  "EventCalendarAI": {
+    "filename": "EventCalendarAI.java",
+    "line_count": 31,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGContentTest.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": "phase0/director/DirectorAI (event scheduling) \u2014 partially active"
+  },
+  "ExpansionHooksAI": {
+    "filename": "ExpansionHooksAI.java",
+    "line_count": 23,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "ExternalAPI": {
+    "filename": "ExternalAPI.java",
+    "line_count": 26,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "web/DashboardApi (external API surface)"
+  },
+  "FishingTournamentAI": {
+    "filename": "FishingTournamentAI.java",
+    "line_count": 28,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "GameServerClient": {
+    "filename": "GameServerClient.java",
+    "line_count": 382,
+    "ref_count": 16,
+    "prod_refs": 13,
+    "test_refs": 3,
+    "ref_files": [
+      "engine/CombatAITest.java",
+      "engine/GameServerClientTest.java",
+      "protocol/PacketLoggerCharSelectTest.java",
+      "examples/BotInfo.java",
+      "examples/FleetPlay.java",
+      "examples/Phase0Driver.java",
+      "examples/QuestFlowLoop.java",
+      "examples/QuestLoop.java",
+      "examples/GoalDrivenLoop.java",
+      "examples/CombatLoop.java",
+      "examples/MultiPlayerSession.java",
+      "engine/QuestAI.java",
+      "engine/CombatAI.java",
+      "protocol/PacketCodec.java",
+      "protocol/PacketLogger.java",
+      "phase0/Phase0Wiring.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "GoalTree": {
+    "filename": "GoalTree.java",
+    "line_count": 126,
+    "ref_count": 5,
+    "prod_refs": 3,
+    "test_refs": 2,
+    "ref_files": [
+      "engine/MultiAgentIntegrationTest.java",
+      "engine/GoalTreeTest.java",
+      "examples/GoalDrivenLoop.java",
+      "engine/AIPlayer.java",
+      "engine/ActivityScheduler.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/play/GoalDecision + GoalAction + PlayerGoal"
+  },
+  "GuildResponseAI": {
+    "filename": "GuildResponseAI.java",
+    "line_count": 20,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "HealerSacrificeAI": {
+    "filename": "HealerSacrificeAI.java",
+    "line_count": 16,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "HeroTitleAI": {
+    "filename": "HeroTitleAI.java",
+    "line_count": 33,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGContentTest.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "HeroTitleOptimizer": {
+    "filename": "HeroTitleOptimizer.java",
+    "line_count": 15,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "HumanBehaviorSimulator": {
+    "filename": "HumanBehaviorSimulator.java",
+    "line_count": 29,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "HumanReactionSimulator": {
+    "filename": "HumanReactionSimulator.java",
+    "line_count": 33,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGBehaviorTest.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "HuntingPreferenceAI": {
+    "filename": "HuntingPreferenceAI.java",
+    "line_count": 23,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/farm/ZoneDensityTracker"
+  },
+  "HuntingRotation": {
+    "filename": "HuntingRotation.java",
+    "line_count": 10,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/farm/OptimalSpotSelector"
+  },
+  "IdleEmoteAI": {
+    "filename": "IdleEmoteAI.java",
+    "line_count": 24,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "InstanceManager": {
+    "filename": "InstanceManager.java",
+    "line_count": 7,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "KamaelAI": {
+    "filename": "KamaelAI.java",
+    "line_count": 20,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "KarmaManager": {
+    "filename": "KarmaManager.java",
+    "line_count": 13,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/combat/TargetSelector (moral targeting)"
+  },
+  "LevelCappedAI": {
+    "filename": "LevelCappedAI.java",
+    "line_count": 24,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "LineOfSight": {
+    "filename": "LineOfSight.java",
+    "line_count": 214,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/movement/GeoPathfinder (geometry checks)"
+  },
+  "LiveFeedbackBridge": {
+    "filename": "LiveFeedbackBridge.java",
+    "line_count": 94,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/LiveFeedbackBridgeTest.java",
+      "examples/GoalDrivenLoop.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "LongTermGoalsAI": {
+    "filename": "LongTermGoalsAI.java",
+    "line_count": 28,
+    "ref_count": 8,
+    "prod_refs": 4,
+    "test_refs": 4,
+    "ref_files": [
+      "engine/StreamDFeedbackTest.java",
+      "engine/LiveFeedbackBridgeTest.java",
+      "engine/StreamGContentTest.java",
+      "engine/StreamESchedulerTest.java",
+      "engine/QuestAI.java",
+      "engine/CombatAI.java",
+      "engine/AIPlayer.java",
+      "engine/GoalTree.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "LootDistributor": {
+    "filename": "LootDistributor.java",
+    "line_count": 11,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/party/PartyLootDistributor + phase0/inventory/AutoLootHandler"
+  },
+  "ManorAI": {
+    "filename": "ManorAI.java",
+    "line_count": 51,
+    "ref_count": 2,
+    "prod_refs": 2,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/SeasonalScheduler.java",
+      "engine/ManorManager.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "ManorManager": {
+    "filename": "ManorManager.java",
+    "line_count": 22,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/town/TownBehaviorEngine (manor interaction)"
+  },
+  "MentorSystemAI": {
+    "filename": "MentorSystemAI.java",
+    "line_count": 19,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "MerchantAI": {
+    "filename": "MerchantAI.java",
+    "line_count": 202,
+    "ref_count": 3,
+    "prod_refs": 2,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamETradeTest.java",
+      "engine/AIBrain.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/town/BuyManager + SellManager + TownBehaviorEngine"
+  },
+  "MerchantConfig": {
+    "filename": "MerchantConfig.java",
+    "line_count": 134,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/MerchantAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "MerchantDecision": {
+    "filename": "MerchantDecision.java",
+    "line_count": 81,
+    "ref_count": 3,
+    "prod_refs": 2,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamETradeTest.java",
+      "engine/AIBrain.java",
+      "engine/MerchantAI.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/play/GoalDecision (decision object role)"
+  },
+  "MerchantNPC": {
+    "filename": "MerchantNPC.java",
+    "line_count": 47,
+    "ref_count": 3,
+    "prod_refs": 3,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/MerchantDecision.java",
+      "engine/AIBrain.java",
+      "engine/MerchantAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "MovementOptimizer": {
+    "filename": "MovementOptimizer.java",
+    "line_count": 7,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/movement/MovementController + GeoPathfinder"
+  },
+  "MovementPatternAI": {
+    "filename": "MovementPatternAI.java",
+    "line_count": 30,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGBehaviorTest.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "NewbieGuideAI": {
+    "filename": "NewbieGuideAI.java",
+    "line_count": 34,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/guide/RaceGuide + HuntZone"
+  },
+  "NoblesseAI": {
+    "filename": "NoblesseAI.java",
+    "line_count": 28,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "OlympiadAI": {
+    "filename": "OlympiadAI.java",
+    "line_count": 21,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "PKDecision": {
+    "filename": "PKDecision.java",
+    "line_count": 112,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/CombatAITest.java",
+      "engine/AIBrain.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/combat/TargetSelector (target selection role)"
+  },
+  "PartyState": {
+    "filename": "PartyState.java",
+    "line_count": 53,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/SocialAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "PersistenceManager": {
+    "filename": "PersistenceManager.java",
+    "line_count": 38,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "Phase0Config": {
+    "filename": "Phase0Config.java",
+    "line_count": 127,
+    "ref_count": 5,
+    "prod_refs": 4,
+    "test_refs": 1,
+    "ref_files": [
+      "phase0/movement/Phase0MovementConfigTest.java",
+      "examples/FleetPlay.java",
+      "examples/Phase0Driver.java",
+      "engine/CombatAI.java",
+      "engine/Phase0Integration.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "Phase0Integration": {
+    "filename": "Phase0Integration.java",
+    "line_count": 288,
+    "ref_count": 6,
+    "prod_refs": 4,
+    "test_refs": 2,
+    "ref_files": [
+      "engine/Phase0IntegrationTest.java",
+      "engine/CombatAIPhase0Test.java",
+      "examples/Phase0Driver.java",
+      "engine/Phase0Config.java",
+      "engine/CombatAI.java",
+      "phase0/combat/SkillDatabase.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "PluginManager": {
+    "filename": "PluginManager.java",
+    "line_count": 22,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/Phase0Wiring (plugin/wiring management)"
+  },
+  "PostSiegeCleanup": {
+    "filename": "PostSiegeCleanup.java",
+    "line_count": 18,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/party/SiegeParticipationStub"
+  },
+  "PvPSkillRotation": {
+    "filename": "PvPSkillRotation.java",
+    "line_count": 72,
+    "ref_count": 3,
+    "prod_refs": 1,
+    "test_refs": 2,
+    "ref_files": [
+      "engine/CombatAITest.java",
+      "engine/StreamGCombatTest.java",
+      "engine/CombatAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "PvPTargetPrioritizer": {
+    "filename": "PvPTargetPrioritizer.java",
+    "line_count": 50,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "PvPVendettaAI": {
+    "filename": "PvPVendettaAI.java",
+    "line_count": 21,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "QuestAI": {
+    "filename": "QuestAI.java",
+    "line_count": 252,
+    "ref_count": 4,
+    "prod_refs": 4,
+    "test_refs": 0,
+    "ref_files": [
+      "examples/QuestLoop.java",
+      "engine/LiveFeedbackBridge.java",
+      "engine/AIBrain.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/quest/QuestExecutor + QuestProgressTracker"
+  },
+  "QuestConfig": {
+    "filename": "QuestConfig.java",
+    "line_count": 117,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/QuestAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "QuestDecision": {
+    "filename": "QuestDecision.java",
+    "line_count": 112,
+    "ref_count": 5,
+    "prod_refs": 5,
+    "test_refs": 0,
+    "ref_files": [
+      "examples/QuestLoop.java",
+      "engine/QuestAI.java",
+      "engine/AIBrain.java",
+      "engine/QuestGoal.java",
+      "engine/QuestFramePlanner.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/play/GoalDecision (decision object role)"
+  },
+  "QuestFramePlanner": {
+    "filename": "QuestFramePlanner.java",
+    "line_count": 58,
+    "ref_count": 2,
+    "prod_refs": 2,
+    "test_refs": 0,
+    "ref_files": [
+      "examples/QuestLoop.java",
+      "engine/QuestAI.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/play/QuestDialogDriver"
+  },
+  "QuestGoal": {
+    "filename": "QuestGoal.java",
+    "line_count": 77,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": "phase0/play/QuestGoalPlanner"
+  },
+  "QuestState": {
+    "filename": "QuestState.java",
+    "line_count": 72,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/QuestAI.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/quest/QuestProgressTracker"
+  },
+  "RaidBossAI": {
+    "filename": "RaidBossAI.java",
+    "line_count": 46,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "RangedKiteAI": {
+    "filename": "RangedKiteAI.java",
+    "line_count": 18,
+    "ref_count": 3,
+    "prod_refs": 2,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGCombatTest.java",
+      "examples/GoalDrivenLoop.java",
+      "engine/CombatAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "ResourceHoardingAI": {
+    "filename": "ResourceHoardingAI.java",
+    "line_count": 24,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGBehaviorTest.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "RiftAI": {
+    "filename": "RiftAI.java",
+    "line_count": 16,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "SafeZoneManager": {
+    "filename": "SafeZoneManager.java",
+    "line_count": 115,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/death/RecoveryFlow + RespawnManager"
+  },
+  "SeasonalScheduler": {
+    "filename": "SeasonalScheduler.java",
+    "line_count": 31,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/ManorManager.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "SeedRegistry": {
+    "filename": "SeedRegistry.java",
+    "line_count": 34,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/farm/ZoneDensityTracker (zone seeding)"
+  },
+  "SepulchersAI": {
+    "filename": "SepulchersAI.java",
+    "line_count": 10,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "SiegeBuffCoordinator": {
+    "filename": "SiegeBuffCoordinator.java",
+    "line_count": 40,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "SiegeExitManager": {
+    "filename": "SiegeExitManager.java",
+    "line_count": 14,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "SiegeLoreAI": {
+    "filename": "SiegeLoreAI.java",
+    "line_count": 33,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "SiegePositioning": {
+    "filename": "SiegePositioning.java",
+    "line_count": 15,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "SiegeRegistrationAI": {
+    "filename": "SiegeRegistrationAI.java",
+    "line_count": 75,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/party/SiegeParticipationStub"
+  },
+  "SiegeTiming": {
+    "filename": "SiegeTiming.java",
+    "line_count": 22,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "SiegeWeaponAI": {
+    "filename": "SiegeWeaponAI.java",
+    "line_count": 38,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "SkillAllocator": {
+    "filename": "SkillAllocator.java",
+    "line_count": 26,
+    "ref_count": 2,
+    "prod_refs": 1,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamGCombatTest.java",
+      "engine/CombatAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "SkillLearningAI": {
+    "filename": "SkillLearningAI.java",
+    "line_count": 35,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/quest/LevelingPlanner (skill learning path)"
+  },
+  "SocialAI": {
+    "filename": "SocialAI.java",
+    "line_count": 242,
+    "ref_count": 3,
+    "prod_refs": 2,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamESocialTest.java",
+      "engine/AIBrain.java",
+      "engine/AIPlayer.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/social/SocialBehaviorEngine + ChatResponder"
+  },
+  "SocialConfig": {
+    "filename": "SocialConfig.java",
+    "line_count": 151,
+    "ref_count": 1,
+    "prod_refs": 1,
+    "test_refs": 0,
+    "ref_files": [
+      "engine/SocialAI.java"
+    ],
+    "status": "active",
+    "recommendation": "keep",
+    "phase0_equiv": ""
+  },
+  "SocialDecision": {
+    "filename": "SocialDecision.java",
+    "line_count": 99,
+    "ref_count": 3,
+    "prod_refs": 2,
+    "test_refs": 1,
+    "ref_files": [
+      "engine/StreamESocialTest.java",
+      "engine/AIBrain.java",
+      "engine/SocialAI.java"
+    ],
+    "status": "active-superseded",
+    "recommendation": "keep (transition)",
+    "phase0_equiv": "phase0/play/GoalDecision (decision object role)"
+  },
+  "SoloGroupAI": {
+    "filename": "SoloGroupAI.java",
+    "line_count": 20,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "StateMonitor": {
+    "filename": "StateMonitor.java",
+    "line_count": 25,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/GameStateMirror (state mirroring)"
+  },
+  "SubclassAI": {
+    "filename": "SubclassAI.java",
+    "line_count": 29,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/quest/ClassChangeManager"
+  },
+  "TaxCalculator": {
+    "filename": "TaxCalculator.java",
+    "line_count": 22,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "TerritoryNPCDefense": {
+    "filename": "TerritoryNPCDefense.java",
+    "line_count": 23,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/party/SiegeParticipationStub"
+  },
+  "ThreadMonitor": {
+    "filename": "ThreadMonitor.java",
+    "line_count": 26,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "metrics/PerformanceMetrics (monitoring)"
+  },
+  "TradePersonalityAI": {
+    "filename": "TradePersonalityAI.java",
+    "line_count": 29,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "VendettaTracker": {
+    "filename": "VendettaTracker.java",
+    "line_count": 17,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "stub",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "VendettaTrackingAI": {
+    "filename": "VendettaTrackingAI.java",
+    "line_count": 31,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "VillageMasterAI": {
+    "filename": "VillageMasterAI.java",
+    "line_count": 35,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/quest/ClassChangeManager"
+  },
+  "VitalityManager": {
+    "filename": "VitalityManager.java",
+    "line_count": 27,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/farm/RespawnTimer (vitality/regen cycle)"
+  },
+  "WhisperResponseAI": {
+    "filename": "WhisperResponseAI.java",
+    "line_count": 24,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "dead",
+    "recommendation": "delete",
+    "phase0_equiv": ""
+  },
+  "ZoneBuffManager": {
+    "filename": "ZoneBuffManager.java",
+    "line_count": 16,
+    "ref_count": 0,
+    "prod_refs": 0,
+    "test_refs": 0,
+    "ref_files": [],
+    "status": "superseded",
+    "recommendation": "archive",
+    "phase0_equiv": "phase0/inventory/ConsumableManager (buff items)"
+  }
+}
