@@ -86,6 +86,22 @@ class QuestDialogTest
     }
 
     @Test
+    void multiStepMenuThenQuestListThenAccept()
+    {
+        // S3-T06: some givers (e.g. gatekeeper ROXXY) present a MENU first; the driver must drill the
+        // "Quest" menu link, then accept from the quest list.
+        QuestDialog def = new QuestDialog(6, "Q00006_StepIntoTheFuture", Objective.ACCEPT, "accept", "");
+        String[] menu = { "teleport Somewhere", "Quest" };
+        Set<String> sent = new HashSet<>();
+        assertEquals("Quest", QuestDialogDriver.next(menu, def, sent), "drill into the quest menu");
+        sent.add("Quest");
+
+        String[] questList = { "Q00006_StepIntoTheFuture", "SomeOtherQuest" };
+        assertEquals("Q00006_StepIntoTheFuture", QuestDialogDriver.next(questList, def, sent),
+            "accept link named by the quest");
+    }
+
+    @Test
     void emptyLinksReturnsNoCommand()
     {
         QuestDialog def = new QuestDialog(40001, QUEST_NAME, Objective.ACCEPT, "accept", "");

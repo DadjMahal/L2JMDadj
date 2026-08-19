@@ -361,6 +361,8 @@ public final class FleetPlay
             }
             questLastHtml = html;
             String[] links = PacketLogger.extractBypassLinks(html);
+            LOGGER.info("[FleetPlay] " + account + " quest dialog links[" + (links == null ? 0 : links.length)
+                + "] " + java.util.Arrays.toString(links)); // S3-T06 live link-format diagnostic
             String next = QuestDialogDriver.next(links, dialogDef, questSentLinks);
             if (next.isEmpty())
             {
