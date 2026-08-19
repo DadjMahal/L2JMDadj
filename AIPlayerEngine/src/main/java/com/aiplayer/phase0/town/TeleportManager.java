@@ -326,4 +326,9 @@ public final class TeleportManager {
     private static long jitter(long base, long max) {
         return ThreadLocalRandom.current().nextLong(base, max + 1);
     }
+/** S7-T09: pure far-vendor teleport decision — gatekeeper beats a very long walk. */
+    public static boolean farEnoughToTeleport(int estimatedWalkSeconds, int maxWalkSeconds)
+    {
+        return estimatedWalkSeconds >= maxWalkSeconds;
+    }
 }

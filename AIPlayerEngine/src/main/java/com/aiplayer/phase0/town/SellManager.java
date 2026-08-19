@@ -294,4 +294,15 @@ public final class SellManager {
     private static long jitter(long base, long max) {
         return ThreadLocalRandom.current().nextLong(base, max + 1);
     }
+/** S7-T06: pure auto-sell-overflow trigger — go sell once the bag is nearly full. */
+    public static boolean autoSellOverflow(int usedSlots, int maxSlots)
+    {
+        return maxSlots > 0 && usedSlots >= maxSlots - 2;
+    }
+
+    /** S7-T06: is the junk valuable enough to justify the merchant trip? */
+    public static boolean junkWorthSelling(int junkValue, int minValue)
+    {
+        return junkValue >= minValue;
+    }
 }

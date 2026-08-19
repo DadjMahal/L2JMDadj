@@ -493,4 +493,16 @@ public final class BuyManager {
     private static long jitter(long base, long max) {
         return ThreadLocalRandom.current().nextLong(base, max + 1);
     }
+    /** S7-T02: pure affordability + buy-qty decision (clamped to what the bot can pay). */
+    public static int buyQty(int need, int adena, int price)
+    {
+        if (need <= 0 || price <= 0) return 0;
+        return Math.max(0, Math.min(need, adena / price));
+    }
+
+    public static boolean canAfford(int adena, int qty, int price)
+    {
+        return qty > 0 && price > 0 && adena >= qty * price;
+    }
+
 }

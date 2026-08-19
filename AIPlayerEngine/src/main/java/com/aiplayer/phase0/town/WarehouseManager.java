@@ -242,4 +242,9 @@ public final class WarehouseManager {
     private static long jitter(long base, long max) {
         return ThreadLocalRandom.current().nextLong(base, max + 1);
     }
+/** S7-T07: pure warehouse-overflow trigger — bank the overflow once the bag is nearly full. */
+    public static boolean depositOverflow(int usedSlots, int maxSlots)
+    {
+        return maxSlots > 0 && usedSlots >= maxSlots - 2;
+    }
 }
