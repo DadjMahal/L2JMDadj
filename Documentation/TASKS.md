@@ -103,13 +103,13 @@
 | S5-T01 | Fix solo-bot relocation dead-end (far-hop doesn't persist server-side) | H | P0 | DONE-PUSHED 36645b2a (walkable hunt-zone anchors; live 100% hop-success, 0 stalled) |
 | S5-T02 | Frozen bot routes toward nearest hostile entity (not just last-XP/mate) | M | P0 | DONE-PUSHED (covered live: controller HUNT + level-scaled ranges keep frozen bots on hostiles) |
 | S5-T03 | Hop persistence: require server-ack before re-issuing (kill 2-timeout churn) | M | P0 | DONE-PUSHED 36645b2a (HopGate ack-gating + telemetry; live 100% ack) |
-| S5-T04 | Escape-gate: after 3 abandons, short walk to nearest entity instead of 60s hold | M | P1 | TODO |
-| S5-T05 | ZoneRouter walkability heuristic (avoid ocean/void hops) | H | P1 | TODO |
+| S5-T04 | Escape-gate: after 3 abandons, short walk to nearest entity instead of 60s hold | M | P1 | DONE-PUSHED dbfa34df (RelocationPlanner.nudge ~1.2-1.8k step on escape hold) |
+| S5-T05 | ZoneRouter walkability heuristic (avoid ocean/void hops) | H | P1 | DONE-PUSHED dbfa34df (isWalkableTarget rejects void + ocean bands + far-off-map) |
 | S5-T06 | MoveTelemetry: per-bot move success rate on the dashboard | E | P1 | DONE-PUSHED 06ae36d5 (hop success-rate telemetry + test) |
-| S5-T07 | Per-race movement min/max radius (small near village) | E | P2 | TODO |
+| S5-T07 | Per-race movement min/max radius (small near village) | E | P2 | DONE-PUSHED dbfa34df (race>radius factor: Elves .7, Dwarf/Orc .8) |
 | S5-T08 | Anti-oscillation (no bouncing between two landmarks) | M | P1 | DONE-PUSHED 06ae36d5 (same-landmark re-hop -> fresh far point) |
 | S5-T09 | Verify STEP 6 fix for SOLO bots (no-mates case) | M | P0 | DONE-PUSHED 36645b2a (live solo: 0/50 stalled after walkability fix) |
-| S5-T10 | Position-sync drift watchdog (local vs server-ack) | M | P1 | TODO |
+| S5-T10 | Position-sync drift watchdog (local vs server-ack) | M | P1 | DONE-PUSHED dbfa34df (FROZEN drift watch log when position stalls 36s) |
 
 ### Session 6 — Combat & survival polish
 | ID | Task | Diff | Prio | Status |
