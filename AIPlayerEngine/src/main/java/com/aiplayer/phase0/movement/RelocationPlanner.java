@@ -113,6 +113,21 @@ public final class RelocationPlanner
         return System.currentTimeMillis() < escapeUntilMs;
     }
 
+    /**
+     * S5-T04: a SHORT walk to break an escape-hold (short moves persist server-side far better than
+     * far hops). Called by the fleet loop when the gate is holding, so the bot still makes a tiny
+     * intentional step instead of freezing for the whole hold window.
+     */
+    public Target nudge(int fx, int fy, int fz)
+    {
+        double ang = random.nextDouble() * 2 * Math.PI;
+        int n = 1200 + random.nextInt(600);
+        return new Target(fx + (int) (Math.cos(ang) * n),
+            fy + (int) (Math.sin(ang) * n), fz,
+            "reloc:nudge",
+            "short escape-gate nudge to break a stuck spot");
+    }
+
     /** True once the freeze counter reports the bot is not making forward progress. */
     public boolean isFrozen()
     {

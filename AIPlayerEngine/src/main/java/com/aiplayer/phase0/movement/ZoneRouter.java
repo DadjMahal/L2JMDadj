@@ -307,12 +307,40 @@ public final class ZoneRouter
         {
             return null; // not in-world yet
         }
+        if (!isWalkableTarget(destX, destY, destZ))
+        {
+            return null; // S5-T05: never route onto unwalkable void/ocean terrain
+        }
         List<int[]> hops = buildHops(fromX, fromY, fromZ, destX, destY, destZ);
         if (hops.isEmpty())
         {
             return null; // already at the destination; nothing to route
         }
         return new RouteGoal(destX, destY, destZ, label, reason, hops);
+    }
+
+    /** The historic void spawn/spawn-invalid coordinate that teleports chars off the map. */
+    public static final int VOID_X = 16600;
+    public static final int VOID_Y = 17000;
+
+    /** S5-T05: is the target on walkable terrain? Rejects the void spot + known ocean/water bands. */
+    public static boolean isWalkableTarget(int tx, int ty, int tz)
+    {
+        if (tx == VOID_X && ty == VOID_Y)
+        {
+            return false;
+        }
+        // Known ocean/water bands (the map's un-walkable blue regions — no land there).
+        if (tx >= 200000 && tx <= 400000 && ty >= -400000 && ty <= -200000)
+        {
+            return false;
+        }
+        // A far corner far outside any town is a land-degenerate/void candidate.
+        if (Math.abs(tx) > 1_500_000 || Math.abs(ty) > 1_500_000)
+        {
+            return false;
+        }
+        return true;
     }
 
     private static double hypot(double dx, double dy)

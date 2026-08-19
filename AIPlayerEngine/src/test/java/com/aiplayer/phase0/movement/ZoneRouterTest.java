@@ -270,4 +270,16 @@ class ZoneRouterTest
             assertEquals(-3619, hop[2], "flat route keeps the origin Z on every hop");
         }
     }
+
+    @Test
+    void rejectsUnwalkableVoidAndOceanDestinations()
+    {
+        // S5-T05: never route onto the void spawn or known ocean/void bands.
+        assertFalse(ZoneRouter.isWalkableTarget(ZoneRouter.VOID_X, ZoneRouter.VOID_Y, 434));
+        assertFalse(ZoneRouter.isWalkableTarget(300000, -300000, 0), "ocean band is unwalkable");
+        assertFalse(ZoneRouter.isWalkableTarget(2_000_000, 2_000_000, 0), "far-off-map is rejected");
+        assertTrue(ZoneRouter.isWalkableTarget(-84108, 244604, -3728), "Talking Island village is fine");
+        assertNull(ZoneRouter.routeTo(-84000, 244500, -3728, ZoneRouter.VOID_X, ZoneRouter.VOID_Y, 434, "x", "y"),
+            "routeTo refuses the void destination");
+    }
 }

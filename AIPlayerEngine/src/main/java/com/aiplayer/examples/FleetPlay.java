@@ -102,6 +102,26 @@ public final class FleetPlay
     {
         return s.hpMax > 0 ? (double) s.hpCurrent / s.hpMax : 1.0;
     }
+
+    /** S5-T07: per-race relocation radius factor (Elves/Dwarf/Orc wander less than Humans). */
+    static double raceRadiusFactor(PlayerRace race)
+    {
+        if (race == null)
+        {
+            return 1.0;
+        }
+        switch (race)
+        {
+            case ELF:
+            case DARK_ELF:
+                return 0.7;
+            case DWARF:
+            case ORC:
+                return 0.8;
+            default:
+                return 1.0;
+        }
+    }
     // S6-T03/T06/T07/T10: survival guards — post-retreat regen hold, overwhelm back-off, death-loop guard.
     private static final long REGEN_HOLD_MS =
         AIConfiguration.getInstance().getLongProperty("bot.regenHoldMs", 8000);
@@ -243,6 +263,11 @@ public final class FleetPlay
         private static final long POTION_COOLDOWN_MS = 20_000L;
         private static final double POTION_USE_HP_FRAC = 0.45;
         private long lastPotionUseMs = 0;
+        // S5-T10: position-drift watchdog (surface a bot that stops moving).
+        private int freezeTicks = 0;
+        private long lastFrozenLogMs = 0;
+        private int lastSeenFx = Integer.MIN_VALUE;
+        private int lastSeenFy = Integer.MIN_VALUE;
         private final Set<String> questSentLinks = new HashSet<>();
         // ACQUIRE-failure cooldown (per-bot, per-session state; reset() at each runSession start). Stops
         // the "re-plan the same geo-unreachable ACQUIRE giver forever" loop — e.g. Wolf Hunt at Gludio,
@@ -553,7 +578,24 @@ public final class FleetPlay
                     }
                 }
 
-                // TIM-001: feed the movement-evidence harness every tick with the real server-acked
+                // S5-T10: position-drift watchdog — surface a bot that stops advancing (the stream-fed
+                // hop/ack telemetry already counts hops; this flags the frozen side by position).
+                if (snapshot.x == lastSeenFx && snapshot.y == lastSeenFy)
+                {
+                    freezeTicks++;
+                }
+                else
+                {
+                    freezeTicks = 0;
+                }
+                lastSeenFx = snapshot.x;
+                lastSeenFy = snapshot.y;
+                if (freezeTicks >= 120 && System.currentTimeMillis() - lastFrozenLogMs > 30_000)
+                {
+                    lastFrozenLogMs = System.currentTimeMillis();
+                    LOGGER.warning("[FleetPlay] " + account + " FROZEN drift watch: " + freezeTicks
+                        + " ticks no move at " + snapshot.x + "," + snapshot.y + " state=" + info.state);
+                }
                 // position + exp (ValidateLocation 0x61 / CharInfo 0x03 parse in PacketLogger).
                 telemetry.recordPosition(account, snapshot.x, snapshot.y, snapshot.z, info.exp);
 
@@ -968,10 +1010,13 @@ public final class FleetPlay
                                     }
                                     // Route toward THIS bot's race's guide landmark, so an Orc/Dwarf/Elf
                                     // relocates to its OWN village zone (never drifts to Talking Island).
+                                    // S5-T07: per-race max relocation radius (Elves/Dwarf/Orc wander less
+                                    // than Humans, whose farms are farther apart).
+                                    double maxR = phase0.getMovementMaxRadius() * raceRadiusFactor(cfg.race);
                                     RelocationPlanner.Target reloc = relocation.choose(snapshot.level,
                                         snapshot.x, snapshot.y, snapshot.z,
                                         relocation.isFrozen(), mates, race,
-                                        phase0.getMovementMinRadius(), phase0.getMovementMaxRadius());
+                                        phase0.getMovementMinRadius(), maxR);
                                     if (reloc != null)
                                     {
                                         activeRoute = ZoneRouter.routeTo(snapshot.x, snapshot.y, snapshot.z,
@@ -983,9 +1028,14 @@ public final class FleetPlay
                                     }
                                     else if (relocation.escapeHoldActive())
                                     {
-                                        // STEP 6 escape gate: hold still — break the frozen far-travel loop.
-                                        info.state = "idle";
-                                        info.thought = "escape-hold (frozen relocation aborted)";
+                                        // S5-T04: instead of freezing for the whole hold, take ONE short
+                                        // nudge step (short moves persist server-side far better than far hops)
+                                        // so a genuinely stuck bot can wiggle off the bad tile.
+                                        RelocationPlanner.Target n = relocation.nudge(
+                                            snapshot.x, snapshot.y, snapshot.z);
+                                        wiring.moveTo(snapshot.x, snapshot.y, snapshot.z, n.x, n.y, n.z);
+                                        info.state = "regen";
+                                        info.thought = "escape-hold nudge (short step to break the freeze)";
                                     }
                                 }
                                 if (activeRoute != null)

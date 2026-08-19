@@ -220,6 +220,18 @@ class RelocationPlannerTest
         assertTrue(t.label.startsWith("reloc:"), "unexpected relocation label " + t.label);
     }
 
+    @Test
+    void nudgeIsShortNearbyStep()
+    {
+        // S5-T04: escape-gate nudge must be a SHORT step (persists server-side), near the current spot.
+        RelocationPlanner p = new RelocationPlanner("ai_combat_12");
+        RelocationPlanner.Target n = p.nudge(10_000, 20_000, -3000);
+        assertNotNull(n);
+        double d = Math.hypot(10_000 - n.x, 20_000 - n.y);
+        assertTrue(d >= 1000 && d <= 2000, "nudge should be ~1200-1800u, was " + d);
+        assertTrue(n.label.contains("nudge"), "nudge label, got " + n.label);
+    }
+
     private static List<int[]> nothing()
     {
         return new ArrayList<>();
