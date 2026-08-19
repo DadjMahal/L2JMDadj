@@ -130,9 +130,9 @@
 |---|---|---|---|---|
 | S7-T01 | Wire RestockPlanner BUY into FleetPlay restock branch (live vendor walk) | M | P1 | TODO |
 | S7-T02 | BuyManager executes RestockPlan orders (soulshots/pots/gear) | H | P1 | TODO |
-| S7-T03 | Per-race vendor landmark verification | M | P1 | TODO |
-| S7-T04 | Adena income tracking (kills/quests/merchant) | E | P1 | TODO |
-| S7-T05 | Restock threshold per class (fighter vs mystic) | E | P2 | TODO |
+| S7-T03 | Per-race vendor landmark verification | M | P1 | DONE-PUSHED 68fac73e (VendorDatabaseTest: 4 towns have real non-void grocers) |
+| S7-T04 | Adena income tracking (kills/quests/merchant) | E | P1 | DONE-PUSHED 68fac73e (session-adena delta accumulator in BotLoop/BotInfo) |
+| S7-T05 | Restock threshold per class (fighter vs mystic) | E | P2 | DONE-PUSHED 68fac73e (RestockPlanner.potionsFor + plan(…,isFighter)) |
 | S7-T06 | SellManager auto-sell overflow when invPct high | M | P1 | TODO |
 | S7-T07 | Warehouse overflow storage | M | P2 | TODO |
 | S7-T08 | Soulshot restock live proof | M | P1 | TODO |
