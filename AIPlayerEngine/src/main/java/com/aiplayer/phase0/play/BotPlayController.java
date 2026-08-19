@@ -25,6 +25,8 @@ public final class BotPlayController
     /** Maximum distance of a single retreat hop (matching CHASE_HOP in FleetPlay, 
      * well under the server's ~9900u single-move rejection). */
     private static final int RETREAT_HOP = 4800;
+    /** FINAL-MILE: within this distance of a quest NPC the bot routes to it before fighting. */
+    public static final int QUEST_PRIORITY_DIST = 5000;
 
     private BotPlayController()
     {
@@ -78,14 +80,22 @@ public final class BotPlayController
             ctx.x, ctx.y, ctx.z, ctx.stepIndex, c.varietySeed);
         if (earlyQuest != null && earlyQuest.action == GoalAction.MOVE_TO
                 && (earlyQuest.goal == PlayerGoal.QUEST || earlyQuest.goal == PlayerGoal.ACQUIRE)
-                && earlyQuest.questTargetId != 0
-                && within(earlyQuest.targetX, earlyQuest.targetY, earlyQuest.targetZ,
-                    ctx.x, ctx.y, ctx.z, c.talkRange))
+                && earlyQuest.questTargetId != 0)
         {
-            return GoalDecision.bypass(
-                earlyQuest.goal, "",
-                "quest-dialog:" + earlyQuest.questTargetId,
-                "at quest NPC " + earlyQuest.questTargetId + "; open dialog");
+            double toNpc = Math.hypot(ctx.x - (double) earlyQuest.targetX, ctx.y - (double) earlyQuest.targetY);
+            if (toNpc <= c.talkRange)
+            {
+                return GoalDecision.bypass(
+                    earlyQuest.goal, "",
+                    "quest-dialog:" + earlyQuest.questTargetId,
+                    "at quest NPC " + earlyQuest.questTargetId + "; open dialog");
+            }
+            if (toNpc <= QUEST_PRIORITY_DIST)
+            {
+                // FINAL-MILE: the quest NPC is close — a real player heading to TALK doesn't stop to
+                // fight every mob on the way. Route to the NPC before engaging combat.
+                return earlyQuest;
+            }
         }
 
         // 1.5 RESTOCK: when inventory is too full to keep farming, walk to the town vendor and

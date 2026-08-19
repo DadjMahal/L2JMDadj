@@ -150,16 +150,17 @@ class BotPlayControllerTest
     @Test
     void noActiveQuestAcquiresLevelAppropriateQuest()
     {
-        // Player stands ON the Gludio giver (NPC_X,NPC_Y) so quest 40001 is reachable. From world
-        // origin (0,0,0) every giver is > QuestGoalPlanner.MAX_ACQUIRE_DIST away, so the reachability
-        // gate correctly returns null -> REST (plain-farming fallback) instead of a doomed route.
+        // Player stands ON the giver (Jackson, Talking Island) so quest 40001 is reachable AND the
+        // bot is within talkRange -> the controller emits BYPASS (open the NPC dialog) instead of a
+        // plain MOVE_TO: a real player TALKS when standing on the giver.
         GoalDecision d = BotPlayController.decide(
             ctx(10, NPC_X, NPC_Y, 90, 100, journal(), hostiles()));
         assertNotNull(d, "no quest + no target -> go acquire");
         assertEquals(PlayerGoal.ACQUIRE, d.goal);
-        assertEquals(GoalAction.MOVE_TO, d.action);
-        assertEquals(NPC_X, d.targetX, "acquire destination is the reachable local giver");
-        assertEquals(NPC_Y, d.targetY);
+        assertEquals(GoalAction.BYPASS, d.action,
+            "standing on the giver opens its dialog, not a raw move");
+        assertTrue(d.label.startsWith("quest-dialog:"),
+            "bypass label names the dialog, got " + d.label);
     }
 
     @Test
