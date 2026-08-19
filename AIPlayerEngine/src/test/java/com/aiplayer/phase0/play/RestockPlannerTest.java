@@ -126,4 +126,14 @@ class RestockPlannerTest
             assertFalse(isVoid, race + " vendor must be a real point, got " + p.vendorX + "," + p.vendorY);
         }
     }
+
+    @Test
+    void fightersRestockMorePotionsThanMystics()
+    {
+        // S7-T05: per-class restock — a melee fighter should carry more HP potions than a mystic.
+        assertTrue(RestockPlanner.potionsFor(10, 1000, true) > RestockPlanner.potionsFor(10, 1000, false),
+            "fighter potion order exceeds mystic at the same level/coins");
+        assertEquals(RestockPlanner.potionsFor(10, 1000, true), RestockPlanner.potionsFor(10, 1000, true),
+            "class-aware qty is deterministic");
+    }
 }

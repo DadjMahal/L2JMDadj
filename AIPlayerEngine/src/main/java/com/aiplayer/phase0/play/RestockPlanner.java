@@ -87,11 +87,17 @@ public final class RestockPlanner
      */
     public static RestockPlan plan(int level, int inventoryPct, int coins, PlayerRace race)
     {
+        return plan(level, inventoryPct, coins, race, true);
+    }
+
+    /** S7-T05: same plan but class-aware — fighters restock MORE HP potions than mystics. */
+    public static RestockPlan plan(int level, int inventoryPct, int coins, PlayerRace race, boolean isFighter)
+    {
         PlayerRace r = race != null ? race : PlayerRace.HUMAN;
         QuestNode anchor = RaceGuide.idleAnchor(r, level);
 
         int ss = Math.min(SOULSHOT_MAX_QTY, SOULSHOT_BASE_QTY + level * SOULSHOT_PER_LEVEL);
-        int hp = Math.min(HP_MAX_QTY, HP_BASE_QTY + level * HP_PER_LEVEL);
+        int hp = potionsFor(level, coins, isFighter);
 
         List<BuyOrder> orders = new ArrayList<>();
         orders.add(new BuyOrder(SOULSHOT_ITEM_ID, ss, "soulshots"));
@@ -102,5 +108,13 @@ public final class RestockPlanner
         }
 
         return new RestockPlan(anchor.x, anchor.y, anchor.z, orders);
+    }
+
+    /** S7-T05: class-aware HP-pot restock qty — fighters (melee, HP-squishy) restock more than mystics. */
+    public static int potionsFor(int level, int coins, boolean isFighter)
+    {
+        int base = isFighter ? HP_BASE_QTY : Math.max(1, HP_BASE_QTY - 2);
+        int perLevel = isFighter ? HP_PER_LEVEL : Math.max(1, HP_PER_LEVEL - 1);
+        return Math.min(HP_MAX_QTY, base + level * perLevel);
     }
 }

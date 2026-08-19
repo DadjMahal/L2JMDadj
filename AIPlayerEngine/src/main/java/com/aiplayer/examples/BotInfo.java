@@ -20,6 +20,7 @@ public final class BotInfo
     public volatile int load, maxLoad;
     public volatile boolean weapon;
     public volatile int adena, invPct, itemCount;
+    public volatile long adenaEarned;   // S7-T04: session adena income (deltas over time)
     public volatile int[][] items;      // {itemId, count} top-5 by count
     public volatile int mobs, npcs;
     public volatile int[][] ents;       // {objId, kind(0 npc 1 hostile 2 player), x, y, z}

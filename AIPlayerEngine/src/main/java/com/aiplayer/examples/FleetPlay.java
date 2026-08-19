@@ -271,6 +271,9 @@ public final class FleetPlay
         private int lastSeenFy = Integer.MIN_VALUE;
         // S3-T05: quest stepIndex persistence across ticks/sessions (feeds PlayContext).
         private final QuestProgressTracker questTracker;
+        // S7-T04: session adena income accumulator.
+        private long lastAdena = -1;
+        private long sessionAdenaIncome = 0;
         private final Set<String> questSentLinks = new HashSet<>();
         // ACQUIRE-failure cooldown (per-bot, per-session state; reset() at each runSession start). Stops
         // the "re-plan the same geo-unreachable ACQUIRE giver forever" loop — e.g. Wolf Hunt at Gludio,
@@ -545,6 +548,14 @@ public final class FleetPlay
                 info.maxLoad = logger.getMaxLoad();
                 info.weapon = logger.isWeaponEquipped();
                 info.adena = logger.getAdena();
+                // S7-T04: session adena income (delta from kills/quests/vendor as the server streams it).
+                long _adena = info.adena;
+                if (lastAdena >= 0 && _adena > lastAdena)
+                {
+                    sessionAdenaIncome += (_adena - lastAdena);
+                }
+                lastAdena = _adena;
+                info.adenaEarned = sessionAdenaIncome;
                 info.invPct = logger.getInventoryUsagePercent();
                 info.itemCount = logger.getInventoryItems().size();
                 info.packetsRead = gs.packetsRead;   // S2-T04: refresh packet health each tick
