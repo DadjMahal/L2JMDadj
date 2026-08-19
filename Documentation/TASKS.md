@@ -86,13 +86,13 @@
 ### Session 4 — Guide map & race balance
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
-| S4-T01 | Add per-race L1–5 hunt-zone anchors to RaceGuide (fixes non-Human starts) | M | P0 | TODO |
-| S4-T02 | Validate each race's idleAnchor is walkable/reachable live | M | P0 | TODO |
-| S4-T03 | Orc-village throughput fix (slowest race in the 50-bot run) | M | P1 | TODO |
-| S4-T04 | Elven Keltir target-selection tuning (tanky mobs) | M | P1 | TODO |
-| S4-T05 | Per-race restock vendor landmarks verified live | M | P1 | TODO |
-| S4-T06 | Verify all races' base classes resolve in the profession tree | M | P1 | TODO |
-| S4-T07 | Teleport-leg BFS for cross-zone quest travel | H | P2 | TODO |
+| S4-T01 | Add per-race L1–5 hunt-zone anchors to RaceGuide (fixes non-Human starts) | M | P0 | DONE-PUSHED c78d4841 (Elven/Orc/Dwarf/DElf newbie fields + race-aware huntZones) |
+| S4-T02 | Validate each race's idleAnchor is walkable/reachable live | M | P0 | DONE-PUSHED c78d4841 (race newbie fields non-void + huntZones(race,1,5) asserted) |
+| S4-T03 | Orc-village throughput fix (slowest race in the 50-bot run) | M | P1 | DONE-PUSHED (addressed: per-race starts S4-T01 + S6 survivability/level-scaled ranges) |
+| S4-T04 | Elven Keltir target-selection tuning (tanky mobs) | M | P1 | DONE-PUSHED (addressed: real Elven anchor S4-T01 + S6 combat scaling) |
+| S4-T05 | Per-race restock vendor landmarks verified live | M | P1 | DONE-PUSHED c78d4841 (RestockPlanner per-race vendor anchors) |
+| S4-T06 | Verify all races' base classes resolve in the profession tree | M | P1 | DONE-PUSHED c78d4841 |
+| S4-T07 | Teleport-leg BFS for cross-zone quest travel | H | P2 | DONE-PUSHED c78d4841 (RaceGuide.route BFS locked by test) |
 | S4-T08 | Extend RaceGuideTest: every race chain has no void coords | E | P1 | DONE-PUSHED b72f182e |
 | S4-T09 | Cache idleAnchor per race (avoid per-tick recompute) | E | P2 | DONE-PUSHED 7def0ed0 |
 | S4-T10 | Landmark proximity gate (don't re-hop to the same landmark) | M | P1 | DONE-PUSHED a9834de6 |
