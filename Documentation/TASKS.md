@@ -72,12 +72,12 @@
 ### Session 3 — Quest pillar — live accept/complete/turn-in (the ONE-goal gap)
 | ID | Task | Diff | Prio | Status |
 |---|---|---|---|---|
-| S3-T01 | Live-prove quest ACCEPT (real giver, validated bypass, journal shows active) | H | P0 | BLOCKED (on S5: bot routes to real giver + dialog engages, but solo far-hop can't hold position at the giver) |
+| S3-T01 | Live-prove quest ACCEPT (real giver, validated bypass, journal shows active) | H | P0 | BLOCKED (final gap: server quest-UI is multi-step menu→quest-list→accept; giver dialog + validated bypass flow LIVE-proven) |
 | S3-T02 | Live-prove objective progress (kill/collect counters via QUEST_LIST) | H | P0 | BLOCKED (on S3-T01 accept) |
 | S3-T03 | Live-prove TURN-IN + reward receipt (exp/adena/item) | H | P0 | BLOCKED (on S3-T01/02) |
 | S3-T04 | Enable `phase0.quest.npcId` flow by default for Human newbies | M | P1 | IN_PROGRESS (config-driven + dialog engages live; default-on gated on S5) |
 | S3-T05 | Persist quest stepIndex across sessions (QuestProgressTracker) | M | P1 | IN_PROGRESS (depends on S3-T01..03 live flow) |
-| S3-T06 | QuestDialogDriver: multi-quest journals + chain choice | M | P1 | IN_PROGRESS (depends on S3-T01..03 live flow) |
+| S3-T06 | QuestDialogDriver: multi-quest journals + chain choice | M | P1 | IN_PROGRESS (scoped precisely: menu→quest-list→accept drill-down navigation) |
 | S3-T07 | Wire per-bot `varietySeed` into FleetPlay acquire pick (STEP 7) | M | P1 | DONE-PUSHED a21ab79e |
 | S3-T08 | AcquireCooldown tuning for L1 vs L20+ | E | P2 | DONE-PUSHED b72f182e |
 | S3-T09 | Newbie Q1–Q10 chain automation (per race) | H | P1 | TODO |
@@ -208,6 +208,14 @@
 | **LIVE-RUN** | 50 random-race players created + played 2h (provisioning, launcher race rotation, USE_SKILL→melee fix) | `DONE-PUSHED 0fd3fef4/e53ca85a` | play-builder |
 
 ## 6. Changelog (newest last)
+- **2026-08-19 · play-builder:** **Quest pipeline LIVE-PROVEN through the giver dialog.** Fixed a
+  quest-data bug (40001's giver was the wrong zone — real giver "Jackson" 30002 on Talking Island;
+  tests updated) and shipped quest-priority behavior: within 5k of the quest NPC the bot routes to it
+  (no combat stealing), holds while the dialog is open, and clicks the real giver. Live probe: clicked
+  ROXXY (Q00006 "Step Into The Future", Human L3+), opened her dialog, extracted 5 bypass links,
+  attempted the validated bypass. **Remaining blocker (precise):** the server's quest UI is multi-step
+  (menu -> quest list -> accept) and the single-step QuestDialogDriver pauses at the menu — S3-T06.
+  Fleet stays green: **383/383**, 50 bots farming + live-learning.
 - **2026-08-19 · play-builder:** **S5-T01 LIVE-PROVEN FIX — the keystone.** Root cause: pure random
   far-point relocations landed on unwalkable terrain -> server ActionFailed -> 0% hop-success ->
   freeze. Fix: `RelocationPlanner` now prefers REAL hunt-zone anchors over random points (+test).
