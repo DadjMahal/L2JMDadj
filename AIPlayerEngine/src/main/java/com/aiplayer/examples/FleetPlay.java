@@ -298,6 +298,23 @@ public final class FleetPlay
             }
         }
 
+        /** QUEST-PRIORITY: is the configured quest giver nearby (< QUEST_PRIORITY_DIST)? */
+        private boolean nearQuestNpc(BotSnapshot s, PacketLogger logger, int questNpcId)
+        {
+            if (questNpcId <= 0)
+            {
+                return false;
+            }
+            PacketLogger.EntityInfo giver = logger.findEntityByNpcId(questNpcId);
+            if (giver == null)
+            {
+                return false;
+            }
+            double dx = s.x - giver.x;
+            double dy = s.y - giver.y;
+            return Math.sqrt(dx * dx + dy * dy) <= BotPlayController.QUEST_PRIORITY_DIST;
+        }
+
         /**
          * STEP 2: drive an NPC quest dialog directly inside the fleet loop, off by default. Only runs
          * when the controller returns BYPASS at the configured giver (phase0.quest.npcId). Sequence:
@@ -664,6 +681,15 @@ public final class FleetPlay
                     case ATTACK:
                     case ENGAGE_TARGET:
                     case USE_SKILL:
+                        // QUEST-PRIORITY: if the bot is near its quest NPC (or mid-dialog), yield to the
+                        // quest route instead of fighting — the CombatAI switch runs before the goal
+                        // routing, so combat would otherwise steal the bot away from the giver forever.
+                        if (questDialogOpen || nearQuestNpc(snapshot, logger, questNpcId))
+                        {
+                            info.state = "quest-route";
+                            info.thought = "near quest NPC — routing to talk (no combat)";
+                            break;
+                        }
                         // FINAL-MILE: while the quest dialog is open, HOLD (don't fight) — a real
                         // player in a conversation doesn't run off to attack. Keeps the bot standing
                         // at the giver through the multi-tick click -> html -> bypass -> accept flow.
