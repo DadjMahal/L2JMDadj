@@ -853,8 +853,12 @@ public final class FleetPlay
                                 break;
                             }
                             boolean dialogDriven = false;
+                            PacketLogger.EntityInfo cfgGiver = questNpcId > 0
+                                ? logger.findEntityByNpcId(questNpcId) : null;
+                            boolean atCfgGiver = cfgGiver != null
+                                && Math.hypot(snapshot.x - cfgGiver.x, snapshot.y - cfgGiver.y) <= cfg.talkRange;
                             if (questNpcId > 0 && activeRoute == null
-                                    && goal != null && goal.action == GoalAction.BYPASS)
+                                    && ((goal != null && goal.action == GoalAction.BYPASS) || atCfgGiver))
                             {
                                 driveQuestDialog(snapshot, logger, wiring, goal, questNpcId, questNameProp);
                                 activeRoute = null;
@@ -874,8 +878,24 @@ public final class FleetPlay
                                 if (goal != null && goal.action == GoalAction.MOVE_TO
                                         && goal.targetX != 0 && goal.targetY != 0)
                                 {
+                                    int rx = goal.targetX, ry = goal.targetY, rz = goal.targetZ;
+                                    // CONFIGURED GIVER (S3-T01): when the operator set
+                                    // phase0.quest.npcId and the goal is ACQUIRE, route to the REAL
+                                    // configured giver's tracked position — the engine's quest data
+                                    // (synthetic registry) can name a different NPC/zone than the
+                                    // server's actual quest giver.
+                                    if (goal.goal == PlayerGoal.ACQUIRE && questNpcId > 0)
+                                    {
+                                        PacketLogger.EntityInfo giver = logger.findEntityByNpcId(questNpcId);
+                                        if (giver != null)
+                                        {
+                                            rx = giver.x;
+                                            ry = giver.y;
+                                            rz = giver.z;
+                                        }
+                                    }
                                     activeRoute = ZoneRouter.routeTo(snapshot.x, snapshot.y, snapshot.z,
-                                        goal.targetX, goal.targetY, goal.targetZ,
+                                        rx, ry, rz,
                                         "goal:" + (goal.label != null ? goal.label : goal.goal.toString()),
                                         goal.reason);
                                 }
