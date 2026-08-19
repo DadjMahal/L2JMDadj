@@ -4,6 +4,7 @@ package com.aiplayer.phase0.combat;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import com.aiplayer.behavior.combat.CombatAI;
 
 /**
  * Per-AI-Player skill cooldown tracking.

@@ -7,6 +7,7 @@ import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.phase0.combat.ShotManager;
 import com.aiplayer.phase0.movement.MovementController;
+import com.aiplayer.behavior.combat.CombatAI;
 
 /**
  * Orchestrates post-respawn recovery:

@@ -4,8 +4,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.aiplayer.engine.AIPlayer;
-import com.aiplayer.engine.AIPlayerManager;
+import com.aiplayer.net.AIPlayer;
+import com.aiplayer.core.AIPlayerManager;
 
 /**
  * AI Player Monitoring Dashboard

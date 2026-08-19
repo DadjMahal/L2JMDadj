@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.aiplayer.engine.AIPlayer;
+import com.aiplayer.net.AIPlayer;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.crypt.GameCrypt;
 

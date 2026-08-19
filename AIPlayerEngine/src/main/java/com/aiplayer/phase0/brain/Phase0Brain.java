@@ -7,6 +7,7 @@ import com.aiplayer.phase0.cabinet.ProfileStore;
 import com.aiplayer.phase0.imperfection.ImperfectionInjector;
 
 import java.util.logging.Logger;
+import com.aiplayer.behavior.AIBrain;
 
 /**
  * Phase 0 Brain — replaces the over-engineered AIBrain for bootstrap.

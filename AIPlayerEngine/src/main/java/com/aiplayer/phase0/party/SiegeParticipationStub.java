@@ -5,6 +5,7 @@ package com.aiplayer.phase0.party;
 import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.phase0.humanize.AntiDetectionEngine;
 import com.aiplayer.phase0.movement.MovementController;
+import com.aiplayer.behavior.combat.CombatAI;
 
 /**
  * Phase 0 stub for siege participation.

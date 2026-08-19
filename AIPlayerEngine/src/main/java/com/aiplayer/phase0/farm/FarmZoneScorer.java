@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import com.aiplayer.behavior.AIBrain;
 
 /**
  * Dynamic zone scoring engine that ranks farming zones based on

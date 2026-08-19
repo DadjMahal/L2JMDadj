@@ -7,11 +7,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.aiplayer.engine.AIPlayer;
-import com.aiplayer.engine.CombatDecision;
-import com.aiplayer.engine.CombatFramePlanner;
-import com.aiplayer.engine.GameServerClient;
+import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.combat.CombatDecision;
+import com.aiplayer.behavior.combat.CombatFramePlanner;
+import com.aiplayer.net.GameServerClient;
 import com.aiplayer.protocol.L2JProtocol;
+import com.aiplayer.behavior.combat.CombatAI;
 
 /**
  * MultiPlayerSession — ONE lean JVM running N live AI players on N threads.

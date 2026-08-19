@@ -7,7 +7,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import com.aiplayer.engine.AIPlayer;
+import com.aiplayer.net.AIPlayer;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.crypt.GameCrypt;
 

@@ -1,6 +1,6 @@
 package com.aiplayer.examples;
 
-import com.aiplayer.engine.AIPlayer;
+import com.aiplayer.net.AIPlayer;
 import com.aiplayer.protocol.L2JProtocol;
 
 /**

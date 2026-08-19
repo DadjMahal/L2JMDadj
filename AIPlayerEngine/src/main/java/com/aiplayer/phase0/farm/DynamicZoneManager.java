@@ -13,6 +13,8 @@ import com.aiplayer.phase0.farm.OptimalSpotSelector.Spot; // was missing entirel
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import com.aiplayer.behavior.AIBrain;
+import com.aiplayer.behavior.combat.CombatAI;
 
 /**
  * Central orchestrator for farm zone intelligence.

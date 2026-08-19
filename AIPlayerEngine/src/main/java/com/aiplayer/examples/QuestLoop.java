@@ -3,12 +3,13 @@ package com.aiplayer.examples;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.aiplayer.engine.AIPlayer;
-import com.aiplayer.engine.GameServerClient;
-import com.aiplayer.engine.QuestDecision;
-import com.aiplayer.engine.QuestFramePlanner;
+import com.aiplayer.net.AIPlayer;
+import com.aiplayer.net.GameServerClient;
+import com.aiplayer.behavior.quest.QuestDecision;
+import com.aiplayer.behavior.quest.QuestFramePlanner;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketCodec;
+import com.aiplayer.behavior.quest.QuestAI;
 
 /**
  * Stream C7 (B6b): Live quest trigger via RequestBypassToServer(0x21).

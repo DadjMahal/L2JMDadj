@@ -4,6 +4,9 @@ package com.aiplayer.phase0.humanize;
 
 import com.aiplayer.phase0.GameStateMirror;
 import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
+import com.aiplayer.behavior.AIBrain;
+import com.aiplayer.behavior.combat.CombatAI;
+import com.aiplayer.net.AIPlayer;
 
 /**
  * Main orchestrator for the Anti-Detection & Humanization Layer.

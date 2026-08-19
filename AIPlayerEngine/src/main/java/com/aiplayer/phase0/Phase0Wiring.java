@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.aiplayer.engine.CombatDecision;
-import com.aiplayer.engine.CombatFramePlanner;
-import com.aiplayer.engine.CombatFramePlanner.FrameStep;
-import com.aiplayer.engine.GameServerClient;
+import com.aiplayer.behavior.combat.CombatDecision;
+import com.aiplayer.behavior.combat.CombatFramePlanner;
+import com.aiplayer.behavior.combat.CombatFramePlanner.FrameStep;
+import com.aiplayer.net.GameServerClient;
 import com.aiplayer.protocol.PacketCodec;
 
 /**

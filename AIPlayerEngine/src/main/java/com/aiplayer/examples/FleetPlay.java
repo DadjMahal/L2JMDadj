@@ -16,11 +16,11 @@ import java.util.logging.Logger;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
-import com.aiplayer.engine.AIConfiguration;
-import com.aiplayer.engine.AIPlayer;
-import com.aiplayer.engine.CombatDecision;
-import com.aiplayer.engine.GameServerClient;
-import com.aiplayer.engine.Phase0Config;
+import com.aiplayer.core.AIConfiguration;
+import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.combat.CombatDecision;
+import com.aiplayer.net.GameServerClient;
+import com.aiplayer.core.EngineConfig;
 import com.aiplayer.monitor.AIMonitorDashboard;
 import com.aiplayer.phase0.BotSnapshot;
 import com.aiplayer.phase0.Phase0Wiring;
@@ -50,6 +50,8 @@ import com.aiplayer.web.DashboardApi;
 import com.aiplayer.web.EventRing;
 import com.aiplayer.web.FleetMetrics;
 import com.aiplayer.web.HistoryRing;
+import com.aiplayer.behavior.combat.CombatAI;
+import com.aiplayer.behavior.combat.CombatFramePlanner;
 
 /**
  * Launches a fleet of real AI Players against the live Interlude stack and exposes a light
@@ -476,7 +478,7 @@ public final class FleetPlay
 
             Phase0Wiring wiring = new Phase0Wiring(gs, account);
             TargetSelector targetSelector = new TargetSelector(account, logger.getLevel());
-            Phase0Config phase0 = Phase0Config.getInstance();
+            EngineConfig phase0 = EngineConfig.getInstance();
             ZoneRouter zoneRouter = new ZoneRouter(account);
             // STEP 6: idle-relocation decision maker — prefers last-XP / nearest-mate when frozen,
             // real guide-map landmark otherwise, with a consecutive-abandon escape gate.

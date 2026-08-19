@@ -7,6 +7,7 @@ import com.aiplayer.phase0.humanize.AntiDetectionEngine;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.aiplayer.behavior.combat.CombatAI;
 
 /**
  * Tactical coordination engine for party combat.

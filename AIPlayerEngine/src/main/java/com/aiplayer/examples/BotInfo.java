@@ -1,4 +1,5 @@
 package com.aiplayer.examples;
+import com.aiplayer.net.GameServerClient;
 
 /**
  * Live per-bot row shown on the dashboard. Written by the fleet game loop, read by

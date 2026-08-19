@@ -4,6 +4,7 @@ package com.aiplayer.phase0.death;
 
 import com.aiplayer.phase0.GameStateMirror;
 import com.aiplayer.phase0.GameStateMirror.BotStateSnapshot;
+import com.aiplayer.behavior.combat.CombatAI;
 
 /**
  * Detects death, manages death-state transitions, and coordinates

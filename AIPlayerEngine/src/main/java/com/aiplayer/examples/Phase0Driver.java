@@ -2,11 +2,11 @@ package com.aiplayer.examples;
 
 /** MODE: COMPLETE. Reference driver for one AI Player; not a fleet manager. */
 
-import com.aiplayer.engine.AIPlayer;
-import com.aiplayer.engine.CombatDecision;
-import com.aiplayer.engine.GameServerClient;
-import com.aiplayer.engine.Phase0Config;
-import com.aiplayer.engine.Phase0Integration;
+import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.combat.CombatDecision;
+import com.aiplayer.net.GameServerClient;
+import com.aiplayer.core.EngineConfig;
+import com.aiplayer.core.EngineWiring;
 import com.aiplayer.phase0.BotSnapshot;
 import com.aiplayer.phase0.Phase0Wiring;
 import com.aiplayer.phase0.combat.TargetSelector;
@@ -14,6 +14,10 @@ import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketLogger;
 
 import java.util.logging.Logger;
+import com.aiplayer.behavior.AIBrain;
+import com.aiplayer.behavior.combat.CombatAI;
+import com.aiplayer.behavior.combat.CombatFramePlanner;
+import com.aiplayer.core.AIPlayerManager;
 
 /**
  * Composes the phase0 modules with the real, proven engine — CombatAI,
@@ -72,7 +76,7 @@ public final class Phase0Driver {
 
         Phase0Wiring wiring = new Phase0Wiring(gs, account);
         TargetSelector targetSelector = new TargetSelector(account, logger.getLevel());
-        Phase0Integration phase0 = player.getCombatAI().getPhase0Integration();
+        EngineWiring phase0 = player.getCombatAI().getPhase0Integration();
 
         LOGGER.info("[Phase0Driver] " + account + " entered world, starting decision loop");
 
@@ -86,7 +90,7 @@ public final class Phase0Driver {
             }
 
             if (snapshot.hpCurrent <= 0) {
-                String deathNote = phase0 != null && Phase0Config.getInstance().isDeathRecoveryEnabled()
+                String deathNote = phase0 != null && EngineConfig.getInstance().isDeathRecoveryEnabled()
                     ? phase0.deathRecoveryStatus() : null;
                 LOGGER.info("[Phase0Driver] " + account + " STATE dead, pausing actions"
                     + (deathNote != null ? " — " + deathNote : ""));
@@ -137,7 +141,7 @@ public final class Phase0Driver {
                     // No target yet — ask TargetSelector, matching Task 2's intended
                     // integration point, now reading from BotSnapshot instead of the
                     // old GameStateMirror.
-                    int newTarget = (phase0 != null && Phase0Config.getInstance().isTargetingEnabled())
+                    int newTarget = (phase0 != null && EngineConfig.getInstance().isTargetingEnabled())
                         ? phase0.selectTarget() : targetSelector.selectTarget();
                     if (newTarget != 0) {
                         wiring.executeCombat(CombatDecision.attackTarget(String.valueOf(newTarget)),

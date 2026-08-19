@@ -17,6 +17,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import com.aiplayer.cli.AIPlayerEngine;
 
 /**
  * WPT-29 — datapack-backed entity / item name resolver.

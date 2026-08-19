@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import com.aiplayer.behavior.AIBrain;
 
 /**
  * Selects optimal farming spots within a zone based on mob clustering,

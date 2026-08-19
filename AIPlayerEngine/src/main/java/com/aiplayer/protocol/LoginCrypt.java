@@ -6,6 +6,7 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Arrays;
 
 import javax.crypto.Cipher;
+import com.aiplayer.cli.AIPlayerEngine;
 
 /**
  * L2J Interlude login-protocol crypto helper (Task B2).

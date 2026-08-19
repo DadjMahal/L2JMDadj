@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import com.aiplayer.net.GameServerClient;
 
 /**
  * S2-T05: PacketLogger must decode the character's NAME / CLASS / RACE from CharSelectInfo (0x13)

@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import com.aiplayer.behavior.AIBrain;
+import com.aiplayer.behavior.combat.CombatAI;
+import com.aiplayer.cli.AIPlayerEngine;
 
 /**
  * Core party orchestrator for AI Players.

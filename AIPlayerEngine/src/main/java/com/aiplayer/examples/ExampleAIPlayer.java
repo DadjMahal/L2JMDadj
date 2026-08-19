@@ -1,8 +1,8 @@
 package com.aiplayer.examples;
 
-import com.aiplayer.engine.AIPlayer;
-import com.aiplayer.engine.AIPlayerManager;
-import com.aiplayer.engine.AIPlayerState;
+import com.aiplayer.net.AIPlayer;
+import com.aiplayer.core.AIPlayerManager;
+import com.aiplayer.core.AIPlayerState;
 import com.aiplayer.protocol.L2ProtocolHandler;
 import com.aiplayer.protocol.ProtocolPacket;
 import com.aiplayer.protocol.ProtocolFactory;

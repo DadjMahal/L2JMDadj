@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.aiplayer.behavior.combat.CombatAI;
+import com.aiplayer.core.EngineWiring;
 
 /**
  * Interlude C4 Skill Database.
@@ -22,7 +24,7 @@ public final class SkillDatabase {
     static {
         // Interlude (L2jMobius datapack, ServerBuild/game/data/stats/skills/00000-00099.xml) lv-1 values,
         // cross-checked 2026-08-10. 3 and 16 are the Human Fighter path actually used by
-        // FighterRotation (via Phase0Integration/CombatAI when phase0 combat rotation is on).
+        // FighterRotation (via EngineWiring/CombatAI when phase0 combat rotation is on).
         register(3,   "Power Strike",      10,  13000, 40,  SkillInfo.SkillTarget.SINGLE_ENEMY, 3,  true,  false, false);
         register(16,  "Mortal Blow",       9,   11000, 40,  SkillInfo.SkillTarget.SINGLE_ENEMY, 3,  true,  false, false);
         // NOTE (Interlude realignment): Interlude skill id 36 is "Whirlwind" and id 70 is "Drain Health" — the

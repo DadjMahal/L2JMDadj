@@ -9,7 +9,7 @@ import java.security.PublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.aiplayer.engine.AIPlayer;
+import com.aiplayer.net.AIPlayer;
 
 /**
  * L2JMobius login-server client — real Interlude login handshake (B2 / B3 Phase 1).

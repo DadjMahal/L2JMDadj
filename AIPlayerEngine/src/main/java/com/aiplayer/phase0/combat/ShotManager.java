@@ -2,7 +2,7 @@ package com.aiplayer.phase0.combat;
 
 /** MODE: PARTIAL. Reads from the not-yet-migrated GameStateMirror rather than BotSnapshot — see INTEGRATION_GAPS.md. */
 
-import com.aiplayer.engine.AIPlayer;
+import com.aiplayer.net.AIPlayer;
 
 /**
  * Manages soulshot and spiritshot auto-enable logic for AI Players.

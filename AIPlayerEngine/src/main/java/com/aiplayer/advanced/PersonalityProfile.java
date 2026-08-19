@@ -1,4 +1,5 @@
 package com.aiplayer.advanced;
+import com.aiplayer.behavior.AIBrain;
 
 /**
  * Personality Profile - Task 74

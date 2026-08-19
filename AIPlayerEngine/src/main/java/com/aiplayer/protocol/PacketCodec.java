@@ -3,6 +3,7 @@ package com.aiplayer.protocol;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
+import com.aiplayer.net.GameServerClient;
 
 /**
  * L2J Packet Codec - Rewritten Task 67

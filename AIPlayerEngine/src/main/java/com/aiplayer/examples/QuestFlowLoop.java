@@ -5,8 +5,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.aiplayer.engine.AIPlayer;
-import com.aiplayer.engine.GameServerClient;
+import com.aiplayer.net.AIPlayer;
+import com.aiplayer.net.GameServerClient;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketCodec;
 import com.aiplayer.protocol.PacketLogger;
