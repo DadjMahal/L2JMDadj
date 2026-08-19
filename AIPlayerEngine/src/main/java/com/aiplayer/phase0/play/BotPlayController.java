@@ -104,7 +104,7 @@ public final class BotPlayController
         //    open its dialog: emit BYPASS (STEP 2) so the fleet loop turns the empty bypassCommand into
         //    the single next validated bypass from the NPC's actual NpcHtmlMessage.
         GoalDecision quest = QuestGoalPlanner.decide(ctx.level, ctx.activeJournal,
-            ctx.x, ctx.y, ctx.z, ctx.stepIndex);
+            ctx.x, ctx.y, ctx.z, ctx.stepIndex, c.varietySeed);
         if (quest != null)
         {
             if (quest.action == GoalAction.MOVE_TO
@@ -298,28 +298,37 @@ public final class BotPlayController
         public final int restockThreshold;
         /** Race of the bot, used to pick the vendor landmark for restock trips (default HUMAN). */
         public final PlayerRace race;
+        /** S3-T07: per-bot quest-acquire variety seed (0 = classic nearest pick). */
+        public final int varietySeed;
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange)
         {
             this(surviveHpFraction, combatRange, sightRange, 300, 100,
-                PlayerRace.HUMAN);
+                PlayerRace.HUMAN, 0);
         }
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange)
         {
             this(surviveHpFraction, combatRange, sightRange, talkRange, 100,
-                PlayerRace.HUMAN);
+                PlayerRace.HUMAN, 0);
         }
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
                              int restockThreshold)
         {
             this(surviveHpFraction, combatRange, sightRange, talkRange, restockThreshold,
-                PlayerRace.HUMAN);
+                PlayerRace.HUMAN, 0);
         }
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
                              int restockThreshold, PlayerRace race)
+        {
+            this(surviveHpFraction, combatRange, sightRange, talkRange, restockThreshold,
+                race, 0);
+        }
+
+        public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
+                             int restockThreshold, PlayerRace race, int varietySeed)
         {
             this.surviveHpFraction = surviveHpFraction;
             this.combatRange = combatRange;
@@ -327,6 +336,7 @@ public final class BotPlayController
             this.talkRange = talkRange;
             this.restockThreshold = Math.max(0, Math.min(100, restockThreshold));
             this.race = race != null ? race : PlayerRace.HUMAN;
+            this.varietySeed = varietySeed;
         }
     }
 }

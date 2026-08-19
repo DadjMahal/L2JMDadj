@@ -247,6 +247,8 @@ public final class FleetPlay
         private long deathGuardUntilMs = 0;
         private long lastDeathMs = 0;
         private int recentDeaths = 0;
+        // S3-T07: per-bot controller tuning (race for restock, varietySeed for diverse quest picks).
+        private final BotPlayController.BotPlayConfig cfg;
 
         private BotLoop(String account, int charId, BotInfo info, String host, int loginPort, int gamePort,
                         PlayerRace race)
@@ -259,6 +261,8 @@ public final class FleetPlay
             this.gamePort = gamePort;
             this.race = race != null ? race : PlayerRace.HUMAN;
             this.info.race = this.race.name(); // S9-T05 dashboard race badge/filter
+            this.cfg = new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 100,
+                this.race, Math.abs(account.hashCode()));
             this.rng = new Random(account.hashCode());
         }
 
@@ -761,7 +765,7 @@ public final class FleetPlay
                             // phase0.quest.npcId, drive the dialog (click NPC -> read html -> send the
                             // single validated bypass) instead of routing; otherwise behave exactly as
                             // STEP 1 (MOVE_TO quest NPC / random far-travel fallback).
-                            GoalDecision goal = BotPlayController.decide(buildPlayContext(snapshot, logger));
+                            GoalDecision goal = BotPlayController.decide(buildPlayContext(snapshot, logger), cfg);
                             // ACQUIRE-failure cooldown: with an empty journal the planner keeps re-issuing the
                             // same ACQUIRE giver, but a geo-unreachable one (Wolf Hunt at Gludio, ~148k across the
                             // ocean) only produces abandoned routes. While the cooldown is armed, null the goal so
