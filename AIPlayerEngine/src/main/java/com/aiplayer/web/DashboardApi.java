@@ -12,7 +12,11 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import com.aiplayer.examples.BotInfo;
-import com.aiplayer.phase0.movement.MoveTelemetry;
+import com.aiplayer.behavior.movement.MoveTelemetry;
+import com.aiplayer.behavior.town.VendorDatabase;
+import com.aiplayer.examples.FleetPlay;
+import com.aiplayer.web.EventRing;
+import com.aiplayer.web.EventRing.Json;
 
 /**
  * WPT-01 — versioned REST API (/api/v1/*) plus every dashboard JSON serializer,
@@ -45,7 +49,7 @@ public final class DashboardApi
         }
     }
 
-    /** Real Interlude town landmarks (phase0/town/VendorDatabase.java centers + TI creation point). */
+    /** Real Interlude town landmarks (behavior.town/VendorDatabase.java centers + TI creation point). */
     private static final String[] TOWN_NAMES = { "TalkingIsland", "Gludio", "Dion", "Giran", "Oren", "HuntersVillage", "Aden" };
     private static final int[][] TOWNS =
     {

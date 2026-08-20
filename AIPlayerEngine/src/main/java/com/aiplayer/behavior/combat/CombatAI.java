@@ -8,6 +8,11 @@ import com.aiplayer.core.EngineConfig;
 import com.aiplayer.core.EngineWiring;
 import com.aiplayer.net.AIPlayer;
 import com.aiplayer.net.GameServerClient;
+import com.aiplayer.examples.FleetPlay;
+import com.aiplayer.learning.AdaptiveLearner;
+import com.aiplayer.learning.EmotionalState;
+import com.aiplayer.learning.ReinforcementEngine;
+import com.aiplayer.behavior.combat.CombatDecision.Action;
 
 /**
  * Task 63: PvP Combat Enhancements
@@ -42,17 +47,17 @@ public class CombatAI {
     private final AggroManager aggroManager = new AggroManager();
     private int[] lastSkillAllocation = new int[0];
 
-    // Phase 0 / Tasks 1-11 upgrade (additive, OFF by default — config/ai-player.properties):
-    // built only when phase0.enabled=true so default behavior is byte-for-byte unchanged.
-    private final EngineWiring phase0;
-    private int pendingPhase0Skill = -1; // set by shouldUseSkill(), consumed by useOffensiveSkill()
+    // Behavior / Tasks 1-11 upgrade (additive, OFF by default — config/ai-player.properties):
+    // built only when engine.enabled=true so default behavior is byte-for-byte unchanged.
+    private final EngineWiring wiring;
+    private int pendingBehaviorSkill = -1; // set by shouldUseSkill(), consumed by useOffensiveSkill()
 
     public CombatAI(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
         this.config = CombatConfig.getInstance();
         this.packetLogger = new PacketLogger(aiPlayer.getName());
         this.combatState = new CombatState();
-        this.phase0 = EngineConfig.getInstance().isEnabled()
+        this.wiring = EngineConfig.getInstance().isEnabled()
             ? new EngineWiring(aiPlayer) : null;
     }
 
@@ -109,7 +114,7 @@ public class CombatAI {
         }
 
         // Phase 0 / Task 1 (additive, gated): class-rotation kiting (archer/mage hangback).
-        if (phase0 != null && EngineConfig.getInstance().isCombatRotationEnabled() && phase0.shouldKite()) {
+        if (wiring != null && EngineConfig.getInstance().isCombatRotationEnabled() && wiring.shouldKite()) {
             return CombatDecision.flee();
         }
 
@@ -234,8 +239,8 @@ public class CombatAI {
             return false;
         }
         // Phase 0 / Task 1 (additive, gated): the rotation's class-specific flee threshold.
-        if (phase0 != null && EngineConfig.getInstance().isCombatRotationEnabled()
-                && hpPercent < phase0.fleeThreshold()) {
+        if (wiring != null && EngineConfig.getInstance().isCombatRotationEnabled()
+                && hpPercent < wiring.fleeThreshold()) {
             return true;
         }
         return hpPercent < config.getHealthThreshold();
@@ -257,10 +262,10 @@ public class CombatAI {
             return false;
         }
         // Phase 0 / Task 1 (additive, gated): let the class rotation pick the skill.
-        if (phase0 != null && EngineConfig.getInstance().isCombatRotationEnabled()) {
-            int recommended = phase0.recommendSkill(getCurrentHPPercentage(), getCurrentMPPercentage(),
+        if (wiring != null && EngineConfig.getInstance().isCombatRotationEnabled()) {
+            int recommended = wiring.recommendSkill(getCurrentHPPercentage(), getCurrentMPPercentage(),
                 calculateDistanceTo(currentTarget));
-            pendingPhase0Skill = recommended;
+            pendingBehaviorSkill = recommended;
             return recommended > 0;
         }
         return getCurrentMPPercentage() > 20;
@@ -399,14 +404,14 @@ public class CombatAI {
     private CombatDecision useOffensiveSkill() {
         // Phase 0 / Task 1 (additive, gated): the rotation already chose the skill in shouldUseSkill().
         String skill;
-        if (phase0 != null && EngineConfig.getInstance().isCombatRotationEnabled() && pendingPhase0Skill > 0) {
-            skill = String.valueOf(pendingPhase0Skill);
-            phase0.noteSkillUsed(pendingPhase0Skill);
-            phase0.tickShots();
+        if (wiring != null && EngineConfig.getInstance().isCombatRotationEnabled() && pendingBehaviorSkill > 0) {
+            skill = String.valueOf(pendingBehaviorSkill);
+            wiring.noteSkillUsed(pendingBehaviorSkill);
+            wiring.tickShots();
         } else {
             skill = selectBestSkill();
         }
-        pendingPhase0Skill = -1;
+        pendingBehaviorSkill = -1;
         LOGGER.info(aiPlayer.getName() + " using skill: " + skill);
         lastSkillUseTime = System.currentTimeMillis();
         combatState.incrementCombo();
@@ -706,8 +711,8 @@ public class CombatAI {
 
     public AggroManager getAggroManager() { return aggroManager; }
 
-    /** Phase 0 / Tasks 1-11 integration seam (null when phase0.enabled=false). */
-    public EngineWiring getPhase0Integration() { return phase0; }
+    /** Behavior / Tasks 1-11 integration seam (null when engine.enabled=false). */
+    public EngineWiring getBehaviorIntegration() { return wiring; }
 
     /**
      * RangedKiteAI: should this bot kite instead of trading damage, given current HP% and the

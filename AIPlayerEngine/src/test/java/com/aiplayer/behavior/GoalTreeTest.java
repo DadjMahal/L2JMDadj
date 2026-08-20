@@ -3,9 +3,9 @@ package com.aiplayer.behavior;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-import com.aiplayer.behavior.GoalTree;
-import com.aiplayer.behavior.combat.CombatAI;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.combat.CombatAI;
+import com.aiplayer.learning.EmotionalState;
 
 /**
  * Stream D goal-tree + personality-weighted combat tests (tasks 65, 68, 69, 73).
@@ -85,7 +85,7 @@ public class GoalTreeTest {
         for (int i = 0; i < 3; i++) {
             p.getCombatAI().onDeath(); // each adds 0.3 frustration -> 0.9 after 3, >0.6 => FRUSTRATED
         }
-        assertEquals(com.aiplayer.advanced.EmotionalState.Emotion.FRUSTRATED,
+        assertEquals(com.aiplayer.learning.EmotionalState.Emotion.FRUSTRATED,
                 p.getEmotions().getCurrentEmotion(), "3 deaths must push emotion to FRUSTRATED");
         int frustratedRange = p.getCombatAI().getEffectiveEngageDistance();
         assertTrue(frustratedRange < neutralRange,

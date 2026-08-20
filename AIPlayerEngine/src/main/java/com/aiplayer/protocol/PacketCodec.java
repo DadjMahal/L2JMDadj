@@ -4,6 +4,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import com.aiplayer.net.GameServerClient;
+import com.aiplayer.examples.CombatProbe;
+import com.aiplayer.examples.EnterWorldProbe;
+import com.aiplayer.examples.MoveProbe;
 
 /**
  * L2J Packet Codec - Rewritten Task 67

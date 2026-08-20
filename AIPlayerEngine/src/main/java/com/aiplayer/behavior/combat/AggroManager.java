@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import com.aiplayer.protocol.PacketLogger.EntityInfo;
+import com.aiplayer.protocol.PacketLogger;
 
 /**
  * Aggro/Emotion Detection System (Task 40)

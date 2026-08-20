@@ -1,4 +1,6 @@
 package com.aiplayer.behavior;
+import com.aiplayer.behavior.combat.PKDecision.Decision;
+import com.aiplayer.behavior.AIAction.ActionType;
 
 /**
  * AI Decision Result

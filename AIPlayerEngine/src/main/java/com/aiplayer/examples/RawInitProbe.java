@@ -3,6 +3,7 @@ package com.aiplayer.examples;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import com.aiplayer.protocol.LoginCrypt;
 
 /** Raw probe: dump exactly what the LoginServer sends on connect (the Init packet framing). */
 public class RawInitProbe {

@@ -12,6 +12,8 @@ import java.util.function.LongSupplier;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import com.aiplayer.web.EventRing.Event;
+import com.aiplayer.web.HistoryRing.Snapshot;
 
 /**
  * WPT-03 / WPT-04 / WPT-08 — EventRing, HistoryRing and FleetMetrics acceptance tests.

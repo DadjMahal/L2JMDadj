@@ -22,26 +22,26 @@ import com.aiplayer.behavior.combat.CombatDecision;
 import com.aiplayer.net.GameServerClient;
 import com.aiplayer.core.EngineConfig;
 import com.aiplayer.monitor.AIMonitorDashboard;
-import com.aiplayer.phase0.BotSnapshot;
-import com.aiplayer.phase0.Phase0Wiring;
-import com.aiplayer.phase0.combat.TargetSelector;
-import com.aiplayer.phase0.quest.QuestProgressTracker;
-import com.aiplayer.phase0.guide.PlayerRace;
-import com.aiplayer.phase0.movement.HopGate;
-import com.aiplayer.phase0.movement.MoveTelemetry;
-import com.aiplayer.phase0.movement.RelocationPlanner;
-import com.aiplayer.phase0.movement.ZoneRouter;
-import com.aiplayer.phase0.movement.ZoneRouter.RouteGoal;
-import com.aiplayer.phase0.play.AcquireCooldown;
-import com.aiplayer.phase0.play.BotPlayController;
-import com.aiplayer.phase0.play.BotPlayController.Hostile;
-import com.aiplayer.phase0.play.BotPlayController.PlayContext;
-import com.aiplayer.phase0.play.GoalAction;
-import com.aiplayer.phase0.play.GoalDecision;
-import com.aiplayer.phase0.play.PlayerGoal;
-import com.aiplayer.phase0.play.QuestDialogDriver;
-import com.aiplayer.phase0.play.QuestDialogDriver.Objective;
-import com.aiplayer.phase0.play.QuestDialogDriver.QuestDialog;
+import com.aiplayer.core.BotSnapshot;
+import com.aiplayer.core.CoreWiring;
+import com.aiplayer.behavior.combat.TargetSelector;
+import com.aiplayer.behavior.quest.QuestProgressTracker;
+import com.aiplayer.knowledge.PlayerRace;
+import com.aiplayer.behavior.movement.HopGate;
+import com.aiplayer.behavior.movement.MoveTelemetry;
+import com.aiplayer.behavior.movement.RelocationPlanner;
+import com.aiplayer.behavior.movement.ZoneRouter;
+import com.aiplayer.behavior.movement.ZoneRouter.RouteGoal;
+import com.aiplayer.behavior.AcquireCooldown;
+import com.aiplayer.behavior.BotPlayController;
+import com.aiplayer.behavior.BotPlayController.Hostile;
+import com.aiplayer.behavior.BotPlayController.PlayContext;
+import com.aiplayer.behavior.GoalAction;
+import com.aiplayer.behavior.GoalDecision;
+import com.aiplayer.behavior.PlayerGoal;
+import com.aiplayer.behavior.QuestDialogDriver;
+import com.aiplayer.behavior.QuestDialogDriver.Objective;
+import com.aiplayer.behavior.QuestDialogDriver.QuestDialog;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketCodec;
 import com.aiplayer.protocol.PacketLogger;
@@ -52,11 +52,13 @@ import com.aiplayer.web.FleetMetrics;
 import com.aiplayer.web.HistoryRing;
 import com.aiplayer.behavior.combat.CombatAI;
 import com.aiplayer.behavior.combat.CombatFramePlanner;
+import com.aiplayer.learning.AdaptiveLearner;
+import com.aiplayer.learning.ReinforcementEngine;
 
 /**
  * Launches a fleet of real AI Players against the live Interlude stack and exposes a light
  * web dashboard. Each bot runs the same proven login -> enter-world -> decision loop
- * as Phase0Driver, on its own thread:
+ * as EngineDriver, on its own thread:
  *   - combat: target attackables via TargetSelector and execute the proven
  *     Action/AttackRequest frames (the server walks the char into range),
  *   - level-up through kills (= the char's exp rises in gameserver.characters),
@@ -101,7 +103,7 @@ public final class FleetPlay
     }
 
     /** S6-T03/T07: current HP fraction (1.0 when unknown) used by the survival guards. */
-    private static double hpFrac(com.aiplayer.phase0.BotSnapshot s)
+    private static double hpFrac(com.aiplayer.core.BotSnapshot s)
     {
         return s.hpMax > 0 ? (double) s.hpCurrent / s.hpMax : 1.0;
     }
@@ -157,7 +159,7 @@ public final class FleetPlay
         int gamePort = args.length > 2 ? Integer.parseInt(args[2]) : 7777;
         int loginPort = args.length > 3 ? Integer.parseInt(args[3]) : 2106;
         int dashPort = args.length > 4 ? Integer.parseInt(args[4]) : 8080;
-        // TIM-001 proof hook: optional 6th arg "movement" force-enables phase0.movement at runtime
+        // TIM-001 proof hook: optional 6th arg "movement" force-enables engine.movement at runtime
         // (never edits config/ai-player.properties; the default remains OFF).
         boolean forceMovement = args.length > 5 && "movement".equalsIgnoreCase(args[5]);
         // Optional 7th/8th args: account prefix + charId base, so an operator can point the launch at a
@@ -177,9 +179,9 @@ public final class FleetPlay
         if (forceMovement)
         {
             AIConfiguration cfg = AIConfiguration.getInstance();
-            cfg.setProperty("phase0.enabled", "true");
-            cfg.setProperty("phase0.movement", "true");
-            System.out.println("[FleetPlay] phase0.movement FORCED ON for this run (6th arg 'movement')");
+            cfg.setProperty("engine.enabled", "true");
+            cfg.setProperty("engine.movement", "true");
+            System.out.println("[FleetPlay] engine.movement FORCED ON for this run (6th arg 'movement')");
         }
 
         System.out.println("[FleetPlay] launching " + count + " bots vs " + host + ":" + gamePort
@@ -255,7 +257,7 @@ public final class FleetPlay
         /** Per-bot race: drives the guide landmark + restock vendor so non-Humans stay in their own zone. */
         private final PlayerRace race;
         private final Random rng;
-        // STEP 2: per-session quest-dialog driver state (only used when phase0.quest.npcId is set).
+        // STEP 2: per-session quest-dialog driver state (only used when engine.quest.npcId is set).
         private boolean questDialogOpen = false;
         private String questLastHtml = null;
         private long lastQuestClickMs = 0;
@@ -373,13 +375,13 @@ public final class FleetPlay
 
         /**
          * STEP 2: drive an NPC quest dialog directly inside the fleet loop, off by default. Only runs
-         * when the controller returns BYPASS at the configured giver (phase0.quest.npcId). Sequence:
+         * when the controller returns BYPASS at the configured giver (engine.quest.npcId). Sequence:
          * click the NPC (Action) -> wait for its NpcHtmlMessage -> push the displayed bypass links
          * through {@link QuestDialogDriver}, which returns the ONE next validated command; send it via
          * wiring.bypass and pause until the server shows the next dialog. Never fabricates a command the
          * server did not display and never re-sends a link already sent in this session.
          */
-        private void driveQuestDialog(BotSnapshot snapshot, PacketLogger logger, Phase0Wiring wiring,
+        private void driveQuestDialog(BotSnapshot snapshot, PacketLogger logger, CoreWiring wiring,
                                       GoalDecision goal, int questNpcId, String questNameProp)
         {
             PacketLogger.EntityInfo giver = logger.findEntityByNpcId(questNpcId);
@@ -476,9 +478,9 @@ public final class FleetPlay
             player.getCombatAI().setPacketLogger(logger);
             logger.setSelfObjectId(charId);
 
-            Phase0Wiring wiring = new Phase0Wiring(gs, account);
+            CoreWiring wiring = new CoreWiring(gs, account);
             TargetSelector targetSelector = new TargetSelector(account, logger.getLevel());
-            EngineConfig phase0 = EngineConfig.getInstance();
+            EngineConfig config = EngineConfig.getInstance();
             ZoneRouter zoneRouter = new ZoneRouter(account);
             // STEP 6: idle-relocation decision maker — prefers last-XP / nearest-mate when frozen,
             // real guide-map landmark otherwise, with a consecutive-abandon escape gate.
@@ -490,15 +492,15 @@ public final class FleetPlay
             info.idleTimeouts = gs.idleTimeouts;
             emit(EventRing.TYPE_CONNECT, "level", info.level);
             LOGGER.info("[FleetPlay] " + account + " ENTERED WORLD"
-                + (phase0.isMovementEnabled() ? " [phase0.movement ON]" : ""));
+                + (config.isMovementEnabled() ? " [engine.movement ON]" : ""));
             reconnectDelayMs = RECONNECT_BASE_MS; // S2-T07: clean enter resets the backoff
 
             long lastWander = 0;
             long lastRoute = 0;
-            // STEP 2: quest-dialog gating. When the operator sets phase0.quest.npcId (>0) the bot
+            // STEP 2: quest-dialog gating. When the operator sets engine.quest.npcId (>0) the bot
             // treats "being at the giver" as "open its dialog and follow the 1-validated-bypass driver".
-            int questNpcId = AIConfiguration.getInstance().getIntProperty("phase0.quest.npcId", 0);
-            String questNameProp = AIConfiguration.getInstance().getProperty("phase0.quest.name", "");
+            int questNpcId = AIConfiguration.getInstance().getIntProperty("engine.quest.npcId", 0);
+            String questNameProp = AIConfiguration.getInstance().getProperty("engine.quest.name", "");
             ZoneRouter.RouteGoal activeRoute = null;
             int[] pendingHop = null;
             long hopSentAtMs = 0;
@@ -520,7 +522,7 @@ public final class FleetPlay
             while (true)
             {
                 // Broken-pipe / zombie guard: if the game-server reader thread died (EOF / reset /
-                // IOException), the socket is gone. Phase0Wiring.send() swallows the write failure, so
+                // IOException), the socket is gone. CoreWiring.send() swallows the write failure, so
                 // WITHOUT this check the loop would keep planning HOPs against a dead server for hours
                 // (the ~2h CLOSE-WAIT zombie loop in the 2026-08-15 run). Throwing here lets the outer
                 // run() reconnect loop (15s sleep -> fresh runSession) rebuild the connection.
@@ -821,10 +823,10 @@ public final class FleetPlay
                             // STEP 3 gap-close: CombatAI engages any hostile within combat.target_distance
                             // (default 1500) and never lowers a still-far mob (it only compares against 1500),
                             // so a bot stands still spamming an unreachable target -> 0 XP, 0 movement. When
-                            // phase0.movement is ON (default OFF => existing behaviour preserved), advance one
+                            // engine.movement is ON (default OFF => existing behaviour preserved), advance one
                             // hop toward an out-of-melee target so the fleet actually closes distance and farms.
                             boolean chasing = false;
-                            if (phase0.isMovementEnabled() && System.currentTimeMillis() - lastChaseMs > CHASE_INTERVAL_MS)
+                            if (config.isMovementEnabled() && System.currentTimeMillis() - lastChaseMs > CHASE_INTERVAL_MS)
                             {
                                 PacketLogger.EntityInfo chaseTarget = logger.getEntity(targetId);
                                 if (chaseTarget != null)
@@ -906,7 +908,7 @@ public final class FleetPlay
                             wiring.executeCombat(CombatDecision.attackTarget(String.valueOf(newTarget)),
                                 snapshot.x, snapshot.y, snapshot.z, newTarget);
                         }
-                        else if (phase0.isMovementEnabled())
+                        else if (config.isMovementEnabled())
                         {
                             // TIM-001 fix (flag OFF by default): proactive FAR travel when idle.
                             // The server rejects single moves > 9900u (MoveToLocation.java:156-163),
@@ -915,7 +917,7 @@ public final class FleetPlay
                             long now = System.currentTimeMillis();
                             // STEP 2: the controller authors the goal authoritatively, every tick (it is
                             // cheap and pure). If it says BYPASS at a quest NPC and the operator configured
-                            // phase0.quest.npcId, drive the dialog (click NPC -> read html -> send the
+                            // engine.quest.npcId, drive the dialog (click NPC -> read html -> send the
                             // single validated bypass) instead of routing; otherwise behave exactly as
                             // STEP 1 (MOVE_TO quest NPC / random far-travel fallback).
                             GoalDecision goal = BotPlayController.decide(buildPlayContext(snapshot, logger), cfg);
@@ -977,7 +979,7 @@ public final class FleetPlay
                                 info.thought = "STEP2 talking to quest NPC " + questNpcId;
                                 dialogDriven = true;
                             }
-                            if (!dialogDriven && activeRoute == null && now - lastRoute > phase0.getMovementIdleRouteMs())
+                            if (!dialogDriven && activeRoute == null && now - lastRoute > config.getMovementIdleRouteMs())
                             {
                                 lastRoute = now;
                                 // If the controller picked a concrete MOVE destination (quest NPC /
@@ -989,7 +991,7 @@ public final class FleetPlay
                                 {
                                     int rx = goal.targetX, ry = goal.targetY, rz = goal.targetZ;
                                     // CONFIGURED GIVER (S3-T01): when the operator set
-                                    // phase0.quest.npcId and the goal is ACQUIRE, route to the REAL
+                                    // engine.quest.npcId and the goal is ACQUIRE, route to the REAL
                                     // configured giver's tracked position — the engine's quest data
                                     // (synthetic registry) can name a different NPC/zone than the
                                     // server's actual quest giver.
@@ -1029,11 +1031,11 @@ public final class FleetPlay
                                     // relocates to its OWN village zone (never drifts to Talking Island).
                                     // S5-T07: per-race max relocation radius (Elves/Dwarf/Orc wander less
                                     // than Humans, whose farms are farther apart).
-                                    double maxR = phase0.getMovementMaxRadius() * raceRadiusFactor(cfg.race);
+                                    double maxR = config.getMovementMaxRadius() * raceRadiusFactor(cfg.race);
                                     RelocationPlanner.Target reloc = relocation.choose(snapshot.level,
                                         snapshot.x, snapshot.y, snapshot.z,
                                         relocation.isFrozen(), mates, race,
-                                        phase0.getMovementMinRadius(), maxR);
+                                        config.getMovementMinRadius(), maxR);
                                     if (reloc != null)
                                     {
                                         activeRoute = ZoneRouter.routeTo(snapshot.x, snapshot.y, snapshot.z,

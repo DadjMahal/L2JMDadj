@@ -9,6 +9,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.aiplayer.behavior.town.MerchantAI;
 import com.aiplayer.behavior.town.MerchantDecision;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.social.CollectiveKnowledge;
+import com.aiplayer.behavior.social.DiplomacyEngine;
+import com.aiplayer.behavior.social.SwarmCoordinator;
+import com.aiplayer.protocol.PacketLogger;
 
 /**
  * Stream E slice 1 tests (tasks 78, 79, 86, 87).

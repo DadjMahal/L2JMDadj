@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.aiplayer.protocol.PacketLogger.EntityInfo;
 
 /**
  * Stream C7/C8 regression tests for the GENUINE NPC-talk quest driver support:

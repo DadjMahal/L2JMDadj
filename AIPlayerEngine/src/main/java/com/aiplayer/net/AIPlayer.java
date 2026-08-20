@@ -3,17 +3,17 @@ package com.aiplayer.net;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import com.aiplayer.neural.DeepLearningCore;
-import com.aiplayer.advanced.PersonalityProfile;
-import com.aiplayer.advanced.EmotionalState;
-import com.aiplayer.advanced.AdaptiveLearner;
-import com.aiplayer.advanced.ReinforcementEngine;
-import com.aiplayer.economy.MarketEngine;
-import com.aiplayer.economy.EconomicEngine;
-import com.aiplayer.economy.NetWorthOptimizer;
-import com.aiplayer.social.CollectiveKnowledge;
-import com.aiplayer.social.SwarmCoordinator;
-import com.aiplayer.social.DiplomacyEngine;
+import com.aiplayer.learning.DeepLearningCore;
+import com.aiplayer.learning.PersonalityProfile;
+import com.aiplayer.learning.EmotionalState;
+import com.aiplayer.learning.AdaptiveLearner;
+import com.aiplayer.learning.ReinforcementEngine;
+import com.aiplayer.behavior.town.MarketEngine;
+import com.aiplayer.behavior.town.EconomicEngine;
+import com.aiplayer.behavior.town.NetWorthOptimizer;
+import com.aiplayer.behavior.social.CollectiveKnowledge;
+import com.aiplayer.behavior.social.SwarmCoordinator;
+import com.aiplayer.behavior.social.DiplomacyEngine;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.behavior.AIAction;
 import com.aiplayer.behavior.AIActionQueue;
@@ -36,6 +36,7 @@ import com.aiplayer.behavior.town.MerchantAI;
 import com.aiplayer.core.AIConfiguration;
 import com.aiplayer.core.AIPlayerState;
 import com.aiplayer.core.PersistenceManager;
+import com.aiplayer.learning.PatternMemory;
 
 /**
  * AI Player Base Class

@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.LongSupplier;
+import com.aiplayer.web.EventRing;
+import com.aiplayer.web.EventRing.Json;
 
 /**
  * WPT-04 — in-memory state history ring for bot trails / playback / review.

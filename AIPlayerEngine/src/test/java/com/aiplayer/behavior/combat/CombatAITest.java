@@ -15,6 +15,9 @@ import com.aiplayer.behavior.combat.PKDecision;
 import com.aiplayer.behavior.combat.PvPSkillRotation;
 import com.aiplayer.net.AIPlayer;
 import com.aiplayer.net.GameServerClient;
+import com.aiplayer.behavior.BotPlayController.Hostile;
+import com.aiplayer.behavior.combat.PKDecision.Decision;
+import com.aiplayer.behavior.combat.PKDecision.PKBot;
 
 /**
  * Combat AI Unit Tests

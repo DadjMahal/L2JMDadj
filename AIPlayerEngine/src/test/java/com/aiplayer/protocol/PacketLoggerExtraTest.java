@@ -10,6 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.aiplayer.protocol.PacketLogger.CombatKpis;
+import com.aiplayer.protocol.PacketLogger.SkillCastEvent;
+import com.aiplayer.protocol.PacketLogger.StatusSnapshot;
 
 /**
  * WPT-23 / WPT-25 / WPT-26 regression tests for the PacketLogger combat & skill-cast layer.

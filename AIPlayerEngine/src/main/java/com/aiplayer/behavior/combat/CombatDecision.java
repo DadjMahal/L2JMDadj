@@ -1,6 +1,8 @@
 package com.aiplayer.behavior.combat;
 
 import java.util.logging.Logger;
+import com.aiplayer.behavior.combat.PKDecision;
+import com.aiplayer.behavior.combat.PKDecision.Decision;
 
 /**
  * Combat Decision Result

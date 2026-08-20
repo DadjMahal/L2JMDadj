@@ -1,6 +1,7 @@
 package com.aiplayer.protocol;
 
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.protocol.ProtocolPacket.PacketType;
 
 /**
  * Protocol Packet Factory

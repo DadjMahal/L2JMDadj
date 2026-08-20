@@ -1,26 +1,31 @@
 package com.aiplayer.core;
 
-/** MODE: COMPLETE (callers wired: CombatAI + Phase0Driver; subsystems without live protocol/data are honest seams). */
+/** MODE: COMPLETE (callers wired: CombatAI + EngineDriver; subsystems without live protocol/data are honest seams). */
 
 import java.util.logging.Logger;
 
-import com.aiplayer.phase0.BotSnapshot;
-import com.aiplayer.phase0.combat.AggroTracker;
-import com.aiplayer.phase0.combat.CooldownTracker;
-import com.aiplayer.phase0.combat.CombatRotation;
-import com.aiplayer.phase0.combat.RotationFactory;
-import com.aiplayer.phase0.combat.ShotManager;
-import com.aiplayer.phase0.combat.SkillDatabase;
-import com.aiplayer.phase0.combat.SkillInfo;
-import com.aiplayer.phase0.combat.TargetSelector;
-import com.aiplayer.phase0.humanize.HumanizedRandom;
+import com.aiplayer.behavior.combat.AggroTracker;
+import com.aiplayer.behavior.combat.CooldownTracker;
+import com.aiplayer.behavior.combat.CombatRotation;
+import com.aiplayer.behavior.combat.RotationFactory;
+import com.aiplayer.behavior.combat.ShotManager;
+import com.aiplayer.behavior.combat.SkillDatabase;
+import com.aiplayer.behavior.combat.SkillInfo;
+import com.aiplayer.behavior.combat.TargetSelector;
+import com.aiplayer.behavior.humanize.HumanizedRandom;
 import com.aiplayer.behavior.combat.CombatAI;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.combat.FighterRotation;
+import com.aiplayer.behavior.lifecycle.DeathHandler;
+import com.aiplayer.behavior.lifecycle.RecoveryFlow;
+import com.aiplayer.behavior.social.ChatResponder;
+import com.aiplayer.examples.EngineDriver;
+import com.aiplayer.protocol.PacketLogger;
 
 /**
  * The single runtime seam through which the Phase-0 Task 1-11 modules are reached
  * from the (unchanged-on-master) engine. Constructed by {@link CombatAI} only when
- * {@code phase0.enabled=true} (default OFF), so the default build ignores phase0
+ * {@code engine.enabled=true} (default OFF), so the default build ignores behavior
  * entirely.
  *
  * Honest integration status (see Documentation/Audit/43):
@@ -30,7 +35,7 @@ import com.aiplayer.net.AIPlayer;
  *   SEAM  — Task 4 death/recovery, Task 6 social/chat, Tasks 9/11 quest/farm:
  *           callers exist, but each depends on a not-yet-live data source or
  *           protocol opcode, so they answer with an explicit SKIP-... string
- *           instead of pretending to work (same rule as Phase0Wiring.SKIP-UNPROVEN).
+ *           instead of pretending to work (same rule as CoreWiring.SKIP-UNPROVEN).
  */
 public final class EngineWiring
 {
@@ -79,7 +84,7 @@ public final class EngineWiring
         }
         catch (Exception e)
         {
-            LOGGER.warning("[Phase0] selectSkill failed for " + accountName + ": " + e.getMessage());
+            LOGGER.warning("[Behavior] selectSkill failed for " + accountName + ": " + e.getMessage());
             return -1;
         }
         if (skillId > 0 && isOnCooldown(skillId))

@@ -13,6 +13,8 @@ import com.aiplayer.behavior.town.MerchantDecision;
 import com.aiplayer.behavior.town.MerchantNPC;
 import com.aiplayer.core.AIConfiguration;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.combat.PKDecision.Decision;
+import com.aiplayer.behavior.AIAction.ActionType;
 
 /**
  * AI Brain - Decision Making Engine

@@ -3,6 +3,7 @@ package com.aiplayer.behavior;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import com.aiplayer.behavior.combat.CombatDecision.Action;
 
 /**
  * AI Action Queue

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.aiplayer.protocol.PacketCodec;
+import com.aiplayer.protocol.GameServerFrameWriter;
+import com.aiplayer.behavior.combat.CombatDecision.Action;
 
 /**
  * Stream C: turns a {@link CombatDecision} into the exact, ordered list of client wire frames to send.

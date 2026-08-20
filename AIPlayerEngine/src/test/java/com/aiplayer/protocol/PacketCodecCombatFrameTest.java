@@ -6,6 +6,8 @@ import java.nio.ByteOrder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.aiplayer.core.CoreWiring;
+import com.aiplayer.examples.CombatProbe;
 
 /**
  * Stream C: byte-layout tests for the real client combat frames (Action 0x04 / AttackRequest 0x0A)
@@ -123,7 +125,7 @@ public class PacketCodecCombatFrameTest
    @Test
    public void testEncodeRestartPointLayout()
    {
-      // TIM-001 H5 survivability revive path: Phase0Wiring.revive() sends REQUEST_RESTART_POINT so a
+      // TIM-001 H5 survivability revive path: CoreWiring.revive() sends REQUEST_RESTART_POINT so a
       // dead fleet bot can return at a restart point instead of staying corpse. Server decoder
       // RequestRestartPoint.readImpl() = readInt(). Frame: size(2)+opcode(1)+pointType(4) = 7 bytes LE.
       byte[] village = PacketCodec.encodeRestartPoint(0);

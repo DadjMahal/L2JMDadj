@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.aiplayer.behavior.combat.CombatAI;
 import com.aiplayer.behavior.combat.CombatDecision;
 import com.aiplayer.behavior.combat.CombatFramePlanner;
+import com.aiplayer.behavior.combat.CombatFramePlanner.FrameStep;
+import com.aiplayer.examples.FleetPlay;
 
 /**
  * Stream C: tests the {@link CombatFramePlanner} decision → ordered wire-frame mapping.

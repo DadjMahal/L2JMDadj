@@ -17,6 +17,8 @@ import com.aiplayer.protocol.PacketCodec;
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.protocol.crypt.GameCrypt;
 import com.aiplayer.behavior.combat.CombatFramePlanner;
+import com.aiplayer.examples.CombatProbe;
+import com.aiplayer.examples.EnterWorldProbe;
 
 /**
  * Stream C: reusable, in-engine GameServer client (external socket, no server source changes).

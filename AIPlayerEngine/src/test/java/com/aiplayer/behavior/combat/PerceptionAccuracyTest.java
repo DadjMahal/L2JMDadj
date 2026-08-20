@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 import com.aiplayer.behavior.combat.CombatAI;
+import com.aiplayer.behavior.quest.QuestInfo;
 
 /**
  * Perception Accuracy Test Suite (Task 42)

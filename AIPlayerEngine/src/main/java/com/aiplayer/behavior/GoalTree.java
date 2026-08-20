@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.learning.EmotionalState;
+import com.aiplayer.behavior.LongTermGoalsAI.Goal;
 
 /**
  * Goal Tree — Stream D (tasks 65, 68, 69).
@@ -68,7 +70,7 @@ public class GoalTree {
         }
         add(ShortTermGoal.GRIND_XP);
         if (aiPlayer.getEmotions().getCurrentEmotion()
-                == com.aiplayer.advanced.EmotionalState.Emotion.BORED) {
+                == com.aiplayer.learning.EmotionalState.Emotion.BORED) {
             add(ShortTermGoal.EXPLORE);
         }
         if (aiPlayer.getPersonality().getSocialWeight() > 1.5) {

@@ -15,7 +15,7 @@ import java.util.Map;
 import com.sun.net.httpserver.HttpServer;
 
 import com.aiplayer.examples.BotInfo;
-import com.aiplayer.phase0.movement.MoveTelemetry;
+import com.aiplayer.behavior.movement.MoveTelemetry;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.aiplayer.examples.FleetPlay;
+import com.aiplayer.web.DashboardApi.Config;
 
 /**
  * WPT-01 — endpoint smoke for the frozen v1 API contract (Documentation/TASKS.md section 11).

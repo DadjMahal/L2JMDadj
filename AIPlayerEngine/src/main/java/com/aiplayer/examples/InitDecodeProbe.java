@@ -8,6 +8,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.aiplayer.protocol.LoginCrypt;
+import com.aiplayer.protocol.crypt.BlowfishEngine;
 
 /**
  * Phase 0 diagnostic (B3 unblock): prove the live LoginServer Init frame can be

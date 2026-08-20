@@ -11,6 +11,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.aiplayer.behavior.GoalTree;
 import com.aiplayer.core.AIPlayerManager;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.social.CollectiveKnowledge;
+import com.aiplayer.learning.DeepLearningCore;
+import com.aiplayer.learning.EmotionalState;
+import com.aiplayer.learning.PatternMemory;
 
 /**
  * Stream F integration test (tasks 92, 97) — multi-agent scale & agent isolation.

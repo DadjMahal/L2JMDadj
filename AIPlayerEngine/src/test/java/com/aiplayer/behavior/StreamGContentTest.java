@@ -8,6 +8,7 @@ import com.aiplayer.behavior.EventCalendarAI;
 import com.aiplayer.behavior.HeroTitleAI;
 import com.aiplayer.behavior.LongTermGoalsAI;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.EventCalendarAI.CalendarEvent;
 
 /**
  * Stream G (G-Content): proves EventCalendarAI / AchievementAI / HeroTitleAI are wired into

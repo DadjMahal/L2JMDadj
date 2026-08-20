@@ -7,6 +7,10 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
+import com.aiplayer.web.EventRing;
+import com.aiplayer.web.HistoryRing;
+import com.aiplayer.web.EventRing.Json;
+import com.aiplayer.web.HistoryRing.Snapshot;
 
 /**
  * WPT-08 — process/fleet health & metrics for the v1 {@code /api/v1/health} route.

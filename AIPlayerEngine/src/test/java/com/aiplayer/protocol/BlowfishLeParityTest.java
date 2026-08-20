@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
+import com.aiplayer.protocol.crypt.BlowfishEngine;
 
 /**
  * Regression tests for the little-endian Blowfish port (com.aiplayer.protocol.crypt.BlowfishEngine)

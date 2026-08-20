@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.social.SocialBehaviorEngine;
 
 /**
  * L2JMobius login-server client — real Interlude login handshake (B2 / B3 Phase 1).

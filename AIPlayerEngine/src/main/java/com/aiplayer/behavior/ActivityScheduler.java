@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.GoalTree.ShortTermGoal;
 
 /**
  * Activity Scheduler — Stream E (task 88).

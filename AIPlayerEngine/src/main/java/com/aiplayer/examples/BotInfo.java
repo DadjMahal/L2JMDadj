@@ -1,5 +1,7 @@
 package com.aiplayer.examples;
 import com.aiplayer.net.GameServerClient;
+import com.aiplayer.protocol.PacketLogger;
+import com.aiplayer.web.DashboardApi;
 
 /**
  * Live per-bot row shown on the dashboard. Written by the fleet game loop, read by

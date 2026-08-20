@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.aiplayer.protocol.PacketLogger.InventoryItem;
 
 /**
  * WPT-24 — Inventory v2: ItemList (0x1B) parsing distinguishes equipped vs loose items using the

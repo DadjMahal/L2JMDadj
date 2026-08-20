@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.learning.EmotionalState;
 
 /**
  * Social AI Module
@@ -57,7 +58,7 @@ public class SocialAI {
                 "party_" + partyId, "formed parties at lv" + aiPlayer.getLevel(), 1.0);
         // A successful social join is mildly positive for emotion (reduces boredom).
         if (aiPlayer.getEmotions().getCurrentEmotion()
-                == com.aiplayer.advanced.EmotionalState.Emotion.BORED) {
+                == com.aiplayer.learning.EmotionalState.Emotion.BORED) {
             aiPlayer.getEmotions().decay();
         }
         LOGGER.info("[SOCIAL-LOG] [" + aiPlayer.getName() + "] PARTY_JOINED: " + partyId
@@ -172,7 +173,7 @@ public class SocialAI {
         double socialWeight = aiPlayer.getPersonality().getSocialWeight();
         boolean socialPersonality = socialWeight > 1.5;
         boolean bored = aiPlayer.getEmotions().getCurrentEmotion()
-                == com.aiplayer.advanced.EmotionalState.Emotion.BORED;
+                == com.aiplayer.learning.EmotionalState.Emotion.BORED;
         if (aiPlayer.getCombatAI() != null && aiPlayer.getCombatAI().getSelectedTargetObjId() > 0) {
             return false; // busy fighting — don't drop combat to party-chat
         }
@@ -219,7 +220,7 @@ public class SocialAI {
     private boolean shouldChat() {
         boolean socialOrBored = aiPlayer.getPersonality().getSocialWeight() > 1.3
                 || aiPlayer.getEmotions().getCurrentEmotion()
-                   == com.aiplayer.advanced.EmotionalState.Emotion.BORED;
+                   == com.aiplayer.learning.EmotionalState.Emotion.BORED;
         boolean inCombat = aiPlayer.getCombatAI() != null
                 && aiPlayer.getCombatAI().getSelectedTargetObjId() > 0;
         return socialOrBored && !inCombat;
@@ -228,7 +229,7 @@ public class SocialAI {
     private SocialDecision generateChat() {
         String message;
         if (aiPlayer.getEmotions().getCurrentEmotion()
-                == com.aiplayer.advanced.EmotionalState.Emotion.BORED) {
+                == com.aiplayer.learning.EmotionalState.Emotion.BORED) {
             message = "Anyone around to hunt with?";
         } else if (aiPlayer.getEmotions().getConfidenceLevel() > 0.7) {
             message = "I'm feeling strong today - good hunting spot open!";

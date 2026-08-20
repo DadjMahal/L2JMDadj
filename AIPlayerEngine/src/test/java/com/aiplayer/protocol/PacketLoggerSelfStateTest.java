@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.aiplayer.protocol.PacketLogger.EntityInfo;
 
 /**
  * Dashboard data-layer regression tests. Frames are built EXACTLY per the Interlude server

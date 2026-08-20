@@ -3,9 +3,14 @@ package com.aiplayer.behavior;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-import com.aiplayer.behavior.LongTermGoalsAI;
-import com.aiplayer.behavior.combat.CombatAI;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.behavior.combat.CombatAI;
+import com.aiplayer.learning.AdaptiveLearner;
+import com.aiplayer.learning.DeepLearningCore;
+import com.aiplayer.learning.EmotionalState;
+import com.aiplayer.learning.PatternMemory;
+import com.aiplayer.learning.PersonalityProfile;
+import com.aiplayer.learning.ReinforcementEngine;
 
 /**
  * Stream D feedback wiring tests (tasks 70-76).
@@ -113,7 +118,7 @@ public class StreamDFeedbackTest {
         // Account 3 -> index 3 -> MERCHANT.
         AIPlayer p = newPlayer();
         assertNotNull(p.getPersonality(), "player must have a personality");
-        assertEquals(com.aiplayer.advanced.PersonalityProfile.Personality.MERCHANT,
+        assertEquals(com.aiplayer.learning.PersonalityProfile.Personality.MERCHANT,
                 p.getPersonality().getPersonality(),
                 "accountId 3 % 6 should map to MERCHANT (weights prioritise trade)");
         // And the merchant weights must actually favour trade.

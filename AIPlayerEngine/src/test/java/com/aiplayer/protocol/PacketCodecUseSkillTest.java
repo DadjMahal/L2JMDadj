@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import org.junit.jupiter.api.Test;
+import com.aiplayer.examples.CombatProbe;
 
 /**
  * Byte-exact unit test for the corrected REQUEST_MAGIC_SKILL_USE (0x2F) encoder.

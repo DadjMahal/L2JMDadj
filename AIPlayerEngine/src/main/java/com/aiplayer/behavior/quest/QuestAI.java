@@ -7,6 +7,8 @@ import com.aiplayer.behavior.LongTermGoalsAI;
 import com.aiplayer.behavior.combat.CombatAI;
 import com.aiplayer.net.AIPlayer;
 import com.aiplayer.net.GameServerClient;
+import com.aiplayer.behavior.quest.QuestFramePlanner;
+import com.aiplayer.behavior.quest.QuestFramePlanner.QuestFrame;
 
 /**
  * Quest AI Module.

@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import com.aiplayer.cli.AIPlayerEngine;
+import com.aiplayer.protocol.crypt.BlowfishEngine;
 
 /**
  * L2J Interlude login-protocol crypto helper (Task B2).

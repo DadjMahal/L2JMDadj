@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.examples.TradeProbe;
 
 /**
  * Merchant AI Module

@@ -1,6 +1,7 @@
 package com.aiplayer.behavior.combat;
 
 import java.util.logging.Logger;
+import com.aiplayer.protocol.PacketLogger;
 
 /**
  * Combat State Management

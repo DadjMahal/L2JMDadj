@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.aiplayer.protocol.PacketLogger.EntityInfo;
 
 /**
  * S2-T03 — multi-race NPC_INFO burst: three DIFFERENT mobs (Talking-Island wolf 20120,

@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 import com.aiplayer.protocol.PacketLogger;
 
 import static org.junit.jupiter.api.Assertions.*;
-import com.aiplayer.behavior.social.SocialAI;
-import com.aiplayer.behavior.social.SocialDecision;
 import com.aiplayer.net.AIPlayer;
+import com.aiplayer.learning.EmotionalState;
+import com.aiplayer.protocol.PacketLogger.EntityInfo;
 
 /**
  * Stream E slice 2 tests (tasks 80, 82, 85, 90).
@@ -85,7 +85,7 @@ public class StreamESocialTest {
         for (int i = 0; i < 12; i++) {
             p.getEmotions().onIdle(); // boredom > 0.6 -> BORED after ~7
         }
-        assertEquals(com.aiplayer.advanced.EmotionalState.Emotion.BORED,
+        assertEquals(com.aiplayer.learning.EmotionalState.Emotion.BORED,
                 p.getEmotions().getCurrentEmotion(), "precondition: bot must be BORED");
         SocialDecision d = p.getSocialAI().makeDecision();
         // A bored non-combat bot chats (deterministic). If it also wants to seek party, either

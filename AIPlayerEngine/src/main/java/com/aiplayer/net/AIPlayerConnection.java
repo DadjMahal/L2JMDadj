@@ -8,6 +8,7 @@ import com.aiplayer.protocol.GameServerFrameWriter;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.behavior.combat.CombatDecision;
 import com.aiplayer.behavior.combat.CombatFramePlanner;
+import com.aiplayer.core.CoreWiring;
 
 /**
  * AI Player Connection Manager
@@ -20,7 +21,7 @@ public class AIPlayerConnection {
 
     private final AIPlayer aiPlayer;
     private final L2JProtocol protocol;
-    /** S10-T03: single shared frame planner (was allocated per call — dedupe vs Phase0Wiring). */
+    /** S10-T03: single shared frame planner (was allocated per call — dedupe vs CoreWiring). */
     private final CombatFramePlanner planner = new CombatFramePlanner();
 
     /** Real GameServer frame writer (crypt disabled = plaintext); attached once a GS socket is held. */

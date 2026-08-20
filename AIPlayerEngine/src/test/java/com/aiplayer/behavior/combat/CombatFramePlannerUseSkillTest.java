@@ -10,6 +10,7 @@ import com.aiplayer.behavior.combat.CombatFramePlanner.FrameStep;
 import com.aiplayer.behavior.combat.CombatAI;
 import com.aiplayer.behavior.combat.CombatDecision;
 import com.aiplayer.behavior.combat.CombatFramePlanner;
+import com.aiplayer.protocol.PacketCodec;
 
 /**
  * Verifies the USE_SKILL path of {@link CombatFramePlanner} now that

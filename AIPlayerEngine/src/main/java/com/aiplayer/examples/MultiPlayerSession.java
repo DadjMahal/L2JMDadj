@@ -13,6 +13,7 @@ import com.aiplayer.behavior.combat.CombatFramePlanner;
 import com.aiplayer.net.GameServerClient;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.behavior.combat.CombatAI;
+import com.aiplayer.protocol.PacketLogger;
 
 /**
  * MultiPlayerSession — ONE lean JVM running N live AI players on N threads.

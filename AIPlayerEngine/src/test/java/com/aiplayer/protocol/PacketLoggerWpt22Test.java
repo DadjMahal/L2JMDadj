@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.aiplayer.protocol.PacketLogger.ChatEvent;
+import com.aiplayer.protocol.PacketLogger.SystemMessageEvent;
 
 /**
  * WPT-22 — SystemMessage (0x64) and chat (NpcSay 0x02 / CreatureSay 0x4A) decoding into typed
