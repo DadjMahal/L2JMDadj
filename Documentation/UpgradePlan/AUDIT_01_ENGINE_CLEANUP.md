@@ -81,7 +81,7 @@ Renames are mechanical: `phase0.quest` → `behavior.quest`, `phase0.play` → `
 | EP-1 | Archive 131 dead engine classes to non-compiled attic/ | M | – | DONE-PUSHED 4827ac0f (compile-true closure: 90 archived, 51 live remain — audit's "10" under-counted transitive deps; see RuntimeLog) |
 | EP-2 | Relocate the 10 live engine classes into target packages; remove engine/ | M | EP-1 | DONE-PUSHED 9601dd77 (51 classes per EP-1 closure; Phase0Config→EngineConfig, Phase0Integration→EngineWiring) |
 | EP-3 | Rename phase0/* to behavior/* domain packages; purge the "phase0" token repo-wide | L | EP-2 | DONE-PUSHED c049e612 |
-| EP-4 | Split FleetPlay god class: BotLoop → core session class; thin launcher in cli/ | L | EP-3 | TODO |
+| EP-4 | Split FleetPlay god class: BotLoop → core session class; thin launcher in cli/ | L | EP-3 | DONE-PUSHED 2b4cda1b (1391→76 lines; launcher stayed in examples/, not cli/ — see RuntimeLog; BotSession 1130 vs <900 accepted, verbatim extraction; 414 tests green) |
 | EP-5 | Merge micro-packages (humanize+imperfection; cabinet+director into behavior; brain presets → 2 files) | M | EP-3 | TODO |
 | EP-6 | Security pass: password purge, dashboard auth-by-default, script lint, secret grep | M | – | TODO |
 | EP-7 | Virtual threads: BotLoop + dashboard executors on Thread.ofVirtual | M | EP-4 | TODO |
