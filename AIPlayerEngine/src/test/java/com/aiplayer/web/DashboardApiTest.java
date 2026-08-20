@@ -14,7 +14,7 @@ import java.util.Map;
 
 import com.sun.net.httpserver.HttpServer;
 
-import com.aiplayer.examples.BotInfo;
+import com.aiplayer.core.BotInfo;
 import com.aiplayer.behavior.movement.MoveTelemetry;
 
 import org.junit.jupiter.api.AfterEach;

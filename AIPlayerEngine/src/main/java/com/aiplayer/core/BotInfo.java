@@ -1,13 +1,12 @@
-package com.aiplayer.examples;
-import com.aiplayer.net.GameServerClient;
-import com.aiplayer.protocol.PacketLogger;
-import com.aiplayer.web.DashboardApi;
+package com.aiplayer.core;
+
 
 /**
  * Live per-bot row shown on the dashboard. Written by the fleet game loop, read by
  * DashboardApi (single writer per bot = the bot's own thread, no cross-thread mutation).
  * WPT-01: extracted from the nested FleetPlay.BotInfo so the web layer can serialize it
- * without coupling to the launcher internals.
+ * without coupling to the launcher internals. EP-4: moved examples -> core (the session
+ * machine owns its row; the dashboard only reads it).
  */
 public final class BotInfo
 {

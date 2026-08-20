@@ -11,12 +11,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
-import com.aiplayer.examples.BotInfo;
+import com.aiplayer.core.BotInfo;
 import com.aiplayer.behavior.movement.MoveTelemetry;
 import com.aiplayer.behavior.town.VendorDatabase;
-import com.aiplayer.examples.FleetPlay;
 import com.aiplayer.web.EventRing;
 import com.aiplayer.web.EventRing.Json;
+import com.aiplayer.protocol.PacketLogger;
 
 /**
  * WPT-01 — versioned REST API (/api/v1/*) plus every dashboard JSON serializer,
@@ -695,5 +695,43 @@ public final class DashboardApi
         {
             out.write(bytes);
         }
+    }
+
+    /** Top-5 inventory items by count: {itemId, count} pairs, from the real ItemList (0x1B) parse.
+     *  EP-4: moved from FleetPlay — dashboard payload builder, fed by the session loop. */
+    public static int[][] topItems(PacketLogger logger)
+    {
+        java.util.List<java.util.Map.Entry<Integer, Long>> inv =
+            new java.util.ArrayList<>(logger.getInventoryItems().entrySet());
+        inv.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
+        int cap = Math.min(5, inv.size());
+        int[][] out = new int[cap][2];
+        for (int i = 0; i < cap; i++)
+        {
+            out[i][0] = inv.get(i).getKey();
+            out[i][1] = inv.get(i).getValue().intValue();
+        }
+        return out;
+    }
+
+    /** Snapshot of nearby entities for the map: {objId, kind(0 npc 1 hostile 2 player), x, y, z}, bounded.
+     *  EP-4: moved from FleetPlay — dashboard payload builder, fed by the session loop. */
+    public static int[][] entitySnapshot(PacketLogger logger)
+    {
+        int total = logger.getEntityCountTotal();
+        int cap = Math.min(120, total);
+        int[][] out = new int[cap][5];
+        int i = 0;
+        for (PacketLogger.EntityInfo e : logger.getEntities())
+        {
+            if (i >= cap) break;
+            out[i][0] = e.objectId;
+            out[i][1] = e.isHostile ? 1 : (e.name != null ? 2 : 0);
+            out[i][2] = e.x;
+            out[i][3] = e.y;
+            out[i][4] = e.z;
+            i++;
+        }
+        return cap == i ? out : java.util.Arrays.copyOf(out, i);
     }
 }
