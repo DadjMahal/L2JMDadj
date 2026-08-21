@@ -1,14 +1,21 @@
-# 📊 STATUS — Phase: PLAY
+# 📊 STATUS — Program: Living Server (UpgradePlan)
 
-**Phase: PLAY** — the ONE goal is 3–5 AI player bots that **actually play the game** (fight, level,
-travel, pass quests — never idle). Suite is green; TIM-001 is done and the fleet farms organically.
-The only live task board is `Documentation/TASKS.md` — a 100-task roadmap in 10 sessions.
-**Sessions 1 & 9 are COMPLETE** (code hygiene + monitoring/ops — 10/10 each); **36/100 tasks
-DONE-PUSHED**, suite **374 green**. Live: **50 random-race bots farming** on the dashboard
-http://192.168.0.107:8210 (or 100.107.133.6), Login :2106 / Game :7777, watcher + health OK: 50/50,
-log rotation + keep-alive + DB backup in place. Remaining focus: Session 2 (7/10), S10 (2/10),
-then the live P0 cluster — S3 real quests, S5 solo-relocation, S7 economy.
-All historical, audit, and evidence docs were archived 2026-08-13 to `Documentation/_archive/` (see its
-`_ARCHIVE_INDEX.md`); do not redo them. Read `START_HERE.md` for how to bring up Login/Game on JDK25,
-launch FleetPlay 5 + the dashboard, and the hard rules (no server-source edits, mvn test green, one
-task one commit, push, no new audits). Anti-redo registry: `Documentation/REVIEWED_TASKS.md`.
+**Current program**: the UpgradePlan (`Documentation/UpgradePlan/README.md`) — transform the
+engine into the **Living Server**: a small cast of smart AI citizens (quest arcs, parties with
+humans, economy, schedules) that real players join and play WITH. Quality over quantity.
+
+**Wave 1 (engine cleanup) is COMPLETE** (2026-08-20): EP-1 dead-code archive `4827ac0f`,
+EP-2 relocation `9601dd77`, EP-3 phase0 purge `c049e612`, EP-4 FleetPlay split `2b4cda1b`,
+EP-5 micro-package merge `5e61be6b`, EP-6 security pass `8bacb021`, EP-7 virtual threads
+`933204d2`, EP-8 docs unification. Suite **415/415 green**; `phase0` namespace dead; zero
+hardcoded credentials (secrets via `scripts/fleet_env.local`); fleet sessions, per-bot packet
+readers, and the dashboard all run on virtual threads.
+
+**Next**: UpgradePlan Waves 2–5 (living-server features) + the parallel-safe rows on
+`Documentation/TASKS.md` (GK-1 knowledge extractor, LW-1 events.jsonl, LW-2 watcher rules).
+
+Live ops snapshot (last verified fleet run): 50 random-race bots farming, dashboard on :8210
+(`/?token=…` — EP-6), Login :2106 / Game :7777, watcher + health_check + keep-alive + DB backup
+in place. Read `START_HERE.md` for bring-up commands and the hard rules (no server-source edits,
+mvn test green, one task one commit, push). Historical docs: `Documentation/_archive/`
+(`_ARCHIVE_INDEX.md`); anti-redo registry: `Documentation/REVIEWED_TASKS.md`.

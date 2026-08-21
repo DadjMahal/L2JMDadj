@@ -1,33 +1,89 @@
 # AI Player Engine
 
-External-socket AI player system for the L2JMobius **Interlude** server. Connects to the running
-server as normal client sockets — **no server code modifications**.
+External-socket AI player system for the L2JMobius **Interlude** server. The engine connects to
+the running Login/Game server as normal client sockets — **no server source modifications**
+(`SourceCode/`, `ServerBuild/` are never edited).
 
-## Honest status (2026-08-02)
-- **Compiles** (`mvn -f AIPlayerEngine/pom.xml compile` → BUILD SUCCESS, 155 files).
-- Combat / Quest / Merchant / Social AI exist but use **mock data** — **not connected to real gameplay**.
-- Live connection path exists (`AIPlayerManager.spawnAIPlayer → AIPlayer.connectToServer`) but is
-  **unverified**: no session has proven AI players actually online/in-game.
-- Deep/neural/advanced/social/economy classes (~100) compile but are **largely unwired**.
+Current state: **415/415 tests green**; a 50-bot mixed-race fleet farms organically with a live
+web dashboard (see `../START_HERE.md` §1 for the exact bring-up commands).
 
-> Source of truth: `AIStatusLogs/ai_progress_report.txt` + `scripts/real_status.sh`.
-> Do NOT trust any "✅ COMPLETE" doc in `Documentation/_archive_fabricated/`.
+## Architecture
 
-## Build
-```bash
-cd /home/volodro/L2JM/AIPlayerEngine && mvn clean compile
+```
+                ┌────────────────────────────────────────────────────────┐
+                │                    examples/FleetPlay                  │
+                │   thin launcher: parse → boot dashboard → spawn fleet  │
+                └──────┬──────────────────────────────┬──────────────────┘
+                       │                              │
+        ┌──────────────▼────────────┐    ┌────────────▼─────────────────┐
+        │ core/FleetConfig          │    │ web/DashboardBoot            │
+        │ args + tuning knobs       │    │ + web/DashboardApi (/api/v1) │
+        └──────────────┬────────────┘    └────────────▲─────────────────┘
+                       │ one virtual thread per bot   │ reads shared rings
+        ┌──────────────▼──────────────────────────────┴─────────────────┐
+        │ core/BotSession  (the session machine)                        │
+        │  login → enter-world → tick loop: quest dialog driver,        │
+        │  combat chase, potions, relocation, survival guards,          │
+        │  reconnect backoff + death guard        writes → core/BotInfo │
+        └──┬──────────────────────────────────────────────┬────────────┘
+           │ packets                                    │ decisions
+┌──────────▼──────────┐   ┌────────────────────┐   ┌────▼─────────────────────┐
+│ protocol/           │   │ net/               │   │ behavior/ (+10 domain    │
+│ L2JProtocol,        │──▶│ GameServerClient,  │   │ subpackages: combat,     │
+│ PacketLogger        │   │ AIPlayer           │   │ quest, movement, party…) │
+└─────────────────────┘   └────────────────────┘   └────┬────────────────────┘
+                                                        │ consults
+                                        ┌───────────────▼──────────────┐
+                                        │ knowledge/  learning/        │
+                                        │ static game data, self-impro │
+                                        └──────────────────────────────┘
 ```
 
-## Run (servers must be up first)
+Monitoring: `monitor/` (AIMonitorDashboard), `metrics/` (FleetMetrics, EventRing, HistoryRing).
+
+## Package map (old → new)
+
+The `phase0.*` namespace was purged in EP-3; `engine/` (EP-1/EP-2) is gone. If an old doc or
+commit talks about these paths, translate:
+
+| Old | New |
+|---|---|
+| `phase0.play.*` | `behavior/` root + `behavior/movement/`, `behavior/hunting/` |
+| `phase0.brain.*` | `behavior/` root (BotBrain, ClassPreset, StateMachine) |
+| `phase0.combat.*` | `behavior/combat/` |
+| `phase0.quest.*` | `behavior/quest/` |
+| `phase0.social.*`, `phase0.chat.*` | `behavior/social/` |
+| `phase0.town.*` | `behavior/town/` |
+| `phase0.party.*` | `behavior/party/` |
+| `phase0.inventory.*` | `behavior/inventory/` |
+| `phase0.movement.*` | `behavior/movement/` |
+| `phase0.humanize.*`, `phase0.imperfection.*` | `behavior/humanize/` (Humanization nests the lows) |
+| `phase0.death.*` | `behavior/lifecycle/` |
+| `phase0.farm.*` | `behavior/hunting/` |
+| `phase0.guide.*` | `knowledge/` |
+| `phase0.neural.*`, `phase0.advanced.*` | `learning/` |
+| `phase0.cabinet`, `phase0.director` | `core/BotProfile`, `behavior/Director` |
+| `engine/*` (live classes) | `net/`, `core/`, `cli/`, `behavior/*` |
+| `Phase0Config` / `Phase0Wiring` / `Phase0Integration` / `Phase0Driver` | `EngineConfig` / `CoreWiring` / `EngineWiring` / `EngineDriver` |
+| config keys `phase0.*` | `engine.*` (src/main/resources/config/ai-player.properties) |
+
+Dead pre-refactor classes live in `AIPlayerEngine/attic/` (not compiled) — do not resurrect lightly.
+
+## Build / test / run
+
 ```bash
-cd /home/volodro/L2JM && ./StartServer.sh
-mvn -f AIPlayerEngine/pom.xml exec:java -Dexec.mainClass=com.aiplayer.engine.AIPlayerEngine -Dexec.args=--spawn-all
+# tests (must stay green: 415/415)
+cd /home/dadj/Projects/l24lude && mvn -o -f AIPlayerEngine/pom.xml test
+
+# fleet + dashboard (servers up first; secrets from scripts/fleet_env.local — see EP-6)
+scripts/fleet_launch.sh 50 8210 ai_rand_ 500000 ELF,DARK_ELF,ORC,DWARF,HUMAN
+# dashboard: http://<host>:8210/?token=<DASH_TOKEN>   ops: scripts/health_check.sh 50
 ```
 
-## Real status check (no fabricated data)
-```bash
-/home/volodro/L2JM/AIPlayerEngine/AIStatusLogs/real_status.sh
-```
+Config: `src/main/resources/config/ai-player.properties` (keys `engine.*`, `bot.*`).
+Secrets (bot password, DB, dashboard token) come from `scripts/fleet_env.local` — never committed.
 
-## Agent entry points
-- Project orientation: `../START_HERE.md`  • Task board: `../TASKS.md`  • Rules: `../AGENT_ONBOARDING.md`
+## Learn more
+- Orientation + hard rules: `../START_HERE.md`
+- Task board: `../Documentation/TASKS.md` • UpgradePlan: `../Documentation/UpgradePlan/README.md`
+- Runtime evidence: `../Documentation/RuntimeLogs/` (one file per task)

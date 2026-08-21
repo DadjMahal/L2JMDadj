@@ -191,6 +191,7 @@
 | UP-EP-5 (UpgradePlan) | Merge micro-packages (presets/director/humanize/BotProfile) | M | P0 | DONE 5e61be6b |
 | UP-EP-6 (UpgradePlan) | Security pass (passwords, dashboard auth, script lint) | M | P0 | DONE 8bacb021 |
 | UP-EP-7 (UpgradePlan) | Virtual threads (BotSession fleet + dashboard) | M | P0 | DONE 933204d2 |
+| UP-EP-8 (UpgradePlan) | Docs unification (README, MODE_PARTIAL_INDEX, STATUS, TASKS §4) | S | P0 | DONE ac742a27 |
 | UP-GK-1 (UpgradePlan) | Datapack knowledge extractor skeleton | S | P1 | TODO |
 | UP-LW-1 (UpgradePlan) | Structured event file sink (events.jsonl) | M | P1 | TODO |
 | UP-LW-2 (UpgradePlan) | WATCHER_RULES.md + watcher template | S | P1 | TODO |
@@ -198,12 +199,13 @@
 ## 4. File ownership map
 | Path (repo-relative) | Owner | Notes |
 |---|---|---|
-| `AIPlayerEngine/src/main/java/com/aiplayer/phase0/play/**` | **play-builder** | decision ladder + planners |
-| `AIPlayerEngine/src/test/java/com/aiplayer/phase0/play/**` | **play-builder** | controller tests |
-| `AIPlayerEngine/src/main/java/com/aiplayer/examples/FleetPlay.java` | **play-builder** | fleet launcher |
-| `AIPlayerEngine/src/main/java/com/aiplayer/phase0/**` (rest) | **play-builder** | shared phase0 engine |
+| `AIPlayerEngine/src/main/java/com/aiplayer/behavior/**` (+tests) | **play-builder** | decision ladder, combat/quest/social/... domains |
+| `AIPlayerEngine/src/main/java/com/aiplayer/core/**` (+tests) | **play-builder** | FleetConfig, BotSession, BotInfo, wiring, snapshots |
+| `AIPlayerEngine/src/main/java/com/aiplayer/{net,protocol,web,monitor,metrics,cli,knowledge,learning,examples}/**` | **play-builder** | engine plumbing + fleet launcher (FleetPlay) |
+| `AIPlayerEngine/src/main/resources/**` (config, dashboard SPA) | **play-builder** | ai-player.properties (`engine.*` keys), dashboard html |
+| `scripts/**` | **play-builder** | helper tools; secrets via `fleet_env.local` (gitignored) |
 | `Documentation/**` (incl. this board) | **doc-sweeper** | docs + board upkeep |
-| `scripts/**` | **play-builder** | helper tools |
+| `attic/**` | — | dead code, do not edit (see attic/README.md) |
 
 ## 5. ARCHIVE — completed (moved off the live board)
 | ID | Task | Status | Owner |

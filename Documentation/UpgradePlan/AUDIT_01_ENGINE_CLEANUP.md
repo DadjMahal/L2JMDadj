@@ -85,7 +85,7 @@ Renames are mechanical: `phase0.quest` → `behavior.quest`, `phase0.play` → `
 | EP-5 | Merge micro-packages (humanize+imperfection; cabinet+director into behavior; brain presets → 2 files) | M | EP-3 | DONE-PUSHED 5e61be6b (230→218 main files; presets→ClassPreset, DirectorAI+NameGenerator→Director, humanize lows→Humanization, BotProfile→core) |
 | EP-6 | Security pass: password purge, dashboard auth-by-default, script lint, secret grep | M | – | DONE-PUSHED 8bacb021 (30 pwd literals killed; LAN dashboard now token-gated w/ boot guard; DB creds required via fleet_env.local) |
 | EP-7 | Virtual threads: BotLoop + dashboard executors on Thread.ofVirtual | M | EP-4 | DONE-PUSHED 933204d2 (fleet+readers+dashboard on virtual carriers; VirtualThreadFleetTest locks it; live jcmd run pending servers) |
-| EP-8 | Docs unification: engine README w/ new architecture diagram, cross-link sync, archive stale docs | S | EP-3 | TODO |
+| EP-8 | Docs unification: engine README w/ new architecture diagram, cross-link sync, archive stale docs | S | EP-3 | DONE-PUSHED (engine README rewritten; MODE_PARTIAL_INDEX + TASKS §4 + STATUS.md refreshed; phase0 refs purged from live docs) |
 
 ### PROMPT EP-1
 ```

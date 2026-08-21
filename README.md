@@ -44,4 +44,6 @@ Legacy endpoints `/json` and `/report` keep the pre-v1 SPA shape for compatibili
 ## Architecture (one line)
 External-socket AI players (no server source changes): `LoginServer` auth → `GameServer` enter-world
 → real packet I/O through `com.aiplayer.protocol` (L2JProtocol + PacketLogger), decisions from
-`com.aiplayer.engine` (CombatAI etc.), state surfaced over HTTP to this web panel.
+`com.aiplayer.behavior` (BotBrain, BotPlayController, CombatAI etc.), one virtual-thread session
+per bot via `com.aiplayer.core.BotSession`, state surfaced over HTTP to this web panel
+(`com.aiplayer.web.DashboardApi` + `DashboardBoot`; LAN exposure requires `DASH_TOKEN` — EP-6).
