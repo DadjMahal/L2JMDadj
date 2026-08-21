@@ -5,14 +5,14 @@ package com.aiplayer.behavior.quest;
 import com.aiplayer.core.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.behavior.humanize.AntiDetectionEngine;
 import com.aiplayer.behavior.humanize.TimingJitter;
-import com.aiplayer.behavior.humanize.SessionVariance;
+import com.aiplayer.behavior.humanize.Humanization.SessionVariance;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import com.aiplayer.behavior.AIBrain;
 import com.aiplayer.behavior.combat.CombatAI;
-import com.aiplayer.behavior.humanize.BehavioralFingerprint;
+import com.aiplayer.behavior.humanize.Humanization.BehavioralFingerprint;
 import com.aiplayer.behavior.movement.MovementController;
 import com.aiplayer.behavior.town.TownBehaviorEngine;
 import com.aiplayer.core.BotSnapshot;

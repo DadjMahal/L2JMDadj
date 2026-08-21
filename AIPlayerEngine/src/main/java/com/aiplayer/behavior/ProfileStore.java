@@ -2,6 +2,7 @@ package com.aiplayer.behavior;
 
 /** MODE: COMPLETE. In-memory replacement for CabinetService+RedisCache. No Postgres/Redis. */
 
+import com.aiplayer.core.BotProfile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

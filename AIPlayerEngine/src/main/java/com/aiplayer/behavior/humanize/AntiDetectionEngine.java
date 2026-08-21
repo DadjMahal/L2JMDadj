@@ -2,6 +2,8 @@ package com.aiplayer.behavior.humanize;
 
 /** MODE: PARTIAL. Reads from the not-yet-migrated GameStateMirror rather than BotSnapshot — see INTEGRATION_GAPS.md. */
 
+import com.aiplayer.behavior.humanize.Humanization.BehavioralFingerprint;
+import com.aiplayer.behavior.humanize.Humanization.SessionVariance;
 import com.aiplayer.core.GameStateMirror;
 import com.aiplayer.core.GameStateMirror.BotStateSnapshot;
 import com.aiplayer.behavior.AIBrain;

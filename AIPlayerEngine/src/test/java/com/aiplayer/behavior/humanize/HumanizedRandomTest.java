@@ -3,6 +3,7 @@ package com.aiplayer.behavior.humanize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.aiplayer.behavior.humanize.Humanization.HumanizedRandom;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;

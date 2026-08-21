@@ -1,5 +1,9 @@
 package com.aiplayer.behavior.humanize;
 
+import com.aiplayer.behavior.humanize.Humanization.BehavioralFingerprint;
+import com.aiplayer.behavior.humanize.Humanization.HumanizedRandom;
+import com.aiplayer.behavior.humanize.Humanization.SessionVariance;
+
 /** MODE: PARTIAL. Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
 
 

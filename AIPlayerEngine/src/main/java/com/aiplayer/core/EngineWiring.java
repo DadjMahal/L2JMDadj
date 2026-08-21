@@ -12,7 +12,7 @@ import com.aiplayer.behavior.combat.ShotManager;
 import com.aiplayer.behavior.combat.SkillDatabase;
 import com.aiplayer.behavior.combat.SkillInfo;
 import com.aiplayer.behavior.combat.TargetSelector;
-import com.aiplayer.behavior.humanize.HumanizedRandom;
+import com.aiplayer.behavior.humanize.Humanization.HumanizedRandom;
 import com.aiplayer.behavior.combat.CombatAI;
 import com.aiplayer.net.AIPlayer;
 import com.aiplayer.behavior.combat.FighterRotation;

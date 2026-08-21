@@ -3,8 +3,9 @@ package com.aiplayer.behavior;
 /** MODE: PARTIAL. Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
 
 
+import com.aiplayer.core.BotProfile;
 import java.util.logging.Logger;
-import com.aiplayer.behavior.humanize.ImperfectionInjector;
+import com.aiplayer.behavior.humanize.Humanization.ImperfectionInjector;
 
 /**
  * Phase 0 Brain — replaces the over-engineered AIBrain for bootstrap.
@@ -36,7 +37,7 @@ public class BotBrain {
         this.cabinet = ProfileStore.getInstance();
         this.profile = cabinet.loadProfile(accountName);
         this.fsm = new StateMachine();
-        this.combatPreset = PresetFactory.forProfile(profile);
+        this.combatPreset = ClassPreset.forProfile(profile);
         this.imperfections = new ImperfectionInjector();
     }
 

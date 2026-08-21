@@ -1,5 +1,7 @@
 package com.aiplayer.behavior;
 
+import com.aiplayer.core.BotProfile;
+
 /** MODE: PARTIAL. Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
 
 

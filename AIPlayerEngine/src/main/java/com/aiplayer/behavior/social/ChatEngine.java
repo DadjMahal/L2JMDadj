@@ -2,7 +2,7 @@ package com.aiplayer.behavior.social;
 
 /** MODE: PARTIAL. Compiles and follows the reviewed patterns, but not independently re-verified line-by-line this session — treat as unverified until it passes mvn test. */
 
-import com.aiplayer.behavior.BotProfile;
+import com.aiplayer.core.BotProfile;
 import com.aiplayer.behavior.ProfileStore;
 
 import java.util.HashMap;
