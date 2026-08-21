@@ -9,7 +9,7 @@ Transform the AIPlayerEngine into the **Living Server**: a small cast of smart A
 (quest arcs, parties with humans, economy, schedules) that real players join and play WITH.
 Quality over quantity — five memorable souls beat fifty anonymous grinders.
 
-**Current state (2026-08-20):** **414/414 tests green**, `phase0` namespace is DEAD (0 matches).
+**Current state (2026-08-20):** **415/415 tests green**, `phase0` namespace is DEAD (0 matches).
 UpgradePlan **Wave 1 (engine purge)** underway: **EP-1 ✅ `4827ac0f`** (90 dead classes →
 `attic/`), **EP-2 ✅ `9601dd77`** (51 classes relocated), **EP-3 ✅ `c049e612`** (package-by-feature
 rename), **EP-4 ✅ `2b4cda1b`** (FleetPlay god class split: 1,391→76-line launcher + core/FleetConfig
@@ -65,7 +65,7 @@ Task prompts are in each `AUDIT_*.md` (`### PROMPT EP-4` etc.) — read the prom
 
 ## 4. Hard rules
 1. **Never edit server source** (`SourceCode/`, `ServerBuild/`) — the engine is external sockets only.
-2. `mvn -o -f AIPlayerEngine/pom.xml test` must stay **green** (414/414) before and after every task.
+2. `mvn -o -f AIPlayerEngine/pom.xml test` must stay **green** (415/415) before and after every task.
 3. **One task = one commit** (`type(scope): brief`), pushed to master immediately; update the
    AUDIT status table + TASKS.md row + RuntimeLog (`Documentation/RuntimeLogs/<date>-<ID>-<slug>.md`, ≤70 lines).
 4. Always `git pull --rebase origin master` before push; `git push origin master` right after.
