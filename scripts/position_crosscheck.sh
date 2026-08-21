@@ -1,4 +1,6 @@
 #!/bin/bash
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+. "$(dirname "$0")/_dash_curl.sh"
 # ============================================================
 # WPT-30 — position_crosscheck.sh  (ops corner, owner Cline#4)
 # TIM-001 evidence instrument: cross-check the *live* bot coords
@@ -26,7 +28,7 @@ L2JM_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 API_URL="${API_URL:-http://localhost:8080/api/v1/bots}"
 THRESHOLD="${THRESHOLD:-1000}"      # drift in map units before flag
 DB_USER="${DB_USER:-l2j}"
-DB_PASS="${DB_PASS:-StrongPasswordHere}"
+: "${DB_PASS:?set DB_PASS (scripts/fleet_env.local — see fleet_env.local.example)}"
 DB_HOST="${DB_HOST:-localhost}"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
@@ -98,7 +100,7 @@ run_pass()
     echo "============================================================"
 
     # 1. fetch live fleet coords
-    bots="$(curl -sS --max-time 10 "$API_URL" 2>/dev/null || true)"
+    bots="$(curl -sS --max-time 10 "$(durl "$API_URL")" 2>/dev/null || true)"
     if [ -z "$bots" ]; then
         warn "fleet API unreachable at $API_URL (fleet down/starting?) — skipping this pass"
         return 0

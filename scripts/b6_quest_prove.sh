@@ -4,7 +4,8 @@
 # Q00255_Tutorial 'UC' event handler and writes NEW quest state (Ex, ucMemo) to character_quests.
 # Asserts: after run, character_quests has MORE Q00255 rows than the seeded baseline.
 set -u
-ENGINE=/home/volodro/L2JM/AIPlayerEngine
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+ENGINE=/home/dadj/Projects/l24lude/AIPlayerEngine
 ACCT=${1:-ai_combat_01}; CHARID=${2:-2}; OUT=/tmp/b6_quest_out.txt
 cd "$ENGINE"
 
@@ -23,7 +24,7 @@ if [ -n "$LSPID" ]; then
 fi
 
 nohup timeout 60 java -cp target/classes com.aiplayer.examples.QuestProbe \
-    "$ACCT" "ai123pass" 127.0.0.1 7777 > "$OUT" 2>&1 < /dev/null &
+    "$ACCT" "${AI_ACCOUNT_PASSWORD:-}" 127.0.0.1 7777 > "$OUT" 2>&1 < /dev/null &
 wait $! 2>/dev/null
 grep -E 'IN WORLD|QuestList|done' "$OUT" | head
 

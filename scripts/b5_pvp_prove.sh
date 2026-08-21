@@ -4,7 +4,8 @@
 # CombatBot_02 takes damage in the DB (curHp < maxHp after). Requires PvPProbe compiled.
 # Spec: Documentation/Audit/36-b5-live-pvp.md
 set -u
-ENGINE=/home/volodro/L2JM/AIPlayerEngine
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+ENGINE=/home/dadj/Projects/l24lude/AIPlayerEngine
 ACC1=${1:-ai_combat_01}; CH1=${2:-CombatBot_01}; OBJ1=${3:-2}
 ACC2=${4:-ai_combat_02}; CH2=${5:-CombatBot_02}; OBJ2=${6:-3}
 X=${7:--83477}; Y=${8:-250274}; Z=${9:--3596}
@@ -26,7 +27,7 @@ if [ -n "$LSPID" ]; then
 fi
 
 nohup timeout 90 java -cp target/classes com.aiplayer.examples.PvPProbe \
-    "$ACC1" "ai123pass" "$ACC2" "ai123pass" 127.0.0.1 7777 "$OBJ1" "$OBJ2" "$X" "$Y" "$Z" > "$OUT" 2>&1 < /dev/null &
+    "$ACC1" "${AI_ACCOUNT_PASSWORD:-}" "$ACC2" "${AI_ACCOUNT_PASSWORD:-}" 127.0.0.1 7777 "$OBJ1" "$OBJ2" "$X" "$Y" "$Z" > "$OUT" 2>&1 < /dev/null &
 wait $! 2>/dev/null
 
 grep -E "attacker objId|PVP PROVEN|saw attacks" "$OUT" | head -20

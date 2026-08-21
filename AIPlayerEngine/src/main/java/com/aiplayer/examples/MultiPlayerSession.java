@@ -1,5 +1,7 @@
 package com.aiplayer.examples;
 
+import com.aiplayer.core.FleetConfig;
+
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -39,20 +41,20 @@ public class MultiPlayerSession
     private static final long RECONNECT_GAP_MS = 4_000;
     private static final long SENT_PRINT_INTERVAL_MS = 5_000;
 
-    /** Roster: account, password, charId(GS objectId), spawn dx, spawn dy offsets. */
+    /** Roster: account, charId(GS objectId), spawn dx, spawn dy offsets (password resolved at runtime). */
     private static final String[][] ROSTER = {
-        {"ai_combat_01",   "ai123pass", "2",  "0",  "0"},
-        {"ai_combat_02",   "ai123pass", "3",  "-30", "-25"},
-        {"ai_explorer_01", "ai123pass", "4",  "25", "-40"},
-        {"ai_merchant_01", "ai123pass", "5",  "-40", "20"},
-        {"ai_quest_01",    "ai123pass", "6",  "40", "-15"},
-        {"ai_quest_02",    "ai123pass", "7",  "-20", "40"},
-        {"ai_social_01",   "ai123pass", "8",  "55", "5"},
-        {"ai_combat_03",   "ai123pass", "9",  "-55", "-10"},
-        {"ai_combat_04",   "ai123pass", "10", "60", "-30"},
-        {"ai_combat_05",   "ai123pass", "11", "-10", "60"},
-        {"ai_combat_06",   "ai123pass", "12", "15", "65"},
-        {"ai_merchant_02", "ai123pass", "17", "-60", "35"},
+        {"ai_combat_01",   "2",  "0",  "0"},
+        {"ai_combat_02",   "3",  "-30", "-25"},
+        {"ai_explorer_01", "4",  "25", "-40"},
+        {"ai_merchant_01", "5",  "-40", "20"},
+        {"ai_quest_01",    "6",  "40", "-15"},
+        {"ai_quest_02",    "7",  "-20", "40"},
+        {"ai_social_01",   "8",  "55", "5"},
+        {"ai_combat_03",   "9",  "-55", "-10"},
+        {"ai_combat_04",   "10", "60", "-30"},
+        {"ai_combat_05",   "11", "-10", "60"},
+        {"ai_combat_06",   "12", "15", "65"},
+        {"ai_merchant_02", "17", "-60", "35"},
     };
 
     private static final String HOST = "127.0.0.1";
@@ -124,10 +126,10 @@ public class MultiPlayerSession
         try
         {
             String account = row[0];
-            String pass = row[1];
-            int charId = Integer.parseInt(row[2]);
-            int seedX = WX + Integer.parseInt(row[3]);
-            int seedY = WY + Integer.parseInt(row[4]);
+            String pass = FleetConfig.accountPassword();
+            int charId = Integer.parseInt(row[1]);
+            int seedX = WX + Integer.parseInt(row[2]);
+            int seedY = WY + Integer.parseInt(row[3]);
 
             while (System.currentTimeMillis() < runEnd)
             {

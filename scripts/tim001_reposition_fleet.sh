@@ -13,7 +13,10 @@
 # Env: MYSQL_ARGS
 # ============================================================================
 set -uo pipefail
-MYSQL_ARGS="${MYSQL_ARGS:-mysql -u l2j -pStrongPasswordHere gameserver}"
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+: "${DB_USER:?set DB_USER (scripts/fleet_env.local — see fleet_env.local.example)}"
+: "${DB_PASS:?set DB_PASS (scripts/fleet_env.local — see fleet_env.local.example)}"
+MYSQL_ARGS="${MYSQL_ARGS:-mysql -u "$DB_USER" -p"$DB_PASS" gameserver}"
 CHARS="CombatBot_01 CombatBot_02 CombatBot_03 CombatBot_04 CombatBot_05"
 TX=-82759; TY=250149; TZ=-3600
 

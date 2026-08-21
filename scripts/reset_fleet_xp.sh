@@ -10,9 +10,12 @@
 # NOT auto-executed: never touches the DB unless MODE=reset, and it always prints the exact SQL it
 # WOULD run first. Deploy/DB lives on the droplet at /home/volodro/L2JM, not in this repo.
 set -euo pipefail
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
 
 ENGINE=${ENGINE:-/home/dadj/Projects/l24lude}
-MYSQL_ARGS=${MYSQL_ARGS:-mysql -u l2j -pStrongPasswordHere gameserver}
+: "${DB_USER:?set DB_USER (scripts/fleet_env.local — see fleet_env.local.example)}"
+: "${DB_PASS:?set DB_PASS (scripts/fleet_env.local — see fleet_env.local.example)}"
+MYSQL_ARGS="${MYSQL_ARGS:-mysql -u "$DB_USER" -p"$DB_PASS" gameserver}"
 MODE=${1:-status}
 BASE=${ENGINE}/tmp/exp_baseline
 STAMP=$(date +%Y%m%d-%H%M%S)

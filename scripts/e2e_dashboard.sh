@@ -1,4 +1,5 @@
 #!/bin/bash
+. "$(dirname "$0")/_dash_curl.sh"
 # ============================================================
 # WPT-33 — e2e_dashboard.sh  (ops corner, owner Cline#4)
 # End-to-end smoke test for the web dashboard & the frozen v1
@@ -52,13 +53,13 @@ fi
 # --- B. Live API (only if dashboard up) ------------------------
 echo ""
 echo "=== B. LIVE /api/v1 CONTRACT ==="
-if ! curl -s -o /dev/null --max-time 3 "$BASE/api/v1/health"; then
+if ! curl -s -o /dev/null --max-time 3 "$(durl "$BASE/api/v1/health")"; then
     warn "dashboard not listening on :${DASH_PORT} — start the fleet (FleetPlay) first. Skipping live API checks."
 else
     check_route() {
         local route="$1" key="$2"
         local body
-        body="$(curl -s --max-time 5 "$BASE$route")"
+        body="$(curl -s --max-time 5 "$(durl "$BASE$route")")"
         if [ -z "$body" ]; then fail "$route → empty body"; FAILED=1; return; fi
         echo "$body" | python3 -c "import json,sys;
 try: d=json.load(sys.stdin)
@@ -81,7 +82,7 @@ print('json ok')" >/dev/null 2>&1
     check_route "/api/v1/config"   "fleetSize"
     for a in "${ASSETS[@]}"; do
         # raw asset fetch (served only if a route exists — currently index/ops may need Cline#1 route)
-        code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$BASE/$a")
+        code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$(durl "$BASE/$a")")
         if [ "$code" = "200" ]; then pass "GET /$a → $code"
         else warn "GET /$a → $code (asset served only if a route exists; ops.html route is Cline#1 coordination item)"; fi
     done

@@ -1,5 +1,7 @@
 package com.aiplayer.examples;
 
+import com.aiplayer.core.FleetConfig;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,9 +101,9 @@ public class ChatProbe
     public static void main(String[] args) throws Exception
     {
         String accA = args.length > 0 ? args[0] : "ai_combat_01";
-        String passA = args.length > 1 ? args[1] : "ai123pass";
+        String passA = args.length > 1 ? args[1] : FleetConfig.accountPassword();
         String accB = args.length > 2 ? args[2] : "ai_combat_02";
-        String passB = args.length > 3 ? args[3] : "ai123pass";
+        String passB = args.length > 3 ? args[3] : FleetConfig.accountPassword();
         String host = args.length > 4 ? args[4] : "127.0.0.1";
         int port = args.length > 5 ? Integer.parseInt(args[5]) : 7777;
         String targetCharName = args.length > 6 ? args[6] : "CombatBot_02";

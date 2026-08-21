@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+. "$(dirname "$0")/_dash_curl.sh"
 # ============================================================================
 # tim001_h5_airtight.sh - airtight, reproducible TIM-001 H5 (organic XP) probe.
 #
@@ -21,7 +23,9 @@ set -uo pipefail
 ENGINE="${ENGINE:-/home/dadj/Projects/l24lude}"
 RUN_MIN="${1:-10}"
 RUN_SEC=$((RUN_MIN * 60))
-MYSQL_ARGS="${MYSQL_ARGS:-mysql -u l2j -pStrongPasswordHere gameserver}"
+: "${DB_USER:?set DB_USER (scripts/fleet_env.local — see fleet_env.local.example)}"
+: "${DB_PASS:?set DB_PASS (scripts/fleet_env.local — see fleet_env.local.example)}"
+MYSQL_ARGS="${MYSQL_ARGS:-mysql -u "$DB_USER" -p"$DB_PASS" gameserver}"
 CHARS="CombatBot_01 CombatBot_02 CombatBot_03 CombatBot_04 CombatBot_05"
 DASH_PORT=8080
 STAMP=$(date +%Y-%m-%d_%H%M%S)
@@ -52,17 +56,17 @@ log "fleet pid=$FPID log=$EVID/fleet_run.log"
 UP=0
 for i in $(seq 1 $((RUN_SEC/5))); do
   sleep 5
-  curl -sf "http://127.0.0.1:$DASH_PORT/telemetry" -o "$EVID/telemetry_start.json" 2>/dev/null && { UP=1; break; }
+  curl -sf "$(durl "http://127.0.0.1:$DASH_PORT/telemetry")" -o "$EVID/telemetry_start.json" 2>/dev/null && { UP=1; break; }
 done
 [ "$UP" = 1 ] || { log "FAIL dashboard never up"; kill "$FPID" 2>/dev/null; exit 2; }
 log "dashboard up after ~$((i*5))s; capturing telemetry start"
 
-curl -s "http://127.0.0.1:$DASH_PORT/json" -o "$EVID/dashboard.json"
+curl -s "$(durl "http://127.0.0.1:$DASH_PORT/json")" -o "$EVID/dashboard.json"
 log "run in progress ${RUN_MIN} min (start $(date +%T))..."
 
 sleep "$RUN_SEC"
 
-curl -s "http://127.0.0.1:$DASH_PORT/telemetry" -o "$EVID/telemetry_end.json"
+curl -s "$(durl "http://127.0.0.1:$DASH_PORT/telemetry")" -o "$EVID/telemetry_end.json"
 log "run elapsed; telemetry_end captured $(date +%T)"
 
 echo "=== stopping fleet $(date +%T) ===" >> "$EVID/H5_SUMMARY.txt"

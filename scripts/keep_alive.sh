@@ -7,7 +7,7 @@ PATTERN="FleetPlay 50 "
 for i in $(seq 1 999999); do
   if ! pgrep -f "$PATTERN" >/dev/null 2>&1; then
     echo "[keep_alive $(date +%H:%M:%S)] fleet down — relaunching"
-    eval "$LAUNCH"
+    bash -c "$LAUNCH"
   fi
   sleep 60
 done

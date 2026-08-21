@@ -11,6 +11,9 @@ import sys, json, time, os, urllib.request
 from collections import Counter, defaultdict
 
 URL  = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8210/json"
+# EP-6: dashboard token (query param) when configured via fleet_env.local.
+if os.environ.get("DASH_TOKEN"):
+    URL += ("&" if "?" in URL else "?") + "token=" + os.environ["DASH_TOKEN"]
 NOTES= sys.argv[2] if len(sys.argv) > 2 else "/tmp/watch_fleet.log"
 INTERVAL = int(sys.argv[3]) if len(sys.argv) > 3 else 120
 DURATION = (int(sys.argv[4]) if len(sys.argv) > 4 else 120) * 60

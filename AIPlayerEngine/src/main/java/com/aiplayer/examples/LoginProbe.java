@@ -1,5 +1,7 @@
 package com.aiplayer.examples;
 
+import com.aiplayer.core.FleetConfig;
+
 import com.aiplayer.net.AIPlayer;
 import com.aiplayer.protocol.L2JProtocol;
 
@@ -12,7 +14,7 @@ import com.aiplayer.protocol.L2JProtocol;
 public class LoginProbe {
     public static void main(String[] args) {
         String account = args.length > 0 ? args[0] : "ai_combat_01";
-        String password = args.length > 1 ? args[1] : "ai123pass";
+        String password = args.length > 1 ? args[1] : FleetConfig.accountPassword();
         int charId = args.length > 2 ? Integer.parseInt(args[2]) : 2;
 
         try {

@@ -9,10 +9,11 @@
 #     curHp=0). We reposition + heal CombatBot_01 to the Talking Island Wolf monster zone.
 #   * The client MUST send EnterWorld(0x03) after CharSelected to spawn (CombatProbe does).
 set -u
-ENGINE=/home/volodro/L2JM/AIPlayerEngine
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+ENGINE=/home/dadj/Projects/l24lude/AIPlayerEngine
 ACCOUNT="${1:-ai_combat_01}"
 CHAR="${2:-CombatBot_01}"
-PASS="${3:-ai123pass}"
+PASS="${3:-${AI_ACCOUNT_PASSWORD:-}}"
 WX="${4:--82759}"
 WY="${5:-250149}"
 WZ="${6:--3600}"

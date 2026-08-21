@@ -5,10 +5,11 @@
 # characters.x/y/z changed (server persists the walked position on logout). Idempotent; no L2JM
 # server source changed.
 set -uo pipefail
-ENGINE=/home/volodro/L2JM/AIPlayerEngine
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+ENGINE=/home/dadj/Projects/l24lude/AIPlayerEngine
 CHAR="${1:-CombatBot_01}"
 ACC="${2:-ai_combat_01}"
-PASS="${3:-ai123pass}"
+PASS="${3:-${AI_ACCOUNT_PASSWORD:-}}"
 
 BEFORE=$(sudo mysql -u root gameserver -N -e "SELECT CONCAT(x,',',y,',',z) FROM characters WHERE char_name='${CHAR}';" 2>/dev/null)
 echo "[b8] BEFORE: $BEFORE"

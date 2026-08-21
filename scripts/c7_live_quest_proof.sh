@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
 # c7_live_quest_proof.sh — PROVE C7/B6b: quest STARTED via a genuine NPC dialog bypass.
 #
 # HONEST AUDIT (2026-08-04): the previous C7 "proof" was a FALSE POSITIVE — it sent a cold
@@ -18,10 +19,10 @@
 #   - QuestFlowLoop reads every bypass from the html the server ACTUALLY shows, so each one
 #     is validated. The proof asserts a NEW character_quests row for Q00101 (source of truth).
 set -u
-ENGINE=/home/volodro/L2JM/AIPlayerEngine
+ENGINE=/home/dadj/Projects/l24lude/AIPlayerEngine
 ACCOUNT=${1:-ai_combat_01}
 CHARID=${2:-2}
-PASS=${3:-ai123pass}
+PASS=${3:-${AI_ACCOUNT_PASSWORD:-}}
 OUT=/tmp/c7_quest_out.txt
 # Roien (NPC 30008) spawn at Talking Island
 ROIEN_X=-71384; ROIEN_Y=258304; ROIEN_Z=-3104

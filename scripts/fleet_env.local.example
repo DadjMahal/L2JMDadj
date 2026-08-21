@@ -1,0 +1,16 @@
+# EP-6: copy to scripts/fleet_env.local (gitignored) and fill in real values.
+# fleet_launch.sh sources this file before starting the engine.
+
+# Bot account password (required since EP-6 — the engine refuses hardcoded defaults).
+# Resolution order: launcher arg > ai.account.password property > this env var.
+export AI_ACCOUNT_PASSWORD=""
+
+# Dashboard: token required whenever the dashboard is reachable from the LAN.
+# DASH_BIND=127.0.0.1 (default) is always allowed; anything else needs DASH_TOKEN.
+export DASH_BIND="127.0.0.1"
+export DASH_TOKEN=""
+
+# MariaDB credentials for scripts/backup_db.sh + provision_fleet.sh
+# (must match ServerBuild/*/config/Database.ini; no hardcoded defaults since EP-6).
+export DB_USER=""
+export DB_PASS=""

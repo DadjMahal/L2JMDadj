@@ -1,5 +1,7 @@
 package com.aiplayer.examples;
 
+import com.aiplayer.core.FleetConfig;
+
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,7 +46,7 @@ public class CombatLoop
         Logger.getLogger("com.aiplayer").setLevel(Level.INFO);
 
         String account = args.length > 0 ? args[0] : "ai_combat_01";
-        String password = args.length > 1 ? args[1] : "ai123pass";
+        String password = args.length > 1 ? args[1] : FleetConfig.accountPassword();
         String host = args.length > 2 ? args[2] : "127.0.0.1";
         int gamePort = args.length > 3 ? Integer.parseInt(args[3]) : 7777;
         int charId = args.length > 4 ? Integer.parseInt(args[4]) : 2;   // CombatBot_01 objId

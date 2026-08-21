@@ -1,5 +1,7 @@
 package com.aiplayer.examples;
 
+import com.aiplayer.core.FleetConfig;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,7 +85,7 @@ public class QuestProbe
     public static void main(String[] args) throws Exception
     {
         String account = args.length > 0 ? args[0] : "ai_combat_01";
-        String pass = args.length > 1 ? args[1] : "ai123pass";
+        String pass = args.length > 1 ? args[1] : FleetConfig.accountPassword();
         String host = args.length > 2 ? args[2] : "127.0.0.1";
         int port = args.length > 3 ? Integer.parseInt(args[3]) : 7777;
 

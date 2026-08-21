@@ -123,10 +123,23 @@ public final class FleetConfig
     // ===================== live-loop tuning knobs (moved from FleetPlay, EP-4) =====================
     // S1-T08: read from AIConfiguration at class-init; defaults = the proven live values.
 
-    /** S1-T07: bot accounts' shared password, overridable via ai.account.password (default same as before). */
-    static String accountPassword()
+    /**
+     * S1/EP-6: bot account password — NEVER hardcoded. Resolution order: launcher arg (callers),
+     * then config key ai.account.password, then env AI_ACCOUNT_PASSWORD; missing everywhere =
+     * fail fast with setup instructions (no hardcoded default).
+     */
+    public static String accountPassword()
     {
-        return AIConfiguration.getInstance().getProperty("ai.account.password", "ai123pass");
+        AIConfiguration cfg = AIConfiguration.getInstance();
+        String pw = cfg.getProperty("ai.account.password", System.getenv("AI_ACCOUNT_PASSWORD"));
+        if (pw == null || pw.trim().isEmpty())
+        {
+            throw new IllegalStateException("ai.account.password not set: put it in "
+                + "AIPlayerEngine/src/main/resources/config/ai-player.properties, export "
+                + "AI_ACCOUNT_PASSWORD, or pass scripts/fleet_env.local (see "
+                + "scripts/fleet_env.local.example) — refusing to run with a hardcoded default");
+        }
+        return pw;
     }
 
     static final long TICK_MS = AIConfiguration.getInstance().getLongProperty("bot.tickMs", 300);

@@ -2,9 +2,10 @@
 # b3_enter_world_prove.sh — PROVE B3: 1 AI player ONLINE (online=1) via the full external
 # LoginServer auth + GameServer enter-world flow. Requires EnterWorldProbe compiled.
 set -u
-ENGINE=/home/volodro/L2JM/AIPlayerEngine
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+ENGINE=/home/dadj/Projects/l24lude/AIPlayerEngine
 ACCOUNT="${1:-ai_combat_01}"
-PASS="${2:-ai123pass}"
+PASS="${2:-${AI_ACCOUNT_PASSWORD:-}}"
 OUT=/tmp/b3_prove_out.txt
 cd "$ENGINE"
 

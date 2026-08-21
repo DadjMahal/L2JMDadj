@@ -59,7 +59,7 @@ public class AIPlayerManager {
             try {
                 // Connect to database account - account name should match the account parameter
                 String account = playerName.toLowerCase(); // e.g., "ai_combat_01"
-                String password = "ai123pass";
+                String password = FleetConfig.accountPassword();
 
                 // Login to L2JM server
                 if (aiPlayer.connectToServer(account, password, charId)) {
@@ -255,7 +255,7 @@ public class AIPlayerManager {
         new Thread(() -> {
             try {
                 String account = name.toLowerCase(); // name already full account (e.g. ai_combat_01); fix double-prefix bug (B1)
-                String password = "ai123pass";
+                String password = FleetConfig.accountPassword();
                 int charId = accountId; // Character ID matches account
 
                 if (player.connectToServer(account, password, charId)) {

@@ -4,6 +4,8 @@
 set -u
 EXPECTED="${1:-50}"
 DASH="${2:-http://localhost:8210/api/v1/health}"
+# EP-6: append dashboard token when configured (fleet_env.local exports DASH_TOKEN).
+[ -n "${DASH_TOKEN:-}" ] && DASH="$DASH?token=$DASH_TOKEN"
 N=$(curl -s -m 6 "$DASH" 2>/dev/null | python3 -c 'import sys,json;print(json.load(sys.stdin).get("botCount",0))' 2>/dev/null || echo 0)
 if [ "$N" -lt "$EXPECTED" ]; then
   echo "HEALTH ALERT: bots online $N < expected $EXPECTED ($(date +%H:%M:%S))"

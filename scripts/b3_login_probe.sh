@@ -2,9 +2,10 @@
 # b3_login_probe.sh — run the live LoginServer auth probe (Phase 1 proof) and assert success.
 # Usage: ./scripts/b3_login_probe.sh [account] [password] [charId]
 set -u
-ENGINE=/home/volodro/L2JM/AIPlayerEngine
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+ENGINE=/home/dadj/Projects/l24lude/AIPlayerEngine
 ACCOUNT="${1:-ai_combat_01}"
-PASS="${2:-ai123pass}"
+PASS="${2:-${AI_ACCOUNT_PASSWORD:-}}"
 CHAR="${3:-2}"
 
 cd "$ENGINE"

@@ -138,6 +138,13 @@ public final class DashboardApi
         requests.incrementAndGet();
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
+        /* EP-6/S2: when a token is configured (DASH_TOKEN), every /api/v1/* request must carry it
+           (Authorization: Bearer ... or ?token=...) — reads included, not just mutating POSTs. */
+        if (!authorized(exchange))
+        {
+            respond(exchange, 401, "{\"error\":\"unauthorized\"}".getBytes(StandardCharsets.UTF_8));
+            return;
+        }
         if (path.equals("/api/v1/stream"))
         {
             stream(exchange);
@@ -350,7 +357,8 @@ public final class DashboardApi
         return configJson();
     }
 
-    /** WPT-07: mutating endpoints require Authorization: Bearer <token> when config.token is set. */
+    /** WPT-07 + EP-6: when config.token is set, requests must present it — Authorization:
+     *  Bearer <token> header or ?token=<token> query param (so browsers/scripts can authenticate). */
     private boolean authorized(HttpExchange exchange)
     {
         String token = config != null ? config.token : null;
@@ -359,7 +367,22 @@ public final class DashboardApi
             return true;
         }
         String auth = exchange.getRequestHeaders().getFirst("Authorization");
-        return auth != null && auth.equals("Bearer " + token);
+        if (auth != null && auth.equals("Bearer " + token))
+        {
+            return true;
+        }
+        String query = exchange.getRequestURI().getRawQuery();
+        if (query != null)
+        {
+            for (String pair : query.split("&"))
+            {
+                if (pair.equals("token=" + token))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static Long longValue(String body, String key)

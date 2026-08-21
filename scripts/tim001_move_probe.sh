@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
+. "$(dirname "$0")/_dash_curl.sh"
 # ============================================================================
 # TIM-001 deep-review evidence runner (run on the box with the LIVE stack).
 #
@@ -26,7 +28,9 @@ set -uo pipefail
 ENGINE="${ENGINE:-${1:-/home/dadj/Projects/l24lude}}"
 RUN_MIN="${2:-3}"
 RUN_SEC=$((RUN_MIN * 60))
-MYSQL_ARGS="${MYSQL_ARGS:-mysql -u l2j -pStrongPasswordHere gameserver}"
+: "${DB_USER:?set DB_USER (scripts/fleet_env.local — see fleet_env.local.example)}"
+: "${DB_PASS:?set DB_PASS (scripts/fleet_env.local — see fleet_env.local.example)}"
+MYSQL_ARGS="${MYSQL_ARGS:-mysql -u "$DB_USER" -p"$DB_PASS" gameserver}"
 CHARS="CombatBot_01 CombatBot_02 CombatBot_03 CombatBot_04 CombatBot_05"
 DASH_PORT=8080
 
@@ -67,7 +71,7 @@ echo "[tim001] fleet pid=$FPID log=$RUNLOG"
 CURL_UP=0
 for i in $(seq 1 $((RUN_SEC / 5))); do
   sleep 5
-  if curl -sf "http://127.0.0.1:$DASH_PORT/telemetry" -o /tmp/tim001_telemetry.txt 2>/dev/null; then
+  if curl -sf "$(durl "http://127.0.0.1:$DASH_PORT/telemetry")" -o /tmp/tim001_telemetry.txt 2>/dev/null; then
     CURL_UP=1
     break
   fi
@@ -81,10 +85,10 @@ sleep "$RUN_SEC"
 # 3) Collect evidence from the live instrument
 echo ""
 echo "================ MOVE TELEMETRY (live /telemetry) ================"
-curl -s "http://127.0.0.1:$DASH_PORT/telemetry" | tee /tmp/tim001_telemetry.txt
+curl -s "$(durl "http://127.0.0.1:$DASH_PORT/telemetry")" | tee /tmp/tim001_telemetry.txt
 echo ""
 echo "================ LIVE POSITIONS (dashboard /json) ================"
-curl -s "http://127.0.0.1:$DASH_PORT/json" > /tmp/tim001_json.txt
+curl -s "$(durl "http://127.0.0.1:$DASH_PORT/json")" > /tmp/tim001_json.txt
 python3 - <<'PYEOF'
 import json
 try:

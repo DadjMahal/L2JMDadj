@@ -32,3 +32,4 @@ __pycache__/
 /1786483419643_3h6x4.json
 *.conversation*.json
 *.export*.json
+scripts/fleet_env.local

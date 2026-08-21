@@ -4,6 +4,8 @@
 #   races  = "random" | comma list ("ELF,DARK_ELF,ORC,DWARF,HUMAN") | empty -> all Human
 #   Example: scripts/fleet_launch.sh 50 8210 ai_rand_ 500000 ELF,DARK_ELF,ORC,DWARF,HUMAN
 set -u
+# EP-6: secrets live in scripts/fleet_env.local (gitignored; see fleet_env.local.example).
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
 COUNT="${1:-5}"
 DASH="${2:-8210}"
 PREFIX="${3:-ai_combat_}"

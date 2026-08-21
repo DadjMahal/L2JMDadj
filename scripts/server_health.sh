@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -f "$(dirname "$0")/fleet_env.local" ] && . "$(dirname "$0")/fleet_env.local"
 # ============================================================
 # WPT-34 — server_health.sh  (ops corner, owner Cline#4)
 # Real health snapshot: ports + DB pings + character stats +
@@ -12,7 +13,7 @@
 # ============================================================
 L2JM_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DB_USER="${DB_USER:-l2j}"
-DB_PASS="${DB_PASS:-StrongPasswordHere}"
+: "${DB_PASS:?set DB_PASS (scripts/fleet_env.local — see fleet_env.local.example)}"
 DB_HOST="${DB_HOST:-localhost}"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
