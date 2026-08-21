@@ -17,7 +17,8 @@ rename), **EP-4 ✅ `2b4cda1b`** (FleetPlay god class split: 1,391→76-line lau
 files; presets→ClassPreset, DirectorAI+NameGenerator→Director, humanize lows→Humanization,
 BotProfile→core), **EP-6 ✅ `8bacb021`** (security: 0 hardcoded creds — bot password + DB creds
 resolve from `scripts/fleet_env.local` (copy `fleet_env.local.example`); LAN dashboard requires
-`DASH_TOKEN`, SPA opens `/?token=…`). Package tree is now clean: `behavior/` (+9 subpackages),
+`DASH_TOKEN`, SPA opens `/?token=…`), **EP-7 ✅ `933204d2`** (fleet sessions + gs-readers +
+dashboard on virtual threads). Package tree is now clean: `behavior/` (+9 subpackages),
 `core/`, `knowledge/`, `learning/`, `net/`, `protocol/`, `web/`, `monitor/`, `metrics/`, `cli/`,
 `examples/`.
 
@@ -39,8 +40,7 @@ cd /home/dadj/Projects/l24lude && mvn -o -f AIPlayerEngine/pom.xml test
 ```
 
 ## 2. Active lane — UpgradePlan execution order
-Wave 1 next up (EP-4/5/6 ✅ — Wave 1 engine purge COMPLETE except threads+docs):
-- **EP-7** — virtual threads (BotSession + dashboard executors on Thread.ofVirtual)
+Wave 1 next up (EP-4/5/6/7 ✅ — only docs remain):
 - **EP-8** — docs unification (engine README + architecture diagram) — small
 Parallel-safe anytime: **GK-1** (knowledge extractor skeleton), **LW-1** (events.jsonl sink),
 **LW-2** (WATCHER_RULES.md + watcher template). Then Waves 2-5 per UpgradePlan README.
