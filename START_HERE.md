@@ -13,7 +13,9 @@ Quality over quantity — five memorable souls beat fifty anonymous grinders.
 UpgradePlan **Wave 1 (engine purge)** underway: **EP-1 ✅ `4827ac0f`** (90 dead classes →
 `attic/`), **EP-2 ✅ `9601dd77`** (51 classes relocated), **EP-3 ✅ `c049e612`** (package-by-feature
 rename), **EP-4 ✅ `2b4cda1b`** (FleetPlay god class split: 1,391→76-line launcher + core/FleetConfig
-+ core/BotSession + web/DashboardBoot). Package tree is now clean: `behavior/` (+9 subpackages),
++ core/BotSession + web/DashboardBoot), **EP-5 ✅ `5e61be6b`** (micro-packages merged: 230→218
+files; presets→ClassPreset, DirectorAI+NameGenerator→Director, humanize lows→Humanization,
+BotProfile→core). Package tree is now clean: `behavior/` (+9 subpackages),
 `core/`, `knowledge/`, `learning/`, `net/`, `protocol/`, `web/`, `monitor/`, `metrics/`, `cli/`,
 `examples/`.
 
@@ -35,10 +37,9 @@ cd /home/dadj/Projects/l24lude && mvn -o -f AIPlayerEngine/pom.xml test
 ```
 
 ## 2. Active lane — UpgradePlan execution order
-Wave 1 next up (EP-4 ✅ unlocks EP-7; EP-5/6/8 depend only on EP-3 ✅):
-- **EP-5** — merge micro-packages (humanize+imperfection; cabinet+director → behavior; brain presets → 2 files)
-- **EP-6** — security pass (password purge, dashboard auth-by-default, script lint) — parallel-safe
-- **EP-7** — virtual threads (BotSession + dashboard executors on Thread.ofVirtual) — unblocked by EP-4
+Wave 1 next up (EP-4/EP-5 ✅ — remaining rows are parallel-safe):
+- **EP-6** — security pass (password purge, dashboard auth-by-default, script lint)
+- **EP-7** — virtual threads (BotSession + dashboard executors on Thread.ofVirtual)
 - **EP-8** — docs unification (engine README + architecture diagram) — small
 Parallel-safe anytime: **GK-1** (knowledge extractor skeleton), **LW-1** (events.jsonl sink),
 **LW-2** (WATCHER_RULES.md + watcher template). Then Waves 2-5 per UpgradePlan README.

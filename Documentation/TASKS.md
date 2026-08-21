@@ -188,6 +188,7 @@
 | UP-EP-2 (UpgradePlan) | Relocate live engine classes to target packages; remove engine/ | M | P0 | DONE-PUSHED 9601dd77 (zcode) |
 | UP-EP-3 (UpgradePlan) | Rename phase0/* to behavior/* domain packages | L | P0 | DONE c049e612 |
 | UP-EP-4 (UpgradePlan) | Split FleetPlay god class (FleetConfig/BotSession/DashboardBoot) | L | P0 | DONE 2b4cda1b |
+| UP-EP-5 (UpgradePlan) | Merge micro-packages (presets/director/humanize/BotProfile) | M | P0 | DONE 5e61be6b |
 | UP-EP-6 (UpgradePlan) | Security pass (passwords, dashboard auth, script lint) | M | P0 | TODO |
 | UP-GK-1 (UpgradePlan) | Datapack knowledge extractor skeleton | S | P1 | TODO |
 | UP-LW-1 (UpgradePlan) | Structured event file sink (events.jsonl) | M | P1 | TODO |
