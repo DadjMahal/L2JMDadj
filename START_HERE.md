@@ -60,7 +60,7 @@ Task prompts are in each `AUDIT_*.md` (`### PROMPT EP-4` etc.) — read the prom
 | Static game knowledge | `knowledge/` (RaceGuide, QuestDatabase, VendorDatabase…) |
 | Learning / self-improvement | `learning/` (ReinforcementEngine, AdaptiveLearner…) |
 | Config | `src/main/resources/config/ai-player.properties` — keys are `engine.*` (was `phase0.*`) |
-| Dead code (do not resurrect lightly) | `attic/` (90 classes, see `attic/README.md`) |
+| Dead code (do not resurrect lightly) | `AIPlayerEngine/attic/` (90 classes, see its README) |
 | **Task board / plan** | **`Documentation/TASKS.md`** + `Documentation/UpgradePlan/README.md` |
 
 ## 4. Hard rules
