@@ -55,7 +55,7 @@ public class AIPlayerManager {
         LOGGER.info("Spawned AI Player: " + playerName);
 
         // ACTUAL CONNECTION TO L2JM SERVER
-        new Thread(() -> {
+        Thread.ofVirtual().name("ai-player-spawn").start(() -> {
             try {
                 // Connect to database account - account name should match the account parameter
                 String account = playerName.toLowerCase(); // e.g., "ai_combat_01"
@@ -70,8 +70,7 @@ public class AIPlayerManager {
             } catch (Exception e) {
                 LOGGER.severe("Connection failed for " + playerName + ": " + e.getMessage());
             }
-        }).start();
-
+        });
         return aiPlayer;
     }
 
@@ -252,7 +251,7 @@ public class AIPlayerManager {
      * Connect a player to the L2JM server
      */
     private void connectPlayer(AIPlayer player, String name, int accountId) {
-        new Thread(() -> {
+        Thread.ofVirtual().name("ai-player-spawn").start(() -> {
             try {
                 String account = name.toLowerCase(); // name already full account (e.g. ai_combat_01); fix double-prefix bug (B1)
                 String password = FleetConfig.accountPassword();
@@ -266,6 +265,6 @@ public class AIPlayerManager {
             } catch (Exception e) {
                 LOGGER.severe("Connection failed for " + name + ": " + e.getMessage());
             }
-        }).start();
+        });
     }
 }

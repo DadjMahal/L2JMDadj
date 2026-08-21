@@ -49,6 +49,9 @@ public final class DashboardBoot
             LOGGER.warning("[FleetPlay] DASH_INSECURE_ACK=1: dashboard exposed on " + bind + " WITHOUT a token (operator acknowledged)");
         }
         HttpServer server = HttpServer.create(new InetSocketAddress(bind, port), 0);
+        /* EP-7: dashboard requests on virtual threads (one per request; blocking IO friendly). */
+        server.setExecutor(java.util.concurrent.Executors.newThreadPerTaskExecutor(
+            Thread.ofVirtual().name("dash-", 0).factory()));
         DashboardApi.Config cfg = new DashboardApi.Config(fleetSize);
         cfg.bind = bind;
         if (token != null && !token.isEmpty())

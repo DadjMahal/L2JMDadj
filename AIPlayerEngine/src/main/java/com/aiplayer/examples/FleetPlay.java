@@ -53,17 +53,7 @@ public final class FleetPlay
         DashboardBoot.boot(cfg.dashPort, cfg.count, bots, events, history, metrics);
         AIMonitorDashboard.getInstance().start();
 
-        for (int i = 1; i <= cfg.count; i++)
-        {
-            final String account = cfg.accountPrefix + String.format("%02d", i);
-            final int charId = cfg.charIdBase + i - 1; // ai_combat_01 -> 100000 ... ai_combat_05 -> 100004
-            final PlayerRace race = (cfg.raceRotation.length > 0)
-                ? cfg.raceRotation[(i - 1) % cfg.raceRotation.length] : PlayerRace.HUMAN;
-            BotInfo info = new BotInfo(account, charId);
-            bots.put(account, info);
-            new Thread(new BotSession(account, charId, info, cfg.host, cfg.loginPort, cfg.gamePort, race,
-                bots, events, history, metrics), "bot-" + account).start();
-        }
+        spawnFleet(cfg, bots, events, history, metrics);
 
         synchronized (FleetPlay.class)
         {
@@ -72,5 +62,29 @@ public final class FleetPlay
                 FleetPlay.class.wait();
             }
         }
+    }
+
+    /**
+     * EP-7: one virtual thread per bot session (Thread.ofVirtual — blocking-socket loops are the
+     * virtual-thread design point; fleet size no longer caps at platform-thread counts). Returns
+     * the threads so tests can assert they are virtual/interruptible.
+     */
+    static Thread[] spawnFleet(FleetConfig cfg, ConcurrentHashMap<String, BotInfo> bots,
+                               EventRing events, HistoryRing history, FleetMetrics metrics)
+    {
+        Thread[] threads = new Thread[cfg.count];
+        for (int i = 1; i <= cfg.count; i++)
+        {
+            final String account = cfg.accountPrefix + String.format("%02d", i);
+            final int charId = cfg.charIdBase + i - 1; // ai_combat_01 -> 100000 ... ai_combat_05 -> 100004
+            final PlayerRace race = (cfg.raceRotation.length > 0)
+                ? cfg.raceRotation[(i - 1) % cfg.raceRotation.length] : PlayerRace.HUMAN;
+            BotInfo info = new BotInfo(account, charId);
+            bots.put(account, info);
+            threads[i - 1] = Thread.ofVirtual().name("bot-" + account)
+                .start(new BotSession(account, charId, info, cfg.host, cfg.loginPort, cfg.gamePort, race,
+                    bots, events, history, metrics));
+        }
+        return threads;
     }
 }

@@ -232,9 +232,8 @@ public class GameServerClient
         {
             return;
         }
-        readerThread = new Thread(this::readLoop, "gs-reader-" + player.getName());
-        readerThread.setDaemon(true);
-        readerThread.start();
+        /* EP-7: reader on a virtual thread — one blocking readLoop per bot scales with fleet size. */
+        readerThread = Thread.ofVirtual().name("gs-reader-" + player.getName()).start(this::readLoop);
     }
 
     private void readLoop()
