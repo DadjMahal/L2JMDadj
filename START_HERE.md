@@ -15,7 +15,9 @@ UpgradePlan **Wave 1 (engine purge)** underway: **EP-1 ✅ `4827ac0f`** (90 dead
 rename), **EP-4 ✅ `2b4cda1b`** (FleetPlay god class split: 1,391→76-line launcher + core/FleetConfig
 + core/BotSession + web/DashboardBoot), **EP-5 ✅ `5e61be6b`** (micro-packages merged: 230→218
 files; presets→ClassPreset, DirectorAI+NameGenerator→Director, humanize lows→Humanization,
-BotProfile→core). Package tree is now clean: `behavior/` (+9 subpackages),
+BotProfile→core), **EP-6 ✅ `8bacb021`** (security: 0 hardcoded creds — bot password + DB creds
+resolve from `scripts/fleet_env.local` (copy `fleet_env.local.example`); LAN dashboard requires
+`DASH_TOKEN`, SPA opens `/?token=…`). Package tree is now clean: `behavior/` (+9 subpackages),
 `core/`, `knowledge/`, `learning/`, `net/`, `protocol/`, `web/`, `monitor/`, `metrics/`, `cli/`,
 `examples/`.
 
@@ -37,8 +39,7 @@ cd /home/dadj/Projects/l24lude && mvn -o -f AIPlayerEngine/pom.xml test
 ```
 
 ## 2. Active lane — UpgradePlan execution order
-Wave 1 next up (EP-4/EP-5 ✅ — remaining rows are parallel-safe):
-- **EP-6** — security pass (password purge, dashboard auth-by-default, script lint)
+Wave 1 next up (EP-4/5/6 ✅ — Wave 1 engine purge COMPLETE except threads+docs):
 - **EP-7** — virtual threads (BotSession + dashboard executors on Thread.ofVirtual)
 - **EP-8** — docs unification (engine README + architecture diagram) — small
 Parallel-safe anytime: **GK-1** (knowledge extractor skeleton), **LW-1** (events.jsonl sink),
@@ -69,3 +70,6 @@ Task prompts are in each `AUDIT_*.md` (`### PROMPT EP-4` etc.) — read the prom
    AUDIT status table + TASKS.md row + RuntimeLog (`Documentation/RuntimeLogs/<date>-<ID>-<slug>.md`, ≤70 lines).
 4. Always `git pull --rebase origin master` before push; `git push origin master` right after.
 5. Prove with tests + live evidence, never fake logs; leave the repo cleaner than found.
+6. **No secrets in code/scripts** (EP-6): passwords/tokens come from `scripts/fleet_env.local`
+   (gitignored) or env — `AI_ACCOUNT_PASSWORD`, `DASH_TOKEN`, `DB_USER`/`DB_PASS`; the engine
+   fails fast without them.
