@@ -236,6 +236,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | GK-4 | quests.json: 344 quests regex-parsed (302 start+min non-null), Q00006 verified (ROXXY 30006/talk 30006.30033.30311/min 3), review 42 | DONE-PUSHED 4d8f758d |
 | GK-5 | shops.json: 616 buylists (18,728 items) + 95 multisell (8,609 offers/616 vendors); buylist→vendor linkage honestly null+needsReview | DONE-PUSHED 92906f96 |
 | GK-6 | KnowledgeBase (dependency-free JsonResource loader, id-indexed item/npc/quest/skill + droppersOf/questsFor) + KnowledgeBaseTest 12 + RaceGuideAnchorTest (5 races near-real-spawn) | DONE-PUSHED c85c1a19 |
+| GK-7 | chains.json + chains.md: 9 race×base zero→hero chains (16 steps, L20/L40 transfers via race+line+token heuristic), validate 8/8 | DONE-PUSHED gk7pushed |
 | F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
 | F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
 | F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |

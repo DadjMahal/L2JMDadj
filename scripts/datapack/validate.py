@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lib  # noqa: E402
 
-EXPECTED = ["npcs.json", "items.json", "skills.json", "spawns.json", "quests.json", "shops.json", "classes.json"]
+EXPECTED = ["npcs.json", "items.json", "skills.json", "spawns.json", "quests.json", "shops.json", "classes.json", "chains.json"]
 
 
 def named(value):

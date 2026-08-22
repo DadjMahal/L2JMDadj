@@ -101,6 +101,19 @@ fill the entries. `validate.py` (this dir) enforces the invariants §last.
 | chain | array<class> | classes under this base, each with tier |
 | chainClass `{classId, name, tier}` | int/string/int | tier 0=base, 1=1st prof, 2=2nd, 3=3rd |
 
+## chains.json  (GK-7)
+| field | type | meaning |
+|---|---|---|
+| race | string | race (HUMAN/ELF/DARK_ELF/ORC/DWARF) |
+| baseClassId | int | base class id (from classes.json) |
+| baseName | string | base class name |
+| steps | array<step> | ordered roadmap |
+| step `{kind, questId, name, level, npc}` | string/int/str/int/int | kind: newbie/leveling/endgame/firstClass/secondClass |
+
+> Transfer selection is a naming heuristic (documented in RuntimeLog): race pre-filter +
+> chain-token scoring + mystic-vs-fighter line filter. Not a perfect class attribution — that
+> needs per-class quest data the extraction doesn't carry yet.
+
 ---
 
 ## Invariants enforced by validate.py
