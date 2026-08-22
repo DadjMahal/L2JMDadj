@@ -90,7 +90,7 @@ product takes shape, P9 is the proof gate.
 | GK-3 | Items + skills + class-tree extractor → `items.json` (9,215) + `skills.json` (13,777) + `classes.json` (9 bases/89, 5 chains) | M | P1 | GK-1 | DONE-PUSHED c47ff42d |
 | GK-4 | Quest extractor (344 Java scripts + html dialog graph) → `quests.json` (302 start+min, Q00006 verified, review 42) | L | P1 | GK-1 | DONE-PUSHED 4d8f758d |
 | GK-5 | Shop extractor → `shops.json` (616 buylists/18,728 items, 95 multisell/8,609 offers/616 vendors; buylist vendor-linkage honestly flagged) | M | P1 | GK-1 | DONE-PUSHED 92906f96 |
-| GK-6 | KnowledgeBase loader: generated JSON → in-memory queries; swap hardcoded DBs to thin wrappers | M | P1 | GK-2..5 | TODO |
+| GK-6 | KnowledgeBase loader: JSON → id-indexed queries (npc/item/quest/skillLadder/droppersOf/questsFor) + RaceGuide anchor-vs-spawn test (553 tests) | M | P1 | GK-2..5 | DONE-PUSHED gk6pushed |
 | GK-7 | Zero→hero chain builder per race/class → `chains.json` (quests + levels + gear stages) | M | P1 | GK-4 | TODO |
 | GK-8 | Gear/build recommender wired into RestockPlanner (uses items/shops/chains) | M | P2 | GK-3, GK-5 | TODO |
 | GK-9 | Map extractor → `map.json`: teleports, routes, zones, spawn regions (travel nav) | M | P2 | GK-1 | TODO |
