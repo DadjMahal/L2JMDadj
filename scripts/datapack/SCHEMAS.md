@@ -67,9 +67,15 @@ fill the entries. `validate.py` (this dir) enforces the invariants §last.
 | rewards | array<int> | reward item ids |
 | minLevel | int | min level to accept |
 | maxLevel | int | max level (Interlude no-max often -1) |
-| races | array<int> | race mask |
-| classes | array<int> | class ids |
+| races | array<string> | races REQUIRED (getRace()==Race.X) | 
+| classExclusions | array<string> | races RESTRICTED (getRace()!=Race.X) |
 | chain | `{prev, next}` int|null | quest chain |
+
+> Notes (GK-4): regex over the formulaic Java sources. `minLevel` from `getLevel() < N`,
+> `getLevel() >= N`, `getLevel() > N` (min N+1) or `MIN_LEVEL = N` const (strictest wins).
+> `races` = REQUIRED via `getRace() == Race.X`; restricted (`!=`) -> `classExclusions`.
+> `htmGraph` = dialog files grouped by leading `<npcId>` segment. Absent fields set
+> `needsReview=true`; review report printed (≤ 50 entries).
 
 ## shops.json  (GK-5)
 | field | type | meaning |

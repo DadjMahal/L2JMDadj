@@ -88,7 +88,7 @@ product takes shape, P9 is the proof gate.
 | GK-1 | Extractor skeleton: `scripts/datapack/` (_lib.py, per-domain stubs, extract_all.py, SCHEMAS.md ≤150 lines, validate.py) | S | P1 | – | DONE-PUSHED 825928ca |
 | GK-2 | NPC+spawn+drops extractor → `npcs.json` (6,541 records / 38,564 drops / 10,754 spawns, validate green) | M | P1 | GK-1 | DONE-PUSHED a64f168d |
 | GK-3 | Items + skills + class-tree extractor → `items.json` (9,215) + `skills.json` (13,777) + `classes.json` (9 bases/89, 5 chains) | M | P1 | GK-1 | DONE-PUSHED c47ff42d |
-| GK-4 | Quest extractor (346 Java scripts + html dialog graph) → `quests.json` | L | P1 | GK-1 | TODO |
+| GK-4 | Quest extractor (344 Java scripts + html dialog graph) → `quests.json` (302 start+min, Q00006 verified, review 42) | L | P1 | GK-1 | DONE-PUSHED gk4pushed |
 | GK-5 | Shop extractor (616 buylists + 93 multisell) → `shops.json` | M | P1 | GK-1 | TODO |
 | GK-6 | KnowledgeBase loader: generated JSON → in-memory queries; swap hardcoded DBs to thin wrappers | M | P1 | GK-2..5 | TODO |
 | GK-7 | Zero→hero chain builder per race/class → `chains.json` (quests + levels + gear stages) | M | P1 | GK-4 | TODO |
