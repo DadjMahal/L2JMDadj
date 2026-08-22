@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 STUBS = ["extract_npcs", "extract_items", "extract_skills", "extract_spawns",
          "extract_quests", "extract_shops", "extract_classes", "build_chains",
-         "extract_map"]
+         "extract_map", "extract_dialogs"]
 
 
 def main() -> int:

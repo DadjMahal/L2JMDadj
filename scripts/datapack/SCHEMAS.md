@@ -135,6 +135,29 @@ fill the entries. `validate.py` (this dir) enforces the invariants §last.
 
 ---
 
+## dialog.json  (GK-10)
+| field | type | meaning |
+|---|---|---|
+| kind | string | `"questDialog"` (per-quest summary) \| `"dialogPage"` (per html file) |
+| id | int/string | questId (summary) or `"{questId}/{page}"` (page) |
+| — questDialog: quest, startNpc | str/int | quest dir name + giver (from quests.json startNpc) |
+| npcPages `{npcId, pages[]}` | array | html pages present per talk NPC |
+| startPages | array<str> | giver's lowest-step page(s) — the accept-start surface |
+| turnInCandidates `{npcId, page}` | array | terminal pages (no outgoing page links) — turn-in surface |
+| — dialogPage: questId, npcId, page, step | int/int/str/int? | page identity (npcId/step null when filename has no `<npc>-N` shape) |
+| links `{raw, kind, text, …}` | array | parsed bypass links of the page |
+| link.kind | string | `"script"` (Script Q…_… <target>/<param>), `"token"` (TE0xx/-h), `"npc"` (npc_…), `"other"` |
+| link `{script, target, targetNpc}` | str/str/int? | Script link: quest token + page target + target npc id (when page is `<npc>-[step].htm`) |
+| link.param | string | non-page Script argument (e.g. wrong/right/accept) — when target absent |
+| isFirstPage / isTerminal | bool | lowest-step page for its NPC / no outgoing page-target links |
+
+> Notes (GK-10): everything is parsed from the quest html — no dialog state guessed.
+> Quest 6 (StepIntoTheFuture): giver Roxxy 30006, startPages [30006-01.htm], talk pages
+> across 30006/30033/30311, turnInCandidates = the no-link terminal pages. The driver
+> joins with quests.json (startNpc/talkNpcs) — this file's `turnInCandidates` are those
+> terminal pages, honestly not "the" turn-in (state is server-side).
+
+---
 ## Invariants enforced by validate.py
 1. Every expected file exists and parses as JSON (`schema presence`).
 2. No null/absent `id` on any record (npcs/items/skills/spawns/quests/shops).
