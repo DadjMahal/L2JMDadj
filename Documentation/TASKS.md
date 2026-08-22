@@ -85,7 +85,7 @@ product takes shape, P9 is the proof gate.
 ## P3 — KNOWLEDGE & DATAPACK (ground truth = `SourceCode/dist/game/data/`, read-only)
 | ID | Task | Size | Prio | Dep | Status |
 |---|---|---|---|---|---|
-| GK-1 | Extractor skeleton: `scripts/datapack/` (_lib.py, per-domain stubs, extract_all.py, SCHEMAS.md ≤150 lines, validate.py) | S | P1 | – | TODO |
+| GK-1 | Extractor skeleton: `scripts/datapack/` (_lib.py, per-domain stubs, extract_all.py, SCHEMAS.md ≤150 lines, validate.py) | S | P1 | – | DONE-PUSHED gk1 |
 | GK-2 | NPC+spawn+drops extractor → `npcs.json` (83 XMLs, dropLists, drop chances in (0,1]) | M | P1 | GK-1 | TODO |
 | GK-3 | Items + skills + class-tree extractor → `items.json`/`skills.json` (SkillLearn.xml tree) | M | P1 | GK-1 | TODO |
 | GK-4 | Quest extractor (346 Java scripts + html dialog graph) → `quests.json` | L | P1 | GK-1 | TODO |

@@ -230,6 +230,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | EB-10 | FleetShutdown + FleetDrain: graceful drain on SIGTERM/SIGINT, exit marker (+keep_alive logs it), resume semantics (534 tests) | DONE-PUSHED c24c59fc |
 | EB-11 | Config single-source: CombatConfig/QuestConfig delegate to AIConfiguration (no dup parse) + EngineConfig.validate() cross-field checks (540 tests) | DONE-PUSHED 74cbe68c |
 | EB-14 | BotSnapshot completeness: BotInfo goal/subGoal/cooldownSec, fed from GoalDecision + cooldowns, emitted in extended /json row only (frozen v1 intact) | DONE-PUSHED 52433ee8 |
+| GK-1 | Datapack extractor skeleton: scripts/datapack/ (_lib.py, 6 stubs, extract_all.py, SCHEMAS.md, validate.py) + empty-but-valid knowledge/ JSON (6 domains ok, validate 0 issues) | DONE-PUSHED gk1sha |
 | F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
 | F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
 | F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |
