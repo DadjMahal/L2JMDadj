@@ -96,7 +96,7 @@ product takes shape, P9 is the proof gate.
 | GK-9 | Map extractor → `map.json`: 245 teleporters (1,407 dests) + 2,533 zones + 14 routes + 203 spawnRegions; needsReview flags for out-of-world boss zones (validate 9/9) | M | P2 | GK-1 | DONE-PUSHED e1bdb9de |
 | GK-10 | Dialog index: NPC talk graph from html — `dialog.json` (344 questDialog + 9,190 dialogPage, 4,667 links; firstPages/turnInCandidates; validate 10/10) | S | P2 | GK-1 | DONE-PUSHED 7df43337 |
 | GK-11 | SkillLearn/class-tree loader: `trainers.json` — 217 trainer NPCs, 89 classes, REAL point-spawn coords (Auron 30010 → Human 0..9 @ Gludin; validate 11/11) | S | P2 | GK-3 | DONE-PUSHED ba83a0f5 |
-| GK-12 | Live-verification job: sample generated JSON against live server values | S | P2 | GK-6 | TODO |
+| GK-12 | Live-verification job: sample generated JSON against live server values | S | P2 | GK-6 | IN_PROGRESS (Cline) |
 ---
 
 ## P4 — INTELLIGENCE & LEARNING (close the open loop)
