@@ -206,4 +206,13 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
   ~119.5k total XP, 0 crashes. Post-run: `/tmp` watcher notes lost with the machine; server reverted
   DB race/class to Human (missing `character_subclasses` rows) — true random race needs subclass provisioning.
 - **2026-08-17 · doc-sweeper/play-builder:** Board restructure — 100-task roadmap grounded in the code
+### E.5 — 100-task board era (2026-08-22+, fewer rows: DONE only; open rows live on `TASKS.md`)
+| ID | Task | Status |
+|---|---|---|
+| F-01 | Root `Architecture.md` — the core basis doc | DONE (2026-08-22 restructure, `010f7e9d`) |
+| F-02 | `START_HERE.md` §0.5 core basis + doc-map link | DONE (2026-08-22 restructure, `010f7e9d`) |
+| F-03 | AIPlayerEngine/README.md package diagram sync + Architecture links | DONE-PUSHED 38aefc90 |
+| F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
+| F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
+| F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |
   review + 50-bot live logs. `mvn test` **345 green**; 50-bot fleet + 2h watcher live.
