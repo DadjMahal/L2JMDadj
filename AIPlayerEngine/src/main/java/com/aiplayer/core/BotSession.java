@@ -37,6 +37,7 @@ import com.aiplayer.knowledge.PlayerRace;
 import com.aiplayer.behavior.movement.HopGate;
 import com.aiplayer.behavior.movement.MoveTelemetry;
 import com.aiplayer.behavior.movement.RelocationPlanner;
+import com.aiplayer.behavior.movement.TravelPlanner;
 import com.aiplayer.behavior.movement.ZoneRouter;
 import com.aiplayer.behavior.movement.ZoneRouter.RouteGoal;
 import com.aiplayer.behavior.AcquireCooldown;
@@ -874,11 +875,33 @@ public final class BotSession implements Runnable
                                     config.getMovementMinRadius(), maxR);
                                 if (reloc != null)
                                 {
-                                    activeRoute = ZoneRouter.routeTo(snapshot.x, snapshot.y, snapshot.z,
-                                        reloc.x, reloc.y, reloc.z, reloc.label, reloc.reason);
-                                    if (activeRoute != null)
+                                    // EB-07: for a town/zone relocation aim (guide landmark), consult
+                                    // the pure TravelPlanner: when the trip is far AND a gatekeeper leg is
+                                    // affordable, prefer teleport (marked as thought; the actual gatekeeper
+                                    // interaction is a later integration task); otherwise walk-hop as today.
+                                    String aim = reloc.label != null && reloc.label.startsWith("reloc:zone:")
+                                        ? reloc.label.substring("reloc:zone:".length()) : null;
+                                    boolean teleportIntent = false;
+                                    if (aim != null && !aim.isEmpty())
                                     {
-                                        info.thought = reloc.reason;
+                                        TravelPlanner.Plan tp = TravelPlanner.plan(aim, "",
+                                            snapshot.x, snapshot.y, snapshot.z,
+                                            reloc.x, reloc.y, reloc.z,
+                                            info.adena, snapshot.level, config.isTeleportEnabled());
+                                        teleportIntent = tp.shouldTeleport();
+                                        if (teleportIntent)
+                                        {
+                                            info.thought = "travel: teleport to " + aim + " via gatekeeper";
+                                        }
+                                    }
+                                    if (!teleportIntent)
+                                    {
+                                        activeRoute = ZoneRouter.routeTo(snapshot.x, snapshot.y, snapshot.z,
+                                            reloc.x, reloc.y, reloc.z, reloc.label, reloc.reason);
+                                        if (activeRoute != null)
+                                        {
+                                            info.thought = reloc.reason;
+                                        }
                                     }
                                 }
                                 else if (relocation.escapeHoldActive())

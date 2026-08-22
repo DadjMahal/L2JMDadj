@@ -93,6 +93,12 @@ public final class EngineConfig
         return isEnabled() && aiConfig.getBooleanProperty("engine.movement", false);
     }
 
+    /** EB-07: gatekeeper teleport travel (TravelPlanner decides legs; actual interaction is later). */
+    public boolean isTeleportEnabled()
+    {
+        return isEnabled() && aiConfig.getBooleanProperty("engine.teleport", false);
+    }
+
     /** TIM-001 — how long a bot must be idle with no target before it routes to a far destination. */
     public int getMovementIdleRouteMs()
     {
