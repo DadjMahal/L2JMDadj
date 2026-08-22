@@ -73,7 +73,7 @@ product takes shape, P9 is the proof gate.
 | EB-06 | Restock/Inventory planner as pure decision module (behavior/restock) feeding RestockPlanner | M | P1 | GK-3 | DONE-PUSHED d81ae488 |
 | EB-07 | Movement & travel planner: route between zones/towns using map.json + waypoints | M | P2 | GK-9 | DONE-PUSHED 50eac026 |
 | EB-08 | Chat reply engine v0: template + canned replies per context, LLM-ready seam | M | P2 | CO-4 | DONE-PUSHED de193e51 |
-| EB-09 | Session lifecycle API: spawn/connect/play/sleep/disconnect as first-class states (SoulScheduler hook) | S | P1 | EB-01 | TODO |
+| EB-09 | Session lifecycle API: spawn/connect/play/sleep/disconnect as first-class states (SoulScheduler hook) | S | P1 | EB-01 | DONE-PUSHED b531ec56 |
 | EB-10 | Graceful fleet shutdown + resume: drains bots on stop, safe restart (feeds keep_alive.sh) | M | P1 | EB-09 | TODO |
 | EB-11 | Config single-source: all property reads funnel through EngineConfig with validation | M | P1 | – | TODO |
 | EB-12 | Logging hygiene: java.util.logging everywhere, no System.out in main | S | P2 | – | TODO |
