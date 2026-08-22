@@ -212,6 +212,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | F-01 | Root `Architecture.md` — the core basis doc | DONE (2026-08-22 restructure, `010f7e9d`) |
 | F-02 | `START_HERE.md` §0.5 core basis + doc-map link | DONE (2026-08-22 restructure, `010f7e9d`) |
 | F-03 | AIPlayerEngine/README.md package diagram sync + Architecture links | DONE-PUSHED 38aefc90 |
+| F-04 | Root `README.md` project header + START_HERE/Architecture pointers (owner's note kept) | DONE-PUSHED f3982ad9 |
 | F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
 | F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
 | F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |

@@ -49,7 +49,7 @@ product takes shape, P9 is the proof gate.
 | F-01 | Root `Architecture.md` — the core basis doc (planes, engine internals, hard lines) | S | P0 | – | DONE (2026-08-22 restructure) |
 | F-02 | `START_HERE.md` gains §0.5 "core basis" section + doc-map link to Architecture.md | S | P0 | F-01 | DONE (2026-08-22 restructure) |
 | F-03 | AIPlayerEngine/README.md: sync package diagram + link root Architecture.md | S | P1 | F-01 | DONE-PUSHED 38aefc90 |
-| F-04 | Root README.md: project header + pointer to START_HERE/Architecture (content stays candid) | S | P1 | F-01 | TODO |
+| F-04 | Root README.md: project header + pointer to START_HERE/Architecture (content stays candid) | S | P1 | F-01 | DONE-PUSHED f3982ad9 |
 | F-05 | Documentation/README.md: index of every key doc + cross-link audit (no orphan docs) | S | P2 | F-01 | DONE (reviewed 2026-08-22 — index exists; Architecture.md row added) |
 | F-06 | MODE_PARTIAL_INDEX refresh: every `MODE:PARTIAL` file listed; new files follow the header rule | S | P1 | – | DONE (reviewed 2026-08-22 — refreshed in EP-8, 95 files listed) |
 | F-07 | Golden gate script `scripts/gate.sh`: test+style+secret-lint one command, offline | S | P1 | – | TODO |
