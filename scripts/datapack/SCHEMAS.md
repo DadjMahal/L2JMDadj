@@ -18,9 +18,13 @@ fill the entries. `validate.py` (this dir) enforces the invariants §last.
 | isAggressive | bool | attacks on sight |
 | type | string | race/type enum value |
 | drops | array<npc> | drop rows (see drop table) |
-| dropRows `{itemId, chance, min, max}` | int/int/int/int | drop chance in (0,1] |
+| dropRows `{itemId, chance, min, max}` | int/int/int/int | drop chance in (0,1], clamped at 1.0 |
 | spawns | array<npc> | spawn points |
-| spawnRow `{x, y, z, zone}` | int×3+string | in-world coords + zone label |
+| spawnRow `{x, y, z, zoneHint}` | int×3+string | in-world centroid + zone attr |
+
+> Notes (GK-2): `drops` merges BOTH `<drop>` (grouped) and `<spoil>` (direct) rows. Drop
+> chance is the XML percent ÷ 100, clamped to 1.0 (chance>100 = multi-roll guarantee; a
+> single-roll probability can't exceed 1). `zoneHint` = the `<spawn zone=...>` attribute.
 
 ## items.json  (GK-3)
 | field | type | meaning |

@@ -16,9 +16,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_ROOT = REPO_ROOT / "SourceCode" / "dist" / "game" / "data"
 TARGET_ROOT = REPO_ROOT / "AIPlayerEngine" / "src" / "main" / "resources" / "knowledge"
 
-# World bounds (L2 interlude): coordinate sanity floor/ceiling.
+# World bounds (L2 interlude playable extent — VERIFIED against this datapack's spawns,
+# which reach y=-250788..258581; the audit's ±204800 assumed bound was too tight for y).
 WORLD_X_MIN, WORLD_X_MAX = -204_800, 204_800
-WORLD_Y_MIN, WORLD_Y_MAX = -204_800, 204_800
+WORLD_Y_MIN, WORLD_Y_MAX = -262_144, 262_144
 WORLD_Z_MIN, WORLD_Z_MAX = -16_000, 16_000
 
 # ASCII-only alnum → keep the JSON files portable; drop diacritics.
