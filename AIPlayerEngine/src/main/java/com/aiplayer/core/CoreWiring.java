@@ -44,6 +44,11 @@ public final class CoreWiring {
     private final GameServerClient gameServerClient;
     private final CombatFramePlanner combatFramePlanner = new CombatFramePlanner();
     private final String accountName;
+    // EB-13: per-bot rate/backpressure guard on the send funnel (sliding-window budget).
+    // Combat pacing stays in CombatFramePlanner (1000ms flood protector); this is the umbrella
+    // cap so no bot can ever burst more than DEFAULT_MAX actions/second even if a driver regresses.
+    private final com.aiplayer.behavior.resource.PerBotLimiter limiter =
+        new com.aiplayer.behavior.resource.PerBotLimiter();
 
     public CoreWiring(GameServerClient gameServerClient, String accountName) {
         this.gameServerClient = gameServerClient;
@@ -127,6 +132,15 @@ public final class CoreWiring {
     }
 
     private boolean send(byte[] frame, String description) {
+        // EB-13 backpressure: skip when the per-bot action budget is exhausted (the driver will
+        // retry next tick; a dropped MOVE/BYPASS never corrupts state, but a burst could trip the
+        // server flood protector for the WHOLE fleet). Life-critical actions are rare enough that
+        // they never contend with the 20/s window (revive = once per death, potion = cooldown-gated).
+        if (!limiter.tryAcquire(System.currentTimeMillis())) {
+            long throttled = limiter.throttledCount();
+            LOGGER.info("[rate-guard] " + accountName + " throttled#=" + throttled + " dropped " + description);
+            return false;
+        }
         try {
             gameServerClient.sendGameFrame(frame);
             LOGGER.fine("[Behavior] SENT " + accountName + " " + description);
