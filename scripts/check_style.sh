@@ -48,11 +48,11 @@ RAND_LINES=$(grep -rnE "Math\.random\(\)|new Random\(\)" $ENGINE_PKGS --include=
 if [ -n "$RAND_LINES" ]; then note "unseeded randomness (Math.random / new Random()) in engine code:"; echo "$RAND_LINES"; else echo -e "${GREEN}[ok]${RESET} no unseeded randomness in engine (all seeds deterministic, EB-02)"; fi
 
 # 4. System.out.println in the engine (examples/ drivers print proof markers by design).
-#    Scoped to the plumbing packages; the behavior/ pile of legacy System.out is tracked as
-#    EB-12 (logging hygiene). Console lines that are grep-able PROOF markers for the live
-#    scripts (bracket-tagged, e.g. [EVIDENCE-H5], [FleetPlay]) are allowed just like examples'.
-PLUMBING="$ENGINE_ROOT/protocol $ENGINE_ROOT/net $ENGINE_ROOT/web $ENGINE_ROOT/monitor $ENGINE_ROOT/metrics $ENGINE_ROOT/core $ENGINE_ROOT/cli $ENGINE_ROOT/learning $ENGINE_ROOT/knowledge"
-PRINT=$(grep -rnE "System\.out\.(println|print)" $PLUMBING --include="*.java" 2>/dev/null | grep -vE '"[ \t]*\[[A-Za-z0-9_-]+\]')
+#    EB-12: the scan now covers the WHOLE com.aiplayer tree (was plumbing-only), so a stray
+#    System.out in behavior/ / learning/ / knowledge/ etc. can never regrow silently. Exempt:
+#    line-oriented grep-able PROOF markers (bracket-tagged, e.g. [EVIDENCE-H5], [MP], [FleetPlay])
+#    that live scripts consume on raw stdout. Everything else must use java.util.logging.
+PRINT=$(grep -rnE "System\.out\.(println|print)" $ENGINE_PKGS --include="*.java" 2>/dev/null | grep -vE '"[ \t]*\[[A-Za-z0-9_-]+\]')
 if [ -n "$PRINT" ]; then note "System.out (should use logging) in engine:"; echo "$PRINT"; else echo -e "${GREEN}[ok]${RESET} no System.out in engine (examples drivers + bracket proof markers use them by design)"; fi
 
 # 5. TODO/FIXME in src/main (allow lines that carry the literal LEGIT_TODO marker)
