@@ -219,6 +219,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | EB-01 | Decision core split from BotSession I/O → behavior/BotSurvival + QuestDialogSession (434 tests) | DONE-PUSHED 9a439438 |
 | EB-02 | DeterministicRandom: every random source seeded (per-bot + fleet), gate enforces (439 tests) | DONE-PUSHED 833eab58 |
 | EB-03 | Configurable per-profile goal-ladder (Rung enum + ladderForRace, SURVIVE safety first) (444 tests) | DONE-PUSHED 3dd20c2e |
+| EB-04 | PersonalityBehavior: personality drives risk/pace/restock/talkativeness; per-bot wired (451 tests) | DONE-PUSHED 38e607b3 |
 | F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
 | F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
 | F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |
