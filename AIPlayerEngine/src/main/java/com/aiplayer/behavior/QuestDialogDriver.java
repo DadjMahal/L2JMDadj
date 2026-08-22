@@ -13,7 +13,6 @@ package com.aiplayer.behavior;
  *  validated it returns "" so the fleet loop can pause for the server's next dialog instead of
  *  guessing. */
 import java.util.Set;
-import com.aiplayer.examples.QuestFlowLoop;
 import com.aiplayer.protocol.PacketCodec;
 import com.aiplayer.protocol.PacketLogger;
 

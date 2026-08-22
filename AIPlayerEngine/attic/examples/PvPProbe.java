@@ -1,4 +1,4 @@
-package com.aiplayer.examples;
+// package com.aiplayer.examples;
 
 import com.aiplayer.core.FleetConfig;
 
@@ -10,27 +10,30 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.aiplayer.net.AIPlayer;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.crypt.GameCrypt;
 
 /**
- * B6 quest probe: prove an AI player interacts with the live quest system over the external socket.
+ * B5 PvP probe: two AI players fight each other over the external socket.
  *
- * <p>Enters CombatBot_01 (ai_combat_01, charId 2) into the world — the server auto-starts the Tutorial
- * quest `Q00255_Tutorial` (id 255) via EnterWorld.loadTutorial — then sends `RequestQuestList`(0x63) and
- * parses the server `QuestList`(0x80) reply: `[0x80][short count]` then per quest `[int id][int status]`.
- * The quest state is also verified in `gameserver.character_quests` for charId=2.
+ * <p>Logs in accounts A (`ai_combat_01`, objId/charId 2) and B (`ai_combat_02`, objId/charId 3),
+ * enters both into the world at the same open-field position, then each sends `Action`(0x04) +
+ * `AttackRequest`(0x0A) on the OTHER player (forced attack = PvP flag, see Creature.onForcedAttack).
+ * Two reader threads tally server `Attack`(0x05) packets **by attacker objectId** on each connection;
+ * PvP is PROVEN when a connection observes hits by BOTH player 2 and player 3 (mutual player-vs-player).
  *
- * <p>Server facts (SourceCode): packetEncryption=0 -> plaintext GS channel; classic Socket setSoTimeout
- * is honored; QuestList(0x80) layout confirmed in QuestList.java writeImpl. No L2JM server source changed.
+ * <p>Server facts (Interlude, SourceCode): packetEncryption=0 -> all GS packets plaintext; classic
+ * `Socket.setSoTimeout` is honored (NIO SocketChannel ignores it); Attack(0x05) layout =
+ * `[0x05][attackerObjId][targetId][damage][flags][attackerX..Z][(hits-1)][...][targetX..Z]`.
+ * DB has `karma/pvpkills/pkkills` for a kill-based bonus proof. No L2JM server source changed.
  */
 @Deprecated // S10-T06: superseded by examples.FleetPlay
-public class QuestProbe
+public class PvPProbe
 {
     private static final int PROTOCOL_VERSION = 746;
     private static final byte[] KEY_TAIL =
@@ -39,29 +42,32 @@ public class QuestProbe
     // Server->client opcodes (SourceCode/.../ServerPackets.java)
     private static final int OP_CHAR_SELECT_INFO = 0x13;
     private static final int OP_CHAR_SELECTED = 0x15;
-    private static final int OP_QUEST_LIST = 0x80;
+    private static final int OP_ATTACK = 0x05;
+    private static final int OP_NPC_INFO = 0x16;
 
     // Client->server opcodes (SourceCode/.../ClientPackets.java)
     private static final int OP_C_CHARACTER_SELECT = 0x0D;
     private static final int OP_C_ENTER_WORLD = 0x03;
-    private static final int OP_C_REQUEST_QUEST_LIST = 0x63;
+    private static final int OP_C_ACTION = 0x04;
+    private static final int OP_C_ATTACK_REQUEST = 0x0A;
 
-    private static final int EXPECTED_QUEST_ID = 255; // Q00255_Tutorial
+    // Per-connection Attack(0x05) tally: attacker objectId -> hit count.
+    private static final Map<Integer, Integer> tallyA = new ConcurrentHashMap<>();
+    private static final Map<Integer, Integer> tallyB = new ConcurrentHashMap<>();
 
-    // Quest ids found in any QuestList(0x80) packet.
-    private static final List<Integer> foundQuestIds = new ArrayList<>();
-
-    /** A live GameServer connection. */
+    /** A live GameServer connection for one bot. */
     private static class GsConn
     {
+        final String account;
         final Socket socket;
         final OutputStream out;
         final InputStream in;
         final boolean useEnc;
-        final L2JProtocol login;
+        final L2JProtocol login; // kept referenced so the login session stays valid while in-game
 
-        GsConn(Socket socket, OutputStream out, InputStream in, boolean useEnc, L2JProtocol login)
+        GsConn(String account, Socket socket, OutputStream out, InputStream in, boolean useEnc, L2JProtocol login)
         {
+            this.account = account;
             this.socket = socket;
             this.out = out;
             this.in = in;
@@ -84,50 +90,69 @@ public class QuestProbe
 
     public static void main(String[] args) throws Exception
     {
-        String account = args.length > 0 ? args[0] : "ai_combat_01";
-        String pass = args.length > 1 ? args[1] : FleetConfig.accountPassword();
-        String host = args.length > 2 ? args[2] : "127.0.0.1";
-        int port = args.length > 3 ? Integer.parseInt(args[3]) : 7777;
+        String accA = args.length > 0 ? args[0] : "ai_combat_01";
+        String passA = args.length > 1 ? args[1] : FleetConfig.accountPassword();
+        String accB = args.length > 2 ? args[2] : "ai_combat_02";
+        String passB = args.length > 3 ? args[3] : FleetConfig.accountPassword();
+        String host = args.length > 4 ? args[4] : "127.0.0.1";
+        int port = args.length > 5 ? Integer.parseInt(args[5]) : 7777;
+        int objIdA = args.length > 6 ? Integer.parseInt(args[6]) : 2; // CombatBot_01 charId
+        int objIdB = args.length > 7 ? Integer.parseInt(args[7]) : 3; // CombatBot_02 charId
+        int ox = args.length > 8 ? Integer.parseInt(args[8]) : -83477;
+        int oy = args.length > 9 ? Integer.parseInt(args[9]) : 250274;
+        int oz = args.length > 10 ? Integer.parseInt(args[10]) : -3596;
 
-        System.out.println("[QuestProbe] entering world: " + account);
-        GsConn cn = enterWorld(account, pass, host, port);
-        System.out.println("[QuestProbe] IN WORLD (" + account + ")");
+        System.out.println("[PvPProbe] entering world: A=" + accA + "(objId " + objIdA + ") B=" + accB + "(objId " + objIdB + ")");
+        GsConn cnA = enterWorld(accA, passA, host, port);
+        System.out.println("[PvPProbe] A IN WORLD (" + accA + ")");
+        GsConn cnB = enterWorld(accB, passB, host, port);
+        System.out.println("[PvPProbe] B IN WORLD (" + accB + ")");
 
-        // Reader thread: collect quest ids from QuestList(0x80) packets.
-        Thread reader = new Thread(() -> readLoop(cn.in), "questReader");
-        reader.start();
+        // Two reader threads: tally Attack(0x05) attacker objectIds on each connection.
+        Thread ra = new Thread(() -> readLoop(cnA.in, tallyA), "readerA");
+        Thread rb = new Thread(() -> readLoop(cnB.in, tallyB), "readerB");
+        ra.start();
+        rb.start();
 
-        Thread.sleep(2500); // let the spawn-time packets / auto Tutorial arrive
+        Thread.sleep(3000); // let the world populate / both become visible
 
-        System.out.println("[QuestProbe] sending RequestQuestList(0x63)");
-        sendRequestQuestList(cn.out, cn.useEnc);
+        // A attacks B (select then force-attack = PvP flag).
+        sendAction(cnA.out, cnA.useEnc, objIdB, ox, oy, oz);
+        System.out.println("[PvPProbe] A sent Action(0x04) on objId " + objIdB);
+        Thread.sleep(600); // flood protector canPerformPlayerAction()
+        sendAttackRequest(cnA.out, cnA.useEnc, objIdB);
+        System.out.println("[PvPProbe] A sent AttackRequest(0x0A) on objId " + objIdB);
 
-        Thread.sleep(4000); // give the server time to reply QuestList
+        // B attacks A.
+        sendAction(cnB.out, cnB.useEnc, objIdA, ox, oy, oz);
+        System.out.println("[PvPProbe] B sent Action(0x04) on objId " + objIdA);
+        Thread.sleep(600);
+        sendAttackRequest(cnB.out, cnB.useEnc, objIdA);
+        System.out.println("[PvPProbe] B sent AttackRequest(0x0A) on objId " + objIdA);
 
-        cn.close();
-        reader.join(3000);
+        Thread.sleep(18000); // let PvP run
 
-        System.out.println("[QuestProbe] === quest ids seen in QuestList(0x80) packets ===");
-        if (foundQuestIds.isEmpty())
-        {
-            System.out.println("  (none)");
-        }
-        else
-        {
-            for (int id : foundQuestIds)
-            {
-                System.out.println("  quest id " + id + (id == EXPECTED_QUEST_ID ? "  <-- Q00255_Tutorial" : ""));
-            }
-        }
-        boolean hasTutorial = foundQuestIds.contains(EXPECTED_QUEST_ID);
-        System.out.println("[QuestProbe] QUEST_LIST showed id " + EXPECTED_QUEST_ID + " = " + hasTutorial
-            + " (Tutorial is excluded from the visible list by its Ex flag — the live-quest proof is the"
-            + " server adding Q00255 state to character_quests on enter-world; see scripts/_probes/b6_quest_prove.sh).");
-        System.out.println("[QuestProbe] done");
+        cnA.close();
+        cnB.close();
+        ra.join(3000);
+        rb.join(3000);
+
+        System.out.println("[PvPProbe] === A's connection Attack attacker-objId -> hits ===");
+        tallyA.forEach((k, v) -> System.out.println("  attacker objId " + k + " : " + v + " hits"));
+        System.out.println("[PvPProbe] === B's connection Attack attacker-objId -> hits ===");
+        tallyB.forEach((k, v) -> System.out.println("  attacker objId " + k + " : " + v + " hits"));
+
+        // Mutual PvP = some connection observed hits by BOTH player 2 and player 3.
+        boolean seenBothA = tallyA.containsKey(objIdA) && tallyA.containsKey(objIdB);
+        boolean seenBothB = tallyB.containsKey(objIdA) && tallyB.containsKey(objIdB);
+        boolean pvp = seenBothA || seenBothB;
+        System.out.println("[PvPProbe] A's conn saw attacks by {2,3}=" + seenBothA + " ; B's conn saw {2,3}=" + seenBothB);
+        System.out.println("[PvPProbe] PVP PROVEN (mutual player-vs-player attacks) = " + pvp);
+        System.out.println("[PvPProbe] done");
     }
 
-    /** Read loop: parse every QuestList(0x80) packet into quest ids. */
-    private static void readLoop(InputStream in)
+    /** Read loop for one connection: tally ATTACK(0x05) attacker objectIds until the socket closes. */
+    private static void readLoop(InputStream in, Map<Integer, Integer> tally)
     {
         while (true)
         {
@@ -142,7 +167,7 @@ public class QuestProbe
             }
             catch (IOException e)
             {
-                break; // socket closed
+                break; // socket closed (EOF)
             }
             catch (Exception e)
             {
@@ -153,38 +178,16 @@ public class QuestProbe
                 break;
             }
             int op = pl[0] & 0xff;
-            if (op == OP_QUEST_LIST)
+            if ((op == OP_ATTACK) && (pl.length >= 6))
             {
-                parseQuestList(pl);
+                int attacker = leInt(pl, 1);
+                tally.merge(attacker, 1, Integer::sum);
             }
         }
     }
 
-    /** QuestList(0x80): [short count] then per quest [int id][int status]. */
-    private static synchronized void parseQuestList(byte[] pl)
-    {
-        if (pl.length < 3)
-        {
-            return;
-        }
-        int count = (pl[1] & 0xff) | ((pl[2] & 0xff) << 8);
-        System.out.println("[QuestProbe] QuestList(0x80): questCount=" + count);
-        int off = 3;
-        for (int i = 0; i < count && (off + 8) <= pl.length; i++)
-        {
-            int id = leInt(pl, off);
-            int status = leInt(pl, off + 4);
-            off += 8;
-            if (!foundQuestIds.contains(id))
-            {
-                foundQuestIds.add(id);
-            }
-            System.out.println("[QuestProbe]   quest id=" + id + " status=" + status);
-        }
-    }
 
-
-    /** Login + GameServer enter-world; returns a live GsConn after EnterWorld(0x03). */
+    /** Login + GameServer enter-world for one account; returns a live GsConn after EnterWorld(0x03). */
     private static GsConn enterWorld(String account, String pass, String host, int port) throws Exception
     {
         AIPlayer player = new AIPlayer(account, 100, 1, 0);
@@ -192,12 +195,12 @@ public class QuestProbe
         if (!login.connectAndLogin(account, pass, 0))
         {
             login.disconnect();
-            throw new RuntimeException("[QuestProbe] login failed for " + account);
+            throw new RuntimeException("[PvPProbe] login failed for " + account);
         }
-        System.out.println("[QuestProbe] " + account + " login OK");
+        System.out.println("[PvPProbe] " + account + " login OK");
 
         Socket s = new Socket(host, port);
-        s.setSoTimeout(2000);
+        s.setSoTimeout(2000); // classic Socket: honored by InputStream.read
         OutputStream out = s.getOutputStream();
         InputStream in = s.getInputStream();
 
@@ -206,7 +209,7 @@ public class QuestProbe
         if (keyFrame == null)
         {
             s.close();
-            throw new RuntimeException("[QuestProbe] no KeyPacket for " + account);
+            throw new RuntimeException("[PvPProbe] no KeyPacket for " + account);
         }
         int encFlag = leInt(keyFrame, 12);
         boolean useEnc = encFlag != 0;
@@ -215,7 +218,9 @@ public class QuestProbe
         System.arraycopy(KEY_TAIL, 0, key, 8, 8);
         GameCrypt crypt = new GameCrypt();
         crypt.setKey(key);
+        System.out.println("[PvPProbe] " + account + " KeyPacket packetEncryption=" + encFlag);
 
+        // AuthLogin -> CharSelectInfo -> CharacterSelect -> CharSelected -> EnterWorld.
         sendAuthLogin(out, crypt, useEnc, account, login);
         boolean spawned = false;
         long deadline = System.currentTimeMillis() + 12000;
@@ -243,11 +248,12 @@ public class QuestProbe
             if (op == OP_CHAR_SELECT_INFO)
             {
                 sendCharacterSelect(out, crypt, useEnc, 0);
+                System.out.println("[PvPProbe] " + account + " sent CharacterSelect(0x0D) slot=0");
             }
             if (op == OP_CHAR_SELECTED)
             {
                 sendEnterWorld(out, crypt, useEnc);
-                System.out.println("[QuestProbe] " + account + " sent EnterWorld(0x03)");
+                System.out.println("[PvPProbe] " + account + " sent EnterWorld(0x03)");
                 spawned = true;
                 break;
             }
@@ -255,17 +261,49 @@ public class QuestProbe
         if (!spawned)
         {
             s.close();
-            throw new RuntimeException("[QuestProbe] no CharSelected for " + account);
+            throw new RuntimeException("[PvPProbe] no CharSelected for " + account);
         }
-        return new GsConn(s, out, in, useEnc, login);
+        return new GsConn(account, s, out, in, useEnc, login);
     }
 
-    /** RequestQuestList (0x63): opcode-only (RequestQuestList.readImpl is empty). */
-    private static void sendRequestQuestList(OutputStream out, boolean useEnc) throws Exception
+    // ------------------------------------------------------------------
+    // Client packet builders (plaintext; game crypt disabled on this server)
+    // ------------------------------------------------------------------
+
+    /** Action (0x04): [0x04][targetObjId][originX][originY][originZ][actionId]. */
+    private static void sendAction(OutputStream out, boolean useEnc, int targetObjId, int ox, int oy, int oz) throws Exception
     {
-        byte[] payload = new byte[] { (byte) OP_C_REQUEST_QUEST_LIST };
-        sendFrame(out, payload);
+        ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 4 + 4 + 4 + 1).order(ByteOrder.LITTLE_ENDIAN);
+        bb.put((byte) OP_C_ACTION);
+        bb.putInt(targetObjId);
+        bb.putInt(ox);
+        bb.putInt(oy);
+        bb.putInt(oz);
+        bb.put((byte) 0); // actionId = 0 (click)
+        sendPayloadFrame(out, bb);
     }
+
+    /** AttackRequest (0x0A): [0x0A][targetObjId][originX][originY][originZ][attackId] -> forced attack / PvP flag. */
+    private static void sendAttackRequest(OutputStream out, boolean useEnc, int targetObjId) throws Exception
+    {
+        ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 4 + 4 + 4 + 1).order(ByteOrder.LITTLE_ENDIAN);
+        bb.put((byte) OP_C_ATTACK_REQUEST);
+        bb.putInt(targetObjId);
+        bb.putInt(0);
+        bb.putInt(0);
+        bb.putInt(0);
+        bb.put((byte) 0);
+        sendPayloadFrame(out, bb);
+    }
+
+    private static void sendPayloadFrame(OutputStream out, ByteBuffer bb) throws Exception
+    {
+        byte[] plain = new byte[bb.position()];
+        bb.flip();
+        bb.get(plain);
+        sendFrame(out, plain); // game crypt disabled -> plaintext
+    }
+
 
     // ---------------- enter-world + wire helpers (classic Socket) ----------------
 
@@ -277,6 +315,7 @@ public class QuestProbe
         return bb.array();
     }
 
+    /** AuthLogin (0x08): account UTF-16LE + session key ints. */
     private static void sendAuthLogin(OutputStream out, GameCrypt crypt, boolean useEnc, String account, L2JProtocol login) throws Exception
     {
         byte[] name = account.getBytes(StandardCharsets.UTF_16LE);
@@ -298,6 +337,7 @@ public class QuestProbe
         sendFrame(out, plain);
     }
 
+    /** CharacterSelect (0x0D): charSlot(int) + unks. */
     private static void sendCharacterSelect(OutputStream out, GameCrypt crypt, boolean useEnc, int slot) throws Exception
     {
         ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 2 + 4 + 4 + 4).order(ByteOrder.LITTLE_ENDIAN);
@@ -317,6 +357,7 @@ public class QuestProbe
         sendFrame(out, plain);
     }
 
+    /** EnterWorld (0x03): readBytes(32)+4xint+readBytes(32)+int+5x4 tracert (all zeros). */
     private static void sendEnterWorld(OutputStream out, GameCrypt crypt, boolean useEnc) throws Exception
     {
         ByteBuffer bb = ByteBuffer.allocate(1 + 32 + 16 + 32 + 4 + 20).order(ByteOrder.LITTLE_ENDIAN);
@@ -379,7 +420,7 @@ public class QuestProbe
     {
         DataInputStream dis = (in instanceof DataInputStream) ? (DataInputStream) in : new DataInputStream(in);
         byte[] sizeBytes = new byte[2];
-        dis.readFully(sizeBytes);
+        dis.readFully(sizeBytes); // SocketTimeoutException on timeout, EOFException on close
         int size = (sizeBytes[0] & 0xff) | ((sizeBytes[1] & 0xff) << 8);
         if (size < 2 || size > 65535)
         {

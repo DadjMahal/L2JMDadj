@@ -1,4 +1,4 @@
-package com.aiplayer.examples;
+// package com.aiplayer.examples;
 
 import com.aiplayer.core.FleetConfig;
 
@@ -18,30 +18,29 @@ import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.crypt.GameCrypt;
 
 /**
- * B10 probe: live party proof (2026-08-03).
+ * B9 probe: live chat proof (2026-08-03).
  *
- * <p>Logs in two accounts (`ai_combat_01` = CombatBot_01, `ai_combat_02` = CombatBot_02, both already near
- * each other at -82515,241221,-3728) and enters both into the world (proven B3/B5 flow). Bot A then sends
- * {@code RequestJoinParty}(0x29) targeting bot B by name; the server sends {@code AskJoinParty}(0x39) to B
- * and bot B answers {@code RequestAnswerJoinParty}(0x2A) with 1 (accept). The server creates a real party.
- * Reader threads tally the server party packets on each connection; a party is PROVEN when the leader (A)
- * receives {@code PARTY_SMALL_WINDOW_ALL}(0x4E) and/or the joiner (B) receives {@code PARTY_SMALL_WINDOW_ADD}
- * (0x4F), which the server only sends after a party object is created.
+ * <p>Logs in two accounts (`ai_combat_01` = CombatBot_01, `ai_combat_02` = CombatBot_02) and enters both
+ * into the world (proven B3/B5 flow). Bot A then sends a WHISPER via the client chat packet {@code Say2}(0x38)
+ * addressed to Bot B, containing a run-unique token. Two reader threads on each connection scan incoming
+ * server packets for {@code CREATURE_SAY}(0x4A) payloads containing that token. CHAT is PROVEN when the
+ * receiver (Bot B) sees the server-delivered whisper containing the token (and/or the sender sees its echo
+ * {@code "->CombatBot_02"}).
  *
- * <p>Server facts (SourceCode):
+ * <p>Server facts (SourceCode + handler scripts):
  * <ul>
- *   <li>RequestJoinParty(0x29) readImpl = {@code [name:readString][partyDistributionTypeId:int]} (target by NAME).</li>
- *   <li>RequestAnswerJoinParty(0x2A) readImpl = {@code [response:int]} (1 = accept).</li>
- *   <li>Server packets: ASK_JOIN_PARTY(0x39) {@code [requestorName][distId]} to invitee; JOIN_PARTY(0x3A);
- *       PARTY_SMALL_WINDOW_ALL(0x4E) to leader; PARTY_SMALL_WINDOW_ADD(0x4F) to joiner.</li>
- *   <li>Invite requires {@code World.getPlayer(name)} + {@code target.isVisibleFor(requestor)} — bots co-located.</li>
+ *   <li>Client {@code Say2}(0x38) readImpl = {@code [_text:readString][_type:int][_target:readString (whisper)]};
+ *       {@code readString()} = null-terminated UTF-16LE 2-byte chars. WHISPER chat client id = 2 (ChatType).</li>
+ *   <li>Server {@code CREATURE_SAY}(0x4A) writeImpl = {@code [0x4A][senderObjId:int][chatType:int][senderName][text]}.</li>
+ *   <li>{@code ChatWhisper} (script handler) delivers to {@code World.getPlayer(target)} with NO level gate and
+ *       NO range limit (GENERAL chat is gated to level {@code MinimumChatLevel}=20, so whisper is used here).</li>
  * </ul>
  *
- * <p>Verification: A's conn seeing PARTY_SMALL_WINDOW_ALL(0x4E) and/or B's conn seeing PARTY_SMALL_WINDOW_ADD(0x4F)
- * = the server created a party and pushed real party windows to both. No L2JM server source changed.
+ * <p>Verification: B's connection observing a 0x4A packet containing the token = the server processed A's chat
+ * and delivered it to the other bot. No L2JM server source changed.
  */
 @Deprecated // S10-T06: superseded by examples.FleetPlay
-public class PartyProbe
+public class ChatProbe
 {
     private static final int PROTOCOL_VERSION = 746;
     private static final byte[] KEY_TAIL =
@@ -50,24 +49,21 @@ public class PartyProbe
     // Server->client opcodes (ServerPackets.java)
     private static final int OP_CHAR_SELECT_INFO = 0x13;
     private static final int OP_CHAR_SELECTED = 0x15;
-    private static final int OP_ASK_JOIN_PARTY = 0x39;
-    private static final int OP_JOIN_PARTY = 0x3A;
-    private static final int OP_PARTY_SMALL_WINDOW_ALL = 0x4E;
-    private static final int OP_PARTY_SMALL_WINDOW_ADD = 0x4F;
+    private static final int OP_CREATURE_SAY = 0x4A; // chat broadcast / whisper delivery
 
     // Client->server opcodes (ClientPackets.java)
     private static final int OP_C_CHARACTER_SELECT = 0x0D;
     private static final int OP_C_ENTER_WORLD = 0x03;
-    private static final int OP_C_REQUEST_JOIN_PARTY = 0x29;
-    private static final int OP_C_REQUEST_ANSWER_JOIN_PARTY = 0x2A;
+    private static final int OP_C_SAY2 = 0x38; // client chat
 
-    // Per-connection party tally
-    private static final AtomicInteger joinOnA = new AtomicInteger(0);          // 0x3A JoinParty on A's conn
-    private static final AtomicInteger allWindowOnA = new AtomicInteger(0);     // 0x4E PartySmallWindowAll on A's conn
-    private static final AtomicInteger allWindowOnB = new AtomicInteger(0);     // 0x4E PartySmallWindowAll on B's conn (joiner window)
-    private static final AtomicInteger addWindowOnA = new AtomicInteger(0);     // 0x4F PartySmallWindowAdd on A's conn (leader gets Add)
-    private static final AtomicInteger addWindowOnB = new AtomicInteger(0);     // 0x4F PartySmallWindowAdd on B's conn
-    private static final AtomicInteger askOnB = new AtomicInteger(0);           // 0x39 AskJoinParty on B's conn
+    private static final int CHAT_WHISPER = 2; // ChatType.WHISPER.getClientId()
+
+    // Per-connection chat tally: how many CREATURE_SAY packets contain our token.
+    private static final AtomicInteger tokenInA = new AtomicInteger(0);
+    private static final AtomicInteger tokenInB = new AtomicInteger(0);
+    private static final AtomicInteger sayTotalA = new AtomicInteger(0);
+    private static final AtomicInteger sayTotalB = new AtomicInteger(0);
+    private static volatile String token; // set before threads start
 
     /** A live GameServer connection for one bot. */
     private static class GsConn
@@ -98,13 +94,7 @@ public class PartyProbe
             catch (IOException ignored)
             {
             }
-            try
-            {
-                login.disconnect();
-            }
-            catch (Exception ignored)
-            {
-            }
+            login.disconnect();
         }
     }
 
@@ -116,55 +106,55 @@ public class PartyProbe
         String passB = args.length > 3 ? args[3] : FleetConfig.accountPassword();
         String host = args.length > 4 ? args[4] : "127.0.0.1";
         int port = args.length > 5 ? Integer.parseInt(args[5]) : 7777;
-        String inviteeName = args.length > 6 ? args[6] : "CombatBot_02";
-        final int DIST_RANDOM = 1; // PartyDistributionType.RANDOM
+        String targetCharName = args.length > 6 ? args[6] : "CombatBot_02";
+
+        token = "B9WHISPER_" + (System.nanoTime() & 0xFFFFF);
+        System.out.println("[ChatProbe] token=" + token);
 
         GsConn cnA = enterWorld(accA, passA, host, port);
-        System.out.println("[PartyProbe] A IN WORLD (" + accA + ")");
+        System.out.println("[ChatProbe] A IN WORLD (" + accA + ")");
         GsConn cnB = enterWorld(accB, passB, host, port);
-        System.out.println("[PartyProbe] B IN WORLD (" + accB + ")");
+        System.out.println("[ChatProbe] B IN WORLD (" + accB + ")");
 
-        Thread ra = new Thread(() -> readLoop(cnA.in, true), "readerA");
-        Thread rb = new Thread(() -> readLoop(cnB.in, false), "readerB");
+        Thread ra = new Thread(() -> readLoop(cnA.in, tokenInA, sayTotalA), "readerA");
+        Thread rb = new Thread(() -> readLoop(cnB.in, tokenInB, sayTotalB), "readerB");
         ra.start();
         rb.start();
 
-        Thread.sleep(3000); // both online + world settled
+        Thread.sleep(3000); // let both be online & the world settle
 
-        // A invites B by name (distribution = RANDOM).
-        sendRequestJoinParty(cnA.out, cnA.useEnc, inviteeName, DIST_RANDOM);
-        System.out.println("[PartyProbe] A sent RequestJoinParty(0x29) -> " + inviteeName);
+        // A whispers the token to B.
+        sendSay2(cnA.out, cnA.useEnc, token, targetCharName);
+        System.out.println("[ChatProbe] A sent Say2(0x38) whisper to " + targetCharName + " text=" + token);
 
-        Thread.sleep(2000); // server routes AskJoinParty(0x39) to B
-
-        // B accepts.
-        sendAnswerJoinParty(cnB.out, cnB.useEnc, 1);
-        System.out.println("[PartyProbe] B sent RequestAnswerJoinParty(0x2A) response=1 (accept)");
-
-        Thread.sleep(6000); // server creates party + pushes window packets
+        Thread.sleep(8000); // let the server route/deliver the whisper
 
         cnA.close();
         cnB.close();
         ra.join(3000);
         rb.join(3000);
 
-        System.out.println("[PartyProbe] === PARTY TALLY ===");
-        System.out.println("  A conn: JOIN_PARTY(0x3A)=" + joinOnA + "  SMALL_ALL(0x4E)=" + allWindowOnA + "  SMALL_ADD(0x4F)=" + addWindowOnA);
-        System.out.println("  B conn: ASK_JOIN_PARTY(0x39)=" + askOnB + "  SMALL_ALL(0x4E)=" + allWindowOnB + "  SMALL_ADD(0x4F)=" + addWindowOnB);
+        System.out.println("[ChatProbe] === CHAT TALLY ===");
+        System.out.println("  CREATURE_SAY(0x4A) on A's conn: " + sayTotalA + " (with token: " + tokenInA + ")");
+        System.out.println("  CREATURE_SAY(0x4A) on B's conn: " + sayTotalB + " (with token: " + tokenInB + ")");
 
-        // Party formed (Party.addPartyMember): joiner B gets PARTY_SMALL_WINDOW_ALL(0x4E);
-        // existing members (leader A) get PARTY_SMALL_WINDOW_ADD(0x4F).
-        boolean created = (allWindowOnB.get() > 0) || (addWindowOnA.get() > 0);
-        System.out.println("[PartyProbe] B got PartySmallWindowAll (0x4E)=" + (allWindowOnB.get() > 0));
-        System.out.println("[PartyProbe] A got PartySmallWindowAdd (0x4F)=" + (addWindowOnA.get() > 0));
-        System.out.println("[PartyProbe] B was asked to join (0x39)=" + (askOnB.get() > 0));
-        System.out.println("[PartyProbe] A told party joined (0x3A)=" + (joinOnA.get() > 0));
-        System.out.println("[PartyProbe] PARTY PROVEN (server created a real party, windows pushed) = " + created);
-        System.out.println("[PartyProbe] done");
+        // PROVEN when the receiver B saw the token (or the sender saw its own echo).
+        boolean deliveredToB = tokenInB.get() > 0;
+        boolean echoedToA = tokenInA.get() > 0;
+        boolean chatProven = deliveredToB || echoedToA;
+        System.out.println("[ChatProbe] B received the whisper token = " + deliveredToB);
+        System.out.println("[ChatProbe] A saw its own echo = " + echoedToA);
+        System.out.println("[ChatProbe] CHAT PROVEN (server processed A's chat + delivered it) = " + chatProven);
+        System.out.println("[ChatProbe] done");
     }
 
-    private static void readLoop(InputStream in, boolean isA)
+    /**
+     * Read loop for one connection: count CREATURE_SAY(0x4A) payloads and, among them, those whose bytes
+     * contain our token (UTF-16LE), until the socket closes.
+     */
+    private static void readLoop(InputStream in, AtomicInteger tokenHits, AtomicInteger sayTotal)
     {
+        final byte[] needle = token.getBytes(StandardCharsets.UTF_16LE);
         while (true)
         {
             byte[] pl;
@@ -178,73 +168,44 @@ public class PartyProbe
             }
             catch (Exception e)
             {
-                break;
+                break; // socket closed / EOF
             }
             if (pl == null)
             {
                 break;
             }
             int op = pl[0] & 0xff;
-            if (op == OP_PARTY_SMALL_WINDOW_ALL)
+            if (op == OP_CREATURE_SAY)
             {
-                if (isA)
+                sayTotal.incrementAndGet();
+                if (contains(pl, needle))
                 {
-                    allWindowOnA.incrementAndGet();
+                    tokenHits.incrementAndGet();
+                    System.out.println("[ChatProbe] *** 0x4A with TOKEN len=" + pl.length);
                 }
-                else
-                {
-                    allWindowOnB.incrementAndGet();
-                    System.out.println("[PartyProbe] B: PARTY_SMALL_WINDOW_ALL(0x4E) len=" + pl.length);
-                }
-            }
-            else if (op == OP_PARTY_SMALL_WINDOW_ADD)
-            {
-                if (isA)
-                {
-                    addWindowOnA.incrementAndGet();
-                    System.out.println("[PartyProbe] A: PARTY_SMALL_WINDOW_ADD(0x4F) len=" + pl.length);
-                }
-                else
-                {
-                    addWindowOnB.incrementAndGet();
-                }
-            }
-            else if ((op == OP_JOIN_PARTY) && isA)
-            {
-                joinOnA.incrementAndGet();
-            }
-            else if ((op == OP_ASK_JOIN_PARTY) && !isA)
-            {
-                askOnB.incrementAndGet();
-                System.out.println("[PartyProbe] B: ASK_JOIN_PARTY(0x39) len=" + pl.length);
             }
         }
     }
 
-    private static void sendRequestJoinParty(OutputStream out, boolean useEnc, String targetName, int distId) throws Exception
+    private static boolean contains(byte[] haystack, byte[] needle)
     {
-        byte[] nameBytes = (targetName + "\0").getBytes(StandardCharsets.UTF_16LE);
-        ByteBuffer bb = ByteBuffer.allocate(1 + nameBytes.length + 4).order(ByteOrder.LITTLE_ENDIAN);
-        bb.put((byte) OP_C_REQUEST_JOIN_PARTY);
-        bb.put(nameBytes);
-        bb.putInt(distId);
-        sendPayloadFrame(out, bb);
-    }
-
-    private static void sendAnswerJoinParty(OutputStream out, boolean useEnc, int response) throws Exception
-    {
-        ByteBuffer bb = ByteBuffer.allocate(1 + 4).order(ByteOrder.LITTLE_ENDIAN);
-        bb.put((byte) OP_C_REQUEST_ANSWER_JOIN_PARTY);
-        bb.putInt(response);
-        sendPayloadFrame(out, bb);
-    }
-
-    private static void sendPayloadFrame(OutputStream out, ByteBuffer bb) throws Exception
-    {
-        byte[] plain = new byte[bb.position()];
-        bb.flip();
-        bb.get(plain);
-        sendFrame(out, plain);
+        if ((needle.length == 0) || (haystack.length < needle.length))
+        {
+            return false;
+        }
+        outer:
+        for (int i = 0; i <= haystack.length - needle.length; i++)
+        {
+            for (int j = 0; j < needle.length; j++)
+            {
+                if (haystack[i + j] != needle[j])
+                {
+                    continue outer;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     /** Login + GameServer enter-world for one account; returns a live GsConn after EnterWorld(0x03). */
@@ -255,9 +216,9 @@ public class PartyProbe
         if (!login.connectAndLogin(account, pass, 0))
         {
             login.disconnect();
-            throw new RuntimeException("[PartyProbe] login failed for " + account);
+            throw new RuntimeException("[ChatProbe] login failed for " + account);
         }
-        System.out.println("[PartyProbe] " + account + " login OK");
+        System.out.println("[ChatProbe] " + account + " login OK");
 
         Socket s = new Socket(host, port);
         s.setSoTimeout(2000);
@@ -269,7 +230,7 @@ public class PartyProbe
         if (keyFrame == null)
         {
             s.close();
-            throw new RuntimeException("[PartyProbe] no KeyPacket for " + account);
+            throw new RuntimeException("[ChatProbe] no KeyPacket for " + account);
         }
         int encFlag = leInt(keyFrame, 12);
         boolean useEnc = encFlag != 0;
@@ -278,7 +239,7 @@ public class PartyProbe
         System.arraycopy(KEY_TAIL, 0, key, 8, 8);
         GameCrypt crypt = new GameCrypt();
         crypt.setKey(key);
-        System.out.println("[PartyProbe] " + account + " KeyPacket packetEncryption=" + encFlag);
+        System.out.println("[ChatProbe] " + account + " KeyPacket packetEncryption=" + encFlag);
 
         sendAuthLogin(out, crypt, useEnc, account, login);
         boolean spawned = false;
@@ -307,12 +268,12 @@ public class PartyProbe
             if (op == OP_CHAR_SELECT_INFO)
             {
                 sendCharacterSelect(out, crypt, useEnc, 0);
-                System.out.println("[PartyProbe] " + account + " sent CharacterSelect(0x0D) slot=0");
+                System.out.println("[ChatProbe] " + account + " sent CharacterSelect(0x0D) slot=0");
             }
             if (op == OP_CHAR_SELECTED)
             {
                 sendEnterWorld(out, crypt, useEnc);
-                System.out.println("[PartyProbe] " + account + " sent EnterWorld(0x03)");
+                System.out.println("[ChatProbe] " + account + " sent EnterWorld(0x03)");
                 spawned = true;
                 break;
             }
@@ -320,9 +281,36 @@ public class PartyProbe
         if (!spawned)
         {
             s.close();
-            throw new RuntimeException("[PartyProbe] no CharSelected for " + account);
+            throw new RuntimeException("[ChatProbe] no CharSelected for " + account);
         }
         return new GsConn(account, s, out, in, useEnc, login);
+    }
+
+    // ------------------------------------------------------------------
+    // Client packet builders (plaintext; game crypt disabled on this server)
+    // ------------------------------------------------------------------
+
+    /**
+     * Say2 (0x38, client): [0x38][text:UTF-16LE null-term][type:int][target:UTF-16LE null-term (whisper)].
+     */
+    private static void sendSay2(OutputStream out, boolean useEnc, String text, String target) throws Exception
+    {
+        byte[] textBytes = (text + "\0").getBytes(StandardCharsets.UTF_16LE);
+        byte[] targetBytes = (target + "\0").getBytes(StandardCharsets.UTF_16LE);
+        ByteBuffer bb = ByteBuffer.allocate(1 + textBytes.length + 4 + targetBytes.length).order(ByteOrder.LITTLE_ENDIAN);
+        bb.put((byte) OP_C_SAY2);
+        bb.put(textBytes);
+        bb.putInt(CHAT_WHISPER);
+        bb.put(targetBytes);
+        sendPayloadFrame(out, bb);
+    }
+
+    private static void sendPayloadFrame(OutputStream out, ByteBuffer bb) throws Exception
+    {
+        byte[] plain = new byte[bb.position()];
+        bb.flip();
+        bb.get(plain);
+        sendFrame(out, plain);
     }
 
     // ---------------- enter-world + wire helpers (classic Socket) ----------------

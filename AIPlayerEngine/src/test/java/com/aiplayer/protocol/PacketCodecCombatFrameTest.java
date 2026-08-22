@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.aiplayer.core.CoreWiring;
-import com.aiplayer.examples.CombatProbe;
 
 /**
  * Stream C: byte-layout tests for the real client combat frames (Action 0x04 / AttackRequest 0x0A)

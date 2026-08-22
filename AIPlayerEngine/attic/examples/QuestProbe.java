@@ -1,4 +1,4 @@
-package com.aiplayer.examples;
+// package com.aiplayer.examples;
 
 import com.aiplayer.core.FleetConfig;
 
@@ -10,74 +10,58 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
 import com.aiplayer.net.AIPlayer;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.crypt.GameCrypt;
 
 /**
- * B9 probe: live chat proof (2026-08-03).
+ * B6 quest probe: prove an AI player interacts with the live quest system over the external socket.
  *
- * <p>Logs in two accounts (`ai_combat_01` = CombatBot_01, `ai_combat_02` = CombatBot_02) and enters both
- * into the world (proven B3/B5 flow). Bot A then sends a WHISPER via the client chat packet {@code Say2}(0x38)
- * addressed to Bot B, containing a run-unique token. Two reader threads on each connection scan incoming
- * server packets for {@code CREATURE_SAY}(0x4A) payloads containing that token. CHAT is PROVEN when the
- * receiver (Bot B) sees the server-delivered whisper containing the token (and/or the sender sees its echo
- * {@code "->CombatBot_02"}).
+ * <p>Enters CombatBot_01 (ai_combat_01, charId 2) into the world — the server auto-starts the Tutorial
+ * quest `Q00255_Tutorial` (id 255) via EnterWorld.loadTutorial — then sends `RequestQuestList`(0x63) and
+ * parses the server `QuestList`(0x80) reply: `[0x80][short count]` then per quest `[int id][int status]`.
+ * The quest state is also verified in `gameserver.character_quests` for charId=2.
  *
- * <p>Server facts (SourceCode + handler scripts):
- * <ul>
- *   <li>Client {@code Say2}(0x38) readImpl = {@code [_text:readString][_type:int][_target:readString (whisper)]};
- *       {@code readString()} = null-terminated UTF-16LE 2-byte chars. WHISPER chat client id = 2 (ChatType).</li>
- *   <li>Server {@code CREATURE_SAY}(0x4A) writeImpl = {@code [0x4A][senderObjId:int][chatType:int][senderName][text]}.</li>
- *   <li>{@code ChatWhisper} (script handler) delivers to {@code World.getPlayer(target)} with NO level gate and
- *       NO range limit (GENERAL chat is gated to level {@code MinimumChatLevel}=20, so whisper is used here).</li>
- * </ul>
- *
- * <p>Verification: B's connection observing a 0x4A packet containing the token = the server processed A's chat
- * and delivered it to the other bot. No L2JM server source changed.
+ * <p>Server facts (SourceCode): packetEncryption=0 -> plaintext GS channel; classic Socket setSoTimeout
+ * is honored; QuestList(0x80) layout confirmed in QuestList.java writeImpl. No L2JM server source changed.
  */
 @Deprecated // S10-T06: superseded by examples.FleetPlay
-public class ChatProbe
+public class QuestProbe
 {
     private static final int PROTOCOL_VERSION = 746;
     private static final byte[] KEY_TAIL =
     { (byte) 0xC8, (byte) 0x27, (byte) 0x93, (byte) 0x01, (byte) 0xA1, (byte) 0x6C, (byte) 0x31, (byte) 0x97 };
 
-    // Server->client opcodes (ServerPackets.java)
+    // Server->client opcodes (SourceCode/.../ServerPackets.java)
     private static final int OP_CHAR_SELECT_INFO = 0x13;
     private static final int OP_CHAR_SELECTED = 0x15;
-    private static final int OP_CREATURE_SAY = 0x4A; // chat broadcast / whisper delivery
+    private static final int OP_QUEST_LIST = 0x80;
 
-    // Client->server opcodes (ClientPackets.java)
+    // Client->server opcodes (SourceCode/.../ClientPackets.java)
     private static final int OP_C_CHARACTER_SELECT = 0x0D;
     private static final int OP_C_ENTER_WORLD = 0x03;
-    private static final int OP_C_SAY2 = 0x38; // client chat
+    private static final int OP_C_REQUEST_QUEST_LIST = 0x63;
 
-    private static final int CHAT_WHISPER = 2; // ChatType.WHISPER.getClientId()
+    private static final int EXPECTED_QUEST_ID = 255; // Q00255_Tutorial
 
-    // Per-connection chat tally: how many CREATURE_SAY packets contain our token.
-    private static final AtomicInteger tokenInA = new AtomicInteger(0);
-    private static final AtomicInteger tokenInB = new AtomicInteger(0);
-    private static final AtomicInteger sayTotalA = new AtomicInteger(0);
-    private static final AtomicInteger sayTotalB = new AtomicInteger(0);
-    private static volatile String token; // set before threads start
+    // Quest ids found in any QuestList(0x80) packet.
+    private static final List<Integer> foundQuestIds = new ArrayList<>();
 
-    /** A live GameServer connection for one bot. */
+    /** A live GameServer connection. */
     private static class GsConn
     {
-        final String account;
         final Socket socket;
         final OutputStream out;
         final InputStream in;
         final boolean useEnc;
         final L2JProtocol login;
 
-        GsConn(String account, Socket socket, OutputStream out, InputStream in, boolean useEnc, L2JProtocol login)
+        GsConn(Socket socket, OutputStream out, InputStream in, boolean useEnc, L2JProtocol login)
         {
-            this.account = account;
             this.socket = socket;
             this.out = out;
             this.in = in;
@@ -100,61 +84,51 @@ public class ChatProbe
 
     public static void main(String[] args) throws Exception
     {
-        String accA = args.length > 0 ? args[0] : "ai_combat_01";
-        String passA = args.length > 1 ? args[1] : FleetConfig.accountPassword();
-        String accB = args.length > 2 ? args[2] : "ai_combat_02";
-        String passB = args.length > 3 ? args[3] : FleetConfig.accountPassword();
-        String host = args.length > 4 ? args[4] : "127.0.0.1";
-        int port = args.length > 5 ? Integer.parseInt(args[5]) : 7777;
-        String targetCharName = args.length > 6 ? args[6] : "CombatBot_02";
+        String account = args.length > 0 ? args[0] : "ai_combat_01";
+        String pass = args.length > 1 ? args[1] : FleetConfig.accountPassword();
+        String host = args.length > 2 ? args[2] : "127.0.0.1";
+        int port = args.length > 3 ? Integer.parseInt(args[3]) : 7777;
 
-        token = "B9WHISPER_" + (System.nanoTime() & 0xFFFFF);
-        System.out.println("[ChatProbe] token=" + token);
+        System.out.println("[QuestProbe] entering world: " + account);
+        GsConn cn = enterWorld(account, pass, host, port);
+        System.out.println("[QuestProbe] IN WORLD (" + account + ")");
 
-        GsConn cnA = enterWorld(accA, passA, host, port);
-        System.out.println("[ChatProbe] A IN WORLD (" + accA + ")");
-        GsConn cnB = enterWorld(accB, passB, host, port);
-        System.out.println("[ChatProbe] B IN WORLD (" + accB + ")");
+        // Reader thread: collect quest ids from QuestList(0x80) packets.
+        Thread reader = new Thread(() -> readLoop(cn.in), "questReader");
+        reader.start();
 
-        Thread ra = new Thread(() -> readLoop(cnA.in, tokenInA, sayTotalA), "readerA");
-        Thread rb = new Thread(() -> readLoop(cnB.in, tokenInB, sayTotalB), "readerB");
-        ra.start();
-        rb.start();
+        Thread.sleep(2500); // let the spawn-time packets / auto Tutorial arrive
 
-        Thread.sleep(3000); // let both be online & the world settle
+        System.out.println("[QuestProbe] sending RequestQuestList(0x63)");
+        sendRequestQuestList(cn.out, cn.useEnc);
 
-        // A whispers the token to B.
-        sendSay2(cnA.out, cnA.useEnc, token, targetCharName);
-        System.out.println("[ChatProbe] A sent Say2(0x38) whisper to " + targetCharName + " text=" + token);
+        Thread.sleep(4000); // give the server time to reply QuestList
 
-        Thread.sleep(8000); // let the server route/deliver the whisper
+        cn.close();
+        reader.join(3000);
 
-        cnA.close();
-        cnB.close();
-        ra.join(3000);
-        rb.join(3000);
-
-        System.out.println("[ChatProbe] === CHAT TALLY ===");
-        System.out.println("  CREATURE_SAY(0x4A) on A's conn: " + sayTotalA + " (with token: " + tokenInA + ")");
-        System.out.println("  CREATURE_SAY(0x4A) on B's conn: " + sayTotalB + " (with token: " + tokenInB + ")");
-
-        // PROVEN when the receiver B saw the token (or the sender saw its own echo).
-        boolean deliveredToB = tokenInB.get() > 0;
-        boolean echoedToA = tokenInA.get() > 0;
-        boolean chatProven = deliveredToB || echoedToA;
-        System.out.println("[ChatProbe] B received the whisper token = " + deliveredToB);
-        System.out.println("[ChatProbe] A saw its own echo = " + echoedToA);
-        System.out.println("[ChatProbe] CHAT PROVEN (server processed A's chat + delivered it) = " + chatProven);
-        System.out.println("[ChatProbe] done");
+        System.out.println("[QuestProbe] === quest ids seen in QuestList(0x80) packets ===");
+        if (foundQuestIds.isEmpty())
+        {
+            System.out.println("  (none)");
+        }
+        else
+        {
+            for (int id : foundQuestIds)
+            {
+                System.out.println("  quest id " + id + (id == EXPECTED_QUEST_ID ? "  <-- Q00255_Tutorial" : ""));
+            }
+        }
+        boolean hasTutorial = foundQuestIds.contains(EXPECTED_QUEST_ID);
+        System.out.println("[QuestProbe] QUEST_LIST showed id " + EXPECTED_QUEST_ID + " = " + hasTutorial
+            + " (Tutorial is excluded from the visible list by its Ex flag — the live-quest proof is the"
+            + " server adding Q00255 state to character_quests on enter-world; see scripts/_probes/b6_quest_prove.sh).");
+        System.out.println("[QuestProbe] done");
     }
 
-    /**
-     * Read loop for one connection: count CREATURE_SAY(0x4A) payloads and, among them, those whose bytes
-     * contain our token (UTF-16LE), until the socket closes.
-     */
-    private static void readLoop(InputStream in, AtomicInteger tokenHits, AtomicInteger sayTotal)
+    /** Read loop: parse every QuestList(0x80) packet into quest ids. */
+    private static void readLoop(InputStream in)
     {
-        final byte[] needle = token.getBytes(StandardCharsets.UTF_16LE);
         while (true)
         {
             byte[] pl;
@@ -164,51 +138,53 @@ public class ChatProbe
             }
             catch (java.net.SocketTimeoutException e)
             {
-                continue;
+                continue; // no data yet; keep polling
+            }
+            catch (IOException e)
+            {
+                break; // socket closed
             }
             catch (Exception e)
             {
-                break; // socket closed / EOF
+                break;
             }
             if (pl == null)
             {
                 break;
             }
             int op = pl[0] & 0xff;
-            if (op == OP_CREATURE_SAY)
+            if (op == OP_QUEST_LIST)
             {
-                sayTotal.incrementAndGet();
-                if (contains(pl, needle))
-                {
-                    tokenHits.incrementAndGet();
-                    System.out.println("[ChatProbe] *** 0x4A with TOKEN len=" + pl.length);
-                }
+                parseQuestList(pl);
             }
         }
     }
 
-    private static boolean contains(byte[] haystack, byte[] needle)
+    /** QuestList(0x80): [short count] then per quest [int id][int status]. */
+    private static synchronized void parseQuestList(byte[] pl)
     {
-        if ((needle.length == 0) || (haystack.length < needle.length))
+        if (pl.length < 3)
         {
-            return false;
+            return;
         }
-        outer:
-        for (int i = 0; i <= haystack.length - needle.length; i++)
+        int count = (pl[1] & 0xff) | ((pl[2] & 0xff) << 8);
+        System.out.println("[QuestProbe] QuestList(0x80): questCount=" + count);
+        int off = 3;
+        for (int i = 0; i < count && (off + 8) <= pl.length; i++)
         {
-            for (int j = 0; j < needle.length; j++)
+            int id = leInt(pl, off);
+            int status = leInt(pl, off + 4);
+            off += 8;
+            if (!foundQuestIds.contains(id))
             {
-                if (haystack[i + j] != needle[j])
-                {
-                    continue outer;
-                }
+                foundQuestIds.add(id);
             }
-            return true;
+            System.out.println("[QuestProbe]   quest id=" + id + " status=" + status);
         }
-        return false;
     }
 
-    /** Login + GameServer enter-world for one account; returns a live GsConn after EnterWorld(0x03). */
+
+    /** Login + GameServer enter-world; returns a live GsConn after EnterWorld(0x03). */
     private static GsConn enterWorld(String account, String pass, String host, int port) throws Exception
     {
         AIPlayer player = new AIPlayer(account, 100, 1, 0);
@@ -216,9 +192,9 @@ public class ChatProbe
         if (!login.connectAndLogin(account, pass, 0))
         {
             login.disconnect();
-            throw new RuntimeException("[ChatProbe] login failed for " + account);
+            throw new RuntimeException("[QuestProbe] login failed for " + account);
         }
-        System.out.println("[ChatProbe] " + account + " login OK");
+        System.out.println("[QuestProbe] " + account + " login OK");
 
         Socket s = new Socket(host, port);
         s.setSoTimeout(2000);
@@ -230,7 +206,7 @@ public class ChatProbe
         if (keyFrame == null)
         {
             s.close();
-            throw new RuntimeException("[ChatProbe] no KeyPacket for " + account);
+            throw new RuntimeException("[QuestProbe] no KeyPacket for " + account);
         }
         int encFlag = leInt(keyFrame, 12);
         boolean useEnc = encFlag != 0;
@@ -239,7 +215,6 @@ public class ChatProbe
         System.arraycopy(KEY_TAIL, 0, key, 8, 8);
         GameCrypt crypt = new GameCrypt();
         crypt.setKey(key);
-        System.out.println("[ChatProbe] " + account + " KeyPacket packetEncryption=" + encFlag);
 
         sendAuthLogin(out, crypt, useEnc, account, login);
         boolean spawned = false;
@@ -268,12 +243,11 @@ public class ChatProbe
             if (op == OP_CHAR_SELECT_INFO)
             {
                 sendCharacterSelect(out, crypt, useEnc, 0);
-                System.out.println("[ChatProbe] " + account + " sent CharacterSelect(0x0D) slot=0");
             }
             if (op == OP_CHAR_SELECTED)
             {
                 sendEnterWorld(out, crypt, useEnc);
-                System.out.println("[ChatProbe] " + account + " sent EnterWorld(0x03)");
+                System.out.println("[QuestProbe] " + account + " sent EnterWorld(0x03)");
                 spawned = true;
                 break;
             }
@@ -281,36 +255,16 @@ public class ChatProbe
         if (!spawned)
         {
             s.close();
-            throw new RuntimeException("[ChatProbe] no CharSelected for " + account);
+            throw new RuntimeException("[QuestProbe] no CharSelected for " + account);
         }
-        return new GsConn(account, s, out, in, useEnc, login);
+        return new GsConn(s, out, in, useEnc, login);
     }
 
-    // ------------------------------------------------------------------
-    // Client packet builders (plaintext; game crypt disabled on this server)
-    // ------------------------------------------------------------------
-
-    /**
-     * Say2 (0x38, client): [0x38][text:UTF-16LE null-term][type:int][target:UTF-16LE null-term (whisper)].
-     */
-    private static void sendSay2(OutputStream out, boolean useEnc, String text, String target) throws Exception
+    /** RequestQuestList (0x63): opcode-only (RequestQuestList.readImpl is empty). */
+    private static void sendRequestQuestList(OutputStream out, boolean useEnc) throws Exception
     {
-        byte[] textBytes = (text + "\0").getBytes(StandardCharsets.UTF_16LE);
-        byte[] targetBytes = (target + "\0").getBytes(StandardCharsets.UTF_16LE);
-        ByteBuffer bb = ByteBuffer.allocate(1 + textBytes.length + 4 + targetBytes.length).order(ByteOrder.LITTLE_ENDIAN);
-        bb.put((byte) OP_C_SAY2);
-        bb.put(textBytes);
-        bb.putInt(CHAT_WHISPER);
-        bb.put(targetBytes);
-        sendPayloadFrame(out, bb);
-    }
-
-    private static void sendPayloadFrame(OutputStream out, ByteBuffer bb) throws Exception
-    {
-        byte[] plain = new byte[bb.position()];
-        bb.flip();
-        bb.get(plain);
-        sendFrame(out, plain);
+        byte[] payload = new byte[] { (byte) OP_C_REQUEST_QUEST_LIST };
+        sendFrame(out, payload);
     }
 
     // ---------------- enter-world + wire helpers (classic Socket) ----------------
@@ -397,7 +351,7 @@ public class ChatProbe
     private static void sendFrame(OutputStream out, byte[] payload) throws Exception
     {
         ByteBuffer buf = ByteBuffer.allocate(2 + payload.length).order(ByteOrder.LITTLE_ENDIAN);
-        buf.putShort((short) (payload.length + 2));
+        buf.putShort((short) (payload.length + 2)); // self-inclusive size
         buf.put(payload);
         buf.flip();
         byte[] data = new byte[buf.remaining()];
@@ -420,6 +374,7 @@ public class ChatProbe
         return frame;
     }
 
+    /** Read one GS packet payload after the 2-byte self-inclusive size header (honors SO_TIMEOUT). */
     private static byte[] readPayload(InputStream in) throws Exception
     {
         DataInputStream dis = (in instanceof DataInputStream) ? (DataInputStream) in : new DataInputStream(in);
@@ -440,3 +395,4 @@ public class ChatProbe
         return (d[i] & 0xff) | ((d[i + 1] & 0xff) << 8) | ((d[i + 2] & 0xff) << 16) | ((d[i + 3] & 0xff) << 24);
     }
 }
+

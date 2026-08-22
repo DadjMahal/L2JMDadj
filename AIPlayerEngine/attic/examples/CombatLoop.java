@@ -1,4 +1,4 @@
-package com.aiplayer.examples;
+// package com.aiplayer.examples;
 
 import com.aiplayer.core.FleetConfig;
 

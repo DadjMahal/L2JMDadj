@@ -26,3 +26,6 @@ cold_start_test.sh        (pre-2026-08-22 orientation test, references archived 
 
 Note: some may still carry stale `/home/volodro/...` repo paths from the old era — if you
 revive one, prepend the same repo-root resolution `check_style.sh` / `gate.sh` now use.
+The Java classes these harnesses launched moved to `AIPlayerEngine/attic/examples/` (F-10,
+2026-08-22) — run these only after resurrecting the class (`git mv attic/examples/X.java
+src/main/java/com/aiplayer/examples/X.java` + uncomment the `package` line).

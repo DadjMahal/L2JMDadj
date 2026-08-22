@@ -12,7 +12,13 @@ Layout:
   subsystems and their helpers). 50 classes stayed in `src/` — those are
   reachable from live code.
 - `examples/` — deprecated demo probes that existed only to exercise archived
-  classes (FivePlayerMagicShow, GoalDrivenLoop, TenMorePlayersDemo).
+  classes. First batch: FivePlayerMagicShow, GoalDrivenLoop, TenMorePlayersDemo
+  (EP-1). Second batch (F-10, 2026-08-22): ChatProbe, CombatLoop, CombatProbe,
+  EnterWorldProbe, InitDecodeProbe, LoginProbe, MoveProbe, NightlyProgressReport,
+  PartyProbe, PvPProbe, QuestFlowLoop, QuestLoop, QuestProbe, RawInitProbe,
+  TradeProbe — these exercised the `scripts/_probes/` one-shot harnesses, which
+  are also quarantined. To run any such harness you'd need to resurrect the class
+  first.
 - `tests/`    — JUnit tests whose subjects were archived (LiveFeedbackBridgeTest).
 
 Each file's original `package` line is kept as a `// package ...` comment.

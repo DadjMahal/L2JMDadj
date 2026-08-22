@@ -11,7 +11,6 @@ import com.aiplayer.behavior.combat.CombatFramePlanner;
 import com.aiplayer.behavior.combat.CombatFramePlanner.FrameStep;
 import com.aiplayer.net.GameServerClient;
 import com.aiplayer.protocol.PacketCodec;
-import com.aiplayer.examples.QuestFlowLoop;
 
 /**
  * The only class in the behavior package allowed to call sendGameFrame(). Every
