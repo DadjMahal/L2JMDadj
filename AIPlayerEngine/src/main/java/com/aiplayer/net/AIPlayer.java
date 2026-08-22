@@ -15,6 +15,7 @@ import com.aiplayer.behavior.town.NetWorthOptimizer;
 import com.aiplayer.behavior.social.CollectiveKnowledge;
 import com.aiplayer.behavior.social.SwarmCoordinator;
 import com.aiplayer.behavior.social.DiplomacyEngine;
+import com.aiplayer.behavior.lifecycle.SessionLifecycle;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.behavior.AIAction;
 import com.aiplayer.behavior.AIActionQueue;
@@ -93,6 +94,9 @@ public class AIPlayer {
     private long lastChatAtMs = 0L;
     private static final long CHAT_MIN_INTERVAL_MS = 8_000L;
     private static final long CHAT_MAX_INTERVAL_MS = 60_000L;
+
+    // EB-09: first-class session lifecycle (SoulScheduler hook).
+    private SessionLifecycle sessionLifecycle = SessionLifecycle.spawn(System.currentTimeMillis());
 
     // Collective & Economic Systems (Tasks 77-96)
     private final CollectiveKnowledge collectiveKnowledge;
@@ -316,6 +320,14 @@ public class AIPlayer {
     // REAL CONNECTION METHOD
     public boolean connectToServer(String accountName, String password, int charId) {
         try {
+            // EB-09: hand the session to the socket phase before the attempt. A reconnect /
+            // wake from sleep starts a FRESH session (terminal/sleep are ended, not resumed).
+            long now = System.currentTimeMillis();
+            if (sessionLifecycle.isTerminal() || sessionLifecycle.isSleeping())
+            {
+                sessionLifecycle = SessionLifecycle.spawn(now);
+            }
+            sessionLifecycle = sessionLifecycle.transition(SessionLifecycle.LifecycleEvent.SPAWN, now);
             boolean success = protocol.connectAndLogin(accountName, password, charId);
             if (success) {
                 this.isConnected = true;
@@ -327,11 +339,18 @@ public class AIPlayer {
                 this.lastActionTime = System.currentTimeMillis();
                 this.loginTime = System.currentTimeMillis();
                 this.state = AIPlayerState.IN_GAME;
+                sessionLifecycle = sessionLifecycle.transition(SessionLifecycle.LifecycleEvent.CONNECT_OK,
+                    System.currentTimeMillis());
                 // Initialize brain modules after connection
                 brain.initializeModules();
+            } else {
+                sessionLifecycle = sessionLifecycle.transition(SessionLifecycle.LifecycleEvent.CONNECT_FAIL,
+                    System.currentTimeMillis());
             }
             return success;
         } catch (Exception e) {
+            sessionLifecycle = sessionLifecycle.transition(SessionLifecycle.LifecycleEvent.CONNECT_FAIL,
+                System.currentTimeMillis());
             LOGGER.severe("[" + name + "] Connection failed: " + e.getMessage());
             return false;
         }
@@ -380,7 +399,39 @@ public class AIPlayer {
         this.isConnected = false;
         this.isLoggedIn = false;
         this.state = AIPlayerState.OFFLINE;
+        sessionLifecycle = sessionLifecycle.transition(SessionLifecycle.LifecycleEvent.DISCONNECT,
+            System.currentTimeMillis()); // EB-09: session is gone
         markDisconnect(); // Stream E 89: record when, for reconnect cooldown
+    }
+
+    // ----------------------------------------------------------------
+    // EB-09 — SoulScheduler hooks: put the session to bed / wake it.
+    // The scheduler (LI-2) drives these; sleep closes nothing further here
+    // because disconnect() already tore the socket down.
+    // ----------------------------------------------------------------
+
+    /** Voluntarily park the session (socket already/soon closed). No-op unless PLAYING. */
+    public boolean requestSleep() {
+        long now = System.currentTimeMillis();
+        if (!sessionLifecycle.isPlaying()) {
+            return false;
+        }
+        sessionLifecycle = sessionLifecycle.transition(SessionLifecycle.LifecycleEvent.GO_SLEEP, now);
+        return sessionLifecycle.isSleeping();
+    }
+
+    /** Ask the scheduler to wake it (SLEEPING -> CONNECTING). No-op unless SLEEPING. */
+    public boolean wakeUp() {
+        long now = System.currentTimeMillis();
+        if (!sessionLifecycle.isSleeping()) {
+            return false;
+        }
+        sessionLifecycle = sessionLifecycle.transition(SessionLifecycle.LifecycleEvent.WAKE, now);
+        return sessionLifecycle.isConnecting();
+    }
+
+    public SessionLifecycle.SessionPhase sessionPhase() {
+        return sessionLifecycle.phase;
     }
 
     // Getters and Setters
