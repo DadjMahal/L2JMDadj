@@ -413,8 +413,27 @@ public final class BotSession implements Runnable
                 info.totalQuestCount = ql.size();
                 info.activeQuests = ql.toArray(new int[ql.size()][]);
                 int act = 0;
-                for (int[] q : ql) if (q[1] != 0) act++;
+                int firstQuestId = 0, firstQuestState = 0;
+                for (int[] q : ql)
+                {
+                    if (q[1] != 0) act++;
+                    if (firstQuestId == 0)
+                    {
+                        firstQuestId = q[0];
+                        firstQuestState = q[1];
+                    }
+                }
                 info.questCount = act;
+                // S3-T02: surface the current objective parsed from the LIVE quest dialog html the
+                // server actually sent (never fabricated; empty until a dialog body is present).
+                String html = logger.getLastNpcHtml();
+                if (html != null && !html.isBlank())
+                {
+                    com.aiplayer.behavior.quest.QuestObjectiveParser.Parsed obj =
+                        com.aiplayer.behavior.quest.QuestObjectiveParser.parse(
+                            firstQuestId, firstQuestState, html);
+                    info.questObjective = obj != null ? obj.toString() : "";
+                }
             }
             info.lastSeenMs = System.currentTimeMillis();
             AIMonitorDashboard.getInstance().updatePlayerStats(player);

@@ -30,6 +30,8 @@ public final class BotInfo
     public volatile int questCount;     // quests in-progress (non-zero journal state)
     public volatile int totalQuestCount;// all quests in the journal
     public volatile int[][] activeQuests;// {{questId, state}, ...} from the live journal
+    /** S3-T02: the current objective parsed from the LIVE quest dialog html (null/\"\" until a dialog shows it). */
+    public volatile String questObjective = "";
     public volatile String action = "";
     public volatile String thought = "";
     /** Race label (ELF/DARK_ELF/ORC/DWARF/HUMAN) for dashboard race filter + badge (S9-T05). */
