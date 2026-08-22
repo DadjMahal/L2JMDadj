@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""GK-1 stub — items.json extractor (real parsing lands in GK-3)."""
+"""GK-3 — items.json extractor.
+
+Parses stats/items/*.xml: <item id type name> + nested <set name=... val=...> plus <stats>.
+Schema: {id, name, grade, type, slot, price, weaponType, crystal}.
+"""
 from __future__ import annotations
 
 import sys
@@ -11,24 +15,58 @@ import _lib  # noqa: E402
 TARGET = _lib.TARGET_ROOT / "items.json"
 
 
-def count_candidate_records() -> int:
-    total = 0
-    for f in _lib.xml_files(_lib.DATA_ROOT / "stats" / "items"):
-        root = _lib.parse_xml(f)
-        if root is not None:
-            total += sum(1 for _ in root.iter("item"))
-    return total
+def _sets(item) -> dict:
+    """Map of set-name -> val, from all <set name=... val=...> under the item."""
+    out = {}
+    for s in item.findall("set"):
+        name = s.get("name")
+        val = s.get("val")
+        if name:
+            out[name] = (val or "").strip()
+    return out
+
+
+def extract_record(item) -> dict:
+    item_id = _lib.norm_id(item.get("id"))
+    if item_id is None:
+        return None
+    sets = _sets(item)
+    weapon_type = ""
+    if item.get("type") == "Weapon":
+        wt = (sets.get("weapon_type") or "").upper()
+        weapon_type = wt  # e.g. "SWORD", "BOW", "BIGSWORD"
+    # Grade -> crystal grade ("NONE" when absent, else D/C/B/A/S80...).
+    grade = sets.get("crystal_type", "none").upper()
+    return {
+        "id": item_id,
+        "name": _lib.norm_name(item.get("name")),
+        "type": (item.get("type") or "").strip(),
+        "grade": grade,
+        "slot": sets.get("bodypart", ""),
+        "weaponType": weapon_type,
+        "price": _lib.norm_id(sets.get("price")) or 0,
+        "crystal": _lib.norm_id(sets.get("crystal_count")) or 0,
+    }
 
 
 def extract() -> list[dict]:
-    """GK-3 fills this: [{id, name, grade, slot/type, price, weaponType, crystal}]."""
-    return []
+    records = []
+    for f in _lib.xml_files(_lib.DATA_ROOT / "stats" / "items"):
+        root = _lib.parse_xml(f)
+        if root is None:
+            continue
+        for item in root.iter("item"):
+            r = extract_record(item)
+            if r is not None:
+                records.append(r)
+    return sorted(records, key=lambda r: r["id"])
 
 
 def main() -> int:
-    files = _lib.xml_files(_lib.DATA_ROOT / "stats" / "items")
-    _lib.write_json(TARGET, extract())
-    print(f"[items] source=stats/items files={len(files)} candidates={count_candidate_records()} -> {TARGET.name} (empty)")
+    data = extract()
+    _lib.write_json(TARGET, data)
+    print(f"[items] records={len(data)} -> {TARGET.name}")
+    print(f"[items] grades={sorted({r['grade'] for r in data})}")
     return 0
 
 

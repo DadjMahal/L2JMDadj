@@ -1,0 +1,501 @@
+[
+  {
+    "baseClassId": 0,
+    "baseName": "Human Fighter",
+    "chain": [
+      {
+        "classId": 0,
+        "name": "Human Fighter",
+        "tier": 0
+      },
+      {
+        "classId": 1,
+        "name": "Warrior",
+        "tier": 1
+      },
+      {
+        "classId": 4,
+        "name": "Human Knight",
+        "tier": 1
+      },
+      {
+        "classId": 7,
+        "name": "Rogue",
+        "tier": 1
+      },
+      {
+        "classId": 2,
+        "name": "Gladiator",
+        "tier": 2
+      },
+      {
+        "classId": 3,
+        "name": "Warlord",
+        "tier": 2
+      },
+      {
+        "classId": 5,
+        "name": "Paladin",
+        "tier": 2
+      },
+      {
+        "classId": 6,
+        "name": "Dark Avenger",
+        "tier": 2
+      },
+      {
+        "classId": 8,
+        "name": "Treasure Hunter",
+        "tier": 2
+      },
+      {
+        "classId": 9,
+        "name": "Hawkeye",
+        "tier": 2
+      },
+      {
+        "classId": 88,
+        "name": "Duelist",
+        "tier": 3
+      },
+      {
+        "classId": 89,
+        "name": "Dreadnought",
+        "tier": 3
+      },
+      {
+        "classId": 90,
+        "name": "Phoenix Knight",
+        "tier": 3
+      },
+      {
+        "classId": 91,
+        "name": "Hell Knight",
+        "tier": 3
+      },
+      {
+        "classId": 92,
+        "name": "Sagittarius",
+        "tier": 3
+      },
+      {
+        "classId": 93,
+        "name": "Adventurer",
+        "tier": 3
+      }
+    ]
+  },
+  {
+    "baseClassId": 10,
+    "baseName": "Human Mystic",
+    "chain": [
+      {
+        "classId": 10,
+        "name": "Human Mystic",
+        "tier": 0
+      },
+      {
+        "classId": 11,
+        "name": "Human Wizard",
+        "tier": 1
+      },
+      {
+        "classId": 15,
+        "name": "Cleric",
+        "tier": 1
+      },
+      {
+        "classId": 12,
+        "name": "Sorcerer",
+        "tier": 2
+      },
+      {
+        "classId": 13,
+        "name": "Necromancer",
+        "tier": 2
+      },
+      {
+        "classId": 14,
+        "name": "Warlock",
+        "tier": 2
+      },
+      {
+        "classId": 16,
+        "name": "Bishop",
+        "tier": 2
+      },
+      {
+        "classId": 17,
+        "name": "Prophet",
+        "tier": 2
+      },
+      {
+        "classId": 94,
+        "name": "Archmage",
+        "tier": 3
+      },
+      {
+        "classId": 95,
+        "name": "Soultaker",
+        "tier": 3
+      },
+      {
+        "classId": 96,
+        "name": "Arcana Lord",
+        "tier": 3
+      },
+      {
+        "classId": 97,
+        "name": "Cardinal",
+        "tier": 3
+      },
+      {
+        "classId": 98,
+        "name": "Hierophant",
+        "tier": 3
+      }
+    ]
+  },
+  {
+    "baseClassId": 18,
+    "baseName": "Elven Fighter",
+    "chain": [
+      {
+        "classId": 18,
+        "name": "Elven Fighter",
+        "tier": 0
+      },
+      {
+        "classId": 19,
+        "name": "Elven Knight",
+        "tier": 1
+      },
+      {
+        "classId": 22,
+        "name": "Elven Scout",
+        "tier": 1
+      },
+      {
+        "classId": 20,
+        "name": "Temple Knight",
+        "tier": 2
+      },
+      {
+        "classId": 21,
+        "name": "Sword Singer",
+        "tier": 2
+      },
+      {
+        "classId": 23,
+        "name": "Plains Walker",
+        "tier": 2
+      },
+      {
+        "classId": 24,
+        "name": "Silver Ranger",
+        "tier": 2
+      },
+      {
+        "classId": 99,
+        "name": "Eva's Templar",
+        "tier": 3
+      },
+      {
+        "classId": 100,
+        "name": "Sword Muse",
+        "tier": 3
+      },
+      {
+        "classId": 101,
+        "name": "Wind Rider",
+        "tier": 3
+      },
+      {
+        "classId": 102,
+        "name": "Moonlight Sentinel",
+        "tier": 3
+      }
+    ]
+  },
+  {
+    "baseClassId": 25,
+    "baseName": "Elven Mystic",
+    "chain": [
+      {
+        "classId": 25,
+        "name": "Elven Mystic",
+        "tier": 0
+      },
+      {
+        "classId": 26,
+        "name": "Elven Wizard",
+        "tier": 1
+      },
+      {
+        "classId": 29,
+        "name": "Elven Oracle",
+        "tier": 1
+      },
+      {
+        "classId": 27,
+        "name": "Spellsinger",
+        "tier": 2
+      },
+      {
+        "classId": 28,
+        "name": "Elemental Summoner",
+        "tier": 2
+      },
+      {
+        "classId": 30,
+        "name": "Elven Elder",
+        "tier": 2
+      },
+      {
+        "classId": 104,
+        "name": "Elemental Master",
+        "tier": 2
+      },
+      {
+        "classId": 103,
+        "name": "Mystic Muse",
+        "tier": 3
+      },
+      {
+        "classId": 105,
+        "name": "Eva's Saint",
+        "tier": 3
+      }
+    ]
+  },
+  {
+    "baseClassId": 31,
+    "baseName": "Dark Fighter",
+    "chain": [
+      {
+        "classId": 31,
+        "name": "Dark Fighter",
+        "tier": 0
+      },
+      {
+        "classId": 32,
+        "name": "Palus Knight",
+        "tier": 1
+      },
+      {
+        "classId": 35,
+        "name": "Assassin",
+        "tier": 1
+      },
+      {
+        "classId": 33,
+        "name": "Shillien Knight",
+        "tier": 2
+      },
+      {
+        "classId": 36,
+        "name": "Abyss Walker",
+        "tier": 2
+      },
+      {
+        "classId": 37,
+        "name": "Phantom Ranger",
+        "tier": 2
+      },
+      {
+        "classId": 34,
+        "name": "Bladedancer",
+        "tier": 3
+      },
+      {
+        "classId": 106,
+        "name": "Shillien Templar",
+        "tier": 3
+      },
+      {
+        "classId": 108,
+        "name": "Ghost Hunter",
+        "tier": 3
+      },
+      {
+        "classId": 109,
+        "name": "Ghost Sentinel",
+        "tier": 3
+      },
+      {
+        "classId": 107,
+        "name": "Spectral Dancer",
+        "tier": 4
+      }
+    ]
+  },
+  {
+    "baseClassId": 38,
+    "baseName": "Dark Mystic",
+    "chain": [
+      {
+        "classId": 38,
+        "name": "Dark Mystic",
+        "tier": 0
+      },
+      {
+        "classId": 39,
+        "name": "Dark Wizard",
+        "tier": 1
+      },
+      {
+        "classId": 42,
+        "name": "Shillien Oracle",
+        "tier": 1
+      },
+      {
+        "classId": 40,
+        "name": "Spellhowler",
+        "tier": 2
+      },
+      {
+        "classId": 41,
+        "name": "Phantom Summoner",
+        "tier": 2
+      },
+      {
+        "classId": 43,
+        "name": "Shillien Elder",
+        "tier": 2
+      },
+      {
+        "classId": 110,
+        "name": "Storm Screamer",
+        "tier": 3
+      },
+      {
+        "classId": 111,
+        "name": "Spectral Master",
+        "tier": 3
+      },
+      {
+        "classId": 112,
+        "name": "Shillien Saint",
+        "tier": 3
+      }
+    ]
+  },
+  {
+    "baseClassId": 44,
+    "baseName": "Orc Fighter",
+    "chain": [
+      {
+        "classId": 44,
+        "name": "Orc Fighter",
+        "tier": 0
+      },
+      {
+        "classId": 45,
+        "name": "Orc Raider",
+        "tier": 1
+      },
+      {
+        "classId": 47,
+        "name": "Monk",
+        "tier": 1
+      },
+      {
+        "classId": 46,
+        "name": "Destroyer",
+        "tier": 2
+      },
+      {
+        "classId": 48,
+        "name": "Tyrant",
+        "tier": 2
+      },
+      {
+        "classId": 113,
+        "name": "Titan",
+        "tier": 3
+      },
+      {
+        "classId": 114,
+        "name": "Grand Khavatari",
+        "tier": 3
+      }
+    ]
+  },
+  {
+    "baseClassId": 49,
+    "baseName": "Orc Mystic",
+    "chain": [
+      {
+        "classId": 49,
+        "name": "Orc Mystic",
+        "tier": 0
+      },
+      {
+        "classId": 50,
+        "name": "Orc Shaman",
+        "tier": 1
+      },
+      {
+        "classId": 51,
+        "name": "Overlord",
+        "tier": 2
+      },
+      {
+        "classId": 52,
+        "name": "Warcryer",
+        "tier": 2
+      },
+      {
+        "classId": 115,
+        "name": "Dominator",
+        "tier": 3
+      },
+      {
+        "classId": 116,
+        "name": "Doom Cryer",
+        "tier": 3
+      }
+    ]
+  },
+  {
+    "baseClassId": 53,
+    "baseName": "Dwarf Fighter",
+    "chain": [
+      {
+        "classId": 53,
+        "name": "Dwarf Fighter",
+        "tier": 0
+      },
+      {
+        "classId": 54,
+        "name": "Scavenger",
+        "tier": 1
+      },
+      {
+        "classId": 56,
+        "name": "Artisan",
+        "tier": 1
+      },
+      {
+        "classId": 55,
+        "name": "Bounty Hunter",
+        "tier": 2
+      },
+      {
+        "classId": 57,
+        "name": "Warsmith",
+        "tier": 2
+      },
+      {
+        "classId": 117,
+        "name": "Fortune Seeker",
+        "tier": 3
+      },
+      {
+        "classId": 118,
+        "name": "Maestro",
+        "tier": 3
+      }
+    ]
+  }
+]

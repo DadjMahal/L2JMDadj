@@ -79,6 +79,14 @@ fill the entries. `validate.py` (this dir) enforces the invariants §last.
 | shopRow `{itemId, price, count}` | int×3 | item + price + stock count |
 | multisell | array<int> | multisell list ids |
 
+## classes.json  (GK-3)
+| field | type | meaning |
+|---|---|---|
+| baseClassId | int | root class (no parent) |
+| baseName | string | base class name |
+| chain | array<class> | classes under this base, each with tier |
+| chainClass `{classId, name, tier}` | int/string/int | tier 0=base, 1=1st prof, 2=2nd, 3=3rd |
+
 ---
 
 ## Invariants enforced by validate.py

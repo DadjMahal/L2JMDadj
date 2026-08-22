@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lib  # noqa: E402
 
-EXPECTED = ["npcs.json", "items.json", "skills.json", "spawns.json", "quests.json", "shops.json"]
+EXPECTED = ["npcs.json", "items.json", "skills.json", "spawns.json", "quests.json", "shops.json", "classes.json"]
 
 
 def named(value):
@@ -47,8 +47,8 @@ def check_file(name: str, out) -> int:
             issues += 1
             continue
 
-        # 2. no null/absent id.
-        rid = rec.get("id") if "id" in rec else rec.get("npcId")
+        # 2. no null/absent id (records carry `id`, `npcId` (spawns) or `baseClassId` (classes)).
+        rid = rec.get("id") if "id" in rec else rec.get("npcId") if "npcId" in rec else rec.get("baseClassId")
         if rid is None:
             print(f"[validate] {name}: record missing id ({named(rec)})", file=out)
             issues += 1

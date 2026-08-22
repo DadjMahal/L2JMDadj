@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 STUBS = ["extract_npcs", "extract_items", "extract_skills", "extract_spawns",
-         "extract_quests", "extract_shops"]
+         "extract_quests", "extract_shops", "extract_classes"]
 
 
 def main() -> int:
