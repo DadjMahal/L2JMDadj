@@ -125,7 +125,8 @@ public final class BotSession implements Runnable
         this.race = race != null ? race : PlayerRace.HUMAN;
         this.info.race = this.race.name(); // S9-T05 dashboard race badge/filter
         this.cfg = new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 100,
-            this.race, Math.abs(account.hashCode()));
+            this.race, Math.abs(account.hashCode()),
+            BotPlayController.BotPlayConfig.ladderForRace(this.race)); // EB-03: per-race ladder
         this.questTracker = new QuestProgressTracker(account);
         this.rng = new Random(account.hashCode());
         this.bots = bots;

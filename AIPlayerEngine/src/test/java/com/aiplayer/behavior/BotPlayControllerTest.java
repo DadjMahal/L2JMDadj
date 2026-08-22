@@ -381,4 +381,64 @@ class BotPlayControllerTest
         assertTrue(dist > 4000 && dist <= 4800, "clamped retreat within RETREAT_HOP, got " + dist);
         assertTrue(flee.x > 0, "retreating east (positive X): hostile west, away east, got " + flee.x);
     }
+// ================================================================
+    // EB-03 — CONFIGURABLE LADDER (per-profile priorities)
+    // ================================================================
+
+    @Test
+    void defaultLadderPreservesHistoricalOrder()
+    {
+        List<BotPlayController.Rung> ladder = BotPlayController.DEFAULT_LADDER;
+        assertEquals(BotPlayController.Rung.SURVIVE, ladder.get(0), "SURVIVE stays the hard safety rung");
+        assertTrue(ladder.contains(BotPlayController.Rung.COMBAT));
+        assertTrue(ladder.contains(BotPlayController.Rung.HUNT));
+        assertTrue(ladder.contains(BotPlayController.Rung.QUEST));
+        assertEquals(6, ladder.size());
+    }
+
+    @Test
+    void profileCanDropQuestRungEntirely()
+    {
+        // Player stands ON the quest giver (talkRange) AND a hostile is in combat range (300 < 400).
+        // Default ladder: QUEST_TALK (rung 2) fires before COMBAT (rung 4) -> BYPASS the dialog.
+        // Grind ladder (no quest rungs): COMBAT fires first -> FARM the mob.
+        BotPlayConfig grind = new BotPlayConfig(0.25, 400, 2000, 300, 100, PlayerRace.HUMAN, 99,
+            Arrays.asList(BotPlayController.Rung.SURVIVE, BotPlayController.Rung.COMBAT,
+                BotPlayController.Rung.HUNT, BotPlayController.Rung.RESTOCK));
+        GoalDecision d = BotPlayController.decide(
+            new PlayContext(10, NPC_X, NPC_Y, 0, 90, 100, journal(),
+                hostiles(new Hostile(7, NPC_X, NPC_Y + 300, 0)), 0, 0),
+            grind);
+        assertEquals(PlayerGoal.FARM, d.goal, "grind profile ignores quest rungs -> fights the mob");
+
+        // Same position, default ladder: QUEST_TALK comes before COMBAT -> dialog wins.
+        GoalDecision dd = BotPlayController.decide(
+            new PlayContext(10, NPC_X, NPC_Y + 300, 0, 90, 100, journal(),
+                hostiles(new Hostile(7, NPC_X, NPC_Y + 300, 0)), 0, 0),
+            BotPlayConfig.DEFAULT);
+        assertEquals(GoalAction.BYPASS, dd.action, "default ladder talks to the giver before fighting");
+    }
+
+    @Test
+    void raceLaddersReorderCombatAboveQuestForOrc()
+    {
+        List<BotPlayController.Rung> orc = BotPlayController.BotPlayConfig.ladderForRace(PlayerRace.ORC);
+        assertTrue(orc.indexOf(BotPlayController.Rung.COMBAT) < orc.indexOf(BotPlayController.Rung.QUEST),
+            "ORC melee-first: COMBAT before QUEST");
+        assertEquals(BotPlayController.Rung.SURVIVE, orc.get(0), "SURVIVE safety stays first");
+    }
+
+    @Test
+    void elfLadderPrefersQuestTalkBeforeCombat()
+    {
+        List<BotPlayController.Rung> elf = BotPlayController.BotPlayConfig.ladderForRace(PlayerRace.ELF);
+        assertTrue(elf.indexOf(BotPlayController.Rung.QUEST_TALK) < elf.indexOf(BotPlayController.Rung.COMBAT),
+            "ELF caster-first: QUEST_TALK before COMBAT");
+    }
+
+    @Test
+    void nullRaceLadderFallsBackToDefault()
+    {
+        assertEquals(BotPlayController.DEFAULT_LADDER, BotPlayController.BotPlayConfig.ladderForRace(null));
+    }
 }

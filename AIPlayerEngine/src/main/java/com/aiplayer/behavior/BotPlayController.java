@@ -33,6 +33,33 @@ public final class BotPlayController
     /** FINAL-MILE: within this distance of a quest NPC the bot routes to it before fighting. */
     public static final int QUEST_PRIORITY_DIST = 5000;
 
+    /**
+     * EB-03: one rung of the decision ladder. The ladder order is no longer hardcoded — it is
+     * configurable per profile via {@link BotPlayConfig#priority}. The default order below is
+     * exactly the historical ladder (so DEFAULT behavior is unchanged). Profiles can reorder /
+     * drop rungs (e.g. an ORC values COMBAT before QUEST; a merchant Dwarf values RESTOCK early);
+     * SURVIVE always evaluates first regardless of order (it is the hard safety rung).
+     */
+    public enum Rung
+    {
+        /** Dangerously low HP with hostiles near: retreat / stop fighting. */
+        SURVIVE,
+        /** Standing on the quest NPC: open its dialog (BYPASS) rather than fight. */
+        QUEST_TALK,
+        /** Inventory too full to farm: walk to the town vendor to restock. */
+        RESTOCK,
+        /** Hostile in melee range: attack the nearest one (FARM). */
+        COMBAT,
+        /** Hostile just out of range: advance toward it (HUNT). */
+        HUNT,
+        /** Advance the active quest / go acquire one (QUEST). */
+        QUEST
+    }
+
+    /** The historical (default) ladder order. */
+    public static final java.util.List<Rung> DEFAULT_LADDER = java.util.Collections.unmodifiableList(
+        java.util.Arrays.asList(Rung.SURVIVE, Rung.QUEST_TALK, Rung.RESTOCK, Rung.COMBAT, Rung.HUNT, Rung.QUEST));
+
     private BotPlayController()
     {
     }
@@ -56,107 +83,170 @@ public final class BotPlayController
         int combatRange = (int) Math.round(c.combatRange * rangeScale);
         int sightRange = (int) Math.round(c.sightRange * rangeScale);
 
-        // 1. SURVIVE: too low on HP to keep fighting (hostiles present -> dangerous spot).
-        //    Instead of standing still (old WAIT), retreat away from the nearest hostile so the
-        //    bot disengages and its HP can regen.
-        if (c.surviveHpFraction > 0 && ctx.hpMax > 0
-                && (double) ctx.hpCurrent / ctx.hpMax <= c.surviveHpFraction)
+        // EB-03: SURVIVE is the hard safety rung — always evaluated first regardless of the profile's
+        // ordered list (a profile that drops SURVIVE entirely disables the escape hatch).
+        if (c.priority.contains(Rung.SURVIVE))
         {
-            Hostile danger = nearestHostile(ctx, sightRange);
-            if (danger != null)
+            GoalDecision survive = rungSurvive(ctx, c, sightRange);
+            if (survive != null)
             {
-                // Flee away from the nearest hostile: push through the player in the opposite
-                // direction, then clamp to a single RETREAT_HOP (same as FleetPlay CHASE_HOP cap).
-                int rx = ctx.x + (ctx.x - danger.x);
-                int ry = ctx.y + (ctx.y - danger.y);
-                Chase flee = chaseStep(ctx.x, ctx.y, ctx.z, rx, ry, ctx.z, RETREAT_HOP);
-                return GoalDecision.retreat(PlayerGoal.SURVIVE, flee.x, flee.y, flee.z,
-                    "retreat",
-                    "hp " + fraction(ctx.hpCurrent, ctx.hpMax) + " too low; retreat from "
-                        + danger.objId);
+                return survive;
             }
         }
+        for (Rung rung : c.priority)
+        {
+            if (rung == Rung.SURVIVE)
+            {
+                continue; // already evaluated first (safety stays first regardless of order)
+            }
+            GoalDecision d = evaluateRung(rung, ctx, c, combatRange, sightRange);
+            if (d != null)
+            {
+                return d;
+            }
+        }
+        // 5. REST: nothing acquirable / active anywhere -> deliberate hold, never idle-wander.
+        return GoalDecision.wait(PlayerGoal.REST, "rest",
+            "no quest and no target in range; hold and re-check");
+    }
 
-        // 1.5 QUEST-TALK (priority): if the bot is standing on its quest NPC, TALK to it even when
-        //    low-level mobs are around (a real player opens the NPC dialog). Compute the quest goal
-        //    early; if it is an NPC MOVE_TO within talkRange, emit BYPASS (the fleet loop drives the
-        //    dialog -> accept/turn-in). Otherwise fall through to combat/hunt/quest routing below.
+    /** EB-03: dispatch one ladder rung to its decision; null = rung declines this tick. */
+    private static GoalDecision evaluateRung(Rung rung, PlayContext ctx, BotPlayConfig c,
+                                             int combatRange, int sightRange)
+    {
+        switch (rung)
+        {
+            case SURVIVE:
+                return rungSurvive(ctx, c, sightRange);
+            case QUEST_TALK:
+                return rungQuestTalk(ctx, c);
+            case RESTOCK:
+                return rungRestock(ctx, c);
+            case COMBAT:
+                return rungCombat(ctx, combatRange);
+            case HUNT:
+                return rungHunt(ctx, sightRange);
+            case QUEST:
+                return rungQuest(ctx, c);
+            default:
+                return null;
+        }
+    }
+
+    // ================================================================
+    // LADDER RUNGS (EB-03) — one pure decision method per rung; each returns
+    // null when that rung declines this tick, so decide() falls through the ladder.
+    // ================================================================
+
+    /** SURVIVE: too low on HP with hostiles near -> retreat away from the nearest hostile. */
+    private static GoalDecision rungSurvive(PlayContext ctx, BotPlayConfig c, int sightRange)
+    {
+        if (c.surviveHpFraction <= 0 || ctx.hpMax <= 0
+                || (double) ctx.hpCurrent / ctx.hpMax > c.surviveHpFraction)
+        {
+            return null;
+        }
+        Hostile danger = nearestHostile(ctx, sightRange);
+        if (danger == null)
+        {
+            return null;
+        }
+        // Flee away from the nearest hostile: push through the player in the opposite direction,
+        // then clamp to a single RETREAT_HOP (same as FleetPlay CHASE_HOP cap).
+        int rx = ctx.x + (ctx.x - danger.x);
+        int ry = ctx.y + (ctx.y - danger.y);
+        Chase flee = chaseStep(ctx.x, ctx.y, ctx.z, rx, ry, ctx.z, RETREAT_HOP);
+        return GoalDecision.retreat(PlayerGoal.SURVIVE, flee.x, flee.y, flee.z,
+            "retreat",
+            "hp " + fraction(ctx.hpCurrent, ctx.hpMax) + " too low; retreat from " + danger.objId);
+    }
+
+    /** QUEST_TALK: standing on the quest NPC (≤ talkRange) -> open dialog (BYPASS); near it -> route. */
+    private static GoalDecision rungQuestTalk(PlayContext ctx, BotPlayConfig c)
+    {
         GoalDecision earlyQuest = QuestGoalPlanner.decide(ctx.level, ctx.activeJournal,
             ctx.x, ctx.y, ctx.z, ctx.stepIndex, c.varietySeed);
         if (earlyQuest != null && earlyQuest.action == GoalAction.MOVE_TO
                 && (earlyQuest.goal == PlayerGoal.QUEST || earlyQuest.goal == PlayerGoal.ACQUIRE)
                 && earlyQuest.questTargetId != 0)
         {
-            double toNpc = Math.hypot(ctx.x - (double) earlyQuest.targetX, ctx.y - (double) earlyQuest.targetY);
+            double toNpc = Math.hypot(ctx.x - (double) earlyQuest.targetX,
+                ctx.y - (double) earlyQuest.targetY);
             if (toNpc <= c.talkRange)
             {
-                return GoalDecision.bypass(
-                    earlyQuest.goal, "",
+                return GoalDecision.bypass(earlyQuest.goal, "",
                     "quest-dialog:" + earlyQuest.questTargetId,
                     "at quest NPC " + earlyQuest.questTargetId + "; open dialog");
             }
             if (toNpc <= QUEST_PRIORITY_DIST)
             {
-                // FINAL-MILE: the quest NPC is close — a real player heading to TALK doesn't stop to
-                // fight every mob on the way. Route to the NPC before engaging combat.
+                // FINAL-MILE: route to the giver before engaging combat.
                 return earlyQuest;
             }
         }
+        return null;
+    }
 
-        // 1.5 RESTOCK: when inventory is too full to keep farming, walk to the town vendor and
-        //    shop instead of engaging COMBAT/HUNT so the bot stops fighting and (later) restocks.
-        if (ctx.inventoryPct >= c.restockThreshold)
+    /** RESTOCK: inventory too full to farm -> walk to the town vendor. */
+    private static GoalDecision rungRestock(PlayContext ctx, BotPlayConfig c)
+    {
+        if (ctx.inventoryPct < c.restockThreshold)
         {
-            RestockPlanner.RestockPlan plan =
-                RestockPlanner.plan(ctx.level, ctx.inventoryPct, 0, c.race);
-            return GoalDecision.moveTo(PlayerGoal.REST, plan.vendorX, plan.vendorY, plan.vendorZ,
-                "restock",
-                "inventory " + ctx.inventoryPct + "% full; walk to vendor to restock");
+            return null;
         }
+        RestockPlanner.RestockPlan plan =
+            RestockPlanner.plan(ctx.level, ctx.inventoryPct, 0, c.race);
+        return GoalDecision.moveTo(PlayerGoal.REST, plan.vendorX, plan.vendorY, plan.vendorZ,
+            "restock",
+            "inventory " + ctx.inventoryPct + "% full; walk to vendor to restock");
+    }
 
-        // 2. COMBAT: a hostile we can hit right now.
+    /** COMBAT: a hostile we can hit right now -> attack the nearest one. */
+    private static GoalDecision rungCombat(PlayContext ctx, int combatRange)
+    {
         Hostile combat = nearestHostile(ctx, combatRange);
-        if (combat != null)
+        if (combat == null)
         {
-            return GoalDecision.combatTarget(PlayerGoal.FARM, combat.objId,
-                "fight:" + combat.objId,
-                "nearest hostile at " + combat.x + "," + combat.y);
+            return null;
         }
+        return GoalDecision.combatTarget(PlayerGoal.FARM, combat.objId,
+            "fight:" + combat.objId,
+            "nearest hostile at " + combat.x + "," + combat.y);
+    }
 
-        // 3. HUNT: a hostile is visible but out of range -> walk toward it before questing on.
+    /** HUNT: hostile visible but out of range -> advance toward it. */
+    private static GoalDecision rungHunt(PlayContext ctx, int sightRange)
+    {
         Hostile seen = nearestHostile(ctx, sightRange);
-        if (seen != null)
+        if (seen == null)
         {
-            return GoalDecision.moveTo(PlayerGoal.FARM, seen.x, seen.y, seen.z,
-                "hunt:" + seen.objId,
-                "advance on hostile at " + seen.x + "," + seen.y);
+            return null;
         }
+        return GoalDecision.moveTo(PlayerGoal.FARM, seen.x, seen.y, seen.z,
+            "hunt:" + seen.objId,
+            "advance on hostile at " + seen.x + "," + seen.y);
+    }
 
-        // 4. QUEST: advance the active quest, or go acquire one when none is active. When the goal is
-        //    an NPC step (QUEST/ACQUIRE) and we are already at that NPC, stop routing in place and
-        //    open its dialog: emit BYPASS (STEP 2) so the fleet loop turns the empty bypassCommand into
-        //    the single next validated bypass from the NPC's actual NpcHtmlMessage.
+    /** QUEST: advance the active quest / acquire one; at the NPC -> open dialog (BYPASS). */
+    private static GoalDecision rungQuest(PlayContext ctx, BotPlayConfig c)
+    {
         GoalDecision quest = QuestGoalPlanner.decide(ctx.level, ctx.activeJournal,
             ctx.x, ctx.y, ctx.z, ctx.stepIndex, c.varietySeed);
-        if (quest != null)
+        if (quest == null)
         {
-            if (quest.action == GoalAction.MOVE_TO
-                    && (quest.goal == PlayerGoal.QUEST || quest.goal == PlayerGoal.ACQUIRE)
-                    && quest.questTargetId != 0
-                    && within(quest.targetX, quest.targetY, quest.targetZ,
-                        ctx.x, ctx.y, ctx.z, c.talkRange))
-            {
-                return GoalDecision.bypass(
-                    quest.goal, "",
-                    "quest-dialog:" + quest.questTargetId,
-                    "at quest NPC " + quest.questTargetId + "; open dialog");
-            }
-            return quest;
+            return null;
         }
-
-        // 5. REST: nothing acquirable/active anywhere -> deliberate hold, not idle-wander.
-        return GoalDecision.wait(PlayerGoal.REST, "rest",
-            "no quest and no target in sight; hold and re-check");
+        if (quest.action == GoalAction.MOVE_TO
+                && (quest.goal == PlayerGoal.QUEST || quest.goal == PlayerGoal.ACQUIRE)
+                && quest.questTargetId != 0
+                && within(quest.targetX, quest.targetY, quest.targetZ,
+                    ctx.x, ctx.y, ctx.z, c.talkRange))
+        {
+            return GoalDecision.bypass(quest.goal, "",
+                "quest-dialog:" + quest.questTargetId,
+                "at quest NPC " + quest.questTargetId + "; open dialog");
+        }
+        return quest;
     }
 
     /** Convenience with default config. */
@@ -333,6 +423,8 @@ public final class BotPlayController
         public final PlayerRace race;
         /** S3-T07: per-bot quest-acquire variety seed (0 = classic nearest pick). */
         public final int varietySeed;
+        /** EB-03: the decision ladder order (default = historical). Profiles reorder/drop these. */
+        public final java.util.List<Rung> priority;
 
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange)
         {
@@ -363,6 +455,15 @@ public final class BotPlayController
         public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
                              int restockThreshold, PlayerRace race, int varietySeed)
         {
+            this(surviveHpFraction, combatRange, sightRange, talkRange, restockThreshold,
+                race, varietySeed, DEFAULT_LADDER);
+        }
+
+        /** Full constructor — the ladder order is the last knob so old call sites stay source-compatible. */
+        public BotPlayConfig(double surviveHpFraction, int combatRange, int sightRange, int talkRange,
+                             int restockThreshold, PlayerRace race, int varietySeed,
+                             java.util.List<Rung> priority)
+        {
             this.surviveHpFraction = surviveHpFraction;
             this.combatRange = combatRange;
             this.sightRange = sightRange;
@@ -370,6 +471,48 @@ public final class BotPlayController
             this.restockThreshold = Math.max(0, Math.min(100, restockThreshold));
             this.race = race != null ? race : PlayerRace.HUMAN;
             this.varietySeed = varietySeed;
+            this.priority = priority != null && !priority.isEmpty()
+                ? java.util.Collections.unmodifiableList(new java.util.ArrayList<>(priority))
+                : DEFAULT_LADDER;
+        }
+
+        /** EB-03: profile copy — same knobs, different ladder order (or dropped rungs). */
+        public BotPlayConfig withLadder(java.util.List<Rung> ladder)
+        {
+            return new BotPlayConfig(surviveHpFraction, combatRange, sightRange, talkRange,
+                restockThreshold, race, varietySeed, ladder);
+        }
+
+        /**
+         * EB-03: a race-flavored ladder — per-profile priorities instead of one hardcoded order.
+         * Every race keeps SURVIVE (the safety rung); the interesting knob is the rest:
+         *  - HUMAN: historical order (balanced quest-first flavor).
+         *  - ORC:   aggressive — COMBAT/HUNT above questing (melee-first).
+         *  - DWARF: merchant — RESTOCK early (inventory is money), combat before quest dialogs.
+         *  - ELF/DARK_ELF: spellcasters — quest-talk first (dialogs = class-defining), then combat.
+         * Null race falls back to the historical DEFAULT_LADDER.
+         */
+        public static java.util.List<Rung> ladderForRace(PlayerRace race)
+        {
+            if (race == null)
+            {
+                return DEFAULT_LADDER;
+            }
+            switch (race)
+            {
+                case ORC:
+                    return java.util.Collections.unmodifiableList(java.util.Arrays.asList(
+                        Rung.SURVIVE, Rung.COMBAT, Rung.HUNT, Rung.RESTOCK, Rung.QUEST_TALK, Rung.QUEST));
+                case DARK_ELF:
+                case ELF:
+                    return java.util.Collections.unmodifiableList(java.util.Arrays.asList(
+                        Rung.SURVIVE, Rung.QUEST_TALK, Rung.QUEST, Rung.COMBAT, Rung.HUNT, Rung.RESTOCK));
+                case DWARF:
+                    return java.util.Collections.unmodifiableList(java.util.Arrays.asList(
+                        Rung.SURVIVE, Rung.RESTOCK, Rung.COMBAT, Rung.HUNT, Rung.QUEST_TALK, Rung.QUEST));
+                default:
+                    return DEFAULT_LADDER;
+            }
         }
     }
 }
