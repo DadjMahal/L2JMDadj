@@ -1,3 +1,10 @@
+# 🚀 L24Lude — Living Server for L2JMobius (Interlude)
+
+> **AI agents here, in order:** `START_HERE.md` (orientation) → `Architecture.md` (the core
+> basis: planes, engine internals, hard lines) → `Documentation/WORKFLOW.md` (rules) →
+> `Documentation/TASKS.md` (the 100-task board).
+
+**Owner's note (kept):**
 L2JMobius fork by Dadj Mahal.
 I'm trying to be good but God's Devil inside mind make my crazy.
 Hope 4 Readhead, touch my tralolo one more time and it will become your final $PATH. 
@@ -10,9 +17,8 @@ Moje vypravlus ale v mene REST.
 
 # 🖥️ Web Panel (AI Fleet Dashboard)
 
-> **AI agents start at `START_HERE.md`** (orientation → `Documentation/WORKFLOW.md` rules →
-> `Documentation/TASKS.md` open work). The rest of this README is the dashboard/API face
-> for human operators.
+> This README is the **dashboard/API face for human operators** (agent orientation lives in
+> the header above).
 
 The fleet launcher (`AIPlayerEngine/.../examples/FleetPlay.java`) serves a live single-page
 dashboard on **http://localhost:8080/**.
@@ -51,3 +57,6 @@ External-socket AI players (no server source changes): `LoginServer` auth → `G
 `com.aiplayer.behavior` (BotBrain, BotPlayController, CombatAI etc.), one virtual-thread session
 per bot via `com.aiplayer.core.BotSession`, state surfaced over HTTP to this web panel
 (`com.aiplayer.web.DashboardApi` + `DashboardBoot`; LAN exposure requires `DASH_TOKEN` — EP-6).
+
+**Full picture:** `Architecture.md` (repo root, the core basis) · `AIPlayerEngine/README.md`
+(engine-level detail) · `Documentation/SOURCE_CODE_MAP.md` (server source/datapack map).
