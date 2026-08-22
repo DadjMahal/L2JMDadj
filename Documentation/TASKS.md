@@ -76,7 +76,7 @@ product takes shape, P9 is the proof gate.
 | EB-09 | Session lifecycle API: spawn/connect/play/sleep/disconnect as first-class states (SoulScheduler hook) | S | P1 | EB-01 | DONE-PUSHED b531ec56 |
 | EB-10 | Graceful fleet shutdown + resume: drains bots on stop, safe restart (feeds keep_alive.sh) | M | P1 | EB-09 | TODO |
 | EB-11 | Config single-source: all property reads funnel through EngineConfig with validation | M | P1 | – | TODO |
-| EB-12 | Logging hygiene: java.util.logging everywhere, no System.out in main | S | P2 | – | TODO |
+| EB-12 | Logging hygiene: java.util.logging everywhere, no System.out in main | S | P2 | – | DONE-PUSHED 2d274bac |
 | EB-13 | Per-bot resource guard: rate/backpressure limits (actions per tick, queue caps) | M | P1 | EB-01 | TODO |
 | EB-14 | BotSnapshot completeness: goal + sub-goal + cooldowns in telemetry for dashboard | M | P1 | EB-03 | TODO |
 
