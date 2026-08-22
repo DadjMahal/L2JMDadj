@@ -514,5 +514,24 @@ public final class BotPlayController
                     return DEFAULT_LADDER;
             }
         }
+
+        /**
+         * EB-04: build a config whose DECISION ranges are derived from a bot's personality
+         * (PersonalityBehavior). Keeps every other knob at the caller's base values — this is the
+         * seam that makes PersonalityProfile actually drive risk (survive fraction), pace (engaged
+         * ranges) and restock timing instead of being decorative.
+         */
+        public BotPlayConfig withPersonality(com.aiplayer.behavior.PersonalityBehavior.Knobs knobs)
+        {
+            if (knobs == null)
+            {
+                return this;
+            }
+            int combat = (int) Math.round(combatRange * knobs.combatRangeScale);
+            int sight = (int) Math.round(sightRange * knobs.sightRangeScale);
+            int restock = knobs.restockThreshold;
+            return new BotPlayConfig(knobs.surviveHpFraction, combat, sight, talkRange,
+                restock, race, varietySeed, priority);
+        }
     }
 }

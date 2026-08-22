@@ -89,6 +89,10 @@ public class AIPlayer {
     private final LongTermGoalsAI longTermGoals; // Stream D: long-term goal selection (task 65)
     private final GoalTree goalTree; // Stream D: short-term goal selection + scheduling (tasks 65,68,69)
     private final ActivityScheduler activityScheduler; // Stream E task 88: periodic activity rotation
+    // EB-04: last chat emission (personality-talkativeness throttle).
+    private long lastChatAtMs = 0L;
+    private static final long CHAT_MIN_INTERVAL_MS = 8_000L;
+    private static final long CHAT_MAX_INTERVAL_MS = 60_000L;
 
     // Collective & Economic Systems (Tasks 77-96)
     private final CollectiveKnowledge collectiveKnowledge;
@@ -131,8 +135,7 @@ public class AIPlayer {
         this.actionQueue = new AIActionQueue();
         this.config = AIConfiguration.getInstance();
         this.deepLearning = new DeepLearningCore();
-        this.personality = new PersonalityProfile(PersonalityProfile.Personality.values()
-                [accountId % PersonalityProfile.Personality.values().length]);
+        this.personality = PersonalityProfile.forSeed(accountId);
         this.emotions = new EmotionalState();
         this.adaptiveLearner = new AdaptiveLearner(name, deepLearning);
         this.reinforcement = new ReinforcementEngine(deepLearning, adaptiveLearner);
@@ -228,6 +231,14 @@ public class AIPlayer {
                 case CHAT:
                     if (action.getParameters().length > 0) {
                         String message = (String) action.getParameters()[0];
+                        // EB-04: personality-driven chat throttle — talkative bots chat more often.
+                        long now = System.currentTimeMillis();
+                        if (now - lastChatAtMs < chatIntervalMs()) {
+                            LOGGER.fine("[PROTOCOL] " + name + " CHAT throttled by personality ("
+                                + personality.getPersonality() + ")");
+                            break;
+                        }
+                        lastChatAtMs = now;
                         protocol.sendChat(message);
                         LOGGER.info("[PROTOCOL] " + name + " CHAT: " + message);
                     }
@@ -423,6 +434,16 @@ public class AIPlayer {
     public LongTermGoalsAI getLongTermGoals() { return longTermGoals; }
     public GoalTree getGoalTree() { return goalTree; }
     public ActivityScheduler getActivityScheduler() { return activityScheduler; }
+
+    /** EB-04: personality-talkativeness throttle — quiet lines grow the interval, chatty shrink it. */
+    private long chatIntervalMs()
+    {
+        double talk = com.aiplayer.behavior.PersonalityBehavior.knobs(
+            personality.getPersonality()).talkativeness;
+        double t = Math.max(0.1, Math.min(1.0, talk));   // clamp 0.1..1.0
+        long span = CHAT_MAX_INTERVAL_MS - CHAT_MIN_INTERVAL_MS;
+        return CHAT_MIN_INTERVAL_MS + Math.round(span * (1.0 - t));
+    }
 
     // --- Stream E task 89: session persistence across restarts ---
     // Uses the (previously dead) PersistenceManager to save/restore the bot's persistent state so

@@ -85,6 +85,13 @@ public class PersonalityProfile {
     public double getExploreWeight() { return exploreWeight; }
     public double getQuestWeight() { return questWeight; }
 
+    /** EB-04: deterministic personality from any stable int seed (e.g. charId/accountId). */
+    public static PersonalityProfile forSeed(int seed) {
+        Personality[] all = Personality.values();
+        int idx = Math.floorMod(seed, all.length);
+        return new PersonalityProfile(all[idx]);
+    }
+
     @Override
     public String toString() {
         return "Personality{" + personality + "}";

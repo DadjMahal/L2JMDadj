@@ -45,10 +45,12 @@ import com.aiplayer.behavior.BotPlayController.Hostile;
 import com.aiplayer.behavior.BotPlayController.PlayContext;
 import com.aiplayer.behavior.GoalAction;
 import com.aiplayer.behavior.GoalDecision;
+import com.aiplayer.behavior.PersonalityBehavior;
 import com.aiplayer.behavior.PlayerGoal;
 import com.aiplayer.behavior.QuestDialogDriver;
 import com.aiplayer.behavior.QuestDialogDriver.Objective;
 import com.aiplayer.behavior.QuestDialogDriver.QuestDialog;
+import com.aiplayer.learning.PersonalityProfile;
 import com.aiplayer.protocol.L2JProtocol;
 import com.aiplayer.protocol.PacketCodec;
 import com.aiplayer.protocol.PacketLogger;
@@ -80,6 +82,8 @@ public final class BotSession implements Runnable
     private final int gamePort;
     /** Per-bot race: drives the guide landmark + restock vendor so non-Humans stay in their own zone. */
     private final PlayerRace race;
+    /** EB-04: deterministic per-bot personality (drives the decision config via PersonalityBehavior). */
+    private final PersonalityProfile personality;
     private final Random rng;
     // STEP 2: per-session quest-dialog driver — the driving DECISION state machine now lives in
     // behavior/QuestDialogSession (pure); the session only executes its step results.
@@ -124,9 +128,14 @@ public final class BotSession implements Runnable
         this.gamePort = gamePort;
         this.race = race != null ? race : PlayerRace.HUMAN;
         this.info.race = this.race.name(); // S9-T05 dashboard race badge/filter
+        // EB-04: deterministic per-bot personality (same seed as AIPlayer uses: 100 + charId%100),
+        // then feed its knobs into the decision config so risk/pace/restock actually vary by personality.
+        PersonalityProfile botPersonality = PersonalityProfile.forSeed(100 + charId % 100);
         this.cfg = new BotPlayController.BotPlayConfig(0.25, 400, 2000, 300, 100,
             this.race, Math.abs(account.hashCode()),
-            BotPlayController.BotPlayConfig.ladderForRace(this.race)); // EB-03: per-race ladder
+            BotPlayController.BotPlayConfig.ladderForRace(this.race)) // EB-03: per-race ladder
+                .withPersonality(PersonalityBehavior.knobs(botPersonality.getPersonality())); // EB-04
+        this.personality = botPersonality;
         this.questTracker = new QuestProgressTracker(account);
         this.rng = new Random(account.hashCode());
         this.bots = bots;
