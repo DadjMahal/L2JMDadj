@@ -114,6 +114,25 @@ fill the entries. `validate.py` (this dir) enforces the invariants §last.
 > chain-token scoring + mystic-vs-fighter line filter. Not a perfect class attribution — that
 > needs per-class quest data the extraction doesn't carry yet.
 
+## map.json  (GK-9)
+| field | type | meaning |
+|---|---|---|
+| kind | string | `"teleporter"` \| `"zone"` \| `"route"` \| `"spawnRegion"` |
+| id | int/string | unique record id (see each kind) |
+| — teleporter: npcId, category, type | int/str/str | teleport NPC + subfolder (town/dungeon/others/chamberlain/doorman/clanhall) + teleport type (NORMAL/OTHER/NOBLES_*) |
+| destinations `{name,x,y,z,feeId,feeCount}` | array | reachable locations (feeId for nobles-* types) |
+| — zone: name, type, shape, minZ, maxZ | str×3+int×2 | zone footprint (Town/Peace/NoLanding/pvp; NPoly/Cuboid/Cylinder) |
+| nodes `{x,y}` + `{x,y,z}` centroid | array | polygon/box footprint (x/y only; z band = minZ..maxZ) |
+| — route: name, repeat, repeatStyle, points `{x,y,z,delay,run}` | array | scripted NPC walk routes (Routes.xml) |
+| — spawnRegion: name, spawnCount, `{x,y}` centroid, minLevel, maxLevel | str/int×2+int×2 | aggregated spawn density per world region (zoneHint prefix) for hunting nav |
+| needsReview | bool | GK-5 pattern: boss/raid/event zones (Valakas lair, Seed of Annihilation…) lie outside the playable world box — flagged honestly, never faked |
+
+> Notes (GK-9): `spawnRegion`s aggregate the 10,754 spawn rows (npcs.json) per zoneHint
+> prefix — the natural "where do I hunt at level N" unit (centroid + level band). Zone
+> records carry the full raw polygon (incl. event areas) so consumers can room-augment;
+> `needsReview:true` zones are exempted from the world-bounds invariant (documented outlier,
+> not a data error). Teleporter destinations and route waypoints are strictly in-bounds.
+
 ---
 
 ## Invariants enforced by validate.py

@@ -18,7 +18,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lib  # noqa: E402
 
-EXPECTED = ["npcs.json", "items.json", "skills.json", "spawns.json", "quests.json", "shops.json", "classes.json", "chains.json"]
+EXPECTED = ["npcs.json", "items.json", "skills.json", "spawns.json", "quests.json",
+            "shops.json", "classes.json", "chains.json", "map.json"]
 
 
 def named(value):
@@ -54,11 +55,24 @@ def check_file(name: str, out) -> int:
             issues += 1
 
         # 3. coordinates in bounds.
-        for spawn in rec.get("spawns", []) if isinstance(rec.get("spawns"), list) else []:
-            x, y, z = spawn.get("x"), spawn.get("y"), spawn.get("z")
-            if not _lib.in_world_bounds(x, y, z):
-                print(f"[validate] {name}: {named(rec)} spawn coords out of bounds ({x},{y},{z})", file=out)
-                issues += 1
+        for key in ("spawns", "destinations", "nodes", "points"):
+            for coord in rec.get(key, []) if isinstance(rec.get(key), list) else []:
+                if not isinstance(coord, dict):
+                    continue
+                x, y, z = coord.get("x"), coord.get("y"), coord.get("z")
+                in_bounds = _lib.in_world_bounds(x, y, z)
+                if key == "nodes":
+                    # zone polygons are x/y footprints; the z band lives on the record
+                    # (minZ/maxZ), so x/y-only is the correct strictness for nodes. Boss/
+                    # raid/event zones outside the playable box are honestly flagged
+                    # needsReview by the extractor (GK-5 pattern) — documented, not failed.
+                    in_bounds = bool(rec.get("needsReview")) or (
+                        x is not None and y is not None
+                        and _lib.WORLD_X_MIN <= x <= _lib.WORLD_X_MAX
+                        and _lib.WORLD_Y_MIN <= y <= _lib.WORLD_Y_MAX)
+                if not in_bounds:
+                    print(f"[validate] {name}: {named(rec)} {key} coords out of bounds ({x},{y},{z})", file=out)
+                    issues += 1
 
         # 4. drop chances in (0, 1].
         for drop in rec.get("drops", []) if isinstance(rec.get("drops"), list) else []:
