@@ -222,6 +222,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | EB-04 | PersonalityBehavior: personality drives risk/pace/restock/talkativeness; per-bot wired (451 tests) | DONE-PUSHED 38e607b3 |
 | EB-05 | Humanization audit: deterministic advancing stream + live reaction knob in BotSession tick (458 tests) | DONE-PUSHED fb11f4ce |
 | EB-06 | RestockDecider (behavior/restock) → shortage-aware RestockPlanner wired into ladder (469 tests) | DONE-PUSHED d81ae488 |
+| EB-07 | TravelPlanner (behavior/movement): town travel WALK/TELEPORT/FALLBACK decisions, wired into idle relocation (477 tests) | DONE-PUSHED 50eac026 |
 | F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
 | F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
 | F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |
