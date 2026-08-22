@@ -17,11 +17,20 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Random;
 import com.aiplayer.core.DeterministicRandom;
-import java.util.concurrent.ThreadLocalRandom;
 
 public final class Humanization {
 
     private Humanization() {}
+
+    /**
+     * EB-05: ONE deterministic, ADVANCING entropy stream for the no-arg humanization helpers.
+     * Fixed seed → the whole sequence reproduces across runs (EB-02), and because the draw
+     * advances every call, values still vary like real human reaction/wait times (not a frozen
+     * constant). Per-bot callers should use the {@link Random}-taking overloads for a
+     * bot-specific stream.
+     */
+    private static final Random FLEET_STREAM = new Random(
+        com.aiplayer.core.DeterministicRandom.seed("humanization-fleet"));
 
     /** MODE: COMPLETE (re-verified 2026-08-19, S10-T08). Human-like random number distributions.
      * Uniform random looks artificial to detection systems.
@@ -41,9 +50,11 @@ public final class Humanization {
         /**
          * Normal (Gaussian) distribution.
          * Most values cluster around mean with spread controlled by sigma.
+         * No-arg form uses a deterministic fleet-wide stream (EB-02/EB-05: reproducible); the
+         * seeded overload takes a per-bot Random for a bot-specific stream.
          */
         public static double normal(double mean, double sigma) {
-            return mean + ThreadLocalRandom.current().nextGaussian() * sigma;
+            return mean + FLEET_STREAM.nextGaussian() * sigma;
         }
 
         public static double normal(double mean, double sigma, Random rnd) {
@@ -56,7 +67,7 @@ public final class Humanization {
          * Perfect for: time between actions, session lengths, pause durations.
          */
         public static double logNormal(double mu, double sigma) {
-            return Math.exp(ThreadLocalRandom.current().nextGaussian() * sigma + mu);
+            return Math.exp(FLEET_STREAM.nextGaussian() * sigma + mu);
         }
 
         public static double logNormal(double mu, double sigma, Random rnd) {
@@ -69,7 +80,7 @@ public final class Humanization {
          * Example: combat (fast) vs inventory management (careful).
          */
         public static double bimodal(double mean1, double sigma1, double mean2, double sigma2, double weight1) {
-            Random rnd = ThreadLocalRandom.current();
+            Random rnd = FLEET_STREAM;
             if (rnd.nextDouble() < weight1) {
                 return normal(mean1, sigma1, rnd);
             } else {
@@ -82,7 +93,7 @@ public final class Humanization {
          * Models: normal reaction + rare distraction/lag spikes.
          */
         public static int reactionTime(int baseMs, double sigmaMs, double outlierChance, int outlierExtraMs) {
-            Random rnd = ThreadLocalRandom.current();
+            Random rnd = FLEET_STREAM;
             double val = normal(baseMs, sigmaMs, rnd);
             if (rnd.nextDouble() < outlierChance) {
                 val += logNormal(Math.log(outlierExtraMs), 0.5);
@@ -122,7 +133,7 @@ public final class Humanization {
          */
         public static int skewedInt(int min, int max, double skewFactor) {
             if (min >= max) return min;
-            double u = ThreadLocalRandom.current().nextDouble();
+            double u = FLEET_STREAM.nextDouble();
             double skewed = Math.pow(u, Math.exp(-skewFactor));
             return min + (int) (skewed * (max - min));
         }
@@ -132,7 +143,7 @@ public final class Humanization {
          * Models human inconsistency — usually consistent, sometimes wild.
          */
         public static int withOccasionalExtreme(int base, int deviation, double extremeChance, int extremeMultiplier) {
-            Random rnd = ThreadLocalRandom.current();
+            Random rnd = FLEET_STREAM;
             if (rnd.nextDouble() < extremeChance) {
                 return base + (rnd.nextBoolean() ? 1 : -1) * deviation * extremeMultiplier;
             }
@@ -148,7 +159,7 @@ public final class Humanization {
             double L = Math.exp(-lambda);
             double p = 1.0;
             int k = 0;
-            Random rnd = ThreadLocalRandom.current();
+            Random rnd = FLEET_STREAM;
             do {
                 k++;
                 p *= rnd.nextDouble();
@@ -265,14 +276,14 @@ public final class Humanization {
          */
         public boolean shouldMakeMistake(double stressFactor) {
             double chance = errorProneness * stressFactor * 0.5;
-            return ThreadLocalRandom.current().nextDouble() < chance;
+            return FLEET_STREAM.nextDouble() < chance;
         }
 
         /**
          * Should this player pause/distract right now?
          */
         public boolean shouldPause() {
-            return ThreadLocalRandom.current().nextDouble() < pauseFrequency;
+            return FLEET_STREAM.nextDouble() < pauseFrequency;
         }
 
         /**
@@ -489,7 +500,7 @@ public final class Humanization {
             double fatigue = getSessionFatigue();
 
             // End session if exceeded expected duration + variance
-            int maxDuration = fingerprint.avgSessionMinutes + ThreadLocalRandom.current().nextInt(15, 45);
+            int maxDuration = fingerprint.avgSessionMinutes + FLEET_STREAM.nextInt(15, 45);
             return sessionMinutes > maxDuration || fatigue > 0.9;
         }
 

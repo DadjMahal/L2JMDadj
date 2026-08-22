@@ -45,6 +45,7 @@ import com.aiplayer.behavior.BotPlayController.Hostile;
 import com.aiplayer.behavior.BotPlayController.PlayContext;
 import com.aiplayer.behavior.GoalAction;
 import com.aiplayer.behavior.GoalDecision;
+import com.aiplayer.behavior.HumanReactionSimulator;
 import com.aiplayer.behavior.PersonalityBehavior;
 import com.aiplayer.behavior.PlayerGoal;
 import com.aiplayer.behavior.QuestDialogDriver;
@@ -84,6 +85,8 @@ public final class BotSession implements Runnable
     private final PlayerRace race;
     /** EB-04: deterministic per-bot personality (drives the decision config via PersonalityBehavior). */
     private final PersonalityProfile personality;
+    /** EB-05: per-bot deterministic human reaction knob (live consumption of the humanize pack). */
+    private final HumanReactionSimulator humanReaction;
     private final Random rng;
     // STEP 2: per-session quest-dialog driver — the driving DECISION state machine now lives in
     // behavior/QuestDialogSession (pure); the session only executes its step results.
@@ -136,6 +139,7 @@ public final class BotSession implements Runnable
             BotPlayController.BotPlayConfig.ladderForRace(this.race)) // EB-03: per-race ladder
                 .withPersonality(PersonalityBehavior.knobs(botPersonality.getPersonality())); // EB-04
         this.personality = botPersonality;
+        this.humanReaction = new HumanReactionSimulator(DeterministicRandom.seed("bot::" + account + "::reaction"));
         this.questTracker = new QuestProgressTracker(account);
         this.rng = new Random(account.hashCode());
         this.bots = bots;
@@ -1038,7 +1042,10 @@ public final class BotSession implements Runnable
                     break;
             }
 
-            Thread.sleep(TICK_MS + Math.abs(rng.nextInt() % 150));
+            // EB-05: real humanize knob in the LIVE loop — reaction delay is consumed every tick
+            // (was decorative: HumanReactionSimulator/AntiDetectionEngine were only in tests).
+            long react = humanReaction.getHumanDelay();
+            Thread.sleep(TICK_MS + Math.abs(rng.nextInt() % 150) + react);
         }
     }
 
