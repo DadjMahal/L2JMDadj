@@ -8,6 +8,7 @@ import com.aiplayer.learning.PersonalityProfile;
 import com.aiplayer.learning.EmotionalState;
 import com.aiplayer.learning.AdaptiveLearner;
 import com.aiplayer.learning.ReinforcementEngine;
+import com.aiplayer.core.DeterministicRandom;
 import com.aiplayer.behavior.town.MarketEngine;
 import com.aiplayer.behavior.town.EconomicEngine;
 import com.aiplayer.behavior.town.NetWorthOptimizer;
@@ -108,8 +109,8 @@ public class AIPlayer {
     private final AchievementAI achievementAI = new AchievementAI();
     private final EventCalendarAI eventCalendarAI = new EventCalendarAI();
     private final HeroTitleAI heroTitleAI = new HeroTitleAI();
-    private final HumanReactionSimulator humanReaction = new HumanReactionSimulator();
-    private final BehaviorSeeder behaviorSeeder = new BehaviorSeeder();
+    private final HumanReactionSimulator humanReaction;
+    private final BehaviorSeeder behaviorSeeder;
     private final MovementPatternAI movementPatternAI = new MovementPatternAI();
     private final ResourceHoardingAI resourceHoardingAI = new ResourceHoardingAI();
 
@@ -118,6 +119,11 @@ public class AIPlayer {
         this.accountId = accountId;
         this.classId = classId;
         this.race = race;
+        // EB-02: per-bot seeded RNG — same account → same streams every run.
+        this.humanReaction = new HumanReactionSimulator(
+            DeterministicRandom.seed("bot::" + accountId + "::human-reaction"));
+        this.behaviorSeeder = new BehaviorSeeder(
+            DeterministicRandom.forBot(String.valueOf(accountId), "behavior-seeder"));
         this.persist = new PersistenceManager("aiplayer-" + name + ".state"); // Stream E 89
         this.level = 1;
         this.state = AIPlayerState.OFFLINE;

@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import com.aiplayer.core.DeterministicRandom;
+
 /**
  * Economic Intelligence - Tasks 91, 92, 93
  *
@@ -39,7 +41,7 @@ public class EconomicEngine {
         }
     }
 
-    private final Random random = new Random();
+    private final Random random = DeterministicRandom.forFleet("economic-engine");
 
     private EconomicEngine() {
         LOGGER.info("[EconomicEngine] Economic intelligence initialized");

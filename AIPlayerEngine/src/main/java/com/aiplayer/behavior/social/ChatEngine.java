@@ -4,6 +4,7 @@ package com.aiplayer.behavior.social;
 
 import com.aiplayer.core.BotProfile;
 import com.aiplayer.behavior.ProfileStore;
+import com.aiplayer.core.DeterministicRandom;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,7 @@ public class ChatEngine {
     private static final Logger LOGGER = Logger.getLogger(ChatEngine.class.getName());
     private static ChatEngine instance;
     private final ProfileStore cabinet; // also replaces the old RedisCache — see ProfileStore
-    private final Random rng = new Random();
+    private final Random rng = DeterministicRandom.forFleet("chat-engine");
 
     private ChatEngine() {
         this.cabinet = ProfileStore.getInstance();

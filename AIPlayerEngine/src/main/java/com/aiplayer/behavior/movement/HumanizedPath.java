@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.aiplayer.core.DeterministicRandom;
+
 /**
  * Generates a humanized movement path with Bezier curves,
  * micro-deviations, and optional micro-pauses.
@@ -19,7 +21,6 @@ public final class HumanizedPath {
     private final List<PathNode> waypoints;
     private final boolean hasMicroPause;
     private final long pauseAtMs;
-    private final Random random = new Random();
 
     private HumanizedPath(List<PathNode> waypoints, boolean hasMicroPause, long pauseAtMs) {
         this.waypoints = waypoints;
@@ -38,7 +39,7 @@ public final class HumanizedPath {
         double dist = distance(fromX, fromY, toX, toY);
         int segments = Math.max(3, (int) (dist / 300.0)); // waypoint every ~300 units
 
-        Random random = new Random();
+        Random random = DeterministicRandom.forFleet("humanized-path");
 
         List<PathNode> raw = BezierCurve.generate(
                 fromX, fromY, fromZ, toX, toY, toZ,

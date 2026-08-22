@@ -2,9 +2,21 @@ package com.aiplayer.behavior;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import com.aiplayer.core.DeterministicRandom;
+
 public class HumanReactionSimulator {
     private static final Logger LOGGER = Logger.getLogger(HumanReactionSimulator.class.getName());
-    private final Random random = new Random();
+    private final Random random;
+
+    /** Default: deterministic fleet-wide seed (EB-02 reproducible runs). */
+    public HumanReactionSimulator() {
+        this(DeterministicRandom.forFleet("human-reaction").nextLong());
+    }
+
+    /** Seeded: pass a per-bot seed for a bot-specific, reproducible reaction stream. */
+    public HumanReactionSimulator(long seed) {
+        this.random = new Random(seed);
+    }
 
     public static class ReactionTiming {
         public final long minMs;

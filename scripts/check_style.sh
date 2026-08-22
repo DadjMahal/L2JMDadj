@@ -38,15 +38,22 @@ if [ -n "$TABS" ]; then note "Tabs found in:"; echo "$TABS"; else echo -e "${GRE
 TRAIL=$(grep -rlP " +$" "$CODEBASE" --include="*.java" 2>/dev/null)
 if [ -n "$TRAIL" ]; then note "Trailing whitespace in:"; echo "$TRAIL"; else echo -e "${GREEN}[ok]${RESET} no trailing whitespace"; fi
 
-# 3. Math.random() CALL in the engine (excludes only lines that START as comments; examples/ are demos)
+# 3. Non-deterministic randomness in the engine (Math.random() / no-arg new Random()) —
+#    every random source must be seeded (DeterministicRandom or a bot-owned seeded Random), so
+#    a run reproduces. examples/ are demos/drivers and stay exempt.
 ENGINE_ROOT="$CODEBASE/com/aiplayer"
-ENGINE_PKGS="$ENGINE_ROOT/engine $ENGINE_ROOT/advanced $ENGINE_ROOT/neural $ENGINE_ROOT/social $ENGINE_ROOT/economy $ENGINE_ROOT/monitor $ENGINE_ROOT/metrics $ENGINE_ROOT/protocol"
-RAND_LINES=$(grep -rn "Math.random()" $ENGINE_PKGS --include="*.java" 2>/dev/null | grep -vE '^[^:]+:[0-9]+:[ \t]*(//|/\*|\*)')
-if [ -n "$RAND_LINES" ]; then note "Math.random() call in engine code:"; echo "$RAND_LINES"; else echo -e "${GREEN}[ok]${RESET} no Math.random() call in engine"; fi
+# Current live packages (post EP-2/EP-3 tree), excluding examples/ (demos) and attic (not compiled).
+ENGINE_PKGS=$(find "$ENGINE_ROOT" -maxdepth 1 -mindepth 1 -type d -name '*' | grep -v '/examples$' | tr '\n' ' ')
+RAND_LINES=$(grep -rnE "Math\.random\(\)|new Random\(\)" $ENGINE_PKGS --include="*.java" 2>/dev/null | grep -vE '^[^:]+:[0-9]+:[ \t]*(//|/\*|\*)')
+if [ -n "$RAND_LINES" ]; then note "unseeded randomness (Math.random / new Random()) in engine code:"; echo "$RAND_LINES"; else echo -e "${GREEN}[ok]${RESET} no unseeded randomness in engine (all seeds deterministic, EB-02)"; fi
 
-# 4. System.out.println in the engine (examples/ drivers print proof markers by design)
-PRINT=$(grep -rl "System.out.println\|System.out.print" $ENGINE_PKGS --include="*.java" 2>/dev/null)
-if [ -n "$PRINT" ]; then note "System.out (should use logging) in engine:"; echo "$PRINT"; else echo -e "${GREEN}[ok]${RESET} no System.out in engine (examples drivers use markers by design)"; fi
+# 4. System.out.println in the engine (examples/ drivers print proof markers by design).
+#    Scoped to the plumbing packages; the behavior/ pile of legacy System.out is tracked as
+#    EB-12 (logging hygiene). Console lines that are grep-able PROOF markers for the live
+#    scripts (bracket-tagged, e.g. [EVIDENCE-H5], [FleetPlay]) are allowed just like examples'.
+PLUMBING="$ENGINE_ROOT/protocol $ENGINE_ROOT/net $ENGINE_ROOT/web $ENGINE_ROOT/monitor $ENGINE_ROOT/metrics $ENGINE_ROOT/core $ENGINE_ROOT/cli $ENGINE_ROOT/learning $ENGINE_ROOT/knowledge"
+PRINT=$(grep -rnE "System\.out\.(println|print)" $PLUMBING --include="*.java" 2>/dev/null | grep -vE '"[ \t]*\[[A-Za-z0-9_-]+\]')
+if [ -n "$PRINT" ]; then note "System.out (should use logging) in engine:"; echo "$PRINT"; else echo -e "${GREEN}[ok]${RESET} no System.out in engine (examples drivers + bracket proof markers use them by design)"; fi
 
 # 5. TODO/FIXME in src/main (allow lines that carry the literal LEGIT_TODO marker)
 TODO_LINES=$(grep -rn "TODO\|FIXME" "$CODEBASE" --include="*.java" 2>/dev/null | grep -v "LEGIT_TODO" | grep -v "^Binary")

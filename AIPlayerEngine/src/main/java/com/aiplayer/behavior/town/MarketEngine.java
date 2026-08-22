@@ -9,6 +9,8 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import com.aiplayer.core.DeterministicRandom;
+
 /**
  * Market Engine - Tasks 88, 89, 90
  *
@@ -47,7 +49,7 @@ public class MarketEngine {
     }
 
     private final Map<String, List<PriceObservation>> priceHistory = new ConcurrentHashMap<>();
-    private final Random random = new Random();
+    private final Random random = DeterministicRandom.forFleet("market-engine");
 
     private MarketEngine() {
         LOGGER.info("[MarketEngine] Economic modeling initialized");

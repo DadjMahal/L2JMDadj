@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import com.aiplayer.core.BotProfile;
+import com.aiplayer.core.DeterministicRandom;
 
 /**
  * Fleet casting director (EP-5: former DirectorAI + NameGenerator one-class files merged).
@@ -48,7 +49,7 @@ public class Director {
         private static final String[] CORES = {"Slayer","Walker","Hunter","Mage","Knight","Lord","Reaper","Wing","Blade","Soul"};
         private static final String[] SUFFIXES = {"xX","XX","x","iI","II","ofDoom","theGreat","xD","pro"};
         private static final Set<String> USED = new HashSet<>();
-        private static final Random RNG = new Random();
+        private static final Random RNG = DeterministicRandom.forFleet("director-names");
 
         public static synchronized String generateUnique() {
             for (int i = 0; i < 1000; i++) {

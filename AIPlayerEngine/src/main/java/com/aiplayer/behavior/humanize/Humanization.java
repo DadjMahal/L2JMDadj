@@ -16,6 +16,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Random;
+import com.aiplayer.core.DeterministicRandom;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class Humanization {
@@ -693,7 +694,7 @@ public final class Humanization {
 
     /** MODE: PARTIAL. Occasional reaction stalls + AFK windows, BotBrain's imperfection seam. */
     public static final class ImperfectionInjector {
-        private final Random rng = new Random();
+        private final Random rng = DeterministicRandom.forFleet("humanization-imp");
         private final ReactionDelay reactionDelay;
         private final AFKModule afkModule;
 
@@ -708,7 +709,7 @@ public final class Humanization {
 
         /** 30% chance of a 50-300ms stall. */
         private static final class ReactionDelay {
-            private final Random rng = new Random();
+            private final Random rng = DeterministicRandom.forFleet("humanization-reaction");
             private long delayUntil = 0;
 
             public boolean shouldDelay() {
@@ -725,7 +726,7 @@ public final class Humanization {
 
         /** ~5% chance per minute of a 2-5min AFK window. */
         private static final class AFKModule {
-            private final Random rng = new Random();
+            private final Random rng = DeterministicRandom.forFleet("humanization-afk");
             private long afkUntil = 0;
             private long nextCheck = 0;
 

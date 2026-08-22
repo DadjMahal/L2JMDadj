@@ -102,7 +102,7 @@ public final class FleetConfig
             {
                 l.add(r);
             }
-            Collections.shuffle(l, new Random());
+            Collections.shuffle(l, DeterministicRandom.forFleet("race-rotation"));
             return l.toArray(new PlayerRace[0]);
         }
         List<PlayerRace> out = new ArrayList<>();

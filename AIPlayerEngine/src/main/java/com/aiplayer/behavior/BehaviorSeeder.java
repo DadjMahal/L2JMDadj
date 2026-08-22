@@ -4,9 +4,20 @@ import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import com.aiplayer.core.DeterministicRandom;
+
 public class BehaviorSeeder {
     private static final Logger LOGGER = Logger.getLogger(BehaviorSeeder.class.getName());
-    private final Random seedGenerator = new Random();
+    private final Random seedGenerator;
+
+    public BehaviorSeeder() {
+        this(DeterministicRandom.forFleet("behavior-seeder"));
+    }
+
+    /** Seeded: pass a per-bot Random for a bot-specific, reproducible variance stream. */
+    public BehaviorSeeder(Random seedGenerator) {
+        this.seedGenerator = seedGenerator;
+    }
 
     public enum BehaviorStyle { CAUTIOUS, NORMAL, AGGRESSIVE, PLAYFUL, SERIOUS }
 
