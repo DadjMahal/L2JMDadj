@@ -24,3 +24,10 @@
 | `IntegrationGap_Catalog.md` | Live `phase0/` integration (`Phase0Wiring.java`). |
 | `MultiAgentQA.md` | No-more-audits; coverage via `REVIEWED_TASKS.md`. |
 | `goal-personality-system.md`, `social-economy-system.md` | Phase-4 goal/social systems, shipped; superseded by the PLAY goal. |
+| `REPOSITORY_STRUCTURE.md`, `RUNTIME_LAYOUT.md`, `SERVER_STARTUP.md`, `BUILD_PROCESS.md`, `GIT.md` | 2026-08-22 docs unification. Written for the old `~/L2JM/` workspace (paths/dirs that don't exist here). Server layout/startup now: `START_HERE.md` §Run + `Documentation/SOURCE_CODE_MAP.md`; server build recap: SOURCE_CODE_MAP §Build wiring. |
+| `REQUIREMENTS.md` | 2026-08-22. All rules folded into `Documentation/WORKFLOW.md` (the ONE rules doc); startup flow into `START_HERE.md`. |
+| `STYLEGUIDE.md` | 2026-08-22. Described dead packages (`engine/`, `neural/`, `advanced/`). Naming + style essentials folded into `WORKFLOW.md` §Code style. |
+| `AGENT_ONBOARDING.md` (repo root) | 2026-08-22. Duplicated hard rules + stale summary; superseded by `AGENTS.md` + `START_HERE.md` + `WORKFLOW.md`. |
+| `audit-2026-08/` | 2026-08-22. Pre-UpgradePlan code audits (Aug 18–19); superseded by `Documentation/UpgradePlan/AUDIT_*.md`. |
+| `Baselines/` | 2026-08-22. Stale 2026-08-02 telemetry snapshot (one file had an unfilled `$(date)` template). |
+| `WorkLog/` (from `AIPlayerEngine/WorkLog/`) | 2026-08-22. 2026-08-01 relics from the old `/home/volodro/` workspace; referenced fabricated `SMARTPROJECT.md` planning. Live state: `STATUS.md`; board: `TASKS.md`. |

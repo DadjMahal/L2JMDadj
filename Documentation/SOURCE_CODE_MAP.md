@@ -211,4 +211,5 @@ is edited in `ServerBuild/`, but the source template lives here.
 
 `build.xml` compiles `java/` -> `build/bin`, then produces three jars into
 `ServerBuild/`: `LoginServer.jar`, `GameServer.jar` (in `libs/`),
-`DatabaseInstaller.jar` (in `db_installer/`). See `BUILD_PROCESS.md`.
+`DatabaseInstaller.jar` (in `db_installer/`). The jars are prebuilt and read-only for
+this project (engine policy: never edit/rebuild server source).

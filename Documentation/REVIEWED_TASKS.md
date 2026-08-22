@@ -12,11 +12,12 @@
 ---
 
 ## How to use (so we never redo work)
-1. **Before starting anything**, check this file + `TASKS.md`: if a task is listed `✅ DONE` with a
-   commit hash, **it is done — do not redo it**; instead pick an *open* item below or add a new board task.
-2. All **33 WPT web-panel tasks are DONE** (Phase A/B/C/D). **TIM-001 is genuinely OPEN** (see §B) —
-   do not mark it resolved without a real DB position/XP delta.
+1. **Before starting anything**, check this file + `Documentation/TASKS.md` (open work): if a task
+   is listed `✅ DONE` with a commit hash, **it is done — do not redo it**; pick an open board task.
+2. All **33 WPT web-panel tasks are DONE** (§A). **TIM-001 is RESOLVED** (§B). Sessions S1–S10 and
+   UpgradePlan Wave 1 are complete (§E). Only the rows on the live board `TASKS.md` are open.
 3. Every row keeps: `status · commit-hash · evidence/notes` so an auditor can re-verify instantly.
+4. When a board row completes, move it here (§E) — the live board holds OPEN work only.
 
 ---
 
@@ -90,7 +91,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
   `detectNearbyEnemy` uses the real live position, and passing `getSelectedTargetObjId()` to
   `executeCombat` so the planner emits Action/AttackRequest) + regression test
   `CombatFramePlannerTest.testPlainAttackDecisionWithResolvedObjIdProducesFrames`. Suite **223/223 green**.
-- **Evidence:** `Documentation/RuntimeLogs/2026-08-13-tim001-h1-h5-resolved.md`.
+- **Evidence:** `Documentation/_archive/RuntimeLogs/2026-08-13-tim001-h1-h5-resolved.md`.
 
 ---
 
@@ -114,7 +115,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 
 ## §D — Session review ledger (append-only; newest last)
 - **2026-08-10 … 2026-08-12** — WPT 33-task build completed (Phase A/B/C/D), 213 tests green; live
-  fleet + dashboard verified on JDK25. See board changelog `TASKS.md §12`.
+  fleet + dashboard verified on JDK25. See board changelog history below (§E.4).
 - **2026-08-12** — TIM-001 evidence run #1: far-travel attempted, single far HOP not persisted
   (9900u cap); `/telemetry` route added + verified live; probe defaults fixed.
 - **2026-08-13** — TIM-001 evidence run #2 (fresh, 5-bot, movement FORCED ON):
@@ -123,5 +124,86 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
   `gameserver.characters` identical before/after, `expGained=0`. Doc-sync done in the 2026-08-13 commit.
   **TIM-001 remains OPEN** (next: wire hop-gate as primary idle behavior + re-probe).
 
-> **Reminder for the next session:** the actively-open item is **§B TIM-001**. Everything in §A/§C is
-> done — do not reopen WPT tasks.
+> **Status:** everything in §A/§C/§E below is **done** — do not reopen. The only open work lives
+> on the board `Documentation/TASKS.md`.
+
+---
+
+## §E — TASK BOARD HISTORY (moved off the live board 2026-08-22)
+> The 100-task roadmap (sessions S1–S10, grounded in the code review of 95 `MODE:PARTIAL` files
+> and the 50-bot live run) plus the pre-board STEP era. Statuses preserved verbatim.
+> Still-open rows (S3-T02, S3-T03) live on the board `Documentation/TASKS.md`.
+
+### E.1 Sessions 1–10 (2026-08-17 board restructure → 2026-08-19)
+| Session | Scope | Outcome |
+|---|---|---|
+| S1 | Code hygiene & foundations | 10/10 DONE (wildcards→explicit 910a2812, stubs+lint b8879263, PARTIAL index+Spotless 945344cc, tunables e4211337/b8879263, style_sweep 87bf5a4b) |
+| S2 | Protocol & data hardening | 10/10 DONE (LoginCrypt d653ab1e, 50-session keys 6ce4b56d, NPC_INFO/QUEST_LIST 5b56a768, packet metrics+events 408a3b4c, CharSelectInfo 66462e9c, reconnect backoff+keepalive 25f071df, version guard 2e04ba69) |
+| S3 | Quest pillar | 8/10 DONE (LIVE quest accept 90863993 — quest 6 journal [[6,1]]; dialogs/turn-in primitives locked by QuestDialogTest/QuestChainPlannerTest; varietySeed a21ab79e; cooldown b72f182e; T02 objective progress + T03 turn-in remain OPEN on the board) |
+| S4 | Guide map & race balance | 10/10 DONE (per-race newbie fields + huntZones + vendor anchors + BFS route c78d4841; anchor tests b72f182e; cache 7def0ed0; proximity gate a9834de6) |
+| S5 | Movement & relocation | 10/10 DONE (walkable anchors + HopGate ack-gating 36645b2a — live 100% hop-success, 0/50 stalled; nudge/walkability/race-radius/drift-watch dbfa34df; telemetry+anti-oscillation 06ae36d5) |
+| S6 | Combat & survival | 10/10 DONE (USE_SKILL fallback test 99dc335f; level-scaled budgets, retreat-heal, death handling, aggro cap, death-loop a3b3f04c; potions+starter gear 1c044c5d/39ca4cce) |
+| S7 | Town & economy | 10/10 DONE (RestockPlanner orchestration; BuyManager/SellManager/Warehouse/Teleport d2c7dc55; vendor/adena/class-restock tests 68fac73e) |
+| S8 | Fleet coordination | 10/10 DONE (FleetSpreadPlanner pickAnchor tested + wired; party formation/loot 5a44db8c; per-race telemetry) |
+| S9 | Monitoring & ops | 10/10 DONE (watcher+provisioning+launcher 2aeae3de; dashboard race filter + KPIs fdf20296; log rotation/auto-restart/backup/health 25f071df) |
+| S10 | Legacy cleanup | 10/10 DONE (wire-or-archive decision executed; engine inventory + dead imports + probes c4bff0ec; PARTIAL→COMPLETE a3aa3f06; no Redis/Postgres 3efd0c82; final docs sync) |
+
+### E.2 UpgradePlan Wave 1 (2026-08-20/22; program: `Documentation/UpgradePlan/README.md`)
+| ID | Task | Status |
+|---|---|---|
+| UP-EP-1 | Archive dead engine classes to attic/ | DONE-PUSHED 4827ac0f |
+| UP-EP-2 | Relocate live engine classes; remove engine/ | DONE-PUSHED 9601dd77 |
+| UP-EP-3 | Rename phase0/* → behavior/* domain packages | DONE c049e612 |
+| UP-EP-4 | Split FleetPlay god class (FleetConfig/BotSession/DashboardBoot) | DONE 2b4cda1b |
+| UP-EP-5 | Merge micro-packages | DONE 5e61be6b |
+| UP-EP-6 | Security pass (creds → fleet_env.local, DASH_TOKEN) | DONE 8bacb021 |
+| UP-EP-7 | Virtual threads (BotSession fleet + gs-readers + dashboard) | DONE 933204d2 |
+| UP-EP-8 | Docs unification round 1 | DONE ac742a27 |
+| DOCS-2 | Docs consolidation round 2 — one fact one place: 28 stale files archived, WORKFLOW = canonical rules, TASKS = open work only (history → §E), AGENTS.md entry added, volodro-path scripts fixed (2026-08-22; evidence `RuntimeLogs/2026-08-22-docs-consolidation.md`) | DONE |
+
+### E.3 Pre-board history (STEP era)
+| ID | Task | Status | Owner |
+|---|---|---|---|
+| STEP 0 | Archive history pile + lean START_HERE/TASKS for the PLAY goal | DONE-PUSHED 7e820756 | doc-sweeper |
+| STEP 1 | BotPlay controller — bots pick goals and act, never idle | DONE-PUSHED 9b0d34f6 | play-builder |
+| STEP 2 | Quest accept/turn-in live loop (pure dialog driver, gated OFF by default) | DONE-PUSHED c4ee832a | play-builder |
+| STEP 3 | 5-bot live run + play evidence | DONE-PUSHED 94993a25 | play-builder |
+| STEP 4 | Smartness polish: death/respawn, low-HP retreat, restock intent | DONE | play-builder |
+| STEP 5 | Despawned-target lifecycle verified on the P2 fixed build | DONE (verified 3d97fe53) | play-builder |
+| STEP 6 | Idle-relocation empty-zone dead-end fixed | DONE-PUSHED 4d8acad5 | play-builder |
+| GUIDE-MAP / GUIDE-MAP-INTEG | Per-race guide map (RaceGuide) wired into RelocationPlanner | DONE-PUSHED ce3e2426 / 4d8acad5 | play-builder |
+| STEP 7 | Ultra-smart vol.1 — RestockPlanner BUY, FleetSpreadPlanner, seed-diverse quest pick | DONE-PUSHED d2c75b4b | play-builder |
+| STEP 8 | Live-path cleanup vol.1 + review/roadmap | DONE-PUSHED b08e204f | play-builder |
+| LIVE-RUN | 50 random-race players created + played 2h | DONE-PUSHED 0fd3fef4/e53ca85a | play-builder |
+
+### E.4 Board changelog (narrative, newest last; 2026-08-17 → 08-19)
+- **2026-08-19 · play-builder:** **🎯 S3-T01 DONE — LIVE QUEST ACCEPT PROVEN (the ONE-goal pillar).**
+  A real bot walked to ROXXY (30006), navigated the real server dialog (menu → Script → quest-accept
+  bypass `Script Q00006_StepIntoTheFuture 30006-03.htm`), and the server recorded it:
+  **QUEST_LIST total=0 → total=1, active=1, list=[[6,1]]** (quest 6 "Step Into The Future").
+  New behaviors: configured-giver routing (ACQUIRE routes to the configured quest NPC), dialog fires
+  within talkRange. Suite **383 green**.
+- **2026-08-19 · play-builder:** **Quest pipeline LIVE-PROVEN through the giver dialog.** Fixed quest-data
+  bug (40001's giver wrong zone — real giver "Jackson" 30002, Talking Island); quest-priority behavior
+  (within 5k of quest NPC: route to it, no combat stealing, hold while dialog open). Live probe: clicked
+  ROXXY, extracted 5 bypass links, attempted the validated bypass. Remaining blocker: multi-step quest UI
+  (menu → quest list → accept) — solved by S3-T06 QuestDialogDriver. **383/383**.
+- **2026-08-19 · play-builder:** **S5-T01 LIVE-PROVEN FIX — the keystone.** Root cause: random far-point
+  relocations landed on unwalkable terrain → server ActionFailed → 0% hop-success → freeze. Fix:
+  `RelocationPlanner` prefers REAL hunt-zone anchors. Live: **hop-success 100% on all 50 bots, 0/50
+  stalled**, 29 ATTACK/16 chase, **422 learning-kills/min**. **383 green**.
+- **2026-08-19 · play-builder:** **TOP-NOTCH AI — live learning wired.** Every real kill feeds
+  `onKill(xp) → ReinforcementEngine.rewardKill → AdaptiveLearner → DeepLearning` (+emotions; 200+
+  learning events/min, EXCITED observed). Hop-success telemetry live on the dashboard.
+- **2026-08-19 · play-builder:** **S5 root-cause** (from `MoveToLocation.java`): server rejects moves
+  with `ActionFailed` when player `isOutOfControl()` (mob CC); 9900-distance check is server-side.
+  Engine fix: on route-abandon with hostiles near, hold for CC/regen instead of churning re-plans. **382 green**.
+- **2026-08-17 · play-builder:** **Sessions 1 & 9 complete.** S1 hygiene (wildcards over 99 files, stubs,
+  imports, PARTIAL index, tunables, .editorconfig); S9 ops (watcher+xp/min fix, provisioning/launcher,
+  log rotation, keep-alive, DB backup, health check). Live: `health_check.sh` → **OK: 50/50**.
+- **2026-08-17 · play-builder:** S2-T04/05/07/08/09 — packet health, CharSelectInfo decode (+3 tests),
+  reconnect backoff, keepalive/TCP_NODELAY, watcher JSON. 50 chars persisted, avg L3.9/max L6,
+  ~119.5k total XP, 0 crashes. Post-run: `/tmp` watcher notes lost with the machine; server reverted
+  DB race/class to Human (missing `character_subclasses` rows) — true random race needs subclass provisioning.
+- **2026-08-17 · doc-sweeper/play-builder:** Board restructure — 100-task roadmap grounded in the code
+  review + 50-bot live logs. `mvn test` **345 green**; 50-bot fleet + 2h watcher live.

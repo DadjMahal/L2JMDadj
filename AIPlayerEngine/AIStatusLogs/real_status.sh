@@ -19,7 +19,7 @@ echo ""
 
 # Actual server log grep counts (one number each — no double-print)
 echo "=== ACTIVITY FROM SERVER LOGS ==="
-LOG_FILE="/home/volodro/L2JM/ServerBuild/game/log/stdout.log"
+LOG_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/ServerBuild/game/log/stdout.log"
 
 count() { local n; n=$(grep -c "$1" "$LOG_FILE" 2>/dev/null || true); echo "${n:-0}"; }
 

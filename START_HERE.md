@@ -1,26 +1,19 @@
 # 🚀 START HERE — read first, every session, every agent instance
 
-> Fast binary orientation for any agent/session in this repo. The active program is the
-> **UpgradePlan** (`Documentation/UpgradePlan/README.md`); the task board is
-> `Documentation/TASKS.md`. Status vocabulary + hard rules live in the UpgradePlan README.
+> Fast orientation for any agent in this repo. This file is evergreen (no changelogs):
+> **current state lives in `STATUS.md`**, open work in `Documentation/TASKS.md`,
+> all rules in `Documentation/WORKFLOW.md`, the active program in
+> `Documentation/UpgradePlan/README.md`.
 
 ## 0. The ONE goal
 Transform the AIPlayerEngine into the **Living Server**: a small cast of smart AI citizens
 (quest arcs, parties with humans, economy, schedules) that real players join and play WITH.
 Quality over quantity — five memorable souls beat fifty anonymous grinders.
 
-**Current state (2026-08-20):** **415/415 tests green**, `phase0` namespace is DEAD (0 matches).
-UpgradePlan **Wave 1 (engine purge)** underway: **EP-1 ✅ `4827ac0f`** (90 dead classes →
-`attic/`), **EP-2 ✅ `9601dd77`** (51 classes relocated), **EP-3 ✅ `c049e612`** (package-by-feature
-rename), **EP-4 ✅ `2b4cda1b`** (FleetPlay god class split: 1,391→76-line launcher + core/FleetConfig
-+ core/BotSession + web/DashboardBoot), **EP-5 ✅ `5e61be6b`** (micro-packages merged: 230→218
-files; presets→ClassPreset, DirectorAI+NameGenerator→Director, humanize lows→Humanization,
-BotProfile→core), **EP-6 ✅ `8bacb021`** (security: 0 hardcoded creds — bot password + DB creds
-resolve from `scripts/fleet_env.local` (copy `fleet_env.local.example`); LAN dashboard requires
-`DASH_TOKEN`, SPA opens `/?token=…`), **EP-7 ✅ `933204d2`** (fleet sessions + gs-readers +
-dashboard on virtual threads). Package tree is now clean: `behavior/` (+9 subpackages),
-`core/`, `knowledge/`, `learning/`, `net/`, `protocol/`, `web/`, `monitor/`, `metrics/`, `cli/`,
-`examples/`.
+Honest one-paragraph state: external-socket bot engine, **all tests green**, 50-bot
+mixed-race fleet farms organically with a live web dashboard; `phase0`/`engine` namespaces
+are gone (post-EP-3 package tree); zero hardcoded credentials. Exact wave status, hashes and
+next steps: **`STATUS.md`**.
 
 ## 1. Run it (bring the fleet to life)
 ```bash
@@ -28,48 +21,65 @@ dashboard on virtual threads). Package tree is now clean: `behavior/` (+9 subpac
 export PATH=~/.jdk/jdk-25.0.4+7/bin:$PATH
 cd /home/dadj/Projects/l24lude/ServerBuild/login && ./LoginServerTask.sh
 cd /home/dadj/Projects/l24lude/ServerBuild/game  && ./GameServerTask.sh
+# wait for "Login client listener started on 0.0.0.0:2106", then GameServer
+# "Server loaded in N seconds" + "Registered on login as Server N"
 
-# bot fleet + web dashboard (servers must be up first)
+# bot fleet + web dashboard (servers must be up first; secrets from scripts/fleet_env.local)
 cd /home/dadj/Projects/l24lude && scripts/fleet_launch.sh 50 8210 ai_rand_ 500000 ELF,DARK_ELF,ORC,DWARF,HUMAN
-# open http://<host-ip>:8210  (not localhost from another machine)
+# open http://<host-ip>:8210/?token=<DASH_TOKEN>  (not localhost from another machine)
 # ops: scripts/health_check.sh 50   scripts/rotate_logs.sh   scripts/keep_alive.sh   scripts/backup_db.sh
+# stop servers: pkill -f "GameServer(Task.sh|.jar)"; pkill -f "LoginServer(Task.sh|.jar)"
+
+# build/verify (must stay green before AND after every task)
+mvn -o -f AIPlayerEngine/pom.xml test
 ```
-Build/verify (must stay green before AND after every task):
-```bash
-cd /home/dadj/Projects/l24lude && mvn -o -f AIPlayerEngine/pom.xml test
-```
+Server JARs are prebuilt Ant artifacts (`ServerCode map: Documentation/SOURCE_CODE_MAP.md`);
+never rebuild or edit them — the engine is external sockets only.
 
-## 2. Active lane — UpgradePlan execution order
-Wave 1 next up (EP-4/5/6/7 ✅ — only docs remain):
-- **EP-8** — docs unification (engine README + architecture diagram) — small
-Parallel-safe anytime: **GK-1** (knowledge extractor skeleton), **LW-1** (events.jsonl sink),
-**LW-2** (WATCHER_RULES.md + watcher template). Then Waves 2-5 per UpgradePlan README.
+## 2. Doc map (read only what you need)
+| Doc | Read when |
+|---|---|
+| `STATUS.md` | you need current wave/test/ops state (updated every milestone) |
+| `Documentation/TASKS.md` | picking work — the ONLY live task board |
+| `Documentation/WORKFLOW.md` | rules: sessions, commits, doc-sync, RuntimeLogs, style |
+| `Documentation/UpgradePlan/README.md` | the active program (Living Server waves, audit facts) |
+| `Documentation/REVIEWED_TASKS.md` | checking what is already DONE (anti-redo registry) |
+| `AIPlayerEngine/README.md` | engine architecture + old→new package translation table |
+| `Documentation/MODE_PARTIAL_INDEX.md` | touching a `MODE:PARTIAL` file |
+| `Documentation/SOURCE_CODE_MAP.md` | reading server source / datapack (read-only ground truth) |
+| `Documentation/RuntimeLogs/` | per-task evidence (≤70-line records) |
+| `Documentation/_archive/_ARCHIVE_INDEX.md` | anything historical — check before trusting old paths |
 
-Task prompts are in each `AUDIT_*.md` (`### PROMPT EP-4` etc.) — read the prompt before starting.
-
-## 3. Routing table (post-EP-3 package names — `phase0` no longer exists)
+## 3. Code routing table
 | You want to touch | Read first |
 |---|---|
-| Fleet launcher (thin, post EP-4) | `examples/FleetPlay.java` → `core/FleetConfig.java` (args/knobs), `core/BotSession.java` (session machine), `web/DashboardBoot.java` |
-| Frame wiring / login+play loop | `core/CoreWiring.java` (was Phase0Wiring) |
-| Behavior integration seam | `core/EngineWiring.java` (was Phase0Integration) |
+| Fleet launcher (thin) | `examples/FleetPlay.java` → `core/FleetConfig.java` (args/knobs), `core/BotSession.java` (session machine), `web/DashboardBoot.java` |
+| Frame wiring / login+play loop | `core/CoreWiring.java` |
+| Behavior integration seam | `core/EngineWiring.java` |
 | Live bot state / snapshots | `core/BotSnapshot.java`, `core/GameStateMirror.java` |
-| Goal/play controller | `behavior/` root (BotPlayController, BotBrain, DirectorAI…) |
+| Goal/play controller | `behavior/` root (BotPlayController, BotBrain, Director…) |
 | Combat / movement / quests | `behavior/combat/`, `behavior/movement/`, `behavior/quest/` |
 | Humanization (anti-detect) | `behavior/humanize/` |
 | Static game knowledge | `knowledge/` (RaceGuide, QuestDatabase, VendorDatabase…) |
 | Learning / self-improvement | `learning/` (ReinforcementEngine, AdaptiveLearner…) |
-| Config | `src/main/resources/config/ai-player.properties` — keys are `engine.*` (was `phase0.*`) |
-| Dead code (do not resurrect lightly) | `AIPlayerEngine/attic/` (90 classes, see its README) |
-| **Task board / plan** | **`Documentation/TASKS.md`** + `Documentation/UpgradePlan/README.md` |
+| Config | `src/main/resources/config/ai-player.properties` — keys are `engine.*` |
+| Dead code (do not resurrect lightly) | `AIPlayerEngine/attic/` (see its README) |
+| Dashboard API (frozen v1 contract) | `README.md` §API routes + `web/DashboardApi.java` |
 
-## 4. Hard rules
+## 4. Hard rules (full set + workflow: `Documentation/WORKFLOW.md`)
 1. **Never edit server source** (`SourceCode/`, `ServerBuild/`) — the engine is external sockets only.
-2. `mvn -o -f AIPlayerEngine/pom.xml test` must stay **green** (415/415) before and after every task.
+2. `mvn -o -f AIPlayerEngine/pom.xml test` must stay **green** before and after every task.
 3. **One task = one commit** (`type(scope): brief`), pushed to master immediately; update the
-   AUDIT status table + TASKS.md row + RuntimeLog (`Documentation/RuntimeLogs/<date>-<ID>-<slug>.md`, ≤70 lines).
+   TASKS.md row + a RuntimeLog (`Documentation/RuntimeLogs/<date>-<ID>-<slug>.md`, ≤70 lines).
 4. Always `git pull --rebase origin master` before push; `git push origin master` right after.
 5. Prove with tests + live evidence, never fake logs; leave the repo cleaner than found.
-6. **No secrets in code/scripts** (EP-6): passwords/tokens come from `scripts/fleet_env.local`
-   (gitignored) or env — `AI_ACCOUNT_PASSWORD`, `DASH_TOKEN`, `DB_USER`/`DB_PASS`; the engine
-   fails fast without them.
+6. **No secrets in code/scripts**: passwords/tokens come from `scripts/fleet_env.local`
+   (gitignored; copy `fleet_env.local.example`) or env — `AI_ACCOUNT_PASSWORD`, `DASH_TOKEN`,
+   `DB_USER`/`DB_PASS`; the engine fails fast without them.
+
+## 5. Session boot
+```bash
+scripts/session_start.sh          # resume-aware orientation (orients + reality-check)
+```
+If `SESSION_IN_PROGRESS.md` exists at repo root, resume it — the last session was cut off
+mid-work (protocol: `WORKFLOW.md` §Resumability).

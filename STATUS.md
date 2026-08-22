@@ -16,6 +16,6 @@ readers, and the dashboard all run on virtual threads.
 
 Live ops snapshot (last verified fleet run): 50 random-race bots farming, dashboard on :8210
 (`/?token=…` — EP-6), Login :2106 / Game :7777, watcher + health_check + keep-alive + DB backup
-in place. Read `START_HERE.md` for bring-up commands and the hard rules (no server-source edits,
-mvn test green, one task one commit, push). Historical docs: `Documentation/_archive/`
-(`_ARCHIVE_INDEX.md`); anti-redo registry: `Documentation/REVIEWED_TASKS.md`.
+in place. Bring-up commands: `START_HERE.md` §1; rules: `Documentation/WORKFLOW.md`.
+Historical docs: `Documentation/_archive/` (`_ARCHIVE_INDEX.md`); anti-redo registry +
+board history: `Documentation/REVIEWED_TASKS.md`.

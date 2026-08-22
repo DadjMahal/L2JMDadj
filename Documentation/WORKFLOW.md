@@ -1,77 +1,85 @@
-# 📋 Workflow — L2JM (single rules reference)
+# 📋 WORKFLOW — the ONE rules reference
 
-> Merged 2026-08-02 from `SESSION_PROTOCOL.md` + `MULTI_AGENT_RULES.md` + `WORKFLOW_RULES.md`
-> (those now live in `Documentation/_archive_superseded/`). This is the ONE rules doc.
-> Orientation lives in `START_HERE.md`; the task board is `Documentation/TASKS.md`.
+> Merged 2026-08-22 from `SESSION_PROTOCOL`+`MULTI_AGENT_RULES`+`WORKFLOW_RULES` (2026-08-02)
+> and from `AGENT_ONBOARDING.md` + `REQUIREMENTS.md` + `STYLEGUIDE.md` (now archived).
+> Orientation lives in `START_HERE.md`; current state in `STATUS.md`; the board in `TASKS.md`.
+> When in doubt, follow this file first.
 
-## 1. Session Startup (read in this order)
-1. `START_HERE.md` (orient; ~800 tokens). **If `SESSION_IN_PROGRESS.md` exists → resume it first** (rate-limited mid-work).
-2. `AGENT_ONBOARDING.md` (6 hard rules).
-3. `Documentation/TASKS.md` (pick the first `pending` task) — unless resuming.
-4. Run START_HERE's Reality-check commands; paste output before claiming anything works.
+## 1. Session startup (in this order)
+1. `START_HERE.md` (orient). **If `SESSION_IN_PROGRESS.md` exists at repo root → resume it first** (§5).
+2. `STATUS.md` (current state) → `Documentation/TASKS.md` (pick an open row you don't collide with).
+3. `git pull --rebase origin master` — always start from latest.
+4. Run `scripts/session_start.sh` for a reality-check (ports, git status, real server state);
+   paste output before claiming anything works.
 
 ## 2. The Hard Rules (non-negotiable)
 1. **Verify before claim** — never say "working" without pasted command output.
 2. **No fake logs** — all status from real DB queries + log greps; no simulated/injected data.
-3. **Usage validation** — a class isn't "complete" unless something calls its public methods (grep callers).
-4. **Audit-first** — for any L2JMobius protocol/network code, read the matching `Documentation/Audit/*.md` first; it overrides conflicting new code.
-5. **Document before code** — write the doc, then implement.
-6. **Leave cleaner** — remove dead code, update stale docs, leave the repo better than found.
+3. **Never edit server source** — `SourceCode/` and `ServerBuild/` are read-only ground truth
+   (reading/parsing their data files is allowed and is the point of the GK-* tasks).
+4. `mvn -o -f AIPlayerEngine/pom.xml test` **green before and after** every task.
+5. **One task = one commit** (`type(scope): brief`), pushed to master right after; update the
+   TASKS.md row + a RuntimeLog. No unrelated changes in the diff.
+6. **Usage validation** — a class isn't "complete" unless something calls its public methods (grep callers).
+7. **Leave cleaner** — remove dead code, update stale docs, leave the repo better than found.
+   If something contradicts reality, STOP and report in the RuntimeLog instead of improvising.
 
-## 3. Session Workflow (one task per session)
-1. Claim one task: set `in_progress` + your agent name in `Documentation/TASKS.md`.
-2. Do the work; modify only intended source.
-3. Verify with a real command; paste the output BEFORE claiming anything works.
-4. **Sync the knowledge base at every milestone** — update ALL of: `Documentation/TASKS.md` (status + one-line Result +
-   Evidence), `STATUS.md`, `START_HERE.md` (orient), `Documentation/SESSION_HANDOFF.md` (depth), and
-   `AIPlayerEngine/AIStatusLogs/ai_progress_report.txt` (the trusted status source). Never leave a fresh
-   session able to read stale context.
-5. Write a RuntimeLog (`Documentation/RuntimeLogs/YYYY-MM-DD-<task>.md`) recording problems & solutions.
-6. Git commit (`type(scope): brief`) WITH the doc updates + RuntimeLog + evidence.
+## 3. Session workflow (one task per session)
+1. Claim one row in `Documentation/TASKS.md`: set `IN_PROGRESS (owner)` → commit → push the claim.
+2. Do the work; modify only intended source. Task prompts for the active program are embedded in
+   `Documentation/UpgradePlan/AUDIT_*.md` (`### PROMPT EP-4` etc.) — read the prompt before starting.
+3. Verify with a real command; paste output BEFORE claiming anything works.
+4. **Milestone doc-sync (mandatory at every milestone, even mid-session):** update
+   `STATUS.md` (state) + the `TASKS.md` row (status + one-line Result/Evidence) + write the
+   RuntimeLog, then commit. A fresh session must never read stale context.
+5. Done row → `DONE-PUSHED <hash>` → commit → push → move the row to `REVIEWED_TASKS.md` (registry).
 
-> ⚠️ **Milestone doc-sync is MANDATORY at every milestone even when the whole session is NOT finished.**
-> Do NOT defer doc updates to the end of a complete session. If a turn is cut off (e.g., by a
-> rate-limit), you MUST still have committed: the milestone's report (`ai_progress_report.txt`),
-> `STATUS.md`/`START_HERE.md` orient, `SESSION_HANDOFF.md` depth, `Documentation/TASKS.md` board status, the new
-> Audit/RuntimeLog evidence, and (for multi-step work) a `SESSION_IN_PROGRESS.md` checkpoint. The next
-> session then resumes from accurate, current context — no re-deriving and no stale claims.
+## 4. Documentation rules
+- Every doc states ONE thing in ONE place; others link to it (no duplicated rule lists / state).
+- Keep docs short, accurate, useful; fix a stale doc the moment you see it.
+- Never delete docs — `git mv` to `Documentation/_archive/` + add a row to `_ARCHIVE_INDEX.md`.
+- RuntimeLog convention: `Documentation/RuntimeLogs/YYYY-MM-DD-<task-id>-<slug>.md`, ≤70 lines
+  (prompt, objective, files, problems & solutions, verification output, next steps).
+  Raw run output stays OUT of git (untracked local logs only).
 
-## 4. Rate-limit-safe resumability (IMPORTANT)
-Multi-step work MUST be recoverable if a session is cut off mid-work:
-- At the start of multi-step work, write `SESSION_IN_PROGRESS.md` at repo root: goal, idempotent checklist, current step, last command output, and "if resuming: do X next".
-- Update it **before AND after** every atomic step (mark `← IN PROGRESS`, then `[x]`).
-- Commit a WIP checkpoint after each step: `git add -A && git commit -m "WIP(<step>): ..."`.
+## 5. Rate-limit-safe resumability
+- Start of multi-step work: write `SESSION_IN_PROGRESS.md` at repo root (goal, idempotent
+  checklist, current step, last command output, "if resuming: do X next").
+- Update it before AND after every atomic step; `WIP(<step>): ...` checkpoint commits are valid.
 - Keep steps idempotent (a half-applied step must be safe to re-run).
-- On clean completion, fold the scratchpad into the final RuntimeLog and `git rm SESSION_IN_PROGRESS.md`.
-- A fresh session: `START_HERE.md` tells it to check for the file first; `session_start.sh` prints it if present.
+- On clean completion, fold it into the final RuntimeLog and `git rm SESSION_IN_PROGRESS.md`.
 
-## 5. Multi-Agent Rules
-- Naming: `Laguna` (lead), `Alpha`, `Bravo`, `Charlie`… Set your name in TASKS Owner + git author + RuntimeLog.
-- Lock: never edit a task line another agent set `in_progress`.
-- Token budget: docs-only 500–1.5k; code+docs 2–5k; full feature 5–10k; audit deep dive 1.5–3k. Measured (Stream F task 100/101): fresh-agent orientation via `START_HERE.md`+routing ≈ **1.3k tokens** vs the **~73k** full handoff — prefer the routing table over bulk reads.
-- Merge conflict: pull first; second agent commits WIP and re-syncs. One agent per subsystem folder at a time for multi-file changes. Full protocol in `Documentation/MultiAgentQA.md` task 94 (prevent/detect/resolve/verify/never-force-push).
+## 6. Multi-agent rules
+- Naming: `Laguna` (lead), `Alpha`, `Bravo`, `Charlie`… Set your name in the TASKS Owner column,
+  git author and RuntimeLog.
+- Lock: never edit a task row another agent set `IN_PROGRESS`. One agent per subsystem folder
+  (see the ownership map in `TASKS.md`).
+- Merge conflict: pull first; second agent commits WIP and re-syncs. Never force-push.
+- Token budget per session: docs-only 500–1.5k · code+docs 2–5k · full feature 5–10k.
+  Fresh-agent orientation via `START_HERE.md`+routing ≈ 1.3k tokens — prefer the routing table
+  over bulk reads.
 
-## 6. RuntimeLog convention
-`Documentation/RuntimeLogs/YYYY-MM-DD-HHMMSS-<agent>-task<N>.md`, ≤40–70 lines:
-original prompt, objective, files modified, problems & solutions, verification output, next steps.
-Echo the prior log's "remaining issues" for continuity.
-
-## 7. Verification commands
-```bash
-mvn clean compile -f AIPlayerEngine/pom.xml          # build
-grep -r "ClassName" --include="*.java" AIPlayerEngine/src   # usage validation
-AIPlayerEngine/AIStatusLogs/real_status.sh           # real server state (DB=`gameserver`)
-git -C /home/dadj/Projects/l24lude status             # tree state
-```
-
-## 8. Git workflow
-- Smaller commits: `feat:`, `fix:`, `docs:`, `test:`, `chore:`, `perf:`, `refactor:`, `style:`.
+## 7. Git workflow
+- Commit types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`.
+- Format: `type(scope): brief description` (imperative mood; body optional, separated by blank line).
 - Paste "BUILD SUCCESS"/"TEST PASS" in the message or RuntimeLog.
-- WIP commits (`WIP(<step>): ...`) are valid checkpoints for long tasks.
+- `git pull --rebase origin master` before push; push right after committing a task.
 
-## 9. Documentation rules
-- Keep docs short, accurate, useful. Update stale files immediately.
-- Never delete docs — quarantine to `Documentation/_archive_*` with an index entry.
-- Document only what helps future work.
+## 8. Code style (engine)
+- Naming: packages lowercase (`com.aiplayer.<feature>`); classes PascalCase (`CombatAI`,
+  `BotSession`); methods/fields camelCase; constants UPPER_SNAKE. AI decision modules end in `AI`.
+- AI logic belongs in `behavior/` (+domain subpackages), `knowledge/`, `learning/` — NEVER in
+  packet classes, network handlers, or data models (keep those pure data/transport).
+- Logging: `java.util.logging` only (`Logger.get/Severe/Warning/Info/Fine`); no slf4j/log4j in
+  the engine. Javadoc on public API of new classes.
+- `MODE:PARTIAL` files: check `MODE_PARTIAL_INDEX.md` before touching; a file leaves the index
+  only by gaining tests + flipping its header to `MODE: COMPLETE`.
 
-*This document is the master rules reference. When in doubt, follow it first.*
+## 9. Verification commands
+```bash
+mvn -o -f AIPlayerEngine/pom.xml test              # the gate (see STATUS.md for count)
+mvn -o -f AIPlayerEngine/pom.xml compile            # build only
+grep -r "ClassName" --include="*.java" AIPlayerEngine/src   # usage validation
+AIPlayerEngine/AIStatusLogs/real_status.sh          # real server state (DB=gameserver)
+git status                                          # tree state
+```

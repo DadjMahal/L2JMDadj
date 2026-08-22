@@ -10,6 +10,10 @@ Moje vypravlus ale v mene REST.
 
 # 🖥️ Web Panel (AI Fleet Dashboard)
 
+> **AI agents start at `START_HERE.md`** (orientation → `Documentation/WORKFLOW.md` rules →
+> `Documentation/TASKS.md` open work). The rest of this README is the dashboard/API face
+> for human operators.
+
 The fleet launcher (`AIPlayerEngine/.../examples/FleetPlay.java`) serves a live single-page
 dashboard on **http://localhost:8080/**.
 
@@ -17,7 +21,7 @@ dashboard on **http://localhost:8080/**.
 |---|---|---|---|
 | Map + Grid | `/` | `AIPlayerEngine/src/main/resources/dashboard/index.html` | live bot positions, targets, stats |
 | **Ops** | `/ops.html` | `AIPlayerEngine/src/main/resources/dashboard/ops.html` | health cards, event feed, config, **TIM-001 stagnant-bot detector** |
-| API | `/api/v1/*` | `com.aiplayer.web.DashboardApi` | frozen JSON contract (see `Documentation/TASKS.md` §11) |
+| API | `/api/v1/*` | `com.aiplayer.web.DashboardApi` | frozen JSON contract (routes below; tests lock the shape) |
 | Host health | (CLI) | `scripts/server_health.sh` | ports 2106/9014/7777 + DB pings + character/account counts |
 
 ## API routes (v1 contract — frozen)

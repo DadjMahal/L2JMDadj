@@ -3,7 +3,7 @@
 # Usage: ./scripts/session_end.sh "commit message"
 # If SESSION_IN_PROGRESS.md exists, it is folded into a handoff RuntimeLog and removed (clean state).
 set -uo pipefail
-REPO=/home/volodro/L2JM
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MSG="${1:-feat: completed task}"
 
 echo "=========================================="
@@ -43,4 +43,4 @@ echo "=========================================="
 echo "  NEXT SESSION"
 echo "=========================================="
 echo "  1. ./scripts/session_start.sh   (auto-resumes if a scratchpad exists)"
-echo "  2. Read START_HERE.md + TASKS.md"
+echo "  2. Read START_HERE.md + Documentation/TASKS.md"

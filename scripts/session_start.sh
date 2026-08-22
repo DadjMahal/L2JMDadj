@@ -2,7 +2,7 @@
 # Session Start — resume-aware orientation. Run: ./scripts/session_start.sh [--build]
 # If SESSION_IN_PROGRESS.md exists, it means the last session was rate-limited mid-work → resume it.
 set -uo pipefail
-REPO=/home/volodro/L2JM
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 echo "=========================================="
 echo "  SESSION START"
@@ -34,10 +34,10 @@ ss -tlnp 2>/dev/null | grep -E '2106|7777' | sed 's/^/    /' || echo "    (login
 echo "  -- real_status.sh --"
 "$REPO/AIPlayerEngine/AIStatusLogs/real_status.sh" 2>/dev/null | sed 's/^/    /' || echo "    (real_status.sh failed)"
 
-# 3. Next pending task
+# 3. Next open task
 echo ""
-echo "[3] Next pending task (first 'pending' row in TASKS.md):"
-grep -E '^\| [0-9]+ \|' "$REPO/TASKS.md" | grep 'pending' | head -1 | sed 's/^/    /' || echo "    (none pending)"
+echo "[3] Open tasks (TODO/IN_PROGRESS/BLOCKED rows in Documentation/TASKS.md §3):"
+grep -E '^\| (S[0-9]+-T|UP-)[^|]*\|.*\| *(TODO|IN_PROGRESS|BLOCKED)' "$REPO/Documentation/TASKS.md" | head -3 | sed 's/^/    /' || echo "    (none open — check Documentation/UpgradePlan/README.md §3 for next wave)"
 
 # 4. Optional build check
 if [ "${1:-}" = "--build" ]; then
