@@ -19,7 +19,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lib  # noqa: E402
 
 EXPECTED = ["npcs.json", "items.json", "skills.json", "spawns.json", "quests.json",
-            "shops.json", "classes.json", "chains.json", "map.json", "dialog.json"]
+            "shops.json", "classes.json", "chains.json", "map.json", "dialog.json",
+            "trainers.json"]
 
 
 def named(value):

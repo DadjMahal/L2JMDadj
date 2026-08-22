@@ -154,6 +154,21 @@ fill the entries. `validate.py` (this dir) enforces the invariants §last.
 > Notes (GK-10): everything is parsed from the quest html — no dialog state guessed.
 > Quest 6 (StepIntoTheFuture): giver Roxxy 30006, startPages [30006-01.htm], talk pages
 > across 30006/30033/30311, turnInCandidates = the no-link terminal pages. The driver
+## trainers.json  (GK-11)
+| field | type | meaning |
+|---|---|---|
+| id | int | trainer NPC id (SkillLearn.xml) |
+| kind | string | `"trainer"` |
+| name | string | display name (from npcs.json) |
+| classIds | array<int> | classes this trainer teaches (authoritative SkillLearn rows) |
+| spawn `{x,y,z}` | obj/null | first point-spawn (`<npc x y z/>`) found in spawns/** — null only if the trainer has no point spawn |
+
+> Notes (GK-11): npcs.json's polygon spawns only cover MOB regions — village NPC
+> point-spawns (the `<npc id x y z/>` rows) are parsed separately here, so every
+> trainer record carries a real in-world location when the datapack provides one
+> (217/217 in this build). classIds are a subset of classes.json chains (verified).
+
+---
 > joins with quests.json (startNpc/talkNpcs) — this file's `turnInCandidates` are those
 > terminal pages, honestly not "the" turn-in (state is server-side).
 
