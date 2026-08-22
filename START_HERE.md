@@ -15,6 +15,25 @@ mixed-race fleet farms organically with a live web dashboard; `phase0`/`engine` 
 are gone (post-EP-3 package tree); zero hardcoded credentials. Exact wave status, hashes and
 next steps: **`STATUS.md`**.
 
+## 0.5 The core basis — learn this FIRST (every agent, every session)
+> The full picture lives in **`Architecture.md`** (repo root) — read it before touching code.
+
+- **What:** L24Lude = a Living Server. A cast of smart AI citizens running **next to** a
+  vanilla L2JMobius Interlude server; humans join and play *with* them. Quality over quantity.
+- **Never edit the server**: `SourceCode/` and `ServerBuild/` are read-only ground truth.
+  The engine is **external sockets only** — bots speak REAL client packets; that's the ONLY
+  gameplay path ("client-parity").
+- **Three planes**: AIPlayerEngine (own JVM) ⇄ ControlPlane middleware ⇄ vanilla GameServer
+  + a future `scripts/custom/ServerBridge` (datapack script, loopback+token, read-mostly,
+  fail-closed). The server core stays vanilla — no forking.
+- **How a bot thinks**: per-bot tick (~300 ms, virtual threads): packets → `BotSnapshot` →
+  goal ladder `QUEST > HUNT > RELOCATE > RESTOCK > IDLE > SLEEP` → planners → packets out.
+  Decisions in `behavior/`, facts in `knowledge/`, learning in `learning/`, observations via
+  `web/EventRing` → `logs/fleet/events.jsonl` (LW-*).
+- **Where the roadmap points**: hardcoded knowledge tables → JSON extracted from the datacopy
+  (GK-*); the open learning loop gets closed (IN-*); souls get DB identity + wake/sleep
+  schedules (LI-*/EN-*); everything controllable from a secured admin API (P6).
+
 ## 1. Run it (bring the fleet to life)
 ```bash
 # Login/Game on JDK25 (system java is JDK21; server JARs need JDK25)
@@ -39,8 +58,9 @@ never rebuild or edit them — the engine is external sockets only.
 ## 2. Doc map (read only what you need)
 | Doc | Read when |
 |---|---|
+| `Architecture.md` | **first** — the core basis: planes, engine internals, hard lines |
 | `STATUS.md` | you need current wave/test/ops state (updated every milestone) |
-| `Documentation/TASKS.md` | picking work — the ONLY live task board |
+| `Documentation/TASKS.md` | picking work — the ONLY live task board (100 tasks, phases) |
 | `Documentation/WORKFLOW.md` | rules: sessions, commits, doc-sync, RuntimeLogs, style |
 | `Documentation/UpgradePlan/README.md` | the active program (Living Server waves, audit facts) |
 | `Documentation/REVIEWED_TASKS.md` | checking what is already DONE (anti-redo registry) |

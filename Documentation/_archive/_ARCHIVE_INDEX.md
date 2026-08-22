@@ -15,6 +15,7 @@
 | `_archive_superseded/` | Folded into this archive root. |
 | `_archive_fabricated/` | Folded into this archive root (DO NOT TRUST those docs). |
 | `AUDIT_ORIENTATION.md` | No more audits — one PLAY goal in `START_HERE.md`. |
+| `TASKS-2026-08-22-pre-100board.md` | 2026-08-22 board restructure: superseded by the 100-task master board `Documentation/TASKS.md` (phases P0–P9). |
 | `DONE_SUMMARY.md` | `REVIEWED_TASKS.md` (anti-redo registry) + this index. |
 | `Streams.md`, `StreamGDisposition.md` | Phase-4 planning superseded by the PLAY goal. |
 | `SESSION_HANDOFF.md` | `START_HERE.md` (lean live orientation). |
