@@ -7,6 +7,9 @@ the running Login/Game server as normal client sockets — **no server source mo
 Current state: **415/415 tests green**; a 50-bot mixed-race fleet farms organically with a live
 web dashboard (see `../START_HERE.md` §1 for the exact bring-up commands).
 
+> 🏛️ **Core basis:** for the three-plane integration model, the hard lines and the full
+> roadmap, read **`../Architecture.md`** (repo root) — this README is the engine-level detail.
+
 ## Architecture
 
 ```
@@ -39,7 +42,9 @@ web dashboard (see `../START_HERE.md` §1 for the exact bring-up commands).
                                         └──────────────────────────────┘
 ```
 
-Monitoring: `monitor/` (AIMonitorDashboard), `metrics/` (FleetMetrics, EventRing, HistoryRing).
+Monitoring: `monitor/` (AIMonitorDashboard, AILogCollector), `metrics/` (PerformanceMetrics).
+The live event/state rings (`EventRing`, `HistoryRing`, `FleetMetrics`) live in `web/` (shared by
+the dashboard API and watchers). A standalone headless entry point lives in `cli/AIPlayerEngine`.
 
 ## Package map (old → new)
 
@@ -84,6 +89,7 @@ Config: `src/main/resources/config/ai-player.properties` (keys `engine.*`, `bot.
 Secrets (bot password, DB, dashboard token) come from `scripts/fleet_env.local` — never committed.
 
 ## Learn more
+- **Core basis (three planes, hard lines, roadmap): `../Architecture.md`**
 - Orientation + hard rules: `../START_HERE.md`
 - Task board: `../Documentation/TASKS.md` • UpgradePlan: `../Documentation/UpgradePlan/README.md`
 - Runtime evidence: `../Documentation/RuntimeLogs/` (one file per task)
