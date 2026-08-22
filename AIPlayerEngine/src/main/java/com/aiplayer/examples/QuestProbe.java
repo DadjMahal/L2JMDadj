@@ -122,7 +122,7 @@ public class QuestProbe
         boolean hasTutorial = foundQuestIds.contains(EXPECTED_QUEST_ID);
         System.out.println("[QuestProbe] QUEST_LIST showed id " + EXPECTED_QUEST_ID + " = " + hasTutorial
             + " (Tutorial is excluded from the visible list by its Ex flag — the live-quest proof is the"
-            + " server adding Q00255 state to character_quests on enter-world; see scripts/b6_quest_prove.sh).");
+            + " server adding Q00255 state to character_quests on enter-world; see scripts/_probes/b6_quest_prove.sh).");
         System.out.println("[QuestProbe] done");
     }
 

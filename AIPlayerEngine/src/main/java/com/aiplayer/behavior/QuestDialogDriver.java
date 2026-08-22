@@ -3,7 +3,7 @@ package com.aiplayer.behavior;
 /** MODE: COMPLETE. Pure quest accept→do→turn-in dialog state machine (STEP 2). No IO, no packets,
  *  no threads — it turns the exact bypass links a quest NPC actually SHOWED us (parsed from the live
  *  NpcHtmlMessage by {@code PacketLogger.extractBypassLinks}) into the ONE next validated bypass to
- *  send, mirroring the proven {@code scripts/c7_live_quest_proof.sh} / QuestFlowLoop rule:
+ *  send, mirroring the proven {@code scripts/_probes/c7_live_quest_proof.sh} / QuestFlowLoop rule:
  *     1. "Script" first (open the quest window) unless already sent,
  *     2. the link naming our quest,
  *     3. the objective's completion token (accept-event for ACCEPT, turn-in/finish for TURN_IN),

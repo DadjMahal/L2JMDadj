@@ -29,7 +29,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  * {@code [targetX][targetY][targetZ][originX][originY][originZ][moveType:int]} (0=cursor-key walk, 1=mouse).
  * Game crypt is DISABLED on this server (packetEncryption=0) -> plaintext GS channel, mirroring CombatProbe.
  *
- * <p>Verification: caller (scripts/b8_move_prove.sh) checks {@code characters.x/y/z} for CombatBot_01 before
+ * <p>Verification: caller (scripts/_probes/b8_move_prove.sh) checks {@code characters.x/y/z} for CombatBot_01 before
  * and after; B8 is PROVEN when the DB position moved from the origin toward the destination (and/or movement
  * packets were observed). No L2JM server source changed.
  */
@@ -66,7 +66,7 @@ public class MoveProbe
         // Destination (walkable ground). Default = a SHORT walk from the origin so the character
         // physically completes the move within the ~15s tally window (B8 regression fix, 2026-08-08:
         // the old hardcoded destination was ~8.6k units from the current bot position and never
-        // persisted). b8_move_prove.sh now passes the live DB position as origin and a nearby
+        // persisted). scripts/_probes/b8_move_prove.sh now passes the live DB position as origin and a nearby
         // destination, so the walk actually lands and the DB persists it on logout.
         int ox = args.length > 4 ? Integer.parseInt(args[4]) : -83789;
         int oy = args.length > 5 ? Integer.parseInt(args[5]) : 240799;

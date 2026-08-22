@@ -34,7 +34,7 @@ import com.aiplayer.protocol.crypt.GameCrypt;
  *   <li>AttackRequest (0x0A, client): {@code [0x0A][targetObjId][originX][originY][originZ][attackId]}.</li>
  * </ul>
  *
- * <p>Verification: this probe prints a combat opcode tally; the caller ({@code scripts/b4_combat_prove.sh})
+ * <p>Verification: this probe prints a combat opcode tally; the caller ({@code scripts/_probes/b4_combat_prove.sh})
  * also checks the player's {@code exp} in the {@code gameserver} DB before/after. B4 is PROVEN when an
  * {@code ATTACK}/{@code STATUS_UPDATE}/{@code DIE} packet is received after our attack, or {@code exp}
  * increased (a monster died).
