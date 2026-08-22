@@ -70,7 +70,7 @@ product takes shape, P9 is the proof gate.
 | EB-03 | Goal-ladder tuning: `BotPlayController` goals/priorities configurable per profile (not hardcoded order) | M | P1 | EB-01 | DONE-PUSHED 3dd20c2e |
 | EB-04 | Personality → behavior mapping: PersonalityProfile actually drives params (risk, pace, talkativeness) | M | P2 | EB-03 | DONE-PUSHED 38e607b3 |
 | EB-05 | Humanization pack review: Humanization + imperfection params audited, wired to feedback (no dead knobs) | M | P2 | – | DONE-PUSHED fb11f4ce |
-| EB-06 | Restock/Inventory planner as pure decision module (behavior/restock) feeding RestockPlanner | M | P1 | GK-3 | TODO |
+| EB-06 | Restock/Inventory planner as pure decision module (behavior/restock) feeding RestockPlanner | M | P1 | GK-3 | DONE-PUSHED d81ae488 |
 | EB-07 | Movement & travel planner: route between zones/towns using map.json + waypoints | M | P2 | GK-9 | TODO |
 | EB-08 | Chat reply engine v0: template + canned replies per context, LLM-ready seam | M | P2 | CO-4 | TODO |
 | EB-09 | Session lifecycle API: spawn/connect/play/sleep/disconnect as first-class states (SoulScheduler hook) | S | P1 | EB-01 | TODO |
