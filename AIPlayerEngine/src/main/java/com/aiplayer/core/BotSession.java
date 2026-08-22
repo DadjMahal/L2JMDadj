@@ -19,16 +19,15 @@ import static com.aiplayer.core.FleetConfig.DEATH_GUARD_MS;
 import static com.aiplayer.core.FleetConfig.RECONNECT_BASE_MS;
 import static com.aiplayer.core.FleetConfig.RECONNECT_MAX_MS;
 import static com.aiplayer.core.FleetConfig.accountPassword;
-import static com.aiplayer.core.FleetConfig.hpFrac;
 import static com.aiplayer.core.FleetConfig.raceRadiusFactor;
 import static com.aiplayer.core.FleetConfig.staleBudgetMs;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import com.aiplayer.behavior.BotSurvival;
+import com.aiplayer.behavior.QuestDialogSession;
 import com.aiplayer.net.AIPlayer;
 import com.aiplayer.net.GameServerClient;
 import com.aiplayer.behavior.combat.CombatDecision;
@@ -82,16 +81,11 @@ public final class BotSession implements Runnable
     /** Per-bot race: drives the guide landmark + restock vendor so non-Humans stay in their own zone. */
     private final PlayerRace race;
     private final Random rng;
-    // STEP 2: per-session quest-dialog driver state (only used when engine.quest.npcId is set).
-    private boolean questDialogOpen = false;
-    private String questLastHtml = null;
-    private long lastQuestClickMs = 0;
-    /** S3-T02: after the dialog goes stale, re-click the giver to surface the quest's next step. */
-    private static final long QUEST_RECLICK_MS = 10_000L;
-    // S6-T04: HP potion (itemId 1061) at low HP, gated by a cooldown.
-    private static final int POTION_ITEM_ID = 1061;
-    private static final long POTION_COOLDOWN_MS = 20_000L;
-    private static final double POTION_USE_HP_FRAC = 0.45;
+    // STEP 2: per-session quest-dialog driver — the driving DECISION state machine now lives in
+    // behavior/QuestDialogSession (pure); the session only executes its step results.
+    private final QuestDialogSession questDialog = new QuestDialogSession(10_000L);
+    // S6-T04: HP potion (itemId 1061) at low HP, gated by a cooldown — decision lives in
+    // BotSurvival (shouldSipPotion/findPotion); the session tracks only the last-use timestamp.
     private long lastPotionUseMs = 0;
     // S5-T10: position-drift watchdog (surface a bot that stops moving).
     private int freezeTicks = 0;
@@ -103,7 +97,6 @@ public final class BotSession implements Runnable
     // S7-T04: session adena income accumulator.
     private long lastAdena = -1;
     private long sessionAdenaIncome = 0;
-    private final Set<String> questSentLinks = new HashSet<>();
     // ACQUIRE-failure cooldown (per-bot, per-session state; reset() at each runSession start). Stops
     // the "re-plan the same geo-unreachable ACQUIRE giver forever" loop — e.g. Wolf Hunt at Gludio,
     // ~148k units across the ocean: after maxUnreachable abandoned goal:acquire:* routes the bot falls
@@ -174,16 +167,44 @@ public final class BotSession implements Runnable
     }
 
     /** S6-T04: an HP potion in the live inventory records (objectId needed for UseItem). */
-    private PacketLogger.InventoryItem findPotion(PacketLogger logger)
+    /** Adapt the logger's inventory records to BotSurvival's minimal item view (no protocol leak). */
+    private java.util.List<BotSurvival.Item> survivalInventory(PacketLogger logger)
     {
-        for (PacketLogger.InventoryItem it : logger.getInventoryRecords())
+        java.util.List<PacketLogger.InventoryItem> raw = logger.getInventoryRecords();
+        if (raw == null || raw.isEmpty())
         {
-            if (it != null && it.itemId == POTION_ITEM_ID && it.count > 0)
-            {
-                return it;
-            }
+            return java.util.Collections.emptyList();
         }
-        return null;
+        java.util.List<BotSurvival.Item> view = new java.util.ArrayList<>(raw.size());
+        for (PacketLogger.InventoryItem it : raw)
+        {
+            if (it == null)
+            {
+                continue;
+            }
+            final PacketLogger.InventoryItem f = it;
+            view.add(new BotSurvival.Item()
+            {
+                @Override
+                public int getItemId()
+                {
+                    return f.itemId;
+                }
+
+                @Override
+                public long getCount()
+                {
+                    return f.count;
+                }
+
+                @Override
+                public int getObjectId()
+                {
+                    return f.objectId;
+                }
+            });
+        }
+        return view;
     }
 
     /** QUEST-PRIORITY: is the configured quest giver nearby (< QUEST_PRIORITY_DIST)? */
@@ -207,9 +228,11 @@ public final class BotSession implements Runnable
      * STEP 2: drive an NPC quest dialog directly inside the fleet loop, off by default. Only runs
      * when the controller returns BYPASS at the configured giver (engine.quest.npcId). Sequence:
      * click the NPC (Action) -> wait for its NpcHtmlMessage -> push the displayed bypass links
-     * through {@link QuestDialogDriver}, which returns the ONE next validated command; send it via
-     * wiring.bypass and pause until the server shows the next dialog. Never fabricates a command the
-     * server did not display and never re-sends a link already sent in this session.
+     * through {@link QuestDialogSession} (which reuses {@link QuestDialogDriver} for WHICH link),
+     * which returns the ONE next validated command; send it via wiring.bypass and pause until the
+     * server shows the next dialog. Never fabricates a command the server did not display and never
+     * re-sends a link already sent in this session. The driving decision state machine now lives in
+     * QuestDialogSession; this method only translates its step results into socket actions.
      */
     private void driveQuestDialog(BotSnapshot snapshot, PacketLogger logger, CoreWiring wiring,
                                   GoalDecision goal, int questNpcId, String questNameProp)
@@ -220,71 +243,40 @@ public final class BotSession implements Runnable
             LOGGER.fine("[FleetPlay] " + account + " quest NPC " + questNpcId + " not tracked yet; waiting");
             return;
         }
+        boolean giverOnScreen = logger.getLastNpcHtmlOriginObjId() == giver.objectId;
+        String html = logger.getLastNpcHtml();
+        String[] links = html == null ? null : PacketLogger.extractBypassLinks(html);
+        if (html != null)
+        {
+            LOGGER.info("[FleetPlay] " + account + " quest dialog links["
+                + (links == null ? 0 : links.length) + "] " + java.util.Arrays.toString(links)); // S3-T06
+        }
         Objective objective = (goal != null && goal.goal == PlayerGoal.ACQUIRE)
             ? Objective.ACCEPT : Objective.TURN_IN;
         QuestDialog dialogDef = new QuestDialog(0, questNameProp, objective, "", "");
-
-        if (!questDialogOpen)
+        QuestDialogSession.Result r = questDialog.step(giver != null, giverOnScreen, html, links,
+            dialogDef, System.currentTimeMillis());
+        switch (r != null ? r.action : QuestDialogSession.Action.WAIT)
         {
-            // If this NPC's dialog is already on screen, begin driving it; otherwise click it open.
-            if (logger.getLastNpcHtmlOriginObjId() == giver.objectId)
-            {
-                questDialogOpen = true;
-                questLastHtml = null;
-                LOGGER.info("[FleetPlay] " + account + " quest dialog on screen for objId=" + giver.objectId);
-            }
-            else
-            {
+            case SEND_BYPASS:
+                wiring.bypass(r.bypass);
+                LOGGER.info("[FleetPlay] " + account + " quest dialog -> bypass[" + (r.done ? "done" : "...")
+                    + "] " + r.bypass);
+                if (r.done)
+                {
+                    // real accept/turn-in sent — cancel any ACQUIRE cooldown and let the planner resume.
+                    acquireCooldown.reset();
+                    LOGGER.info("[FleetPlay] " + account + " quest dialog session complete; journal will refresh");
+                }
+                break;
+            case CLICK_GIVER:
                 wiring.actionOn(giver.objectId, snapshot.x, snapshot.y, snapshot.z);
-                lastQuestClickMs = System.currentTimeMillis();
                 LOGGER.info("[FleetPlay] " + account + " clicking quest NPC objId=" + giver.objectId);
-            }
-            return;
-        }
-
-        // Dialog open: consume a NEW NpcHtmlMessage from this session, if the server sent one.
-        String html = logger.getLastNpcHtml();
-        if (html == null || html.equals(questLastHtml))
-        {
-            // S3-T02: stale dialog -> re-click the giver to surface the quest's next step.
-            if (System.currentTimeMillis() - lastQuestClickMs > QUEST_RECLICK_MS)
-            {
-                questDialogOpen = false;
-                questLastHtml = null;
-            }
-            return; // no new dialog content yet -> pause for the server's next message
-        }
-        questLastHtml = html;
-        String[] links = PacketLogger.extractBypassLinks(html);
-        LOGGER.info("[FleetPlay] " + account + " quest dialog links[" + (links == null ? 0 : links.length)
-            + "] " + java.util.Arrays.toString(links)); // S3-T06 live link-format diagnostic
-        String next = QuestDialogDriver.next(links, dialogDef, questSentLinks);
-        if (next.isEmpty())
-        {
-            // S3-T02: stale dialog -> re-click the giver to surface the quest's next step.
-            if (System.currentTimeMillis() - lastQuestClickMs > QUEST_RECLICK_MS)
-            {
-                questDialogOpen = false;
-                questLastHtml = null;
-            }
-            LOGGER.info("[FleetPlay] " + account + " quest dialog: no new validated bypass; pausing");
-            return;
-        }
-        questSentLinks.add(next);
-        boolean done = QuestDialogDriver.completes(dialogDef, next);
-        wiring.bypass(next);
-        LOGGER.info("[FleetPlay] " + account + " quest dialog -> bypass[" + (done ? "done" : "...") + "] "
-            + next);
-        if (done)
-        {
-            questDialogOpen = false;
-            questSentLinks.clear();
-            questLastHtml = null;
-            // ACQUIRE-failure cooldown: the dialog BYPASS actually drove an accept/turn-in — real quest
-            // progress, so cancel any active cooldown and let the planner author ACQUIRE/QUEST freely.
-            acquireCooldown.reset();
-            LOGGER.info("[FleetPlay] " + account + " quest dialog session complete (accept/turn-in sent); "
-                + "journal will refresh");
+                break;
+            case OPEN:
+            default:
+                LOGGER.info("[FleetPlay] " + account + " quest dialog on screen for objId=" + giver.objectId);
+                break;
         }
     }
 
@@ -413,17 +405,17 @@ public final class BotSession implements Runnable
             AIMonitorDashboard.getInstance().updatePlayerStats(player);
 
             // S6-T04: at low HP, sip an HP potion when one is stocked (server opcode 0x14), gated by a
-            // cooldown so a pocket full of pots isn't drained in one fight.
-            if (snapshot.hpMax > 0 && (double) snapshot.hpCurrent / snapshot.hpMax < POTION_USE_HP_FRAC
-                    && System.currentTimeMillis() - lastPotionUseMs > POTION_COOLDOWN_MS)
+            // cooldown so a pocket full of pots isn't drained in one fight. The DECISION is BotSurvival's
+            // (pure); the session only executes it through the socket.
+            if (BotSurvival.shouldSipPotion(snapshot, lastPotionUseMs, System.currentTimeMillis()))
             {
-                PacketLogger.InventoryItem potion = findPotion(logger);
+                BotSurvival.Item potion = BotSurvival.findPotion(survivalInventory(logger));
                 if (potion != null)
                 {
                     lastPotionUseMs = System.currentTimeMillis();
-                    gs.sendGameFrame(PacketCodec.encodeUseItem(potion.objectId));
+                    gs.sendGameFrame(PacketCodec.encodeUseItem(potion.getObjectId()));
                     LOGGER.info("[FleetPlay] " + account
-                        + " sipping HP potion objectId=" + potion.objectId);
+                        + " sipping HP potion objectId=" + potion.getObjectId());
                 }
             }
 
@@ -627,7 +619,7 @@ public final class BotSession implements Runnable
                     // QUEST-PRIORITY: if the bot is near its quest NPC (or mid-dialog), yield to the
                     // quest route instead of fighting — the CombatAI switch runs before the goal
                     // routing, so combat would otherwise steal the bot away from the giver forever.
-                    if (questDialogOpen || nearQuestNpc(snapshot, logger, questNpcId))
+                    if (questDialog.isOpen() || nearQuestNpc(snapshot, logger, questNpcId))
                     {
                         info.state = "quest-route";
                         info.thought = "near quest NPC — routing to talk (no combat)";
@@ -636,7 +628,7 @@ public final class BotSession implements Runnable
                     // FINAL-MILE: while the quest dialog is open, HOLD (don't fight) — a real
                     // player in a conversation doesn't run off to attack. Keeps the bot standing
                     // at the giver through the multi-tick click -> html -> bypass -> accept flow.
-                    if (questDialogOpen)
+                    if (questDialog.isOpen())
                     {
                         info.state = "quest-dialog";
                         info.thought = "in NPC dialog — holding (no combat while talking)";
@@ -705,9 +697,9 @@ public final class BotSession implements Runnable
                     EntityInfo nearest = snapshot.findNearestHostile(2000, logger);
                     if (nearest != null)
                     {
-                        int fx = snapshot.x + (snapshot.x - nearest.x) * 2;
-                        int fy = snapshot.y + (snapshot.y - nearest.y) * 2;
-                        wiring.moveTo(snapshot.x, snapshot.y, snapshot.z, fx, fy, snapshot.z);
+                        BotSurvival.FleeHop hop = BotSurvival.fleeHop(snapshot.x, snapshot.y,
+                            snapshot.z, nearest.x, nearest.y, nearest.z);
+                        wiring.moveTo(snapshot.x, snapshot.y, snapshot.z, hop.x, hop.y, hop.z);
                     }
                     // S6-T03: after a low-HP retreat, hold for regen before re-engaging.
                     regenHoldUntilMs = System.currentTimeMillis() + REGEN_HOLD_MS;
@@ -718,15 +710,15 @@ public final class BotSession implements Runnable
                     info.state = "idle";
                     int newTarget = 0;
                     long nowMs = System.currentTimeMillis();
-                    boolean survivalGuard = nowMs < deathGuardUntilMs
-                        || (nowMs < regenHoldUntilMs && hpFrac(snapshot) < 0.60)
-                        || (info.mobs > SURROUND_CAP && hpFrac(snapshot) < 0.70);
-                    if (survivalGuard)
+                    // S6-T03/T06/T07/T10: regen/death-loop/overwhelm guard — the DECISION is BotSurvival's
+                    // (pure predicate); the session only applies the consequence (hold vs engage).
+                    BotSurvival.Guard guard = BotSurvival.survivalGuard(snapshot, nowMs,
+                        deathGuardUntilMs, regenHoldUntilMs, info.mobs, SURROUND_CAP);
+                    if (guard.active)
                     {
-                        // S6-T03/T06/T07/T10: regen/death-loop/overwhelm guard — skip re-engaging
-                        // so the bot recovers (or relocates) instead of farming itself to death.
+                        // skip re-engaging so the bot recovers (or relocates) instead of farming to death.
                         info.state = "regen";
-                        info.thought = "survival guard (regen/death-loop/overwhelm)";
+                        info.thought = guard.reason;
                     }
                     else
                     {
