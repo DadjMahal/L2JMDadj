@@ -52,7 +52,7 @@ product takes shape, P9 is the proof gate.
 | F-04 | Root README.md: project header + pointer to START_HERE/Architecture (content stays candid) | S | P1 | F-01 | DONE-PUSHED f3982ad9 |
 | F-05 | Documentation/README.md: index of every key doc + cross-link audit (no orphan docs) | S | P2 | F-01 | DONE (reviewed 2026-08-22 — index exists; Architecture.md row added) |
 | F-06 | MODE_PARTIAL_INDEX refresh: every `MODE:PARTIAL` file listed; new files follow the header rule | S | P1 | – | DONE (reviewed 2026-08-22 — refreshed in EP-8, 95 files listed) |
-| F-07 | Golden gate script `scripts/gate.sh`: test+style+secret-lint one command, offline | S | P1 | – | TODO |
+| F-07 | Golden gate script `scripts/gate.sh`: test+style+secret-lint one command, offline | S | P1 | – | DONE-PUSHED d4e3407b |
 | F-08 | Baseline suite report: re-pin current test count, note machine-dependence (docs/README runbook) | S | P1 | F-07 | DONE (reviewed 2026-08-22 — pinned in STATUS.md, 415 verified `mvn test`) |
 | F-09 | Scripts hygiene: one-shot probes → `scripts/_probes/` or attic; live ops stay at scripts/ root | M | P2 | – | TODO |
 | F-10 | examples/ probe classes: decommission or move to attic (15 probe classes still compiled in `examples/`) | M | P2 | F-09 | TODO |
