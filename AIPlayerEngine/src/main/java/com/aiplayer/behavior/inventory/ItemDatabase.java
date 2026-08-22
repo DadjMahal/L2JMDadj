@@ -10,7 +10,7 @@ import com.aiplayer.behavior.town.BuyManager;
 /**
  * Static database of consumable items, soulshots, and scrolls for Interlude.
  * Maps item IDs to metadata for quick lookup without DB round-trips.
- * 
+ *
  * Phase 0: Hardcoded common Interlude items.
  * Phase 1: Load from L2JMobius item XMLs.
  */

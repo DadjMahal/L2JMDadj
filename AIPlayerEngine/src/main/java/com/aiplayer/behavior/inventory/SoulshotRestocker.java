@@ -14,7 +14,7 @@ import com.aiplayer.behavior.inventory.ItemDatabase.ItemInfo;
 /**
  * Monitors soulshot/spiritshot counts and triggers restocking actions.
  * Phase 0: Alert-only when shots run low; Phase 1: automated NPC purchase.
- * 
+ *
  * Thresholds:
  * - Critical: < 50 shots — disable auto-shot to prevent spamming empty shots
  * - Low: < 200 shots — flag for restock, prefer lower-grade fallback

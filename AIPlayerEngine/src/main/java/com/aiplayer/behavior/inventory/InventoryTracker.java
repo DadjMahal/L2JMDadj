@@ -17,7 +17,7 @@ import com.aiplayer.behavior.inventory.ItemDatabase.ItemType;
 /**
  * Receives inventory-related server packets and maintains InventorySnapshot.
  * Also triggers automated actions (soulshot enable, overweight alerts).
- * 
+ *
  * Packet hooks:
  * - InventoryUpdate (add/modify/remove items)
  * - ItemList (full inventory refresh)

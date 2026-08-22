@@ -17,7 +17,7 @@ import com.aiplayer.core.BotSnapshot;
  * - Item filtering (ignore junk, prioritize adena/recipes/scrolls)
  * - Human-like pickup delays (300-1200ms after drop appears)
  * - Anti-pattern: never instant-loot everything in radius
- * 
+ *
  * L2JMobius: AutoLoot is server-side config, but AI Players can also
  * manually pick up drops via RequestGetItem packet if auto-loot is off.
  */

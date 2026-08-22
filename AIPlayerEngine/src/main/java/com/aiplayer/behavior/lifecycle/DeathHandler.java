@@ -51,7 +51,7 @@ public final class DeathHandler {
                 isDead = true;
                 respawnPending = true;
                 // Human-like respawn delay: real players don't insta-respawn
-                long delay = MIN_RESPAWN_DELAY_MS 
+                long delay = MIN_RESPAWN_DELAY_MS
                     + (long) (random.nextDouble() * (MAX_RESPAWN_DELAY_MS - MIN_RESPAWN_DELAY_MS));
                 respawnScheduledAt = System.currentTimeMillis() + delay;
                 return true;

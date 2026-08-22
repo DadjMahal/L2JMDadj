@@ -17,7 +17,10 @@
 # Legit TODOs are allowed via a LEGIT_TODO marker on the line (they must be tracked in
 # Documentation/StreamGDisposition.md §4 — see AIPlayerEngine.java:59 + CombatAI.java:108).
 
-CODEBASE="/home/volodro/L2JM/AIPlayerEngine/src/main/java"
+# Resolve engine source root relative to this repo (was hardcoded to a stale
+# /home/volodro/... path — F-07 makes it portable).
+GATE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CODEBASE="$GATE_ROOT/AIPlayerEngine/src/main/java"
 SCHEME="\033[1;36m"; RED="\033[1;31m"; GREEN="\033[1;32m"; RESET="\033[0m"
 
 echo -e "${SCHEME}==========================================${RESET}"

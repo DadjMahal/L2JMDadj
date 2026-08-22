@@ -10,7 +10,7 @@ import com.aiplayer.core.GameStateMirror;
  * - 80%+ overweight: slow movement, consider selling/dropping junk
  * - 90%+ critical: stop looting, use Scroll of Escape to town
  * - 95%+ emergency: force SoE, alert operator
- * 
+ *
  * Weight values come from StatusUpdate packets (current / max).
  */
 public final class WeightMonitor {

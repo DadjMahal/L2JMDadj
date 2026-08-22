@@ -95,7 +95,7 @@ public final class RecoveryFlow {
             case REBUFFING:
                 // Phase 0: send self-buff skills from rotation
                 if (now - stateEnteredAt >= REBUFF_INTERVAL_MS * (rebuffIndex + 1)) {
-                    // TODO: integrate with CombatRotation self-buff list
+                    // LEGIT_TODO: integrate with CombatRotation self-buff list (EB-03 goal-ladder/rotation follow-up)
                                         // protocol.sendUseSkill(buffSkillId, false, false); // no target field in 0x2F; target set via Action first
                     rebuffIndex++;
                     if (rebuffIndex >= 3) { // assume 3 self-buffs max

@@ -27,7 +27,7 @@ import com.aiplayer.behavior.RestockPlanner.RestockPlan;
  */
 public final class BotPlayController
 {
-    /** Maximum distance of a single retreat hop (matching CHASE_HOP in FleetPlay, 
+    /** Maximum distance of a single retreat hop (matching CHASE_HOP in FleetPlay,
      * well under the server's ~9900u single-move rejection). */
     private static final int RETREAT_HOP = 4800;
     /** FINAL-MILE: within this distance of a quest NPC the bot routes to it before fighting. */

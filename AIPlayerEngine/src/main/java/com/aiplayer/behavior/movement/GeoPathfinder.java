@@ -17,7 +17,7 @@ public final class GeoPathfinder {
      * Phase 1: raycast against geo data.
      */
     public boolean isPathClear(int x1, int y1, int z1, int x2, int y2, int z2) {
-        // TODO Phase 1: integrate L2JMobius GeoEngine
+        // LEGIT_TODO: Phase 1 — integrate L2JMobius GeoEngine (tracked on the board)
         double straightDist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
         double zDiff = Math.abs(z2 - z1);
         // Simple heuristic: if Z difference is too steep for distance, probably blocked

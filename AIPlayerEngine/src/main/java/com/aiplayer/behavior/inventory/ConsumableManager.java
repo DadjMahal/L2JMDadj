@@ -18,7 +18,7 @@ import com.aiplayer.behavior.inventory.ItemDatabase.ItemType;
 /**
  * Intelligent consumable usage with human-like delays, situational awareness,
  * and cooldown tracking. Ensures AI Players don't spam potions or waste scrolls.
- * 
+ *
  * Usage rules:
  * - Healing potion: HP < 60% (combat), HP < 40% (out of combat)
  * - CP potion: CP < 30% (combat only)

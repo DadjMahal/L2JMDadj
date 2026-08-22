@@ -77,7 +77,8 @@
 
 ## 9. Verification commands
 ```bash
-mvn -o -f AIPlayerEngine/pom.xml test              # the gate (see STATUS.md for count)
+scripts/gate.sh                           # GOLDEN GATE: tests + style + secret-lint, one offline command (F-07)
+mvn -o -f AIPlayerEngine/pom.xml test     # the gate (see STATUS.md for count)
 mvn -o -f AIPlayerEngine/pom.xml compile            # build only
 grep -r "ClassName" --include="*.java" AIPlayerEngine/src   # usage validation
 AIPlayerEngine/AIStatusLogs/real_status.sh          # real server state (DB=gameserver)
