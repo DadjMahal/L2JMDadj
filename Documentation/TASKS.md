@@ -127,7 +127,7 @@ product takes shape, P9 is the proof gate.
 | LW-7 | Engine stdout → rotated files under `logs/engine/` (no console-only trace) | S | P2 | LW-4 | TODO |
 | LW-8 | Behavior dataset pipeline: watcher output → `data/observations/` as learning input | M | P2 | LW-3 | TODO |
 | LW-9 | Observations quality report: row counts, schema drift, gaps per bot | S | P2 | LW-8 | TODO |
-| S3-T02 | Live-prove quest objective progress (kill/collect counters via QUEST_LIST; quest persists [[6,1]], dialog re-click works — next objective from live server) | H | P0 | – | IN_PROGRESS (play-builder) |
+| S3-T02 | Live-prove quest objective progress (kill/collect counters via QUEST_LIST; quest persists [[6,1]], dialog re-click works — objective parser + live-html feed added 2026-08-22; remaining: raw counter capture + QUEST_LIST state-flip proof) | H | P0 | – | IN_PROGRESS (play-builder) |
 | S3-T03 | Live-prove quest TURN-IN + reward receipt (exp/adena/item) | H | P0 | S3-T02 | BLOCKED (on S3-T02) |
 ---
 
