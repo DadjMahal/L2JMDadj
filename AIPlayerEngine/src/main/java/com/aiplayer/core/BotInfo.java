@@ -39,6 +39,11 @@ public final class BotInfo
     /** Race label (ELF/DARK_ELF/ORC/DWARF/HUMAN) for dashboard race filter + badge (S9-T05). */
     public volatile String race = "";
     /** Life-kills counter, bumped on each EVIDENCE-H5 EXP receipt (S9-T06 kills/min). */
+/** EB-14: the bot's current structured goal + sub-goal (PlayerGoal / GoalAction names) for dashboard. */
+    public volatile String goal = "";
+    public volatile String subGoal = "";
+    /** EB-14: seconds until the longest active per-bot cooldown clears (0 = none) — regen hold / death guard / potion. */
+    public volatile long cooldownUntilSec = 0;
     public volatile long killCount;
     /** S2-T04: per-bot packet health (fed from GameServerClient). */
     public volatile long packetsRead;

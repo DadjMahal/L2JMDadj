@@ -462,6 +462,10 @@ public final class BotSession implements Runnable
                 }
             }
             info.lastSeenMs = System.currentTimeMillis();
+            // EB-14: how long until the LONGEST active per-bot cooldown clears (seconds), 0 = none.
+            long nowCd = System.currentTimeMillis();
+            long nextCdMs = Math.max(regenHoldUntilMs, Math.max(deathGuardUntilMs, lastPotionUseMs + BotSurvival.HP_POTION_COOLDOWN_MS));
+            info.cooldownUntilSec = nextCdMs > nowCd ? (nextCdMs - nowCd + 999) / 1000 : 0;
             AIMonitorDashboard.getInstance().updatePlayerStats(player);
 
             // S6-T04: at low HP, sip an HP potion when one is stocked (server opcode 0x14), gated by a
@@ -803,6 +807,9 @@ public final class BotSession implements Runnable
                         // single validated bypass) instead of routing; otherwise behave exactly as
                         // STEP 1 (MOVE_TO quest NPC / random far-travel fallback).
                         GoalDecision goal = BotPlayController.decide(buildPlayContext(snapshot, logger), cfg);
+                        // EB-14: structured goal/sub-goal on the dashboard row (PlayerGoal + GoalAction names).
+                        info.goal = goal != null && goal.goal != null ? goal.goal.name() : "";
+                        info.subGoal = goal != null && goal.action != null ? goal.action.name() : "";
                         // ACQUIRE-failure cooldown: with an empty journal the planner keeps re-issuing the
                         // same ACQUIRE giver, but a geo-unreachable one (Wolf Hunt at Gludio, ~148k across the
                         // ocean) only produces abandoned routes. While the cooldown is armed, null the goal so

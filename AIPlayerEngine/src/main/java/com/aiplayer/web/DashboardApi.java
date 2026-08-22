@@ -669,6 +669,14 @@ public final class DashboardApi
             sb.append(",\"movedLast60\":").append(Math.round(telemetry.movedLast(60_000, b.account)))
               .append(",\"movesSent\":").append(telemetry.moveCount(b.account));
         }
+        if (includeTelemetry)
+        {
+            // EB-14: structured goal/sub-goal + nearest cooldown — extended row only (/json,
+            // /api/players); the frozen /api/v1/bots object keeps its exact section-11 shape.
+            sb.append(",\"goal\":\"").append(jsonEscape(b.goal)).append('"')
+              .append(",\"subGoal\":\"").append(jsonEscape(b.subGoal)).append('"')
+              .append(",\"cooldownSec\":").append(b.cooldownUntilSec);
+        }
         sb.append('}');
         return sb.toString();
     }

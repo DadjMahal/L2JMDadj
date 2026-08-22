@@ -69,6 +69,9 @@ public class DashboardApiTest
         b1.thought = "kill it";
         b1.state = "ATTACK";
         b1.connected = true;
+b1.goal = "FARM";           // EB-14
+        b1.subGoal = "COMBAT_TARGET"; // EB-14
+        b1.cooldownUntilSec = 14;     // EB-14
         b1.loggedIn = true;
         bots.put(b1.account, b1);
 
@@ -166,6 +169,11 @@ public class DashboardApiTest
         Map<String, Object> combined = MiniJson.parse(new String(api.legacyJson(), StandardCharsets.UTF_8));
         assertEquals(2, ((List<?>) combined.get("bots")).size());
         assertTrue(combined.containsKey("entities"));
+        // EB-14: the extended (/json, /api/players) row carries structured goal/sub-goal + cooldown.
+        Map<?, ?> first = (Map<?, ?>) ((List<?>) combined.get("bots")).get(0);
+        assertEquals("FARM", first.get("goal"));
+        assertEquals("COMBAT_TARGET", first.get("subGoal"));
+        assertEquals(14L, first.get("cooldownSec"));
     }
 
     @Test
