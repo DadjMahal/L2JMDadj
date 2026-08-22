@@ -55,7 +55,7 @@ product takes shape, P9 is the proof gate.
 | F-07 | Golden gate script `scripts/gate.sh`: test+style+secret-lint one command, offline | S | P1 | – | DONE-PUSHED d4e3407b |
 | F-08 | Baseline suite report: re-pin current test count, note machine-dependence (docs/README runbook) | S | P1 | F-07 | DONE (reviewed 2026-08-22 — pinned in STATUS.md, 415 verified `mvn test`) |
 | F-09 | Scripts hygiene: one-shot probes → `scripts/_probes/` or attic; live ops stay at scripts/ root | M | P2 | – | DONE-PUSHED 1b58ceb4 |
-| F-10 | examples/ probe classes: decommission or move to attic (15 probe classes still compiled in `examples/`) | M | P2 | F-09 | TODO |
+| F-10 | examples/ probe classes: decommission or move to attic (15 probe classes still compiled in `examples/`) | M | P2 | F-09 | DONE-PUSHED 9c2d11ea |
 
 ## P1 — QUEST PILLAR (live carry-over, do not collide)
 | ID | Task | Size | Prio | Dep | Status |
