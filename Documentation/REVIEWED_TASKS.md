@@ -240,6 +240,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | GK-9 | map.json: 245 teleporters (1,407 dests, Roxxy→Dwarven 115120,-178112) + 2,533 zones (Giran 42-node) + 14 routes + 203 spawnRegions (level bands); needsReview flags for out-of-world boss zones (GK-5 pattern); MapKnowledgeTest 7 (560/560) | DONE-PUSHED e1bdb9de |
 | GK-10 | dialog.json: 344 questDialog + 9,190 dialogPage from quest html, 4,667 parsed bypass links (script/token/npc/other + target/targetNpc); isFirstPage + isTerminal → startPages/turnInCandidates; DialogKnowledgeTest 7 (567/567) | DONE-PUSHED 7df43337 |
 | GK-11 | trainers.json: 217 SkillLearn trainer NPCs → 89 classIds (⊆ classes.json chains) + real point-spawn coords (217/217; e.g. Auron 30010 Human 0-9 @ Gludin); TrainerKnowledgeTest 6 (573/573) | DONE-PUSHED ba83a0f5 |
+| GK-12 | verify_live.py live-verification job: 6 deterministic JSON↔datapack re-samples (npc 20223, item 1, trainer 30010, teleport 30006, quest 6, class-0 skills) all PASS + best-effort gameserver DB fleet check (honest SKIP w/o creds) | DONE-PUSHED 3a0cc836 |
 | F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
 | F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
 | F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |
