@@ -95,7 +95,7 @@ product takes shape, P9 is the proof gate.
 | GK-8 | Gear/build recommender wired into RestockPlanner (uses items/shops/chains) | M | P2 | GK-3, GK-5 | TODO |
 | GK-9 | Map extractor → `map.json`: 245 teleporters (1,407 dests) + 2,533 zones + 14 routes + 203 spawnRegions; needsReview flags for out-of-world boss zones (validate 9/9) | M | P2 | GK-1 | DONE-PUSHED e1bdb9de |
 | GK-10 | Dialog index: NPC talk graph from html — `dialog.json` (344 questDialog + 9,190 dialogPage, 4,667 links; firstPages/turnInCandidates; validate 10/10) | S | P2 | GK-1 | DONE-PUSHED 7df43337 |
-| GK-11 | SkillLearn/class-tree loader: trainer NPC mapping per profession (class change support) | S | P2 | GK-3 | TODO |
+| GK-11 | SkillLearn/class-tree loader: trainer NPC mapping per profession (class change support) | S | P2 | GK-3 | IN_PROGRESS (Cline) |
 | GK-12 | Live-verification job: sample generated JSON against live server values | S | P2 | GK-6 | TODO |
 ---
 
