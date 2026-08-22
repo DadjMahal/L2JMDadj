@@ -16,6 +16,7 @@ public class ChatEngine {
     private static ChatEngine instance;
     private final ProfileStore cabinet; // also replaces the old RedisCache — see ProfileStore
     private final Random rng = DeterministicRandom.forFleet("chat-engine");
+    private final ChatReplyEngine chatReplyEngine = new ChatReplyEngine(); // EB-08 seam
 
     private ChatEngine() {
         this.cabinet = ProfileStore.getInstance();
@@ -32,9 +33,6 @@ public class ChatEngine {
 
         cabinet.pushChat(botAccount, speaker + ": " + message);
 
-        Intent intent = IntentClassifier.classify(message);
-        if (intent == Intent.UNKNOWN) return null;
-
         Map<String, String> vars = new HashMap<>();
         vars.put("name", profile.getName());
         vars.put("level", String.valueOf(profile.getLevel()));
@@ -50,7 +48,11 @@ public class ChatEngine {
             return null;
         }
 
-        String reply = ResponseTemplate.pick(intent, persona, vars, botAccount.hashCode());
+        // EB-08: classify + reply through the pure, LLM-ready ChatReplyEngine seam
+        // (canned TemplateReplySource now; a future LlmReplySource drops in unchanged).
+        String reply = chatReplyEngine.reply(botAccount, speaker, message,
+            persona, vars, System.currentTimeMillis());
+        if (reply == null) return null;
         if (rng.nextDouble() < 0.10) reply = injectTypo(reply);
 
         cabinet.recordEpisode(profile.getBotId(), "CHAT", "Said: " + reply, vars.get("zone"), speaker, "neutral");
