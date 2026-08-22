@@ -66,7 +66,7 @@ product takes shape, P9 is the proof gate.
 | ID | Task | Size | Prio | Dep | Status |
 |---|---|---|---|---|---|
 | EB-01 | Separate decision core from session I/O: `BotSession` handles socket/lifecycle, decisions via behavior engine (post-EP-4 refinement) | L | P1 | – | DONE-PUSHED 9a439438 |
-| EB-02 | Deterministic seeds: every random source routed through per-bot seeded RNG (reproducible runs) | S | P1 | EB-01 | TODO |
+| EB-02 | Deterministic seeds: every random source routed through per-bot seeded RNG (reproducible runs) | S | P1 | EB-01 | DONE-PUSHED 833eab58 |
 | EB-03 | Goal-ladder tuning: `BotPlayController` goals/priorities configurable per profile (not hardcoded order) | M | P1 | EB-01 | TODO |
 | EB-04 | Personality → behavior mapping: PersonalityProfile actually drives params (risk, pace, talkativeness) | M | P2 | EB-03 | TODO |
 | EB-05 | Humanization pack review: Humanization + imperfection params audited, wired to feedback (no dead knobs) | M | P2 | – | TODO |

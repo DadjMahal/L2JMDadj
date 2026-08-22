@@ -217,6 +217,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | F-09 | Quarantine 18 one-shot probes to `scripts/_probes/` (history kept, README, javadoc refs fixed) | DONE-PUSHED 1b58ceb4 |
 | F-10 | Archive 15 probe classes to `attic/examples/`; dead imports dropped; live examples kept | DONE-PUSHED 9c2d11ea |
 | EB-01 | Decision core split from BotSession I/O → behavior/BotSurvival + QuestDialogSession (434 tests) | DONE-PUSHED 9a439438 |
+| EB-02 | DeterministicRandom: every random source seeded (per-bot + fleet), gate enforces (439 tests) | DONE-PUSHED 833eab58 |
 | F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
 | F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
 | F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |
