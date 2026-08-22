@@ -75,7 +75,7 @@ product takes shape, P9 is the proof gate.
 | EB-08 | Chat reply engine v0: template + canned replies per context, LLM-ready seam | M | P2 | CO-4 | DONE-PUSHED de193e51 |
 | EB-09 | Session lifecycle API: spawn/connect/play/sleep/disconnect as first-class states (SoulScheduler hook) | S | P1 | EB-01 | DONE-PUSHED b531ec56 |
 | EB-10 | Graceful fleet shutdown + resume: drains bots on stop, safe restart (feeds keep_alive.sh) | M | P1 | EB-09 | DONE-PUSHED c24c59fc |
-| EB-11 | Config single-source: all property reads funnel through EngineConfig with validation | M | P1 | – | TODO |
+| EB-11 | Config single-source: all property reads funnel through EngineConfig with validation | M | P1 | – | DONE-PUSHED 74cbe68c |
 | EB-12 | Logging hygiene: java.util.logging everywhere, no System.out in main | S | P2 | – | DONE-PUSHED 2d274bac |
 | EB-13 | Per-bot resource guard: rate/backpressure limits (actions per tick, queue caps) | M | P1 | EB-01 | DONE-PUSHED 83021991 |
 | EB-14 | BotSnapshot completeness: goal + sub-goal + cooldowns in telemetry for dashboard | M | P1 | EB-03 | TODO |

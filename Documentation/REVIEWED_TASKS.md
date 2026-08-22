@@ -228,6 +228,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | EB-12 | Logging hygiene: core/Logging JUL convention + CompactFormatter, check_style System.out scan widened to whole tree (markers exempt) (502 tests) | DONE-PUSHED 2d274bac |
 | EB-13 | PerBotLimiter sliding-window backpressure at CoreWiring.send funnel (20/s cap, revive/exempt, [rate-guard] log) (509 tests) | DONE-PUSHED 83021991 |
 | EB-10 | FleetShutdown + FleetDrain: graceful drain on SIGTERM/SIGINT, exit marker (+keep_alive logs it), resume semantics (534 tests) | DONE-PUSHED c24c59fc |
+| EB-11 | Config single-source: CombatConfig/QuestConfig delegate to AIConfiguration (no dup parse) + EngineConfig.validate() cross-field checks (540 tests) | DONE-PUSHED 74cbe68c |
 | F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
 | F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
 | F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |
