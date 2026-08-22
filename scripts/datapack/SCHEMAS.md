@@ -80,10 +80,18 @@ fill the entries. `validate.py` (this dir) enforces the invariants §last.
 ## shops.json  (GK-5)
 | field | type | meaning |
 |---|---|---|
-| npcId | int | vendor NPC id |
-| items | array<shop> | buy-list rows |
-| shopRow `{itemId, price, count}` | int×3 | item + price + stock count |
-| multisell | array<int> | multisell list ids |
+| id | int | buylist / multisell list id (file name) |
+| kind | string | `"buylist"` or `"multisell"` |
+| npcId | array<int> | multisell: vendor NPCs from `<npcs>`; buylist: null + needsReview (linkage not in the buylist file) |
+| items | array<shop> | buylist rows |
+| shopRow `{itemId, price, count}` | int×3 | item + price + stock count (count=0 for buylists) |
+| offers | array<offer> | multisell recipes |
+| offer `{id, count, ingredients:[{itemId,count}]}` | int×2+array | production item + its ingredients |
+| needsReview | bool | true when a field couldn't be resolved (never guessed) |
+
+> Notes (GK-5): buylists carry NO vendor NPC in the read-only file (that linkage lives in the
+> server NPC-template layer), so buylist records are always `needsReview:true` with `npcId:null`
+> — honest, never made up.
 
 ## classes.json  (GK-3)
 | field | type | meaning |

@@ -234,6 +234,7 @@ All WPT work is **complete and committed on `master`**. WPT-16 was folded into W
 | GK-2 | npcs.json: 6,541 NPCs + 38,564 drops (drop+spoil, chance clamped) + 10,754 spawns (polygon centroid), validate green | DONE-PUSHED a64f168d |
 | GK-3 | items.json (9,215) + skills.json (13,777/89 classes) + classes.json (9 bases/89 with tiers, 5 chains pasted); validate 7/7 | DONE-PUSHED c47ff42d |
 | GK-4 | quests.json: 344 quests regex-parsed (302 start+min non-null), Q00006 verified (ROXXY 30006/talk 30006.30033.30311/min 3), review 42 | DONE-PUSHED 4d8f758d |
+| GK-5 | shops.json: 616 buylists (18,728 items) + 95 multisell (8,609 offers/616 vendors); buylist→vendor linkage honestly null+needsReview | DONE-PUSHED gk5pushed |
 | F-05 | Documentation/README live-docs index (+Architecture.md row) | DONE (reviewed 2026-08-22, `0c835e9b`) |
 | F-06 | MODE_PARTIAL_INDEX refresh (EP-8, 95 files) | DONE (reviewed 2026-08-22) |
 | F-08 | Baseline suite report (STATUS.md pinned, 415 verified) | DONE (reviewed 2026-08-22) |
