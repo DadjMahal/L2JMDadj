@@ -8,6 +8,7 @@ import com.aiplayer.examples.FleetPlay;
 import com.aiplayer.protocol.PacketLogger;
 import com.aiplayer.behavior.RestockPlanner;
 import com.aiplayer.behavior.RestockPlanner.RestockPlan;
+import com.aiplayer.behavior.restock.RestockDecider;
 
 /**
  * MODE: COMPLETE. The decision ladder — picks ONE deliberate {@link GoalDecision} every tick so a
@@ -187,15 +188,23 @@ public final class BotPlayController
         return null;
     }
 
-    /** RESTOCK: inventory too full to farm -> walk to the town vendor. */
+    /** RESTOCK: consume shortages -> vendor trip. The intent decision is EB-06's RestockDecider
+     * (pure), which feeds the shortage-aware RestockPlanner for the destination + buy list. */
     private static GoalDecision rungRestock(PlayContext ctx, BotPlayConfig c)
     {
-        if (ctx.inventoryPct < c.restockThreshold)
+        // EB-06: decide WHY (soulshots low / potions low / inventory full / urgent); null when fine.
+        // The profile's restockThreshold is the FULL gate (personality-driven: MERCHANT restocks
+        // early); soulshot/potion low-marks come from the decider's documented defaults.
+        RestockDecider.Verdict v = RestockDecider.decide(ctx.soulshotCount, ctx.hpPotionCount,
+            ctx.inventoryPct, RestockDecider.SOULSHOT_RESTOCK_AT,
+            RestockDecider.HP_POTION_RESTOCK_AT, c.restockThreshold);
+        if (!v.shouldRestock())
         {
             return null;
         }
         RestockPlanner.RestockPlan plan =
-            RestockPlanner.plan(ctx.level, ctx.inventoryPct, 0, c.race);
+            RestockPlanner.plan(ctx.level, ctx.inventoryPct, 0, c.race, true,
+                v.soulshotShort, v.hpPotionShort);
         return GoalDecision.moveTo(PlayerGoal.REST, plan.vendorX, plan.vendorY, plan.vendorZ,
             "restock",
             "inventory " + ctx.inventoryPct + "% full; walk to vendor to restock");
@@ -380,10 +389,22 @@ public final class BotPlayController
         public final int stepIndex;
         /** Inventory usage percentage 0..100 (from PacketLogger.getInventoryUsagePercent). */
         public final int inventoryPct;
+        /** EB-06: current soulshot stack (>=0; -1 when the fleet loop has no inventory data yet). */
+        public final int soulshotCount;
+        /** EB-06: current HP potion stack (>=0; -1 when the fleet loop has no inventory data yet). */
+        public final int hpPotionCount;
 
         public PlayContext(int level, int x, int y, int z, int hpCurrent, int hpMax,
                            List<int[]> activeJournal, List<Hostile> hostiles, int stepIndex,
                            int inventoryPct)
+        {
+            this(level, x, y, z, hpCurrent, hpMax, activeJournal, hostiles, stepIndex,
+                inventoryPct, -1, -1); // EB-06: unknown consumables -> treated as "not low"
+        }
+
+        public PlayContext(int level, int x, int y, int z, int hpCurrent, int hpMax,
+                           List<int[]> activeJournal, List<Hostile> hostiles, int stepIndex,
+                           int inventoryPct, int soulshotCount, int hpPotionCount)
         {
             this.level = level;
             this.x = x;
@@ -395,6 +416,8 @@ public final class BotPlayController
             this.hostiles = hostiles != null ? hostiles : java.util.Collections.emptyList();
             this.stepIndex = stepIndex;
             this.inventoryPct = Math.max(0, Math.min(100, inventoryPct));
+            this.soulshotCount = soulshotCount;
+            this.hpPotionCount = hpPotionCount;
         }
     }
 

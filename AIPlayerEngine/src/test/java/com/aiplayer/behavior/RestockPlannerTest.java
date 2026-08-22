@@ -136,4 +136,32 @@ class RestockPlannerTest
         assertEquals(RestockPlanner.potionsFor(10, 1000, true), RestockPlanner.potionsFor(10, 1000, true),
             "class-aware qty is deterministic");
     }
+@Test
+    void shortageAwarePlanTopsOffExactQuantities()
+    {
+        // EB-06: when the RestockDecider says "buy toward target", the plan orders that exact qty.
+        RestockPlanner.RestockPlan p = RestockPlanner.plan(20, 85, 50_000, PlayerRace.HUMAN,
+            true, 1500, 17);
+        int ss = 0;
+        int hp = 0;
+        for (RestockPlanner.BuyOrder o : p.orders)
+        {
+            if (o.itemId == 1835) ss = o.qty;
+            if (o.itemId == 1061) hp = o.qty;
+        }
+        assertEquals(1500, ss, "soul-shot order tops off to the shortage");
+        assertEquals(17, hp, "potion order tops off to the shortage");
+    }
+
+    @Test
+    void zeroShortageKeepsHistoricalPlan()
+    {
+        // EB-06: a 0/0 shortage must be byte-identical to the pre-EB-06 base plan (no regression).
+        RestockPlanner.RestockPlan base = RestockPlanner.plan(20, 85, 50_000, PlayerRace.HUMAN, true);
+        RestockPlanner.RestockPlan top = RestockPlanner.plan(20, 85, 50_000, PlayerRace.HUMAN,
+            true, 0, 0);
+        assertEquals(base.vendorX, top.vendorX);
+        assertEquals(base.vendorY, top.vendorY);
+        assertEquals(base.orders.size(), top.orders.size());
+    }
 }

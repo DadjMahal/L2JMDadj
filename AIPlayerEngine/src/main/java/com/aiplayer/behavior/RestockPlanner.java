@@ -93,11 +93,27 @@ public final class RestockPlanner
     /** S7-T05: same plan but class-aware — fighters restock MORE HP potions than mystics. */
     public static RestockPlan plan(int level, int inventoryPct, int coins, PlayerRace race, boolean isFighter)
     {
+        return plan(level, inventoryPct, coins, race, isFighter, 0, 0);
+    }
+
+    /**
+     * EB-06: shortage-aware plan — the caller (the ladder via {@code RestockDecider}) decides the
+     * intent AND the missing quantities; this builds the actual order line-items to top off.
+     * {@code soulshotShort} / {@code hpShort} are the quantities still missing (RestockDecider.shortage).
+     * When both are 0, exactly the historical base plan is returned so old behaviour is unchanged.
+     */
+    public static RestockPlan plan(int level, int inventoryPct, int coins, PlayerRace race,
+                                   boolean isFighter, int soulshotShort, int hpShort)
+    {
         PlayerRace r = race != null ? race : PlayerRace.HUMAN;
         QuestNode anchor = RaceGuide.idleAnchor(r, level);
 
-        int ss = Math.min(SOULSHOT_MAX_QTY, SOULSHOT_BASE_QTY + level * SOULSHOT_PER_LEVEL);
-        int hp = potionsFor(level, coins, isFighter);
+        int ss = soulshotShort > 0
+            ? soulshotShort
+            : Math.min(SOULSHOT_MAX_QTY, SOULSHOT_BASE_QTY + level * SOULSHOT_PER_LEVEL);
+        int hp = hpShort > 0
+            ? hpShort
+            : potionsFor(level, coins, isFighter);
 
         List<BuyOrder> orders = new ArrayList<>();
         orders.add(new BuyOrder(SOULSHOT_ITEM_ID, ss, "soulshots"));
@@ -106,7 +122,6 @@ public final class RestockPlanner
         {
             orders.add(new BuyOrder(GEAR_UPGRADE_ITEM_ID, 1, "gear upgrade"));
         }
-
         return new RestockPlan(anchor.x, anchor.y, anchor.z, orders);
     }
 

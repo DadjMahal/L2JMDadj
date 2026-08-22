@@ -1109,9 +1109,35 @@ public final class BotSession implements Runnable
                 stepIndex = st.currentStepIndex;
             }
         }
+        int soulshots = -1;
+        int potions = -1;
+        java.util.List<BotSurvival.Item> inv = survivalInventory(logger);
+        if (!inv.isEmpty())
+        {
+            long ss = 0;
+            long hp = 0;
+            for (BotSurvival.Item it : inv)
+            {
+                if (it == null)
+                {
+                    continue;
+                }
+                if (it.getItemId() == BotSurvival.HP_POTION_ID)
+                {
+                    hp += it.getCount();
+                }
+                // Interlude Soulshot itemId 1835 (farming ammo) - same id RestockPlanner uses.
+                else if (it.getItemId() == 1835)
+                {
+                    ss += it.getCount();
+                }
+            }
+            soulshots = (int) Math.min(Integer.MAX_VALUE, ss);
+            potions = (int) Math.min(Integer.MAX_VALUE, hp);
+        }
         return new PlayContext(s.level, s.x, s.y, s.z, s.hpCurrent, s.hpMax,
             journal != null ? journal : java.util.Collections.<int[]>emptyList(),
-            hostiles, stepIndex, s.inventoryUsagePercent);
+            hostiles, stepIndex, s.inventoryUsagePercent, soulshots, potions);
     }
 
     private int parseObjId(String targetId)
