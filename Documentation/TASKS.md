@@ -91,7 +91,7 @@ product takes shape, P9 is the proof gate.
 | GK-4 | Quest extractor (344 Java scripts + html dialog graph) → `quests.json` (302 start+min, Q00006 verified, review 42) | L | P1 | GK-1 | DONE-PUSHED 4d8f758d |
 | GK-5 | Shop extractor → `shops.json` (616 buylists/18,728 items, 95 multisell/8,609 offers/616 vendors; buylist vendor-linkage honestly flagged) | M | P1 | GK-1 | DONE-PUSHED 92906f96 |
 | GK-6 | KnowledgeBase loader: JSON → id-indexed queries (npc/item/quest/skillLadder/droppersOf/questsFor) + RaceGuide anchor-vs-spawn test (553 tests) | M | P1 | GK-2..5 | DONE-PUSHED c85c1a19 |
-| GK-7 | Zero→hero chain builder → `chains.json` + `chains.md` (9 race×base chains, 16 steps each, transfers at L20/L40) | M | P1 | GK-4 | DONE-PUSHED gk7pushed |
+| GK-7 | Zero→hero chain builder → `chains.json` + `chains.md` (9 race×base chains, 16 steps each, transfers at L20/L40) | M | P1 | GK-4 | DONE-PUSHED d674d7b2 |
 | GK-8 | Gear/build recommender wired into RestockPlanner (uses items/shops/chains) | M | P2 | GK-3, GK-5 | TODO |
 | GK-9 | Map extractor → `map.json`: teleports, routes, zones, spawn regions (travel nav) | M | P2 | GK-1 | TODO |
 | GK-10 | Dialog index: NPC talk graph from html (giver/turn-in links) — feeds quest driver | S | P2 | GK-1 | TODO |
