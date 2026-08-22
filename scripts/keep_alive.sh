@@ -4,9 +4,16 @@
 set -u
 LAUNCH="${1:-/home/dadj/Projects/l24lude/scripts/fleet_launch.sh 50 8210 ai_rand_ 500000 ELF,DARK_ELF,ORC,DWARF,HUMAN}"
 PATTERN="FleetPlay 50 "
+EXIT_MARKER="${EXIT_MARKER:-/tmp/l24lude_fleet_last_exit}"
 for i in $(seq 1 999999); do
   if ! pgrep -f "$PATTERN" >/dev/null 2>&1; then
-    echo "[keep_alive $(date +%H:%M:%S)] fleet down — relaunching"
+    # EB-10: report why the fleet last stopped (written by FleetPlay's drain hook) so a
+    # graceful restart is visibly distinct from a crash relaunch.
+    LAST="(no marker)"
+    if [ -f "$EXIT_MARKER" ]; then
+      LAST=$(awk 'NR==1{print $0}' "$EXIT_MARKER" 2>/dev/null || echo "UNREADABLE")
+    fi
+    echo "[keep_alive $(date +%H:%M:%S)] fleet down (last exit: $LAST) — relaunching"
     bash -c "$LAUNCH"
   fi
   sleep 60
