@@ -2,6 +2,7 @@ package com.aiplayer.behavior;
 
 import java.util.List;
 
+import com.aiplayer.knowledge.GearGuide;
 import com.aiplayer.knowledge.PlayerRace;
 import com.aiplayer.core.BotSnapshot;
 import com.aiplayer.examples.FleetPlay;
@@ -189,7 +190,10 @@ public final class BotPlayController
     }
 
     /** RESTOCK: consume shortages -> vendor trip. The intent decision is EB-06's RestockDecider
-     * (pure), which feeds the shortage-aware RestockPlanner for the destination + buy list. */
+     * (pure), which feeds the shortage-aware RestockPlanner for the destination + buy list.
+     * GK-8: the trip may also carry a gear order — GearGuide (items+shops+chains knowledge)
+     * recommends the class's next weapon within the adena budget; mystic classes buy fewer
+     * HP potions than the old hardcoded fighter=true. */
     private static GoalDecision rungRestock(PlayContext ctx, BotPlayConfig c)
     {
         // EB-06: decide WHY (soulshots low / potions low / inventory full / urgent); null when fine.
@@ -202,12 +206,19 @@ public final class BotPlayController
         {
             return null;
         }
+        GearGuide.GearPick gear = GearGuide.recommendWeapon(ctx.classId, ctx.level, ctx.adena);
+        boolean isFighter = ctx.classId == 0 || !GearGuide.isMysticClass(ctx.classId);
+        int coins = ctx.adena > 0 ? (int) Math.min(Integer.MAX_VALUE, ctx.adena) : 0;
         RestockPlanner.RestockPlan plan =
-            RestockPlanner.plan(ctx.level, ctx.inventoryPct, 0, c.race, true,
-                v.soulshotShort, v.hpPotionShort);
+            RestockPlanner.plan(ctx.level, ctx.inventoryPct, coins, c.race, isFighter,
+                v.soulshotShort, v.hpPotionShort, gear);
+        String detail = "inventory " + ctx.inventoryPct + "% full; walk to vendor to restock";
+        if (gear != null)
+        {
+            detail += " + buy " + gear.name;
+        }
         return GoalDecision.moveTo(PlayerGoal.REST, plan.vendorX, plan.vendorY, plan.vendorZ,
-            "restock",
-            "inventory " + ctx.inventoryPct + "% full; walk to vendor to restock");
+            "restock", detail);
     }
 
     /** COMBAT: a hostile we can hit right now -> attack the nearest one. */
@@ -393,6 +404,10 @@ public final class BotPlayController
         public final int soulshotCount;
         /** EB-06: current HP potion stack (>=0; -1 when the fleet loop has no inventory data yet). */
         public final int hpPotionCount;
+        /** GK-8: the bot's class (base classId from CharSelectInfo; 0 = unknown -> Human Fighter). */
+        public final int classId;
+        /** GK-8: current adena purse (-1 when unknown -> no gear recommendation). */
+        public final long adena;
 
         public PlayContext(int level, int x, int y, int z, int hpCurrent, int hpMax,
                            List<int[]> activeJournal, List<Hostile> hostiles, int stepIndex,
@@ -406,6 +421,15 @@ public final class BotPlayController
                            List<int[]> activeJournal, List<Hostile> hostiles, int stepIndex,
                            int inventoryPct, int soulshotCount, int hpPotionCount)
         {
+            this(level, x, y, z, hpCurrent, hpMax, activeJournal, hostiles, stepIndex,
+                inventoryPct, soulshotCount, hpPotionCount, 0, -1L);
+        }
+
+        public PlayContext(int level, int x, int y, int z, int hpCurrent, int hpMax,
+                           List<int[]> activeJournal, List<Hostile> hostiles, int stepIndex,
+                           int inventoryPct, int soulshotCount, int hpPotionCount,
+                           int classId, long adena)
+        {
             this.level = level;
             this.x = x;
             this.y = y;
@@ -418,6 +442,8 @@ public final class BotPlayController
             this.inventoryPct = Math.max(0, Math.min(100, inventoryPct));
             this.soulshotCount = soulshotCount;
             this.hpPotionCount = hpPotionCount;
+            this.classId = classId;
+            this.adena = adena;
         }
     }
 

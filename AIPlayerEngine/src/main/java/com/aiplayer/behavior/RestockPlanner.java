@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.aiplayer.knowledge.GearGuide;
 import com.aiplayer.knowledge.PlayerRace;
 import com.aiplayer.knowledge.QuestNode;
 import com.aiplayer.knowledge.RaceGuide;
@@ -15,11 +16,11 @@ import com.aiplayer.knowledge.RaceGuide;
  * input, so the decision ladder can call it identically every tick.
  *
  * <p>The caller (BotPlayController RESTOCK branch) gates on {@code inventoryPct}; this helper
- * only decides the destination and the buy list.
- *
- * <p>Buy item ids are documented Interlude item ids (1835 Soulshot, 1061 Healing Potion) and a
- * stable placeholder for a first gear-upgrade weapon; a gear upgrade order is added only once the
- * bot is past the first class-change level and rich enough to afford it.
+ * only decides the destination and the buy list. Consumable ids are documented Interlude ids
+ * (1835 Soulshot, 1061 Healing Potion). GK-8 replaced the old hardcoded gear-upgrade placeholder
+ * with a real recommendation: the caller asks {@link GearGuide} (items+shops+chains knowledge)
+ * for the bot's next weapon and passes the {@link GearGuide.GearPick} in; null simply adds no
+ * gear order.
  */
 public final class RestockPlanner
 {
@@ -27,13 +28,6 @@ public final class RestockPlanner
     private static final int SOULSHOT_ITEM_ID = 1835;
     /** Healing Potion (itemId 1061) — cheap HP sustain for leveling. */
     private static final int HP_POTION_ITEM_ID = 1061;
-    /** Stable placeholder id for a first weapon upgrade (document the real id where you swap it in). */
-    private static final int GEAR_UPGRADE_ITEM_ID = 2375;
-
-    /** Level at/above which a gear upgrade order may appear (just past first class change, Lv19+). */
-    private static final int GEAR_UPGRADE_MIN_LEVEL = 20;
-    /** Coin threshold to consider the gear upgrade affordable. */
-    private static final int GEAR_UPGRADE_MIN_COINS = 50000;
 
     private static final int SOULSHOT_BASE_QTY = 200;
     private static final int SOULSHOT_PER_LEVEL = 10;
@@ -105,6 +99,18 @@ public final class RestockPlanner
     public static RestockPlan plan(int level, int inventoryPct, int coins, PlayerRace race,
                                    boolean isFighter, int soulshotShort, int hpShort)
     {
+        return plan(level, inventoryPct, coins, race, isFighter, soulshotShort, hpShort, null);
+    }
+
+    /**
+     * GK-8: gear-aware plan — same as the shortage-aware plan, plus an optional weapon
+     * recommendation from {@link GearGuide} (already budget-checked by the recommender).
+     * A null pick adds no gear order; the pick's id/label flow straight into the buy list.
+     */
+    public static RestockPlan plan(int level, int inventoryPct, int coins, PlayerRace race,
+                                   boolean isFighter, int soulshotShort, int hpShort,
+                                   GearGuide.GearPick gear)
+    {
         PlayerRace r = race != null ? race : PlayerRace.HUMAN;
         QuestNode anchor = RaceGuide.idleAnchor(r, level);
 
@@ -118,9 +124,10 @@ public final class RestockPlanner
         List<BuyOrder> orders = new ArrayList<>();
         orders.add(new BuyOrder(SOULSHOT_ITEM_ID, ss, "soulshots"));
         orders.add(new BuyOrder(HP_POTION_ITEM_ID, hp, "hp potions"));
-        if (level >= GEAR_UPGRADE_MIN_LEVEL && coins >= GEAR_UPGRADE_MIN_COINS)
+        if (gear != null)
         {
-            orders.add(new BuyOrder(GEAR_UPGRADE_ITEM_ID, 1, "gear upgrade"));
+            orders.add(new BuyOrder(gear.itemId, 1,
+                "gear upgrade: " + gear.name + " (" + gear.grade + "-grade " + gear.weaponType + ")"));
         }
         return new RestockPlan(anchor.x, anchor.y, anchor.z, orders);
     }

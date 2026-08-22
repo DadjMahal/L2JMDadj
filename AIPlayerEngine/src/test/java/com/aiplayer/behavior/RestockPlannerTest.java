@@ -65,19 +65,31 @@ class RestockPlannerTest
     }
 
     @Test
-    void gearUpgradeAppearsAtHighLevelAndCoins()
+    void gearOrderAppearsWhenGearGuidePickProvided()
     {
-        // Level 40 and rich -> a gear upgrade order is added.
-        RestockPlan p = plan(40, 80, 200000, PlayerRace.HUMAN);
-        assertTrue(ordersContain(p, 2375), "gear upgrade expected at high level + high coins");
+        // GK-8: the plan carries whatever GearGuide recommended (class+level+adena-driven).
+        com.aiplayer.knowledge.GearGuide.GearPick pick =
+            new com.aiplayer.knowledge.GearGuide.GearPick(70, "Claymore", 1_800_000, "D", "SWORD");
+        RestockPlan p = RestockPlanner.plan(40, 80, 200_000, PlayerRace.HUMAN, true, 0, 0, pick);
+        assertTrue(ordersContain(p, 70), "gear pick flows into the buy list");
+        boolean labeled = false;
+        for (BuyOrder o : p.orders)
+        {
+            if (o.itemId == 70)
+            {
+                labeled = o.label.contains("Claymore");
+            }
+        }
+        assertTrue(labeled, "gear order label names the recommended weapon");
     }
 
     @Test
-    void noGearUpgradeWhenPoorDespiteHighLevel()
+    void noGearOrderWithoutAPick()
     {
-        // High level but broke -> no gear upgrade order.
-        RestockPlan p = plan(40, 80, 1000, PlayerRace.HUMAN);
-        assertTrue(!ordersContain(p, 2375), "no gear upgrade when coins are low");
+        // GK-8: no recommendation -> exactly the two consumable orders, nothing else.
+        RestockPlan p = plan(40, 80, 200_000, PlayerRace.HUMAN);
+        assertEquals(2, p.orders.size(), "only soulshots + potions when no gear pick");
+        assertTrue(ordersContain(p, 1835) && ordersContain(p, 1061), "consumables still present");
     }
 
     @Test

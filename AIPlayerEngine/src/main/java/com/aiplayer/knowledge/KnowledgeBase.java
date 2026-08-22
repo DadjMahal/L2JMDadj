@@ -14,6 +14,10 @@ public final class KnowledgeBase
     private java.util.Map<Integer, Npc> npcs;
     private java.util.Map<Integer, Quest> quests;
     private java.util.Map<Integer, java.util.List<Skill>> skillsByClass;
+    private java.util.Set<Integer> soldItemIds;
+    private java.util.Map<Integer, ClassInfo> classesById;
+    private java.util.Map<Integer, java.util.List<ClassInfo>> classTreeByBase;
+    private java.util.Map<Integer, java.util.List<ChainStep>> chainsByBase;
     private final long loadNanos;
 
     private KnowledgeBase()
@@ -108,6 +112,30 @@ public final class KnowledgeBase
             this.level = level; this.skillLevel = skillLevel; this.cost = cost;
         }
     }
+
+    /** GK-8: classes.json chain row (one class inside a base's tier tree). */
+    public static final class ClassInfo
+    {
+        public final int classId, tier, baseClassId;
+        public final String name, baseName;
+        ClassInfo(int classId, String name, int tier, int baseClassId, String baseName)
+        {
+            this.classId = classId; this.name = name; this.tier = tier;
+            this.baseClassId = baseClassId; this.baseName = baseName;
+        }
+    }
+
+    /** GK-8: chains.json step row (one quest milestone on a race×base zero→hero chain). */
+    public static final class ChainStep
+    {
+        public final int level, npc, questId;
+        public final String kind, name;
+        ChainStep(String kind, int level, String name, int npc, int questId)
+        {
+            this.kind = kind; this.level = level; this.name = name;
+            this.npc = npc; this.questId = questId;
+        }
+    }
     // ================================================================
     // Queries
     // ================================================================
@@ -128,6 +156,30 @@ public final class KnowledgeBase
     public java.util.Collection<Npc> allNpcs()
     {
         return java.util.Collections.unmodifiableCollection(npcs.values());
+    }
+
+    /** GK-8: all loaded items (for gear-candidate scans). */
+    public java.util.Collection<Item> allItems()
+    {
+        return java.util.Collections.unmodifiableCollection(items.values());
+    }
+
+    /** GK-8: class info by classId, or null when unknown (name/tier/base for build choices). */
+    public ClassInfo classInfo(int classId)
+    {
+        return classesById.get(classId);
+    }
+
+    /** GK-8: the full tier tree (tier 0..3) of a base class, ordered as listed in classes.json. */
+    public java.util.List<ClassInfo> classTree(int baseClassId)
+    {
+        return classTreeByBase.getOrDefault(baseClassId, java.util.Collections.emptyList());
+    }
+
+    /** GK-8: zero→hero quest chain steps of a race×base (GK-7 chains.json), in level order. */
+    public java.util.List<ChainStep> chainSteps(int baseClassId)
+    {
+        return chainsByBase.getOrDefault(baseClassId, java.util.Collections.emptyList());
     }
 
     /** Every npc whose drop table includes {@code itemId}. */
@@ -182,11 +234,18 @@ public final class KnowledgeBase
         npcs = new java.util.HashMap<>();
         quests = new java.util.HashMap<>();
         skillsByClass = new java.util.HashMap<>();
+        soldItemIds = new java.util.HashSet<>();
+        classesById = new java.util.HashMap<>();
+        classTreeByBase = new java.util.HashMap<>();
+        chainsByBase = new java.util.HashMap<>();
 
         parseItems(JsonResource.autoObjectList("items.json"));
         parseNpcs(JsonResource.autoObjectList("npcs.json"));
         parseQuests(JsonResource.autoObjectList("quests.json"));
         parseSkills(JsonResource.autoObjectList("skills.json"));
+        parseShops(JsonResource.autoObjectList("shops.json"));
+        parseClasses(JsonResource.autoObjectList("classes.json"));
+        parseChains(JsonResource.autoObjectList("chains.json"));
 
         java.util.logging.Logger.getLogger(KnowledgeBase.class.getName())
             .info(TAG + " loaded: " + npcs.size() + " npcs, " + quests.size()
@@ -278,6 +337,102 @@ public final class KnowledgeBase
             skillsByClass.computeIfAbsent(cls, k -> new java.util.ArrayList<>()).add(
                 new Skill(id, cls, intOrNull(r, "parentClass"), intOrNull(r, "level"),
                     int0(r, "skillLevel"), int0(r, "cost")));
+        }
+    }
+
+    private void parseShops(java.util.List<java.util.Map<String, Object>> rows)
+    {
+        // GK-8: item ids sold in ANY buylist (shop availability for the build recommender).
+        for (java.util.Map<String, Object> r : rows)
+        {
+            Object itemsRaw = r.get("items");
+            if (!(itemsRaw instanceof java.util.List))
+            {
+                continue;
+            }
+            for (Object it0 : (java.util.List<?>) itemsRaw)
+            {
+                if (it0 instanceof java.util.Map)
+                {
+                    Object iid = ((java.util.Map<?, ?>) it0).get("itemId");
+                    if (iid instanceof Integer)
+                    {
+                        soldItemIds.add((Integer) iid);
+                    }
+                }
+            }
+        }
+    }
+
+    /** True when some buylist sells this item id (shop availability for the build guide). */
+    public boolean isSoldInShop(int itemId)
+    {
+        return soldItemIds.contains(itemId);
+    }
+
+    private void parseClasses(java.util.List<java.util.Map<String, Object>> rows)
+    {
+        // GK-8: classes.json — per-base tier tree ({baseClassId, baseName, chain:[{classId,name,tier}]}).
+        for (java.util.Map<String, Object> r : rows)
+        {
+            Integer base = (Integer) r.get("baseClassId");
+            if (base == null)
+            {
+                continue;
+            }
+            String baseName = str(r, "baseName");
+            java.util.List<ClassInfo> tree = new java.util.ArrayList<>();
+            Object chainRaw = r.get("chain");
+            if (chainRaw instanceof java.util.List)
+            {
+                for (Object c0 : (java.util.List<?>) chainRaw)
+                {
+                    if (!(c0 instanceof java.util.Map))
+                    {
+                        continue;
+                    }
+                    java.util.Map<?, ?> c = (java.util.Map<?, ?>) c0;
+                    Integer cid = (Integer) c.get("classId");
+                    if (cid == null)
+                    {
+                        continue;
+                    }
+                    ClassInfo info = new ClassInfo(cid, c.get("name") == null ? "" : c.get("name").toString(),
+                        int0((java.util.Map<String, Object>) c, "tier"), base, baseName);
+                    classesById.put(cid, info);
+                    tree.add(info);
+                }
+            }
+            classTreeByBase.put(base, java.util.Collections.unmodifiableList(tree));
+        }
+    }
+
+    private void parseChains(java.util.List<java.util.Map<String, Object>> rows)
+    {
+        // GK-8: chains.json — race×base zero→hero quest steps ({baseClassId, steps:[{kind,level,...}]}).
+        for (java.util.Map<String, Object> r : rows)
+        {
+            Integer base = (Integer) r.get("baseClassId");
+            if (base == null)
+            {
+                continue;
+            }
+            java.util.List<ChainStep> steps = new java.util.ArrayList<>();
+            Object stepsRaw = r.get("steps");
+            if (stepsRaw instanceof java.util.List)
+            {
+                for (Object s0 : (java.util.List<?>) stepsRaw)
+                {
+                    if (!(s0 instanceof java.util.Map))
+                    {
+                        continue;
+                    }
+                    java.util.Map<String, Object> s = (java.util.Map<String, Object>) s0;
+                    steps.add(new ChainStep(str(s, "kind"), int0(s, "level"), str(s, "name"),
+                        int0(s, "npc"), int0(s, "questId")));
+                }
+            }
+            chainsByBase.put(base, java.util.Collections.unmodifiableList(steps));
         }
     }
 

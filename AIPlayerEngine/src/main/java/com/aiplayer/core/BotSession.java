@@ -1212,7 +1212,9 @@ public final class BotSession implements Runnable
         }
         return new PlayContext(s.level, s.x, s.y, s.z, s.hpCurrent, s.hpMax,
             journal != null ? journal : java.util.Collections.<int[]>emptyList(),
-            hostiles, stepIndex, s.inventoryUsagePercent, soulshots, potions);
+            hostiles, stepIndex, s.inventoryUsagePercent, soulshots, potions,
+            // GK-8: real class + purse so the restock trip can carry a GearGuide weapon order.
+            logger.getCharSelectClassId(), logger.getAdena());
     }
 
     private int parseObjId(String targetId)

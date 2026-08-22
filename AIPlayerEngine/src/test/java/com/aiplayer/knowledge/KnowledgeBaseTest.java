@@ -122,4 +122,79 @@ class KnowledgeBaseTest
             }
         }
     }
+
+    // ------------------------------------------------------------------
+    // GK-8: classes.json + chains.json + shops.json loaders
+    // ------------------------------------------------------------------
+
+    @Test
+    void classInfoByKnownId()
+    {
+        KnowledgeBase.ClassInfo c = KB.classInfo(0); // Human Fighter, base of its own tree
+        assertNotNull(c);
+        assertEquals("Human Fighter", c.name);
+        assertEquals(0, c.tier);
+        assertEquals(0, c.baseClassId);
+    }
+
+    @Test
+    void classInfoCarriesItsBase()
+    {
+        KnowledgeBase.ClassInfo c = KB.classInfo(42); // Shillien Oracle, tier 1 of base 38
+        assertNotNull(c);
+        assertEquals(38, c.baseClassId);
+        assertTrue(c.tier >= 1);
+    }
+
+    @Test
+    void classInfoUnknownIsNull()
+    {
+        assertEquals(null, KB.classInfo(99999));
+    }
+
+    @Test
+    void classTreeHoldsTiersOfBase()
+    {
+        List<KnowledgeBase.ClassInfo> tree = KB.classTree(0); // Human Fighter tree
+        assertTrue(tree.size() >= 10, "tier tree has all branches: " + tree.size());
+        assertTrue(tree.stream().allMatch(c -> c.baseClassId == 0), "tree rows belong to base 0");
+        assertTrue(tree.stream().anyMatch(c -> c.name.equals("Gladiator")));
+    }
+
+    @Test
+    void chainStepsIncludeFirstClassMilestone()
+    {
+        List<KnowledgeBase.ChainStep> steps = KB.chainSteps(0); // Human Fighter zero->hero chain
+        assertFalse(steps.isEmpty());
+        boolean firstClass = false;
+        for (KnowledgeBase.ChainStep s : steps)
+        {
+            if ("firstClass".equals(s.kind))
+            {
+                assertEquals(20, s.level, "first-class transfer at L20");
+                assertTrue(s.questId > 0, "milestone carries its quest");
+                firstClass = true;
+            }
+        }
+        assertTrue(firstClass, "chain has a firstClass step");
+    }
+
+    @Test
+    void chainStepsUnknownBaseEmpty()
+    {
+        assertTrue(KB.chainSteps(99999).isEmpty());
+    }
+
+    @Test
+    void shopAvailabilityKnownItems()
+    {
+        assertTrue(KB.isSoldInShop(1835), "soulshots are buylist goods");
+        assertFalse(KB.isSoldInShop(Integer.MAX_VALUE), "unknown id is not sold");
+    }
+
+    @Test
+    void allItemsMatchesItemCount()
+    {
+        assertEquals(KB.itemCount(), KB.allItems().size(), "allItems exposes every loaded item");
+    }
 }
