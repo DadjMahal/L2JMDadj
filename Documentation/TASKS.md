@@ -78,7 +78,7 @@ product takes shape, P9 is the proof gate.
 | EB-11 | Config single-source: all property reads funnel through EngineConfig with validation | M | P1 | – | DONE-PUSHED 74cbe68c |
 | EB-12 | Logging hygiene: java.util.logging everywhere, no System.out in main | S | P2 | – | DONE-PUSHED 2d274bac |
 | EB-13 | Per-bot resource guard: rate/backpressure limits (actions per tick, queue caps) | M | P1 | EB-01 | DONE-PUSHED 83021991 |
-| EB-14 | BotSnapshot completeness: goal + sub-goal + cooldowns in telemetry for dashboard | M | P1 | EB-03 | TODO |
+| EB-14 | BotSnapshot completeness: goal + sub-goal + cooldowns in telemetry for dashboard | M | P1 | EB-03 | DONE-PUSHED 52433ee8 |
 
 ---
 
