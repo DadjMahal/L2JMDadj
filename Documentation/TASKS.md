@@ -19,6 +19,8 @@
 
 ## 2. Status vocabulary
 `TODO` · `IN_PROGRESS (owner)` · `BLOCKED (reason)` · `DONE-PUSHED <hash>` → row moves to the registry.
+`DONE (reviewed YYYY-MM-DD)` = verified already shipped elsewhere (e.g. EP-* or STATUS.md); kept on
+the board for visibility, no work needed.
 
 ## 3. Phase overview (100 tasks)
 | Phase | IDs | Count | Theme |
@@ -48,12 +50,12 @@ product takes shape, P9 is the proof gate.
 | F-02 | `START_HERE.md` gains §0.5 "core basis" section + doc-map link to Architecture.md | S | P0 | F-01 | DONE (2026-08-22 restructure) |
 | F-03 | AIPlayerEngine/README.md: sync package diagram + link root Architecture.md | S | P1 | F-01 | TODO |
 | F-04 | Root README.md: project header + pointer to START_HERE/Architecture (content stays candid) | S | P1 | F-01 | TODO |
-| F-05 | Documentation/README.md: index of every key doc + cross-link audit (no orphan docs) | S | P2 | F-01 | TODO |
-| F-06 | MODE_PARTIAL_INDEX refresh: every `MODE:PARTIAL` file listed; new files follow the header rule | S | P1 | – | TODO |
+| F-05 | Documentation/README.md: index of every key doc + cross-link audit (no orphan docs) | S | P2 | F-01 | DONE (reviewed 2026-08-22 — index exists; Architecture.md row added) |
+| F-06 | MODE_PARTIAL_INDEX refresh: every `MODE:PARTIAL` file listed; new files follow the header rule | S | P1 | – | DONE (reviewed 2026-08-22 — refreshed in EP-8, 95 files listed) |
 | F-07 | Golden gate script `scripts/gate.sh`: test+style+secret-lint one command, offline | S | P1 | – | TODO |
-| F-08 | Baseline suite report: re-pin current test count, note machine-dependence (docs/README runbook) | S | P1 | F-07 | TODO |
+| F-08 | Baseline suite report: re-pin current test count, note machine-dependence (docs/README runbook) | S | P1 | F-07 | DONE (reviewed 2026-08-22 — pinned in STATUS.md, 415 verified `mvn test`) |
 | F-09 | Scripts hygiene: one-shot probes → `scripts/_probes/` or attic; live ops stay at scripts/ root | M | P2 | – | TODO |
-| F-10 | examples/ probe classes: decommission or move to attic (last compiled default-password stragglers) | M | P2 | F-09 | TODO |
+| F-10 | examples/ probe classes: decommission or move to attic (15 probe classes still compiled in `examples/`) | M | P2 | F-09 | TODO |
 
 ## P1 — QUEST PILLAR (live carry-over, do not collide)
 | ID | Task | Size | Prio | Dep | Status |
