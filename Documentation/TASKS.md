@@ -86,7 +86,7 @@ product takes shape, P9 is the proof gate.
 | ID | Task | Size | Prio | Dep | Status |
 |---|---|---|---|---|---|
 | GK-1 | Extractor skeleton: `scripts/datapack/` (_lib.py, per-domain stubs, extract_all.py, SCHEMAS.md ≤150 lines, validate.py) | S | P1 | – | DONE-PUSHED 825928ca |
-| GK-2 | NPC+spawn+drops extractor → `npcs.json` (6,541 records / 38,564 drops / 10,754 spawns, validate green) | M | P1 | GK-1 | DONE-PUSHED gk2 |
+| GK-2 | NPC+spawn+drops extractor → `npcs.json` (6,541 records / 38,564 drops / 10,754 spawns, validate green) | M | P1 | GK-1 | DONE-PUSHED a64f168d |
 | GK-3 | Items + skills + class-tree extractor → `items.json`/`skills.json` (SkillLearn.xml tree) | M | P1 | GK-1 | TODO |
 | GK-4 | Quest extractor (346 Java scripts + html dialog graph) → `quests.json` | L | P1 | GK-1 | TODO |
 | GK-5 | Shop extractor (616 buylists + 93 multisell) → `shops.json` | M | P1 | GK-1 | TODO |
