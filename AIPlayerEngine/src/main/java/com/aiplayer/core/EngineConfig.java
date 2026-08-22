@@ -137,4 +137,80 @@ public final class EngineConfig
     {
         return aiConfig.getIntProperty("engine.reaction_outlier_ms", 1200);
     }
+
+    // ================================================================
+    // EB-11 — configuration VALIDATION (single source of truth for engine.* knobs).
+    // ================================================================
+
+    /** One configuration problem (field + what was seen + why). */
+    public static final class ConfigIssue
+    {
+        public final String field;
+        public final String value;
+        public final String message;
+
+        public ConfigIssue(String field, String value, String message)
+        {
+            this.field = field;
+            this.value = value;
+            this.message = message;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "engine." + field + "=" + value + " -> " + message;
+        }
+    }
+
+    /**
+     * Validate the engine.\* knobs this class owns. Cross-field invariants (min radius <= max
+     * radius) and range checks that, if broken, would make the fleet do nonsense (e.g. a
+     * negative idle-route timeout or a max radius smaller than the min). Returns the issues
+     * found; an empty list means the config is sane.
+     */
+    public java.util.List<ConfigIssue> validate()
+    {
+        java.util.List<ConfigIssue> issues = new java.util.ArrayList<>();
+        int idleRoute = getMovementIdleRouteMs();
+        if (idleRoute < 0)
+        {
+            issues.add(new ConfigIssue("movement.idle_route_ms", String.valueOf(idleRoute),
+                "must be >= 0 (a negative timeout would route instantly)"));
+        }
+        int minR = getMovementMinRadius();
+        int maxR = getMovementMaxRadius();
+        if (minR < 0)
+        {
+            issues.add(new ConfigIssue("movement.min_radius", String.valueOf(minR), "must be >= 0"));
+        }
+        if (maxR < 0)
+        {
+            issues.add(new ConfigIssue("movement.max_radius", String.valueOf(maxR), "must be >= 0"));
+        }
+        if (maxR < minR)
+        {
+            issues.add(new ConfigIssue("movement.max_radius", String.valueOf(maxR),
+                "must be >= movement.min_radius (" + minR + ")"));
+        }
+        if (getReactionBaseMs() < 0)
+        {
+            issues.add(new ConfigIssue("reaction_base_ms", String.valueOf(getReactionBaseMs()), "must be >= 0"));
+        }
+        if (getReactionSigmaMs() < 0)
+        {
+            issues.add(new ConfigIssue("reaction_sigma_ms", String.valueOf(getReactionSigmaMs()), "must be >= 0"));
+        }
+        double outlier = getReactionOutlierChance();
+        if (outlier < 0.0 || outlier > 1.0)
+        {
+            issues.add(new ConfigIssue("reaction_outlier_pct", String.valueOf(outlier * 100.0),
+                "must be in [0, 100]"));
+        }
+        if (getReactionOutlierMs() < 0)
+        {
+            issues.add(new ConfigIssue("reaction_outlier_ms", String.valueOf(getReactionOutlierMs()), "must be >= 0"));
+        }
+        return issues;
+    }
 }

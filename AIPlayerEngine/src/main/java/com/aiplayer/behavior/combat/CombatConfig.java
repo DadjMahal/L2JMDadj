@@ -1,59 +1,24 @@
 package com.aiplayer.behavior.combat;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.logging.Logger;
+import com.aiplayer.core.AIConfiguration;
 
 /**
- * Combat AI Configuration
- * Controls combat behavior, skill usage, and engagement rules
+ * Combat AI Configuration — controls combat behavior, skill usage, and engagement rules.
+ *
+ * <p>EB-11 SINGLE-SOURCE: this class no longer parses its own copy of
+ * {@code config/ai-player.properties}. Every read delegates to the ONE loaded store,
+ * {@link AIConfiguration}, which the engine loads exactly once. Public getters keep the same
+ * keys + defaults, so callers (CombatAI, tests) are unaffected — but the duplicate file parse
+ * is gone.
  */
 public class CombatConfig {
-    private static final Logger LOGGER = Logger.getLogger(CombatConfig.class.getName());
     private static final CombatConfig INSTANCE = new CombatConfig();
 
-    private final Properties properties = new Properties();
-
     private CombatConfig() {
-        loadConfiguration();
     }
 
     public static CombatConfig getInstance() {
         return INSTANCE;
-    }
-
-    private void loadConfiguration() {
-        try {
-            InputStream in = getClass().getClassLoader()
-                .getResourceAsStream("config/ai-player.properties");
-
-            if (in != null) {
-                properties.load(in);
-                LOGGER.info("Combat configuration loaded");
-            }
-        } catch (IOException e) {
-            LOGGER.warning("Failed to load combat config, using defaults");
-            loadDefaults();
-        }
-    }
-
-    private void loadDefaults() {
-        // Combat AI defaults
-        setProperty("combat.enabled", "true");
-        setProperty("combat.target_distance", "1500");
-        setProperty("combat.attack_range", "1500");
-        setProperty("combat.detect_range", "3000");
-        setProperty("combat.skill_cooldown", "5000");
-        setProperty("combat.pvp_enabled", "false");
-        setProperty("combat.pvp_karma_threshold", "500");
-        setProperty("combat.health_threshold", "50");
-        setProperty("combat.mana_threshold", "20");
-        setProperty("combat.defensive_threshold", "40");
-        setProperty("combat.retreat_threshold", "15");
-        setProperty("combat.max_targets", "3");
-        setProperty("combat.auto_play_enabled", "true");
-        setProperty("combat.skill_priority", "ATTACK:1,HEAL:2,POWER_STRIKE:3");
     }
 
     // Configuration getters
@@ -141,51 +106,20 @@ public class CombatConfig {
     }
 
     // Utility methods
-    private String getProperty(String key) {
-        return properties.getProperty(key);
-    }
-
+    // EB-11 SINGLE-SOURCE: delegate every read to the ONE loaded AIConfiguration store.
     private String getProperty(String key, String defaultValue) {
-        return properties.getProperty(key, defaultValue);
-    }
-
-    private void setProperty(String key, String value) {
-        properties.setProperty(key, value);
-    }
-
-    private int getIntProperty(String key) {
-        return Integer.parseInt(getProperty(key));
+        return AIConfiguration.getInstance().getProperty(key, defaultValue);
     }
 
     private int getIntProperty(String key, int defaultValue) {
-        try {
-            return Integer.parseInt(getProperty(key));
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
-    private boolean getBooleanProperty(String key) {
-        return Boolean.parseBoolean(getProperty(key));
+        return AIConfiguration.getInstance().getIntProperty(key, defaultValue);
     }
 
     private boolean getBooleanProperty(String key, boolean defaultValue) {
-        String value = getProperty(key);
-        if (value == null) {
-            return defaultValue;
-        }
-        return Boolean.parseBoolean(value);
-    }
-
-    private long getLongProperty(String key) {
-        return Long.parseLong(getProperty(key));
+        return AIConfiguration.getInstance().getBooleanProperty(key, defaultValue);
     }
 
     private long getLongProperty(String key, long defaultValue) {
-        try {
-            return Long.parseLong(getProperty(key));
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
+        return AIConfiguration.getInstance().getLongProperty(key, defaultValue);
     }
 }
