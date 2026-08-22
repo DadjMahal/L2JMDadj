@@ -433,6 +433,32 @@ public final class BotSession implements Runnable
                         com.aiplayer.behavior.quest.QuestObjectiveParser.parse(
                             firstQuestId, firstQuestState, html);
                     info.questObjective = obj != null ? obj.toString() : "";
+                    // S3-T03: reward receipts — when the on-screen dialog IS the turn-in page and
+                    // a system message carries item-name args, surface the receipt (windowed, honest).
+                    if (com.aiplayer.behavior.quest.QuestTurnRewardParser.isTurnInDialog(html))
+                    {
+                        PacketLogger.SystemMessageEvent sm = logger.getLastSystemMessage();
+                        if (sm != null)
+                        {
+                            java.util.List<com.aiplayer.behavior.quest.QuestTurnRewardParser.ItemArg> args =
+                                new java.util.ArrayList<>();
+                            for (PacketLogger.Arg a : sm.params)
+                            {
+                                args.add(new com.aiplayer.behavior.quest.QuestTurnRewardParser.ItemArg(a.type, a.rendered));
+                            }
+                            java.util.List<com.aiplayer.behavior.quest.QuestTurnRewardParser.RewardReceipt> r =
+                                com.aiplayer.behavior.quest.QuestTurnRewardParser.itemReceipts(args);
+                            if (!r.isEmpty())
+                            {
+                                java.util.List<String> lines = new java.util.ArrayList<>();
+                                for (com.aiplayer.behavior.quest.QuestTurnRewardParser.RewardReceipt rc : r)
+                                {
+                                    lines.add(rc.toString());
+                                }
+                                info.questReward = String.join(", ", lines);
+                            }
+                        }
+                    }
                 }
             }
             info.lastSeenMs = System.currentTimeMillis();
